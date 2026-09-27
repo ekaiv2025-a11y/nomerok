@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { RequestForm } from "@/components/RequestForm";
-import { getPublishedMasterBySlug } from "@/lib/db";
-import { getDict } from "@/lib/i18n";
+import { getDict, href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 
 export const dynamic = "force-dynamic";
@@ -14,22 +15,33 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 
 type Props = LangParams & { searchParams: Promise<{ category?: string; master?: string }> };
 
+/** Общая заявка: её получают все специалисты направления. Написать конкретному — на странице специалиста. */
 export default async function RequestPage({ params, searchParams }: Props) {
   const lang = await langOf(params);
   const t = getDict(lang).request;
   const sp = await searchParams;
-  const master = sp.master ? await getPublishedMasterBySlug(sp.master).catch(() => null) : null;
+  // Старые ссылки «заявка конкретному специалисту» ведут теперь на отдельную страницу сообщения
+  if (sp.master) redirect(href(lang, `/master/${encodeURIComponent(sp.master)}/message`));
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-xl px-4 py-6 sm:py-12">
       <h1 className="text-[26px] font-bold leading-tight sm:text-[32px]">{t.title}</h1>
-      <p className="mt-2 text-[15px] text-muted">{master ? t.subMaster : t.subGeneral}</p>
+      <p className="mt-2 text-[15px] leading-relaxed text-muted">{t.subGeneral}</p>
+      <ol className="mt-4 grid grid-cols-3 gap-2">
+        {t.steps.map((s, i) => (
+          <li key={i} className="rounded-xl bg-cream p-2.5 text-[12.5px] leading-snug">
+            <span className="mb-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[12px] font-bold text-white">{i + 1}</span>
+            {s}
+          </li>
+        ))}
+      </ol>
       <div className="mt-6">
-        <RequestForm
-          lang={lang}
-          defaultCategory={sp.category}
-          master={master ? { slug: master.slug, name: master.name, category: master.category } : null}
-        />
+        <RequestForm lang={lang} defaultCategory={sp.category} />
       </div>
+      <p className="mt-6 text-center text-[14px]">
+        <Link href={href(lang) + "#masters"} className="font-semibold text-brand hover:underline">
+          {t.pickInstead}
+        </Link>
+      </p>
     </div>
   );
 }

@@ -67,7 +67,7 @@ export function PortfolioEditor({ lang, initial }: { lang: Locale; initial: Port
                 maxLength={120}
                 placeholder={t.portfolioCaption}
                 onBlur={(e) => e.target.value.trim() !== it.caption && call("PATCH", { index: i, caption: e.target.value })}
-                className="w-full rounded-lg border border-line px-2 py-1.5 text-[13px] outline-none focus:border-brand"
+                className="w-full rounded-lg border border-line px-2 py-1.5 text-[16px] outline-none focus:border-brand sm:text-[13px]"
               />
               <div className="mt-1.5 flex items-center justify-between">
                 <div className="flex gap-1">

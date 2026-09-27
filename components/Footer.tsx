@@ -7,7 +7,7 @@ export function Footer({ lang }: { lang: Locale }) {
   const t = getDict(lang).footer;
   const L = ({ to, children }: { to: string; children: React.ReactNode }) => (
     <li>
-      <Link className="hover:text-ink" href={href(lang, to)}>
+      <Link className="break-words hover:text-ink [overflow-wrap:anywhere]" href={href(lang, to)}>
         {children}
       </Link>
     </li>

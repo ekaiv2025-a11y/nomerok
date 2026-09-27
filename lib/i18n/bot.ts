@@ -164,7 +164,7 @@ const ru: BotDict = {
   help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/pause — пауза (отпуск, не принимаю заявки)\n/resume — снова принимаю заявки\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
   forwarded: "Спасибо! Передали сообщение команде, ответим в ближайшее время.",
   newRequest: (cat, desc, when) => `🆕 <b>Новая заявка: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру», чтобы получить телефон клиента.`,
-  directRequest: (desc, when) => `🆕 <b>Заявка лично вам</b> (со страницы вашего профиля)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру», чтобы получить телефон клиента.`,
+  directRequest: (desc, when) => `✉️ <b>Клиент написал лично вам</b> (со страницы вашего профиля)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру заказ», чтобы получить телефон клиента. Если не ответить в течение суток, задача уйдёт другим специалистам.`,
   btnTake: "✋ Беру заказ",
   takenMaster: (name, phone, desc) =>
     `✅ <b>Заявка ваша.</b> Свяжитесь с клиентом в течение часа:\n\n👤 ${name}\n📞 <b>${phone}</b>\n\n<i>${desc}</i>\n\nМы сообщили клиенту, что вы откликнулись.`,
@@ -267,7 +267,7 @@ const en: BotDict = {
   help: "Commands:\n/cabinet — link to your dashboard\n/pause — pause (vacation, not taking requests)\n/resume — accept requests again\n/help — help\n\nAny other message will be passed to our team.",
   forwarded: "Thanks! We've passed your message to the team and will reply soon.",
   newRequest: (cat, desc, when) => `🆕 <b>New request: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone.`,
-  directRequest: (desc, when) => `🆕 <b>Request for you</b> (from your profile page)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone.`,
+  directRequest: (desc, when) => `✉️ <b>A client messaged you personally</b> (from your profile page)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone. If there's no reply within a day, the job goes to other specialists.`,
   btnTake: "✋ I'll take it",
   takenMaster: (name, phone, desc) =>
     `✅ <b>The request is yours.</b> Contact the client within an hour:\n\n👤 ${name}\n📞 <b>${phone}</b>\n\n<i>${desc}</i>\n\nWe've told the client you responded.`,
@@ -370,7 +370,7 @@ const ka: BotDict = {
   help: "ბრძანებები:\n/cabinet — ბმული თქვენს კაბინეტზე\n/pause — პაუზა (შვებულება, არ ვიღებ განაცხადებს)\n/resume — ისევ ვიღებ განაცხადებს\n/help — დახმარება\n\nნებისმიერ სხვა შეტყობინებას გადავცემთ გუნდს.",
   forwarded: "გმადლობთ! შეტყობინება გადავეცით გუნდს, მალე გიპასუხებთ.",
   newRequest: (cat, desc, when) => `🆕 <b>ახალი განაცხადი: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ“, რომ მიიღოთ კლიენტის ტელეფონი.`,
-  directRequest: (desc, when) => `🆕 <b>განაცხადი პირადად თქვენთვის</b> (თქვენი პროფილის გვერდიდან)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ“, რომ მიიღოთ კლიენტის ტელეფონი.`,
+  directRequest: (desc, when) => `✉️ <b>კლიენტმა პირადად თქვენ მოგწერათ</b> (თქვენი პროფილის გვერდიდან)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ შეკვეთას“, რომ მიიღოთ კლიენტის ტელეფონი. თუ დღე-ღამეში არ უპასუხებთ, ამოცანა სხვა სპეციალისტებს გადაეცემა.`,
   btnTake: "✋ ვიღებ შეკვეთას",
   takenMaster: (name, phone, desc) =>
     `✅ <b>განაცხადი თქვენია.</b> დაუკავშირდით კლიენტს ერთი საათის განმავლობაში:\n\n👤 ${name}\n📞 <b>${phone}</b>\n\n<i>${desc}</i>\n\nკლიენტს ვაცნობეთ, რომ გამოეხმაურეთ.`,

@@ -72,7 +72,7 @@ export function AvailabilityCard({ lang, away, untilLabel }: { lang: Locale; awa
             </button>
           </div>
           <div className="mt-2 flex gap-2">
-            <input type="date" value={date} min={plusDays(1)} max={plusDays(366)} onChange={(e) => setDate(e.target.value)} className="field h-9 flex-1 py-1 text-[14px]" />
+            <input type="date" value={date} min={plusDays(1)} max={plusDays(366)} onChange={(e) => setDate(e.target.value)} className="field h-10 flex-1 py-1" />
             <button type="button" disabled={busy || !date} onClick={() => save({ away: true, until: date })} className="btn-primary h-9 px-3 text-[13px]">
               {t.untilDate}
             </button>

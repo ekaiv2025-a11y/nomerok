@@ -37,7 +37,7 @@ export function ReviewReply({ lang, reviewId, initial }: { lang: Locale; reviewI
         }}
         rows={2}
         maxLength={1500}
-        className="field text-[14px]"
+        className="field"
         placeholder={t.replyPlaceholder}
       />
       <div className="mt-2 flex items-center gap-3">

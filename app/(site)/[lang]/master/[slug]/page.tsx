@@ -9,6 +9,7 @@ import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Avatar } from "@/components/Avatar";
 import { ContactReveal } from "@/components/ContactReveal";
+import { StickyContactBar } from "@/components/StickyContactBar";
 import { ShareButtons } from "@/components/ShareButtons";
 import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
 import { RatingLine, Stars } from "@/components/Stars";
@@ -63,7 +64,7 @@ export default async function MasterPage({ params }: Props) {
   const sameCount = others.filter((x) => x.category === m.category).length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-8 pt-5 sm:px-6 sm:pt-8">
+    <div className="mx-auto max-w-5xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8 lg:pb-8">
       <Link href={href(lang)} className="text-[14px] text-muted hover:text-ink">
         {t.back}
       </Link>
@@ -121,7 +122,10 @@ export default async function MasterPage({ params }: Props) {
                   </Link>
                 </div>
               ) : (
-                <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
+                <>
+                  <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
+                  <StickyContactBar contactsLabel={t.stickyContacts} writeLabel={t.stickyWrite} writeHref={href(lang, `/master/${m.slug}/message`)} />
+                </>
               )}
             </>
           )}

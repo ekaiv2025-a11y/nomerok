@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Phone, MessageCircle, Send, Loader2 } from "lucide-react";
+import { Phone, MessageCircle, Send, Loader2, Mail } from "lucide-react";
 import { formatPhone, telegramLink, whatsappLink } from "@/lib/phone";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { SITE_NAME } from "@/lib/site";
@@ -33,8 +33,17 @@ export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { m
     }
   }
 
+  // Кнопка «Контакты» в нижней панели на телефоне просит открыть контакты здесь
+  useEffect(() => {
+    const onReveal = () => {
+      if (!c && state !== "loading") reveal();
+    };
+    window.addEventListener("nm:reveal", onReveal);
+    return () => window.removeEventListener("nm:reveal", onReveal);
+  });
+
   return (
-    <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+    <div id="contact" className="scroll-mt-20 rounded-2xl border border-line bg-white p-5 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
       {!c ? (
         <>
           <button onClick={reveal} disabled={state === "loading"} className="btn-primary h-12 w-full">
@@ -62,9 +71,10 @@ export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { m
       )}
       {!hideRequest && (
         <div className="mt-4 border-t border-line pt-4 text-center">
-          <Link href={href(lang, `/request?master=${slug}`)} className="text-[14px] font-semibold text-brand hover:underline">
-            {t.orRequest}
+          <Link href={href(lang, `/master/${slug}/message`)} className="btn-ghost h-11 w-full">
+            <Mail className="h-4 w-4" /> {t.orMessage}
           </Link>
+          <p className="mt-2 text-[12px] leading-snug text-muted">{t.orMessageHint}</p>
         </div>
       )}
     </div>

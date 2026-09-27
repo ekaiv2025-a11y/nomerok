@@ -55,7 +55,7 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t.searchPlaceholder}
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-[15px] outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent px-3 text-[16px] outline-none sm:text-[15px]"
           aria-label={t.searchAria}
         />
         {q && (

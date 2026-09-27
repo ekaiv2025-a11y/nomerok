@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     });
 
     const lines = [
-      "🆕 <b>Новая заявка</b>",
+      master ? "✉️ <b>Сообщение специалисту</b>" : "🆕 <b>Новая заявка</b>",
       `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))}`,
       master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
       `<b>Задача:</b> ${escapeHtml(saved.description)}`,
