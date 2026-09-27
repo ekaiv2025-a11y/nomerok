@@ -6,14 +6,14 @@ import { Mail, Phone } from "lucide-react";
 
 /**
  * Нижняя панель на телефоне в профиле специалиста: «Контакты» и «Написать».
- * Прячется, пока на экране виден основной блок контактов.
+ * Видна всегда, кроме момента, когда на экране сам блок контактов (он внизу страницы).
  */
 export function StickyContactBar({ contactsLabel, writeLabel, writeHref }: { contactsLabel: string; writeLabel: string; writeHref: string }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     const el = document.getElementById("contact");
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setShow(!e.isIntersecting && e.boundingClientRect.top < 0), { threshold: 0 });
+    const io = new IntersectionObserver(([e]) => setShow(!e.isIntersecting), { threshold: 0 });
     io.observe(el);
     return () => io.disconnect();
   }, []);

@@ -100,7 +100,7 @@ export default async function MasterPage({ params }: Props) {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:gap-10">
-        <aside className="lg:sticky lg:top-24 lg:order-2 lg:h-fit">
+        <aside className="order-2 lg:sticky lg:top-24 lg:h-fit">
           {m.demo ? (
             <div className="rounded-2xl border border-accent/50 bg-[#fdf6e6] p-5">
               <p className="font-semibold">{t.demoTitle}</p>
@@ -133,7 +133,7 @@ export default async function MasterPage({ params }: Props) {
           )}
         </aside>
 
-        <div className="lg:order-1">
+        <div className="order-1">
           {services.length > 0 && (
             <section>
               <h2 className="text-[18px] font-bold">{t.services}</h2>
@@ -247,13 +247,6 @@ export default async function MasterPage({ params }: Props) {
 
           <p className="mt-6 text-[12px] text-muted">{t.ownLanguageNote}</p>
 
-          <section className="mt-8">
-            <h2 className="text-[18px] font-bold">{t.share}</h2>
-            <p className="mt-1 text-[14px] text-muted">{t.shareHint}</p>
-            <div className="mt-3">
-              <ShareButtons url={url} text={t.shareText(m.name, cat)} lang={lang} />
-            </div>
-          </section>
 
           {MEDICAL_CATEGORIES.includes(m.category) && (
             <p className="mt-10 rounded-xl border border-accent/40 bg-[#fdf6e6] p-4 text-[13px] leading-relaxed text-[#5a4a22]">{t.medical(SITE_NAME)}</p>
@@ -316,6 +309,17 @@ export default async function MasterPage({ params }: Props) {
             </section>
           )}
 
+        </div>
+      </div>
+
+      <div className="lg:max-w-[calc(100%-380px)]">
+          <section className="mt-8">
+            <h2 className="text-[18px] font-bold">{t.share}</h2>
+            <p className="mt-1 text-[14px] text-muted">{t.shareHint}</p>
+            <div className="mt-3">
+              <ShareButtons url={url} text={t.shareText(m.name, cat)} lang={lang} />
+            </div>
+          </section>
           <p className="mt-6 rounded-xl bg-cream p-4 text-[13px] leading-relaxed text-muted">{t.directNote(SITE_NAME)}</p>
           {!m.demo && (
             <p className="mt-4 text-[13px]">
@@ -324,7 +328,6 @@ export default async function MasterPage({ params }: Props) {
               </Link>
             </p>
           )}
-        </div>
       </div>
 
       {similar.length > 0 && (

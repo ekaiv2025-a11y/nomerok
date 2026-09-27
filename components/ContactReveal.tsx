@@ -33,6 +33,15 @@ export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { m
     }
   }
 
+  // Пришли из каталога по кнопке «Связаться» — сразу показываем контакты
+  useEffect(() => {
+    if (window.location.hash === "#contact") {
+      reveal();
+      setTimeout(() => document.getElementById("contact")?.scrollIntoView({ block: "center" }), 50);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Кнопка «Контакты» в нижней панели на телефоне просит открыть контакты здесь
   useEffect(() => {
     const onReveal = () => {

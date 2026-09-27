@@ -16,9 +16,9 @@ export function Logo({ lang, small = false }: { lang: Locale; small?: boolean })
     <Link href={href(lang)} className="flex shrink-0 items-center gap-2" aria-label={SITE_NAME}>
       <LogoMark className={small ? "h-7 w-7" : "h-8 w-8"} />
       {/* На очень узких телефонах — только значок, чтобы шапка помещалась */}
-      <span className={`font-bold tracking-tight ${small ? "text-[17px]" : "hidden text-[17px] min-[360px]:inline sm:text-[19px]"}`}>
+      <span className={`font-bold tracking-tight ${small ? "text-[17px]" : "hidden text-[17px] min-[440px]:inline sm:text-[19px]"}`}>
         {SITE_NAME}
-        {TLD && <span className={`font-semibold text-muted ${small ? "" : "hidden min-[400px]:inline"}`}>{TLD}</span>}
+        {TLD && <span className={`font-semibold text-muted ${small ? "" : "hidden min-[480px]:inline"}`}>{TLD}</span>}
       </span>
     </Link>
   );

@@ -15,14 +15,18 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
   const firstLine = m.services.split(/\n|;/)[0]?.trim() ?? "";
   return (
-    <Link
-      href={href(lang, `/master/${m.slug}`)}
-      className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#cfcac0] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+    <div
+      className="group relative flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#cfcac0] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
     >
       <div className="flex items-start gap-3">
         <Avatar name={m.name} photo={m.photo_url} size={56} />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[16px] font-semibold leading-tight group-hover:text-brand">{m.name}</h3>
+          <h3 className="truncate text-[16px] font-semibold leading-tight group-hover:text-brand">
+            {/* Вся карточка кликабельна и ведёт в профиль */}
+            <Link href={href(lang, `/master/${m.slug}`)} className="after:absolute after:inset-0 after:rounded-2xl">
+              {m.name}
+            </Link>
+          </h3>
           {m.verified && <VerifiedBadge label={t.verified} />}
           {m.docs_verified && (
             <span className="ml-1">
@@ -57,9 +61,11 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
       )}
       <div className="mt-auto flex items-center justify-between gap-2 pt-4">
         <span className="text-[14px] font-semibold">{priceText(m, lang)}</span>
-        <span className="shrink-0 text-[13px] font-semibold text-brand">{t.more}</span>
+        <Link href={href(lang, `/master/${m.slug}#contact`)} className="btn-primary relative z-10 h-9 shrink-0 px-4 text-[13px]">
+          {t.more}
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 

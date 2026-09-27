@@ -17,18 +17,46 @@ export function Header({ lang }: { lang: Locale }) {
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
   const lastY = useRef(0);
+  const hiddenRef = useRef(false);
+  useEffect(() => {
+    hiddenRef.current = hidden;
+  }, [hidden]);
   const pathname = usePathname();
 
   useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
-    const onScroll = () => {
+    // Прячем/показываем только после заметного движения (60px в одну сторону) —
+    // чтобы шапка не дёргалась от мелких движений пальца и «пружины» на iPhone.
+    let anchor = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
       const y = window.scrollY;
-      const mobile = window.innerWidth < 768;
-      if (!mobile || y < 80) setHidden(false);
-      else if (y > lastY.current + 6) setHidden(true);
-      else if (y < lastY.current - 6) setHidden(false);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (window.innerWidth >= 768 || y < 120) {
+        setHidden(false);
+        anchor = y;
+        return;
+      }
+      if (y < 0 || y > max) return; // «пружина» у краёв страницы
+      const diff = y - anchor;
+      if (diff > 60) {
+        setHidden(true);
+        anchor = y;
+      } else if (diff < -60) {
+        setHidden(false);
+        anchor = y;
+      } else if ((diff > 0 && hiddenRef.current) || (diff < 0 && !hiddenRef.current)) {
+        anchor = y; // продолжаем двигаться в ту же сторону — сдвигаем точку отсчёта
+      }
       lastY.current = y;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -53,7 +81,7 @@ export function Header({ lang }: { lang: Locale }) {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur transition-transform duration-300 ${hidden && !open ? "-translate-y-full" : ""}`}
+        className={`sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur transition-transform duration-200 ease-out will-change-transform ${hidden && !open ? "-translate-y-full" : ""}`}
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-16 sm:px-6">
           <Logo lang={lang} />

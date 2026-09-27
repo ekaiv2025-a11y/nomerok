@@ -18,7 +18,7 @@ const en: Dict = {
     masterNotFound: "Specialist not found",
   },
   nav: {
-    leaveRequestShort: "Request",
+    leaveRequestShort: "Post a request",
     how: "How it works",
     iAmSpecialist: "For specialists",
     leaveRequest: "Post a request",
@@ -48,7 +48,7 @@ const en: Dict = {
     h1b: "direct",
     sub: "Choose a specialist and message them directly — or post a request and specialists will respond themselves.",
     steps: ["Choose a specialist", "Open their contacts", "Agree directly"],
-    specialistCta: "Are you a specialist? List your profile →",
+    specialistCta: "Are you a specialist? Sign up for free and get clients →",
     pathPick: "Choose yourself",
     pathPickText: "Browse profiles, reviews and work photos — contact directly",
     pathRequest: "Post a request",
@@ -83,7 +83,7 @@ const en: Dict = {
     verified: "Number verified",
     byAgreement: "Price on request",
     from: (price, unit) => `from ${price} ₾ / ${unit}`,
-    more: "Details →",
+    more: "Contact",
     experience: (n) => `${n} ${years(n)} of experience`,
   },
   master: {
