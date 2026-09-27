@@ -9,6 +9,8 @@ import { profileSteps } from "@/lib/profile";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { CabinetForm } from "@/components/CabinetForm";
+import { AvailabilityCard } from "@/components/AvailabilityCard";
+import { formatDay, isAwayNow } from "@/lib/availability";
 import { ReviewReply } from "@/components/ReviewReply";
 import { Stars } from "@/components/Stars";
 import { listMasterReviews } from "@/lib/reviews-db";
@@ -138,6 +140,10 @@ export default async function CabinetPage({ params, searchParams }: Props) {
         </div>
       </div>
 
+      <div className="mt-4">
+        <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
+      </div>
+
       <div className="mt-6">
         <CabinetForm
           lang={lang}
@@ -155,6 +161,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             whatsapp: m.whatsapp,
             notify_requests: m.notify_requests,
             photo_url: m.photo_url,
+            category: m.category,
+            extra_categories: m.extra_categories ?? [],
           }}
         />
       </div>

@@ -25,7 +25,11 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           <h3 className="truncate text-[16px] font-semibold leading-tight group-hover:text-brand">{m.name}</h3>
           {m.verified && <VerifiedBadge label={t.verified} />}
           {m.demo && <DemoBadge label={t.demo} />}
-          <div className="mt-1 text-[13px] text-muted">{categoryLabel(m.category, lang)}</div>
+          {m.away && <AwayBadge label={t.away} />}
+          <div className="mt-1 text-[13px] text-muted">
+            {categoryLabel(m.category, lang)}
+            {m.extra_categories?.length ? ` +${m.extra_categories.length}` : ""}
+          </div>
           {m.experience_years ? <div className="mt-0.5 text-[12px] text-muted">{t.experience(m.experience_years)}</div> : null}
           {m.rating != null && m.reviews > 0 && (
             <div className="mt-1">
@@ -56,4 +60,8 @@ export function VerifiedBadge({ label, large = false }: { label: string; large?:
 
 export function DemoBadge({ label }: { label: string }) {
   return <span className="mt-1 inline-flex rounded-full bg-[#fdf6e6] px-2 py-0.5 text-[11.5px] font-medium text-[#8a6a1f]">{label}</span>;
+}
+
+export function AwayBadge({ label }: { label: string }) {
+  return <span className="ml-1 mt-1 inline-flex rounded-full bg-[#f1efe9] px-2 py-0.5 text-[11.5px] font-medium text-muted">⏸ {label}</span>;
 }

@@ -5,6 +5,8 @@ import { currentSpecialistId } from "@/lib/spec-auth";
 import { notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { getDict } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site";
+import { CATEGORY_IDS } from "@/lib/categories";
+import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
 
 /** Сохранение профиля из кабинета специалиста. */
 export async function POST(req: Request) {
@@ -19,6 +21,11 @@ export async function POST(req: Request) {
   const parsed = cabinetSchema(lang).safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
   const d = parsed.data;
+  // Дополнительные направления: только существующие, не основное, не больше 3
+  const extra = Array.isArray(body.extra_categories)
+    ? [...new Set((body.extra_categories as unknown[]).map(String))].filter((c) => (CATEGORY_IDS as readonly string[]).includes(c) && c !== m.category)
+    : [];
+  if (extra.length > MAX_EXTRA_CATEGORIES) return NextResponse.json({ ok: false, fields: { extra_categories: getDict(lang).cabinet.extraMax } }, { status: 422 });
   await adminUpdateMaster(id, {
     name: d.name,
     services: d.services,
@@ -30,7 +37,7 @@ export async function POST(req: Request) {
     price_unit: d.price_unit,
     telegram: d.telegram,
     whatsapp: d.whatsapp,
-    notify_requests: d.notify_requests,
+    ...(Array.isArray(body.extra_categories) ? { extra_categories: extra } : {}),
     lang,
   });
   await notifyAdmin(`✏️ <b>${escapeHtml(d.name)}</b> обновил(а) профиль в кабинете\n${SITE_URL}/admin/masters/${id}`);

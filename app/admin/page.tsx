@@ -10,6 +10,7 @@ import { connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setCompl
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
+import { isAwayNow } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
@@ -318,7 +319,7 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
         <div>
           <Link href={`/admin/masters/${m.id}`} className="text-[16px] font-semibold hover:underline">{m.name}</Link>
           <div className="text-[13px] text-muted">
-            {categoryLabel(m.category)} · {formatPhone(m.phone)}{m.telegram ? ` · @${m.telegram}` : ""} · {when(m.created_at)}
+            {[m.category, ...(m.extra_categories ?? [])].map((c) => categoryLabel(c)).join(", ")} · {formatPhone(m.phone)}{m.telegram ? ` · @${m.telegram}` : ""} · {when(m.created_at)}
           </div>
           <div className="mt-1 text-[12px]">
             {m.phone_verified_at ? (
@@ -332,6 +333,7 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
         </div>
         <div className="flex items-center gap-2 text-[13px]">
           <span className="rounded-full bg-cream px-2.5 py-0.5">{MASTER_LABEL[m.status]}</span>
+          {isAwayNow(m) && <span className="rounded-full bg-[#fdf6e6] px-2.5 py-0.5 text-[#5a4a22]">⏸ пауза{m.away_until ? ` до ${m.away_until}` : ""}</span>}
           <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-brand-dark">Открытий: {views}</span>
         </div>
       </div>

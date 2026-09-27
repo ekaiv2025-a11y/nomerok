@@ -66,7 +66,16 @@ type BotDict = {
   reviewReceived: string;
   reviewPublishedClient: (name: string) => string;
   reviewPublishedMaster: (stars: string) => string;
-  commands: { cabinet: string; help: string };
+  pauseAsk: string;
+  btnWeek: string;
+  btn2Weeks: string;
+  btnMonth: string;
+  btnNoEnd: string;
+  paused: (until: string | null) => string;
+  resumed: string;
+  autoResumed: string;
+  notSpecialistShort: string;
+  commands: { cabinet: string; help: string; pause: string; resume: string };
   steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials", string>;
 };
 
@@ -90,6 +99,15 @@ const ru: BotDict = {
   joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
   btnJoinContinue: "📝 Продолжить анкету",
   joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
+  pauseAsk: "На сколько поставить паузу? Пока пауза — новые заявки не приходят, а в профиле клиенты видят «Сейчас не принимает заказы».",
+  btnWeek: "1 неделя",
+  btn2Weeks: "2 недели",
+  btnMonth: "Месяц",
+  btnNoEnd: "Без срока",
+  resumed: "✅ Вы снова принимаете заявки!",
+  autoResumed: "✅ Пауза закончилась — заявки снова приходят. Если нужно ещё отдохнуть — /pause",
+  notSpecialistShort: "Эта команда — для специалистов с анкетой на сайте.",
+  paused: (until: string | null) => until ? `⏸ Пауза до ${until}. В этот день заявки включатся сами. Вернуться раньше — /resume` : "⏸ Пауза без срока. Когда будете готовы — /resume",
   btnClose: "❌ Заявка больше не нужна",
   closedOk: "Заявка закрыта — специалисты больше её не получат. Понадобится снова — оставьте новую на сайте.",
   noResponse: (desc) => `Пока никто не взял вашу заявку «${desc}». Мы передали её администратору — постараемся найти специалиста. Можно также выбрать самому в каталоге.`,
@@ -121,7 +139,7 @@ const ru: BotDict = {
   hidden: "Ваш профиль временно скрыт с сайта. Напишите сюда, если есть вопросы.",
   cabinetLink: "👤 Ваш кабинет — здесь можно менять фото, услуги и цены.\nСсылка действует 24 часа.",
   notSpecialist: "Этот Telegram не привязан к анкете специалиста. Заполните анкету на сайте, и после отправки нажмите «Подтвердить номер в Telegram».",
-  help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
+  help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/pause — пауза (отпуск, не принимаю заявки)\n/resume — снова принимаю заявки\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
   forwarded: "Спасибо! Передали сообщение команде, ответим в ближайшее время.",
   newRequest: (cat, desc, when) => `🆕 <b>Новая заявка: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру», чтобы получить телефон клиента.`,
   directRequest: (desc, when) => `🆕 <b>Заявка лично вам</b> (со страницы вашего профиля)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру», чтобы получить телефон клиента.`,
@@ -138,7 +156,7 @@ const ru: BotDict = {
     `🙋 <b>На вашу заявку откликнулся специалист</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nСпециалист свяжется с вами. Если удобнее — позвоните сами.`,
   btnProfile: "Профиль специалиста",
   btnWhatsApp: "WhatsApp",
-  commands: { cabinet: "Мой кабинет специалиста", help: "Помощь" },
+  commands: { cabinet: "Мой кабинет специалиста", help: "Помощь", pause: "Пауза: отпуск, не принимаю заявки", resume: "Снова принимаю заявки" },
   steps: {
     verified: "подтвердите номер (кнопка «📱 Поделиться номером»)",
     photo: "добавьте фото",
@@ -170,6 +188,15 @@ const en: BotDict = {
   joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
   btnJoinContinue: "📝 Continue profile",
   joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
+  pauseAsk: "How long should the pause be? While paused, you won't receive new requests, and your profile shows “Not taking orders right now”.",
+  btnWeek: "1 week",
+  btn2Weeks: "2 weeks",
+  btnMonth: "1 month",
+  btnNoEnd: "No end date",
+  resumed: "✅ You're accepting requests again!",
+  autoResumed: "✅ Your pause has ended — requests are coming in again. Need more time off? /pause",
+  notSpecialistShort: "This command is for specialists with a profile on the site.",
+  paused: (until) => until ? `⏸ Paused until ${until}. Requests will switch back on that day. To come back earlier — /resume` : "⏸ Paused with no end date. When you're ready — /resume",
   btnClose: "❌ I no longer need this",
   closedOk: "Request closed — specialists won't receive it anymore. Need help again? Leave a new request on the website.",
   noResponse: (desc) => `No one has taken your request “${desc}” yet. We've passed it to our team and will try to find a specialist. You can also pick one yourself in the catalog.`,
@@ -201,7 +228,7 @@ const en: BotDict = {
   hidden: "Your profile is temporarily hidden. Write here if you have questions.",
   cabinetLink: "👤 Your dashboard — change your photo, services and prices.\nThe link is valid for 24 hours.",
   notSpecialist: "This Telegram isn't linked to a specialist profile. Fill in the form on the website and then tap “Verify number in Telegram”.",
-  help: "Commands:\n/cabinet — link to your dashboard\n/help — help\n\nAny other message will be passed to our team.",
+  help: "Commands:\n/cabinet — link to your dashboard\n/pause — pause (vacation, not taking requests)\n/resume — accept requests again\n/help — help\n\nAny other message will be passed to our team.",
   forwarded: "Thanks! We've passed your message to the team and will reply soon.",
   newRequest: (cat, desc, when) => `🆕 <b>New request: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone.`,
   directRequest: (desc, when) => `🆕 <b>Request for you</b> (from your profile page)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone.`,
@@ -218,7 +245,7 @@ const en: BotDict = {
     `🙋 <b>A specialist responded to your request</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nThe specialist will contact you. Feel free to call them yourself.`,
   btnProfile: "Specialist's profile",
   btnWhatsApp: "WhatsApp",
-  commands: { cabinet: "My specialist dashboard", help: "Help" },
+  commands: { cabinet: "My specialist dashboard", help: "Help", pause: "Pause: vacation, not taking requests", resume: "Accept requests again" },
   steps: {
     verified: "verify your number (“📱 Share my number” button)",
     photo: "add a photo",
@@ -250,6 +277,15 @@ const ka: BotDict = {
   joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
   btnJoinContinue: "📝 ანკეტის გაგრძელება",
   joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
+  pauseAsk: "რამდენი ხნით ჩავრთოთ პაუზა? პაუზის დროს ახალი განაცხადები არ მოდის, პროფილზე კი ჩანს „ახლა შეკვეთებს არ იღებს“.",
+  btnWeek: "1 კვირა",
+  btn2Weeks: "2 კვირა",
+  btnMonth: "თვე",
+  btnNoEnd: "ვადის გარეშე",
+  resumed: "✅ ისევ იღებთ განაცხადებს!",
+  autoResumed: "✅ პაუზა დასრულდა — განაცხადები ისევ მოდის. თუ კიდევ გჭირდებათ დასვენება — /pause",
+  notSpecialistShort: "ეს ბრძანება საიტზე ანკეტის მქონე სპეციალისტებისთვისაა.",
+  paused: (until) => until ? `⏸ პაუზა ${until}-მდე. ამ დღეს განაცხადები თავად ჩაირთვება. ადრე დასაბრუნებლად — /resume` : "⏸ პაუზა ვადის გარეშე. როცა მზად იქნებით — /resume",
   btnClose: "❌ განაცხადი აღარ მჭირდება",
   closedOk: "განაცხადი დაიხურა — სპეციალისტები მას აღარ მიიღებენ. თუ ისევ დაგჭირდებათ — დატოვეთ ახალი საიტზე.",
   noResponse: (desc) => `თქვენი განაცხადი „${desc}“ ჯერ არავის აუღია. გადავეცით ადმინისტრატორს — შევეცდებით სპეციალისტის პოვნას. შეგიძლიათ თავადაც აირჩიოთ კატალოგში.`,
@@ -281,7 +317,7 @@ const ka: BotDict = {
   hidden: "თქვენი პროფილი დროებით დამალულია. მოგვწერეთ აქ, თუ კითხვები გაქვთ.",
   cabinetLink: "👤 თქვენი კაბინეტი — აქ შეგიძლიათ შეცვალოთ ფოტო, მომსახურება და ფასები.\nბმული მოქმედებს 24 საათი.",
   notSpecialist: "ეს Telegram არ არის მიბმული სპეციალისტის ანკეტაზე. შეავსეთ ანკეტა საიტზე და გაგზავნის შემდეგ დააჭირეთ „ნომრის დადასტურება Telegram-ში“.",
-  help: "ბრძანებები:\n/cabinet — ბმული თქვენს კაბინეტზე\n/help — დახმარება\n\nნებისმიერ სხვა შეტყობინებას გადავცემთ გუნდს.",
+  help: "ბრძანებები:\n/cabinet — ბმული თქვენს კაბინეტზე\n/pause — პაუზა (შვებულება, არ ვიღებ განაცხადებს)\n/resume — ისევ ვიღებ განაცხადებს\n/help — დახმარება\n\nნებისმიერ სხვა შეტყობინებას გადავცემთ გუნდს.",
   forwarded: "გმადლობთ! შეტყობინება გადავეცით გუნდს, მალე გიპასუხებთ.",
   newRequest: (cat, desc, when) => `🆕 <b>ახალი განაცხადი: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ“, რომ მიიღოთ კლიენტის ტელეფონი.`,
   directRequest: (desc, when) => `🆕 <b>განაცხადი პირადად თქვენთვის</b> (თქვენი პროფილის გვერდიდან)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ“, რომ მიიღოთ კლიენტის ტელეფონი.`,
@@ -298,7 +334,7 @@ const ka: BotDict = {
     `🙋 <b>თქვენს განაცხადს გამოეხმაურა სპეციალისტი</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nსპეციალისტი დაგიკავშირდებათ. თუ გირჩევნიათ — თავად დაურეკეთ.`,
   btnProfile: "სპეციალისტის პროფილი",
   btnWhatsApp: "WhatsApp",
-  commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება" },
+  commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება", pause: "პაუზა: შვებულება, არ ვიღებ განაცხადებს", resume: "ისევ ვიღებ განაცხადებს" },
   steps: {
     verified: "დაადასტურეთ ნომერი (ღილაკი „📱 ნომრის გაზიარება“)",
     photo: "დაამატეთ ფოტო",

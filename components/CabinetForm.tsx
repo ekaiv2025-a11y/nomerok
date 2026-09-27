@@ -4,7 +4,8 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2 } from "lucide-react";
-import { LANGUAGES, PRICE_UNITS, languageLabel, unitLabel } from "@/lib/categories";
+import { CATEGORIES, LANGUAGES, PRICE_UNITS, categoryLabel, languageLabel, unitLabel } from "@/lib/categories";
+import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
 import { getDict, type Locale } from "@/lib/i18n";
 import { Field, fc } from "./form-kit";
 
@@ -21,6 +22,8 @@ type Initial = {
   whatsapp: boolean;
   notify_requests: boolean;
   photo_url: string | null;
+  category: string;
+  extra_categories: string[];
 };
 
 export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: string; initial: Initial }) {
@@ -36,6 +39,10 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [extra, setExtra] = useState<string[]>(initial.extra_categories ?? []);
+  function toggleExtra(id: string) {
+    setExtra((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= MAX_EXTRA_CATEGORIES ? cur : [...cur, id]));
+  }
 
   async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -85,7 +92,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           languages: f.getAll("languages"),
           telegram: f.get("telegram"),
           whatsapp: f.get("whatsapp") === "on",
-          notify_requests: f.get("notify_requests") === "on",
+          extra_categories: extra,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -186,10 +193,35 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         <input type="checkbox" name="whatsapp" defaultChecked={initial.whatsapp} className="h-5 w-5 accent-[#1f6b4f]" />
         {j.whatsapp}
       </label>
-      <label className="flex items-center gap-3 rounded-xl bg-cream p-3.5 text-[15px]">
-        <input type="checkbox" name="notify_requests" defaultChecked={initial.notify_requests} className="h-5 w-5 accent-[#1f6b4f]" />
-        {t.notify}
-      </label>
+      <fieldset>
+        <legend className="text-[14px] font-semibold">
+          {t.extraTitle} <span className="font-normal text-muted">{opt}</span>
+        </legend>
+        <p className="mt-0.5 text-[13px] leading-snug text-muted">{t.extraHint}</p>
+        <p className="mt-2 text-[13px]">
+          {categoryLabel(initial.category, lang)} · <b>{extra.length}/{MAX_EXTRA_CATEGORIES}</b>
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {CATEGORIES.filter((c) => c.id !== initial.category).map((c) => {
+            const on = extra.includes(c.id);
+            const disabled = !on && extra.length >= MAX_EXTRA_CATEGORIES;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => toggleExtra(c.id)}
+                disabled={disabled}
+                aria-pressed={on}
+                className={`rounded-full border px-3 py-1.5 text-[13px] ${on ? "border-brand bg-brand-soft font-semibold text-brand-dark" : "border-line"} ${disabled ? "opacity-40" : "hover:border-brand"}`}
+              >
+                {on ? "✓ " : ""}
+                {c.label[lang]}
+              </button>
+            );
+          })}
+        </div>
+        {errors.extra_categories && <p className="mt-1 text-[13px] text-danger">{errors.extra_categories}</p>}
+      </fieldset>
       {message && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{message}</p>}
       <button type="submit" disabled={state === "saving"} className="btn-primary h-12 w-full">
         {state === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}

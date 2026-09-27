@@ -26,7 +26,8 @@ export async function POST(req: Request) {
 
   try {
     const found = data.master_slug ? await getPublishedMasterBySlug(data.master_slug) : null;
-    const master = found && !found.demo ? found : null;
+    // Пример профиля или специалист на паузе — заявка уходит всем специалистам направления
+    const master = found && !found.demo && !found.away ? found : null;
     const saved = await createRequest({
       category: data.category,
       description: data.description,

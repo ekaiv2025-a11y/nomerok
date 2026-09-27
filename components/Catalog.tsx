@@ -15,7 +15,7 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const m of masters) c[m.category] = (c[m.category] ?? 0) + 1;
+    for (const m of masters) for (const id of new Set([m.category, ...(m.extra_categories ?? [])])) c[id] = (c[id] ?? 0) + 1;
     return c;
   }, [masters]);
 
@@ -24,10 +24,10 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return masters.filter((m) => {
-      if (cat !== "all" && m.category !== cat) return false;
+      if (cat !== "all" && m.category !== cat && !(m.extra_categories ?? []).includes(cat)) return false;
       if (!query) return true;
       // Ищем по названию категории на всех трёх языках — человек может писать на любом
-      const catNames = ["ru", "ka", "en"].map((l) => categoryLabel(m.category, l as Locale)).join(" ");
+      const catNames = [m.category, ...(m.extra_categories ?? [])].flatMap((id) => ["ru", "ka", "en"].map((l) => categoryLabel(id, l as Locale))).join(" ");
       const hay = `${m.name} ${m.services} ${m.about} ${catNames}`.toLowerCase();
       return query.split(/\s+/).every((w) => hay.includes(w));
     });

@@ -13,7 +13,9 @@ import {
   listMastersForRequests,
   updateRequest,
   adminListResponses,
+  adminListMasters,
 } from "./db";
+import { daysFromToday, formatDay, servesCategory, todayTbilisi } from "./availability";
 import { hasReviewFrom, listRequestsForFollowup } from "./reviews-db";
 import { reviewToken } from "./signed";
 import type { Review } from "./types";
@@ -253,7 +255,7 @@ async function onTake(cb: TgCallback, requestId: string) {
   const r = await getRequest(requestId);
   const masters = await getMastersByChatId(chatId);
   const m =
-    masters.find((x) => x.status === "published" && x.phone_verified_at && (r?.master_id ? x.id === r.master_id : x.category === r?.category)) ??
+    masters.find((x) => x.status === "published" && x.phone_verified_at && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ??
     null;
   const b = botDict(m?.lang ?? guessLang(cb.from));
   if (!r || r.status === "spam" || r.status === "done") return answer(b.requestGone);
@@ -304,6 +306,34 @@ async function respondersOf(requestId: string): Promise<Master[]> {
     if (m) list.push(m);
   }
   return list;
+}
+
+/* ---------- пауза: «в отпуске / не принимаю заявки» ---------- */
+
+async function onAway(cb: TgCallback, days: number) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const masters = await getMastersByChatId(cb.from.id);
+  if (!masters[0]) return;
+  const b = botDict(masters[0].lang);
+  const until = days > 0 && days <= 366 ? daysFromToday(days) : null;
+  for (const m of masters) await adminUpdateMaster(m.id, { is_away: true, away_until: until });
+  if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.from.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
+  await notifyAdmin(`⏸ <b>${esc(masters[0].name)}</b> поставил(а) паузу ${until ? `до ${until}` : "без срока"}`);
+  return sendTo(cb.from.id, b.paused(until ? formatDay(until, masters[0].lang) : null));
+}
+
+/** Пауза закончилась — включаем заявки обратно и сообщаем специалисту. */
+async function endExpiredPauses(): Promise<number> {
+  const today = todayTbilisi();
+  let n = 0;
+  for (const m of await adminListMasters()) {
+    if (m.is_away && m.away_until && m.away_until < today) {
+      await adminUpdateMaster(m.id, { is_away: false, away_until: null });
+      if (m.tg_chat_id) await sendTo(m.tg_chat_id, botDict(m.lang).autoResumed);
+      n++;
+    }
+  }
+  return n;
 }
 
 const RESENT_MARK = "[разослана повторно]";
@@ -370,8 +400,8 @@ async function onClientAnswer(cb: TgCallback, data: string) {
 
 const HOUR = 3600 * 1000;
 
-export async function runFollowups(): Promise<{ noResponse: number; asked: number; reviewInvites: number }> {
-  const out = { noResponse: 0, asked: 0, reviewInvites: 0 };
+export async function runFollowups(): Promise<{ noResponse: number; asked: number; reviewInvites: number; pausesEnded: number }> {
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded: await endExpiredPauses().catch(() => 0) };
   const now = Date.now();
   const list = await listRequestsForFollowup();
   for (const r of list) {
@@ -439,6 +469,25 @@ async function onText(msg: TgMessage) {
     return sendTo(chatId, b.notSpecialist, [[{ text: b.btnJoin, url: `${siteUrl()}/${lang}/join` }]]);
   }
   if (text === "/help" || text.startsWith("/help@")) return sendTo(chatId, b.help);
+  if (text === "/pause" || text.startsWith("/pause@")) {
+    if (!masters[0]) return sendTo(chatId, b.notSpecialistShort);
+    return sendTo(chatId, b.pauseAsk, [
+      [
+        { text: b.btnWeek, callback_data: "away:7" },
+        { text: b.btn2Weeks, callback_data: "away:14" },
+      ],
+      [
+        { text: b.btnMonth, callback_data: "away:30" },
+        { text: b.btnNoEnd, callback_data: "away:0" },
+      ],
+    ]);
+  }
+  if (text === "/resume" || text.startsWith("/resume@")) {
+    if (!masters[0]) return sendTo(chatId, b.notSpecialistShort);
+    for (const m of masters) await adminUpdateMaster(m.id, { is_away: false, away_until: null });
+    await notifyAdmin(`▶️ <b>${esc(masters[0].name)}</b> снова принимает заявки`);
+    return sendTo(chatId, b.resumed);
+  }
 
   // Человек вставил ссылку t.me/бот?start=… текстом, а не нажал её — понимаем и так
   const pasted = text.match(/[?&]start=([mr]_[a-f0-9]{16,})/i);
@@ -456,6 +505,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   if (u.callback_query) {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
+    if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
     await tg("answerCallbackQuery", { callback_query_id: u.callback_query.id });
     return;
@@ -478,6 +528,8 @@ export async function setupBot(baseUrl: string, secret: string): Promise<{ ok: b
     await tg("setMyCommands", {
       commands: [
         { command: "cabinet", description: b.commands.cabinet },
+        { command: "pause", description: b.commands.pause },
+        { command: "resume", description: b.commands.resume },
         { command: "help", description: b.commands.help },
       ],
       ...(lang === "ru" ? {} : { language_code: lang }),

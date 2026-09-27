@@ -9,7 +9,7 @@ import { SITE_NAME } from "@/lib/site";
 
 type Contacts = { phone: string; telegram: string | null; whatsapp: boolean };
 
-export function ContactReveal({ masterId, slug, lang }: { masterId: string; slug: string; lang: Locale }) {
+export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { masterId: string; slug: string; lang: Locale; hideRequest?: boolean }) {
   const t = getDict(lang).reveal;
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
@@ -60,11 +60,13 @@ export function ContactReveal({ masterId, slug, lang }: { masterId: string; slug
           <p className="pt-1 text-center text-[12px] leading-snug text-muted">{t.mention(SITE_NAME)}</p>
         </div>
       )}
-      <div className="mt-4 border-t border-line pt-4 text-center">
-        <Link href={href(lang, `/request?master=${slug}`)} className="text-[14px] font-semibold text-brand hover:underline">
-          {t.orRequest}
-        </Link>
-      </div>
+      {!hideRequest && (
+        <div className="mt-4 border-t border-line pt-4 text-center">
+          <Link href={href(lang, `/request?master=${slug}`)} className="text-[14px] font-semibold text-brand hover:underline">
+            {t.orRequest}
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

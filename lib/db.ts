@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { makeSlug } from "./slug";
+import { isAwayNow, servesCategory } from "./availability";
 import { DEMO_MASTERS, DEMO_PREFIX, DEMO_UNTIL, demoPublicMasters, isDemoSlug } from "./demo";
 import type {
   ClientRequest,
@@ -136,7 +137,12 @@ export async function writeLocal(d: LocalData) {
 
 /* ---------- общие помощники ---------- */
 
-type PublicRow = Omit<PublicMaster, "verified"> & { phone_verified_at: string | null };
+type PublicRow = Omit<PublicMaster, "verified" | "away" | "extra_categories" | "away_until"> & {
+  phone_verified_at: string | null;
+  extra_categories?: string[] | null;
+  is_away?: boolean | null;
+  away_until?: string | null;
+};
 
 function toPublic(m: Master | PublicRow): PublicMaster {
   return {
@@ -154,6 +160,9 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     photo_url: m.photo_url,
     created_at: m.created_at,
     updated_at: m.updated_at,
+    extra_categories: m.extra_categories ?? [],
+    away_until: m.away_until ?? null,
+    away: isAwayNow(m),
     verified: !!m.phone_verified_at,
     demo: isDemoSlug(m.slug),
     rating: null,
@@ -170,14 +179,21 @@ export function check<T>(res: { data: T | null; error: { message: string } | nul
   return res.data as T;
 }
 
-const PUBLIC_COLUMNS =
+const BASE_COLUMNS =
   "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at";
+const PUBLIC_COLUMNS = BASE_COLUMNS + ",extra_categories,is_away,away_until";
+
+/** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
+function isMissingColumn(err: { message: string } | null): boolean {
+  return !!err && /column .* does not exist|could not find .* column/i.test(err.message);
+}
 
 /* ---------- мастера: публичная часть ---------- */
 
 /** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
-  const real = await withRatings(await listPublishedFromDb());
+  // Кто в отпуске — в конце списка
+  const real = (await withRatings(await listPublishedFromDb())).sort((a, b) => Number(a.away) - Number(b.away));
   if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
   const have = new Set(real.map((m) => m.slug));
   return [...real, ...demoPublicMasters().filter((m) => !have.has(m.slug))];
@@ -186,10 +202,10 @@ export async function listPublishedMasters(): Promise<PublicMaster[]> {
 async function listPublishedFromDb(): Promise<PublicMaster[]> {
   const sb = supabase();
   if (sb) {
-    const rows = check(
-      await sb.from("masters").select(PUBLIC_COLUMNS).eq("status", "published").order("created_at", { ascending: false }),
-    );
-    return (rows as unknown as PublicRow[]).map(toPublic);
+    const q = (cols: string) => sb.from("masters").select(cols).eq("status", "published").order("created_at", { ascending: false });
+    let res = await q(PUBLIC_COLUMNS);
+    if (isMissingColumn(res.error)) res = await q(BASE_COLUMNS);
+    return (check(res) as unknown as PublicRow[]).map(toPublic);
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
@@ -218,9 +234,10 @@ async function withRatings(list: PublicMaster[]): Promise<PublicMaster[]> {
 async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
   const sb = supabase();
   if (sb) {
-    const row = check(
-      await sb.from("masters").select(PUBLIC_COLUMNS).eq("slug", slug).eq("status", "published").maybeSingle(),
-    );
+    const q = (cols: string) => sb.from("masters").select(cols).eq("slug", slug).eq("status", "published").maybeSingle();
+    let res = await q(PUBLIC_COLUMNS);
+    if (isMissingColumn(res.error)) res = await q(BASE_COLUMNS);
+    const row = check(res);
     return row ? toPublic(row as unknown as PublicRow) : null;
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
@@ -285,6 +302,9 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     tg_username: null,
     phone_verified_at: null,
     notify_requests: true,
+    extra_categories: [],
+    is_away: false,
+    away_until: null,
     id: randomUUID(),
     created_at: now,
     updated_at: now,
@@ -429,22 +449,23 @@ export async function getMastersByChatId(chatId: number): Promise<Master[]> {
 /** Подтверждённые специалисты категории, которые принимают заявки. */
 export async function listMastersForRequests(category: string): Promise<Master[]> {
   const sb = supabase();
+  let list: Master[];
   if (sb) {
-    return check(
+    list = check(
       await sb
         .from("masters")
         .select("*")
         .eq("status", "published")
-        .eq("category", category)
         .eq("notify_requests", true)
         .not("tg_chat_id", "is", null)
         .not("phone_verified_at", "is", null),
     ) as Master[];
+  } else {
+    if (dbMode() === "none") throw new DbNotConfiguredError();
+    list = (await readLocal()).masters.filter((m) => m.status === "published" && m.notify_requests && m.tg_chat_id && m.phone_verified_at);
   }
-  if (dbMode() === "none") throw new DbNotConfiguredError();
-  return (await readLocal()).masters.filter(
-    (m) => m.status === "published" && m.category === category && m.notify_requests && m.tg_chat_id && m.phone_verified_at,
-  );
+  // Основное или дополнительное направление; кто в отпуске — не получает
+  return list.filter((m) => servesCategory(m, category) && !isAwayNow(m));
 }
 
 export async function getRequest(id: string): Promise<ClientRequest | null> {

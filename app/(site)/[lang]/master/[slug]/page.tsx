@@ -11,6 +11,7 @@ import { ContactReveal } from "@/components/ContactReveal";
 import { ShareButtons } from "@/components/ShareButtons";
 import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
 import { RatingLine, Stars } from "@/components/Stars";
+import { formatDay } from "@/lib/availability";
 import { listPublishedReviews } from "@/lib/reviews-db";
 import { botUsername } from "@/lib/telegram";
 
@@ -72,6 +73,11 @@ export default async function MasterPage({ params }: Props) {
             {cat} · {t.city}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
+          {m.extra_categories.length > 0 && (
+            <p className="mt-0.5 text-[14px] text-muted">
+              {t.also} {m.extra_categories.map((c) => categoryLabel(c, lang)).join(", ")}
+            </p>
+          )}
           {m.rating != null && m.reviews > 0 && (
             <a href="#reviews" className="mt-1.5 block">
               <RatingLine rating={m.rating} count={m.reviews} label={d.reviews.count(m.reviews)} />
@@ -92,7 +98,21 @@ export default async function MasterPage({ params }: Props) {
               </Link>
             </div>
           ) : (
-            <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
+            <>
+              {m.away && (
+                <div className="mb-3 rounded-2xl border border-accent/50 bg-[#fdf6e6] p-4">
+                  <p className="font-semibold">⏸ {t.awayTitle}</p>
+                  <p className="mt-1 text-[14px] leading-relaxed text-[#5a4a22]">
+                    {m.away_until ? `${t.awayUntil(formatDay(m.away_until, lang))} ` : ""}
+                    {t.awayText}
+                  </p>
+                  <Link href={href(lang, `/request?category=${m.category}`)} className="btn-primary mt-3 h-10 w-full text-[14px]">
+                    {d.nav.leaveRequest}
+                  </Link>
+                </div>
+              )}
+              <ContactReveal masterId={m.id} slug={m.slug} lang={lang} hideRequest={m.away} />
+            </>
           )}
         </aside>
 

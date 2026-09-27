@@ -34,6 +34,11 @@ export type Master = {
   phone_verified_at: string | null;
   /** Получать ли новые заявки своей категории */
   notify_requests: boolean;
+  /** Дополнительные направления (до 3), по ним тоже приходят заявки */
+  extra_categories: string[];
+  /** «В отпуске / не принимаю заявки» — до даты away_until (или без срока) */
+  is_away: boolean;
+  away_until: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -55,7 +60,9 @@ export type PublicMaster = Pick<
   | "photo_url"
   | "created_at"
   | "updated_at"
-> & { verified: boolean; demo: boolean; rating: number | null; reviews: number };
+  | "extra_categories"
+  | "away_until"
+> & { away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
   phone: string;
@@ -91,7 +98,7 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until"
 > & {
   admin_note?: string;
   lang?: Locale;
