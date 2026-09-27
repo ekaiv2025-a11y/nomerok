@@ -16,6 +16,10 @@ type BotDict = {
   mismatch: (tg: string, form: string) => string;
   notOwnContact: string;
   noPendingProfile: string;
+  joinAsk: string;
+  joinReady: string;
+  btnJoinContinue: string;
+  joinSubmitted: string;
   linkInvalid: string;
   approved: (url: string) => string;
   approvedAllDone: string;
@@ -59,6 +63,10 @@ const ru: BotDict = {
     `⚠️ Номер этого Telegram (<b>${tg}</b>) не совпадает с номером в анкете (<b>${form}</b>).\n\nОткройте ссылку из того Telegram, который зарегистрирован на ${form}, или напишите сюда, какой номер указать в анкете.`,
   notOwnContact: "Пожалуйста, отправьте свой номер кнопкой «📱 Поделиться номером», а не чужой контакт.",
   noPendingProfile: "Спасибо! Но к этому Telegram не привязана анкета, ожидающая подтверждения.",
+  joinAsk: "📝 Заполним анкету быстрее: нажмите кнопку ниже и поделитесь номером. Мы подставим в анкету ваш номер, ник и фото из Telegram — номер сразу будет подтверждён.",
+  joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
+  btnJoinContinue: "📝 Продолжить анкету",
+  joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
   linkInvalid: "Эта ссылка устарела или неверна. Откройте её заново с сайта.",
   approved: (url) => `🎉 <b>Ваш профиль опубликован!</b>\n${url}\n\nТеперь клиенты видят вас в каталоге.`,
   approvedAllDone: "Профиль заполнен полностью — отлично! 👍",
@@ -112,6 +120,10 @@ const en: BotDict = {
     `⚠️ This Telegram's number (<b>${tg}</b>) doesn't match the number in your profile (<b>${form}</b>).\n\nOpen the link from the Telegram account registered to ${form}, or write here which number to use.`,
   notOwnContact: "Please send your own number with the “📱 Share my number” button, not someone else's contact.",
   noPendingProfile: "Thanks! But no profile awaiting verification is linked to this Telegram.",
+  joinAsk: "📝 Let's fill in your profile faster: tap the button below and share your number. We'll add your number, username and photo from Telegram — your number will be verified right away.",
+  joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
+  btnJoinContinue: "📝 Continue profile",
+  joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
   linkInvalid: "This link is outdated or invalid. Please open it again from the website.",
   approved: (url) => `🎉 <b>Your profile is live!</b>\n${url}\n\nClients can now see you in the catalogue.`,
   approvedAllDone: "Your profile is complete — great! 👍",
@@ -165,6 +177,10 @@ const ka: BotDict = {
     `⚠️ ამ Telegram-ის ნომერი (<b>${tg}</b>) არ ემთხვევა ანკეტაში მითითებულ ნომერს (<b>${form}</b>).\n\nგახსენით ბმული იმ Telegram-იდან, რომელიც ${form}-ზეა რეგისტრირებული, ან მოგვწერეთ აქ, რომელი ნომერი მივუთითოთ.`,
   notOwnContact: "გთხოვთ, გამოგზავნოთ თქვენი ნომერი ღილაკით „📱 ნომრის გაზიარება“ და არა სხვისი კონტაქტი.",
   noPendingProfile: "გმადლობთ! მაგრამ ამ Telegram-ზე დასადასტურებელი ანკეტა არ არის მიბმული.",
+  joinAsk: "📝 ანკეტას უფრო სწრაფად შევავსებთ: დააჭირეთ ქვემოთ ღილაკს და გაგვიზიარეთ ნომერი. ანკეტაში ჩავსვამთ თქვენს ნომერს, ნიკს და ფოტოს Telegram-იდან — ნომერი მაშინვე დადასტურდება.",
+  joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
+  btnJoinContinue: "📝 ანკეტის გაგრძელება",
+  joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
   linkInvalid: "ეს ბმული მოძველებულია ან არასწორია. გახსენით ხელახლა საიტიდან.",
   approved: (url) => `🎉 <b>თქვენი პროფილი გამოქვეყნდა!</b>\n${url}\n\nახლა კლიენტები გხედავენ კატალოგში.`,
   approvedAllDone: "პროფილი სრულად არის შევსებული — შესანიშნავია! 👍",

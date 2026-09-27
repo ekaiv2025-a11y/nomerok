@@ -1,24 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, CheckCircle2, Loader2 } from "lucide-react";
 import { LANGUAGES, PRICE_UNITS, languageLabel, unitLabel } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
 import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
 
-export function JoinForm({ lang }: { lang: Locale }) {
+export type JoinPrefill = { token: string; name: string; phone: string; telegram: string | null; hasPhoto: boolean };
+
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?: JoinPrefill | null; tgFastLink?: string | null }) {
   const d = getDict(lang);
   const t = d.join;
   const opt = d.form.optional;
   const { state, errors, message, submit, result } = useSubmit("/api/masters", lang);
+
+  // Фото: своё (файл) или аватарка из Telegram
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [useTgPhoto, setUseTgPhoto] = useState(!!prefill?.hasPhoto);
+  const [photoError, setPhotoError] = useState("");
+  const [upload, setUpload] = useState<"idle" | "uploading" | "failed" | "done">("idle");
+  const fileInput = useRef<HTMLInputElement>(null);
+  const shownPhoto = preview ?? (useTgPhoto && prefill ? `/api/join/photo?t=${encodeURIComponent(prefill.token)}` : null);
+
+  function pickFile(f: File | undefined) {
+    setPhotoError("");
+    if (!f) return;
+    if (!PHOTO_TYPES.includes(f.type)) return setPhotoError(d.cabinet.photoType);
+    if (f.size > 5 * 1024 * 1024) return setPhotoError(d.cabinet.photoSize);
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+    setUseTgPhoto(false);
+  }
+  function removePhoto() {
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(null);
+    setPreview(null);
+    setUseTgPhoto(false);
+    if (fileInput.current) fileInput.current.value = "";
+  }
+
+  // После отправки анкеты загружаем выбранное фото (сервер уже «впустил» в кабинет новой анкеты)
+  useEffect(() => {
+    if (state !== "done" || !file || upload !== "idle") return;
+    setUpload("uploading");
+    const fd = new FormData();
+    fd.set("photo", file);
+    fd.set("lang", lang);
+    fetch("/api/cabinet/photo", { method: "POST", body: fd })
+      .then((r) => r.json())
+      .then((j) => setUpload(j.ok ? "done" : "failed"))
+      .catch(() => setUpload("failed"));
+  }, [state, file, upload, lang]);
 
   if (state === "done") {
     return (
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
         <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
-        <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneText}</p>
+        <p className="mt-2 text-[15px] text-[#3d5a4c]">{result.verified ? t.doneVerified : t.doneText}</p>
+        {upload === "uploading" && (
+          <p className="mt-3 inline-flex items-center gap-2 text-[14px] text-muted">
+            <Loader2 className="h-4 w-4 animate-spin" /> {t.photoUploading}
+          </p>
+        )}
+        {upload === "failed" && <p className="mt-3 text-[14px] text-danger">{t.photoFailed}</p>}
         <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
         <Link href={href(lang)} className="btn-ghost mt-5">
           {d.form.toHome}
@@ -47,6 +98,8 @@ export function JoinForm({ lang }: { lang: Locale }) {
       phone: f.get("phone"),
       telegram: f.get("telegram"),
       whatsapp: f.get("whatsapp") === "on",
+      tg: prefill?.token,
+      tgPhoto: !!prefill && useTgPhoto && !file,
       consent: f.get("consent") === "on",
       website: f.get("website"),
     });
@@ -57,9 +110,61 @@ export function JoinForm({ lang }: { lang: Locale }) {
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
+      {prefill ? (
+        <p className="flex items-center gap-2 rounded-2xl bg-brand-soft p-4 text-[15px] font-semibold text-brand-dark">
+          <CheckCircle2 className="h-5 w-5 shrink-0" /> {t.filled}
+        </p>
+      ) : (
+        tgFastLink && (
+          <div className="rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5">
+            <p className="font-semibold text-[#0f5c82]">{t.fastTitle}</p>
+            <p className="mt-1 text-[14px] leading-relaxed text-[#2f5d74]">{t.fastText}</p>
+            <a href={tgFastLink} target="_blank" rel="noopener noreferrer" className="btn mt-4 h-12 w-full gap-2 bg-[#229ED9] text-white hover:bg-[#1c89bd]">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
+              </svg>
+              {t.fastBtn}
+            </a>
+            <p className="mt-3 text-center text-[13px] text-muted">{t.orManual}</p>
+          </div>
+        )
+      )}
+      <div className="flex items-center gap-4">
+        {shownPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={shownPhoto} alt="" className="h-20 w-20 shrink-0 rounded-2xl bg-cream object-cover" />
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-line bg-cream text-muted hover:border-brand hover:text-brand"
+            aria-label={t.photoChoose}
+          >
+            <Camera className="h-7 w-7" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <p className="text-[14px] font-semibold">
+            {t.photo} <span className="font-normal text-muted">{opt}</span>
+          </p>
+          <p className="mt-0.5 text-[13px] leading-snug text-muted">{t.photoHint}</p>
+          <div className="mt-2 flex gap-2">
+            <button type="button" onClick={() => fileInput.current?.click()} className="btn-ghost h-9 px-3.5 text-[13px]">
+              {shownPhoto ? t.photoChange : t.photoChoose}
+            </button>
+            {shownPhoto && (
+              <button type="button" onClick={removePhoto} className="h-9 px-2 text-[13px] text-muted hover:text-danger">
+                {t.photoRemove}
+              </button>
+            )}
+          </div>
+          {photoError && <p className="mt-1 text-[13px] text-danger">{photoError}</p>}
+        </div>
+        <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
+      </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field label={t.name} hint={t.nameHint} error={errors.name}>
-          <input name="name" autoComplete="name" className={fc(errors.name)} required />
+          <input name="name" autoComplete="name" className={fc(errors.name)} defaultValue={prefill?.name} required />
         </Field>
         <Field label={t.direction} error={errors.category}>
           <select name="category" defaultValue="" className={fc(errors.category)} required>
@@ -111,11 +216,21 @@ export function JoinForm({ lang }: { lang: Locale }) {
         </div>
       </fieldset>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label={t.phone} hint={t.phoneHint} error={errors.phone}>
-          <input name="phone" type="tel" inputMode="tel" autoComplete="tel" className={fc(errors.phone)} placeholder={d.form.phonePlaceholder} required />
+        <Field label={t.phone} hint={prefill ? `✓ ${t.phoneLocked}` : t.phoneHint} error={errors.phone}>
+          <input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            className={`${fc(errors.phone)} ${prefill ? "bg-cream" : ""}`}
+            placeholder={d.form.phonePlaceholder}
+            defaultValue={prefill?.phone}
+            readOnly={!!prefill}
+            required
+          />
         </Field>
         <Field label={t.telegram} optional={opt} error={errors.telegram}>
-          <input name="telegram" className={fc(errors.telegram)} placeholder="@ivan_master" autoCapitalize="off" />
+          <input name="telegram" className={fc(errors.telegram)} placeholder="@ivan_master" autoCapitalize="off" defaultValue={prefill?.telegram ? `@${prefill.telegram}` : undefined} />
         </Field>
       </div>
       <label className="flex items-center gap-3 text-[15px]">

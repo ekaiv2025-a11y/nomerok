@@ -169,3 +169,19 @@ export async function telegramHealth() {
     вебхук: wh ? (wh.url ? `подключён: ${wh.url}${wh.last_error_message ? ` (последняя ошибка: ${wh.last_error_message})` : ""}` : "не подключён — нажмите «Подключить бота» в админке") : "—",
   };
 }
+
+/** Скачивает файл из Telegram по file_id (например, аватарку). */
+export async function downloadTelegramFile(fileId: string): Promise<{ data: ArrayBuffer; type: string } | null> {
+  const token = telegramToken();
+  if (!token) return null;
+  const f = await tg<{ file_path?: string }>("getFile", { file_id: fileId });
+  if (!f?.file_path) return null;
+  try {
+    const res = await fetch(`${API_BASE}/file/bot${token}/${f.file_path}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const type = f.file_path.endsWith(".png") ? "image/png" : f.file_path.endsWith(".webp") ? "image/webp" : "image/jpeg";
+    return { data: await res.arrayBuffer(), type };
+  } catch {
+    return null;
+  }
+}

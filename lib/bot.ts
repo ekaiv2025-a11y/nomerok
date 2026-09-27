@@ -19,6 +19,7 @@ import { formatPhone, normalizePhone, normalizeTelegram, telegramLink, whatsappL
 import { profileSteps } from "./profile";
 import { SITE_NAME, SITE_URL } from "./site";
 import { escapeHtml, notifyAdmin, sendTo, tg } from "./telegram";
+import { makeJoinToken } from "./join-token";
 import type { ClientRequest, Master, MasterStatus } from "./types";
 
 /** Сколько специалистов могут откликнуться на одну общую заявку. */
@@ -148,9 +149,44 @@ async function onStart(msg: TgMessage, payload: string) {
     return sendTo(chatId, botDict(r.lang).clientLinked);
   }
 
+  // «Заполнить анкету через Telegram» с сайта: t.me/бот?start=j_ru
+  if (payload.startsWith("j_")) {
+    const lang = ["ru", "en", "ka"].includes(payload.slice(2)) ? payload.slice(2) : guessLang(from);
+    const b = botDict(lang);
+    return tg("sendMessage", {
+      chat_id: chatId,
+      text: b.joinAsk,
+      parse_mode: "HTML",
+      reply_markup: { keyboard: [[{ text: b.btnShareContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true },
+    });
+  }
+
   const masters = await getMastersByChatId(chatId);
   if (masters[0]) return sendCabinetLink(masters[0]);
   return welcome(chatId, guessLang(from));
+}
+
+/** Номер получен, анкеты ещё нет — отдаём ссылку на анкету с подставленными данными. */
+async function onJoinContact(msg: TgMessage, phone: string) {
+  const chatId = msg.chat.id;
+  const from = msg.from;
+  const lang = guessLang(from);
+  const b = botDict(lang);
+  let photoFileId: string | null = null;
+  if (from) {
+    const photos = await tg<{ photos: { file_id: string; width: number }[][] }>("getUserProfilePhotos", { user_id: from.id, limit: 1 });
+    const sizes = photos?.photos?.[0];
+    if (sizes?.length) photoFileId = [...sizes].sort((a, b2) => b2.width - a.width).find((x) => x.width <= 800)?.file_id ?? sizes[sizes.length - 1].file_id;
+  }
+  const token = makeJoinToken({
+    chatId,
+    phone,
+    username: normalizeTelegram(from?.username),
+    name: [from?.first_name, from?.last_name].filter(Boolean).join(" ").slice(0, 80),
+    photoFileId,
+  });
+  await sendTo(chatId, b.verified, undefined, removeKeyboard);
+  await sendTo(chatId, b.joinReady, [[{ text: b.btnJoinContinue, url: `${siteUrl()}/${lang}/join?t=${token}` }]]);
 }
 
 async function onContact(msg: TgMessage) {
@@ -161,7 +197,11 @@ async function onContact(msg: TgMessage) {
 
   const masters = await getMastersByChatId(chatId);
   const m = masters.find((x) => !x.phone_verified_at) ?? masters[0];
-  if (!m) return sendTo(chatId, botDict(lang).noPendingProfile, undefined, removeKeyboard);
+  if (!m) {
+    const phone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
+    if (!phone || (c.user_id && msg.from && c.user_id !== msg.from.id)) return sendTo(chatId, botDict(lang).noPendingProfile, undefined, removeKeyboard);
+    return onJoinContact(msg, phone);
+  }
   const b = botDict(m.lang);
   if (m.phone_verified_at) return sendTo(chatId, b.alreadyVerified, undefined, removeKeyboard);
 
