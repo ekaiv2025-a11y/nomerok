@@ -160,6 +160,7 @@ export function demoPublicMasters(): PublicMaster[] {
     place_lng: d.place?.lng ?? null,
     service_area: d.place ? "" : "Весь Батуми",
     work_hours: "Пн–Сб, 9:00–19:00",
+    docs_verified: false,
     verified: false,
     demo: true,
     rating: null,

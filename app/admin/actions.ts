@@ -228,3 +228,28 @@ export async function adminUnarchive(formData: FormData) {
   }
   redirect("/admin?tab=masters");
 }
+
+/* ---------- документы специалистов ---------- */
+
+export async function setDocumentStatus(formData: FormData) {
+  await requireAdmin();
+  const masterId = String(formData.get("masterId"));
+  const docId = String(formData.get("docId"));
+  const status = String(formData.get("status"));
+  const back = String(formData.get("back") || "/admin?tab=docs");
+  if (!["verified", "rejected", "pending"].includes(status)) return;
+  const m = await adminGetMaster(masterId);
+  if (!m) return;
+  const doc = (m.documents ?? []).find((d) => d.id === docId);
+  if (!doc) return;
+  const docs = (m.documents ?? []).map((d) => (d.id === docId ? { ...d, status: status as "verified" | "rejected" | "pending" } : d));
+  await adminUpdateMaster(m.id, { documents: docs });
+  if (m.tg_chat_id && doc.status !== status && (status === "verified" || status === "rejected")) {
+    const { sendTo } = await import("@/lib/telegram");
+    const { botDict } = await import("@/lib/i18n/bot");
+    const b = botDict(m.lang);
+    await sendTo(m.tg_chat_id, status === "verified" ? b.docVerified(doc.title) : b.docRejected(doc.title)).catch(() => null);
+  }
+  refreshPublic(m.slug);
+  redirect(back);
+}

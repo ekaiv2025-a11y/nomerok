@@ -141,7 +141,7 @@ type PublicRow = Omit<
   PublicMaster,
   "verified" | "away" | "extra_categories" | "away_until" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours"
 > &
-  Partial<Pick<Master, "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours">> & {
+  Partial<Pick<Master, "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents">> & {
   phone_verified_at: string | null;
   extra_categories?: string[] | null;
   is_away?: boolean | null;
@@ -174,6 +174,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     place_lng: m.place_lng ?? null,
     service_area: m.service_area ?? "",
     work_hours: m.work_hours ?? "",
+    docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.status === "verified"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
     demo: isDemoSlug(m.slug),
@@ -195,9 +196,10 @@ const BASE_COLUMNS =
   "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at";
 const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
 const COLUMNS_0005 = COLUMNS_0004 + ",archived_at";
-const PUBLIC_COLUMNS = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";
+const COLUMNS_0006 = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";
+const PUBLIC_COLUMNS = COLUMNS_0006 + ",documents";
 /** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
-const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {
@@ -333,6 +335,7 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     place_lng: null,
     service_area: "",
     work_hours: "",
+    documents: [],
     id: randomUUID(),
     created_at: now,
     updated_at: now,

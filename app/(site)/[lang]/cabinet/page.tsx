@@ -3,6 +3,8 @@ import Link from "next/link";
 import { adminGetMaster, touchActive } from "@/lib/db";
 import { UnarchiveButton } from "@/components/UnarchiveButton";
 import { PortfolioEditor } from "@/components/PortfolioEditor";
+import { DocumentsEditor } from "@/components/DocumentsEditor";
+import { signedUrls } from "@/lib/documents";
 import { getDict, href } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
 import { currentSpecialistId } from "@/lib/spec-auth";
@@ -92,6 +94,9 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const { steps, percent } = profileSteps(m);
   const rv = getDict(lang).reviews;
   const reviews = await listMasterReviews(m.id).catch(() => []);
+  const docList = Array.isArray(m.documents) ? m.documents : [];
+  const docUrls = await signedUrls(docList.map((x) => x.path)).catch(() => ({}) as Record<string, string>);
+  const myDocs = docList.map((x) => ({ id: x.id, title: x.title, kind: x.kind, type: x.type, public: x.public, status: x.status, url: docUrls[x.path] ?? null }));
   const verifyLink = m.phone_verified_at ? null : await botLink(`m_${m.tg_link_token}`);
   const statusColor =
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
@@ -185,6 +190,10 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             },
           }}
         />
+      </div>
+
+      <div className="mt-8">
+        <DocumentsEditor lang={lang} initial={myDocs} />
       </div>
 
       <div className="mt-8">

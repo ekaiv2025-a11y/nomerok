@@ -9,6 +9,8 @@ import type { Master, RequestStatus } from "@/lib/types";
 import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
+import { signedUrls } from "@/lib/documents";
+import { AdminDocs } from "@/components/AdminDocs";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 import { isAwayNow } from "@/lib/availability";
 
@@ -40,6 +42,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     adminListComplaints().catch(() => ((needMigration = true), [])),
   ]);
   const pendingReviews = reviews.filter((r) => r.status === "pending").length;
+  const docsToCheck = masters.flatMap((m) => (m.documents ?? []).filter((d) => d.status === "pending").map((d) => ({ m, d })));
+  const docUrls = tab === "docs" ? await signedUrls(docsToCheck.map((x) => x.d.path)).catch(() => ({}) as Record<string, string>) : {};
   const newComplaints = complaints.filter((c) => c.status === "new").length;
   const REASONS = getDict("ru").complaint.reasons as Record<string, string>;
   const respByReq = new Map<string, string[]>();
@@ -55,6 +59,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { id: "pending", label: `Анкеты${pending.length ? ` · ${pending.length}` : ""}` },
     { id: "masters", label: `Специалисты · ${others.length}` },
     { id: "reviews", label: `Отзывы${pendingReviews ? ` · ${pendingReviews} на проверке` : ""}` },
+    { id: "docs", label: `Документы${docsToCheck.length ? ` · ${docsToCheck.length} на проверке` : ""}` },
     { id: "complaints", label: `Жалобы${newComplaints ? ` · ${newComplaints} новых` : ""}` },
     { id: "bot", label: "Telegram-бот" },
   ];
@@ -136,6 +141,25 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             );
           })}
           <p className="text-[12px] text-muted">Публикуйте честные отзывы, в том числе негативные. Отклоняйте только оскорбления, рекламу, чужие личные данные и отзывы не по делу.</p>
+        </div>
+      )}
+
+      {tab === "docs" && (
+        <div className="mt-5 space-y-4">
+          {docsToCheck.length === 0 && <Empty text="Новых документов нет. Проверенные и отклонённые видны на странице специалиста." />}
+          {[...new Set(docsToCheck.map((x) => x.m.id))].map((id) => {
+            const m = byId.get(id)!;
+            return (
+              <div key={id} className="rounded-2xl bg-white p-4">
+                <p className="mb-2 text-[15px]">
+                  <Link href={`/admin/masters/${m.id}`} className="font-semibold underline">{m.name}</Link>{" "}
+                  <span className="text-muted">· {categoryLabel(m.category)}</span>
+                </p>
+                <AdminDocs masterId={m.id} docs={docsToCheck.filter((x) => x.m.id === id).map((x) => x.d)} urls={docUrls} back="/admin?tab=docs" />
+              </div>
+            );
+          })}
+          <p className="text-[12px] text-muted">Проверьте, что документ читается и имя совпадает со специалистом. Если документ показывается клиентам, а на нём виден номер паспорта или другие личные данные, лучше отклонить и попросить загрузить с закрытыми данными.</p>
         </div>
       )}
 

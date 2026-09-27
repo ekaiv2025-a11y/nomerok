@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedMasterBySlug, listPublishedMasters } from "@/lib/db";
+import { adminGetMaster, getPublishedMasterBySlug, listPublishedMasters } from "@/lib/db";
+import { publicDocuments } from "@/lib/documents";
 import { categoryLabel, categoryPlural, languageLabel, MEDICAL_CATEGORIES } from "@/lib/categories";
 import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
@@ -46,6 +47,8 @@ export default async function MasterPage({ params }: Props) {
   const t = d.master;
   const rv = d.reviews;
   const reviews = m.demo ? [] : await listPublishedReviews(m.id).catch(() => []);
+  // Проверенные документы, которые специалист разрешил показывать (ссылки действуют час)
+  const docs = m.docs_verified ? await publicDocuments((await adminGetMaster(m.id).catch(() => null))?.documents) : [];
   const bot = m.demo ? null : await botUsername();
   const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
@@ -70,6 +73,11 @@ export default async function MasterPage({ params }: Props) {
         <div className="min-w-0">
           <h1 className="text-[24px] font-bold leading-tight sm:text-[30px]">{m.name}</h1>
           {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
+          {m.docs_verified && (
+            <a href="#documents" className="ml-1.5">
+              <VerifiedBadge label={t.docsVerified} large />
+            </a>
+          )}
           {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
             {cat} · {t.city}
@@ -192,6 +200,29 @@ export default async function MasterPage({ params }: Props) {
             <section className="mt-8">
               <h2 className="text-[18px] font-bold">{t.credentials}</h2>
               <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-[#3a3935]">{m.credentials}</p>
+            </section>
+          )}
+
+          {docs.length > 0 && (
+            <section id="documents" className="mt-8 scroll-mt-24">
+              <h2 className="text-[18px] font-bold">{t.documents}</h2>
+              <p className="mt-1 text-[13px] text-brand-dark">✓ {t.docsVerifiedNote}</p>
+              {docs.some((x) => x.type === "image") && (
+                <Gallery items={docs.filter((x) => x.type === "image").map((x) => ({ url: x.url, caption: `${t.kinds[x.kind]}: ${x.title}` }))} />
+              )}
+              {docs.some((x) => x.type === "pdf") && (
+                <ul className="mt-3 space-y-2">
+                  {docs
+                    .filter((x) => x.type === "pdf")
+                    .map((x) => (
+                      <li key={x.id}>
+                        <a href={x.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-line p-3 text-[15px] hover:bg-cream">
+                          📄 <span className="text-muted">{t.kinds[x.kind]}:</span> <b>{x.title}</b> <span className="ml-auto text-[12px] text-muted">PDF</span>
+                        </a>
+                      </li>
+                    ))}
+                </ul>
+              )}
             </section>
           )}
 

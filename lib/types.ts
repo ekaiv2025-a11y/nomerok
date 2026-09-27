@@ -5,6 +5,22 @@ export type RequestStatus = "new" | "sent" | "taken" | "in_work" | "done" | "spa
 
 export type WorkMode = "at_client" | "at_place" | "both" | "online";
 export type PortfolioItem = { url: string; caption: string };
+export type DocKind = "diploma" | "certificate" | "license" | "other";
+export type DocStatus = "pending" | "verified" | "rejected";
+/** Документ специалиста. path — путь в закрытом хранилище (открывается по временной ссылке). */
+export type MasterDocument = {
+  id: string;
+  path: string;
+  title: string;
+  kind: DocKind;
+  type: "image" | "pdf";
+  /** Показывать клиентам (после проверки). Иначе — только для проверки администрацией. */
+  public: boolean;
+  status: DocStatus;
+  uploaded_at: string;
+};
+/** Документ для страницы специалиста: только проверенные и открытые. */
+export type PublicDocument = { id: string; title: string; kind: DocKind; type: "image" | "pdf"; url: string };
 
 export type Master = {
   id: string;
@@ -61,6 +77,7 @@ export type Master = {
   /** Районы выезда */
   service_area: string;
   work_hours: string;
+  documents: MasterDocument[];
   created_at: string;
   updated_at: string;
 };
@@ -91,7 +108,7 @@ export type PublicMaster = Pick<
   | "place_lng"
   | "service_area"
   | "work_hours"
-> & { away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
+> & { docs_verified: boolean; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
   phone: string;
@@ -128,7 +145,7 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents"
 > & {
   admin_note?: string;
   lang?: Locale;

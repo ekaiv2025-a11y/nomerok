@@ -85,7 +85,9 @@ type BotDict = {
   directMissedMaster: string;
   directMissedClient: (name: string) => string;
   commands: { cabinet: string; help: string; pause: string; resume: string };
-  steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials" | "portfolio" | "where", string>;
+  steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials" | "portfolio" | "where" | "documents", string>;
+  docVerified: (title: string) => string;
+  docRejected: (title: string) => string;
 };
 
 const ru: BotDict = {
@@ -108,6 +110,8 @@ const ru: BotDict = {
   joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
   btnJoinContinue: "📝 Продолжить анкету",
   joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
+  docVerified: (title) => `✅ Документ «${title}» проверен — в профиле появилась отметка «Документы проверены».`,
+  docRejected: (title) => `Документ «${title}» не принят. Возможно, его плохо видно или он не подходит. Если есть вопросы — напишите сюда.`,
   inactiveWarn: "👋 Вы давно не заходили в Nomerok. Вы ещё принимаете заказы? Нажмите кнопку — иначе через 7 дней профиль уйдёт в архив и клиенты перестанут его видеть. Если просто заняты — поставьте паузу: /pause",
   btnStillHere: "✅ Да, я на связи",
   stillHereOk: "Спасибо! Профиль остаётся на сайте.",
@@ -176,6 +180,7 @@ const ru: BotDict = {
   btnWhatsApp: "WhatsApp",
   commands: { cabinet: "Мой кабинет специалиста", help: "Помощь", pause: "Пауза: отпуск, не принимаю заявки", resume: "Снова принимаю заявки" },
   steps: {
+    documents: "загрузите диплом или сертификат в кабинете",
     portfolio: "добавьте фото работ (хотя бы 3)",
     where: "укажите, где работаете (выезд или адрес на карте)",
     verified: "подтвердите номер (кнопка «📱 Поделиться номером»)",
@@ -208,6 +213,8 @@ const en: BotDict = {
   joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
   btnJoinContinue: "📝 Continue profile",
   joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
+  docVerified: (title) => `✅ Your document “${title}” is verified — your profile now shows “Documents verified”.`,
+  docRejected: (title) => `Your document “${title}” wasn't accepted. It may be unreadable or unsuitable. Any questions — write here.`,
   inactiveWarn: "👋 You haven't been active on Nomerok for a while. Are you still taking orders? Tap the button — otherwise in 7 days your profile will be archived and clients won't see it. Just busy? Pause instead: /pause",
   btnStillHere: "✅ Yes, I'm here",
   stillHereOk: "Thanks! Your profile stays on the site.",
@@ -276,6 +283,7 @@ const en: BotDict = {
   btnWhatsApp: "WhatsApp",
   commands: { cabinet: "My specialist dashboard", help: "Help", pause: "Pause: vacation, not taking requests", resume: "Accept requests again" },
   steps: {
+    documents: "upload a diploma or certificate in your dashboard",
     portfolio: "add photos of your work (at least 3)",
     where: "say where you work (visits or an address on the map)",
     verified: "verify your number (“📱 Share my number” button)",
@@ -308,6 +316,8 @@ const ka: BotDict = {
   joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
   btnJoinContinue: "📝 ანკეტის გაგრძელება",
   joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
+  docVerified: (title) => `✅ დოკუმენტი „${title}“ შემოწმებულია — პროფილში გამოჩნდა ნიშანი „დოკუმენტები შემოწმებულია“.`,
+  docRejected: (title) => `დოკუმენტი „${title}“ არ მიიღეს. შესაძლოა ცუდად ჩანს ან არ შეესაბამება. კითხვების შემთხვევაში — მოგვწერეთ აქ.`,
   inactiveWarn: "👋 დიდი ხანია Nomerok-ზე არ შემოსულხართ. ისევ იღებთ შეკვეთებს? დააჭირეთ ღილაკს — წინააღმდეგ შემთხვევაში 7 დღეში პროფილი არქივში გადავა და კლიენტები მას ვეღარ დაინახავენ. თუ უბრალოდ დაკავებული ხართ — ჩართეთ პაუზა: /pause",
   btnStillHere: "✅ დიახ, კავშირზე ვარ",
   stillHereOk: "გმადლობთ! პროფილი საიტზე რჩება.",
@@ -376,6 +386,7 @@ const ka: BotDict = {
   btnWhatsApp: "WhatsApp",
   commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება", pause: "პაუზა: შვებულება, არ ვიღებ განაცხადებს", resume: "ისევ ვიღებ განაცხადებს" },
   steps: {
+    documents: "ატვირთეთ დიპლომი ან სერტიფიკატი კაბინეტში",
     portfolio: "დაამატეთ სამუშაოების ფოტოები (მინიმუმ 3)",
     where: "მიუთითეთ, სად მუშაობთ (გამოძახება ან მისამართი რუკაზე)",
     verified: "დაადასტურეთ ნომერი (ღილაკი „📱 ნომრის გაზიარება“)",

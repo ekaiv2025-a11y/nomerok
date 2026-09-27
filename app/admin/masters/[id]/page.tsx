@@ -5,6 +5,8 @@ import { adminGetMaster } from "@/lib/db";
 import { MasterEditForm } from "@/components/MasterEditForm";
 import { botLink } from "@/lib/telegram";
 import { profileSteps } from "@/lib/profile";
+import { signedUrls } from "@/lib/documents";
+import { AdminDocs } from "@/components/AdminDocs";
 import { deleteMaster, setMasterStatus } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +22,8 @@ export default async function EditMasterPage({ params, searchParams }: { params:
   const back = `/admin/masters/${m.id}`;
   const tgLink = await botLink(`m_${m.tg_link_token}`);
   const { percent } = profileSteps(m);
+  const docs = Array.isArray(m.documents) ? m.documents : [];
+  const docUrls = await signedUrls(docs.map((d) => d.path)).catch(() => ({}) as Record<string, string>);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -59,6 +63,12 @@ export default async function EditMasterPage({ params, searchParams }: { params:
         {m.status === "published" && <Link href={`/ru/master/${m.slug}`} target="_blank" className="btn-ghost h-10 text-[14px]">Открыть на сайте ↗</Link>}
       </div>
 
+      {docs.length > 0 && (
+        <div className="mt-4 rounded-2xl bg-white p-4">
+          <h2 className="mb-2 font-semibold">Документы ({docs.length})</h2>
+          <AdminDocs masterId={m.id} docs={docs} urls={docUrls} back={`/admin/masters/${m.id}`} />
+        </div>
+      )}
       <div className="mt-4"><MasterEditForm m={m} /></div>
 
       <form action={deleteMaster} className="mt-6">

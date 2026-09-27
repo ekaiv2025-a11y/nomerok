@@ -24,6 +24,11 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-[16px] font-semibold leading-tight group-hover:text-brand">{m.name}</h3>
           {m.verified && <VerifiedBadge label={t.verified} />}
+          {m.docs_verified && (
+            <span className="ml-1">
+              <VerifiedBadge label={t.docsVerified} />
+            </span>
+          )}
           {m.demo && <DemoBadge label={t.demo} />}
           {m.away && <AwayBadge label={t.away} />}
           {m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both") && (
