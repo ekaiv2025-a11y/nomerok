@@ -1,20 +1,20 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
+import { isLocale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME} — специалисты в Батуми напрямую`, template: `%s — ${SITE_NAME}` },
-  description:
-    "Мастера, репетиторы, врачи, няни и другие специалисты в Батуми. Контакты напрямую, без посредников. Не нашли нужного — оставьте заявку, подберём сами.",
-  openGraph: { siteName: SITE_NAME, locale: "ru_RU", type: "website" },
-};
+export const metadata: Metadata = { metadataBase: new URL(SITE_URL) };
 
 export const viewport: Viewport = { themeColor: "#1f6b4f", width: "device-width", initialScale: 1 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Язык страницы передаёт proxy.ts в заголовке x-nm-lang (админка — всегда русский)
+  const h = await headers();
+  const l = h.get("x-nm-lang");
+  const lang = isLocale(l) ? l : "ru";
   return (
-    <html lang="ru">
+    <html lang={lang}>
       <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );

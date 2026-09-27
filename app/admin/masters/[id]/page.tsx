@@ -34,7 +34,7 @@ export default async function EditMasterPage({ params, searchParams }: { params:
         {m.status !== "published" && <StatusBtn id={m.id} status="published" label="Опубликовать" primary back={back} />}
         {m.status === "published" && <StatusBtn id={m.id} status="hidden" label="Скрыть с сайта" back={back} />}
         {m.status === "pending" && <StatusBtn id={m.id} status="rejected" label="Отклонить" back={back} />}
-        {m.status === "published" && <Link href={`/master/${m.slug}`} target="_blank" className="btn-ghost h-10 text-[14px]">Открыть на сайте ↗</Link>}
+        {m.status === "published" && <Link href={`/ru/master/${m.slug}`} target="_blank" className="btn-ghost h-10 text-[14px]">Открыть на сайте ↗</Link>}
       </div>
 
       <div className="mt-4"><MasterEditForm m={m} /></div>

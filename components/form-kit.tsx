@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { getDict, type Locale } from "@/lib/i18n";
 
 export type SubmitState = "idle" | "sending" | "done" | "error";
 
-export function useSubmit(url: string) {
+export function useSubmit(url: string, lang: Locale) {
+  const t = getDict(lang).form;
   const [state, setState] = useState<SubmitState>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
@@ -18,7 +20,7 @@ export function useSubmit(url: string) {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, startedAt: startedAt.current }),
+        body: JSON.stringify({ ...payload, lang, startedAt: startedAt.current }),
       });
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
@@ -28,15 +30,15 @@ export function useSubmit(url: string) {
       }
       if (data.fields) {
         setErrors(data.fields);
-        setMessage("Проверьте поля, отмеченные красным.");
+        setMessage(t.checkFields);
         const first = Object.keys(data.fields)[0];
         document.querySelector<HTMLElement>(`form [name="${first}"]`)?.focus();
       } else {
-        setMessage(data.error || "Не получилось отправить. Попробуйте ещё раз.");
+        setMessage(data.error || t.sendError);
       }
       setState("error");
     } catch {
-      setMessage("Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.");
+      setMessage(t.netError);
       setState("error");
     }
   }
@@ -44,11 +46,23 @@ export function useSubmit(url: string) {
   return { state, errors, message, submit };
 }
 
-export function Field({ label, hint, error, children, optional }: { label: string; hint?: string; error?: string; optional?: boolean; children: React.ReactNode }) {
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+  optional,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  optional?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="text-[14px] font-semibold">
-        {label} {optional && <span className="font-normal text-muted">(необязательно)</span>}
+        {label} {optional && <span className="font-normal text-muted">{optional}</span>}
       </span>
       {hint && <span className="mt-0.5 block text-[13px] text-muted">{hint}</span>}
       <div className="mt-1.5">{children}</div>
@@ -58,11 +72,11 @@ export function Field({ label, hint, error, children, optional }: { label: strin
 }
 
 /** Скрытое поле-ловушка для ботов. Люди его не видят и не заполняют. */
-export function Honeypot() {
+export function Honeypot({ label }: { label: string }) {
   return (
     <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
       <label>
-        Не заполняйте это поле
+        {label}
         <input type="text" name="website" tabIndex={-1} autoComplete="off" />
       </label>
     </div>

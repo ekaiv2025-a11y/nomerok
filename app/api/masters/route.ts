@@ -1,31 +1,25 @@
 import { NextResponse } from "next/server";
-import { masterApplicationSchema, firstErrors } from "@/lib/validation";
-import { createMaster, DbNotConfiguredError } from "@/lib/db";
+import { masterApplicationSchema, firstErrors, langFromBody } from "@/lib/validation";
+import { createMaster } from "@/lib/db";
 import { notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { SITE_URL } from "@/lib/site";
+import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 
 export async function POST(req: Request) {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Неверный запрос" }, { status: 400 });
-  }
-  const parsed = masterApplicationSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
-  }
+  const body = await req.json().catch(() => null);
+  const lang = langFromBody(body);
+  const e = getDict(lang).errors;
+  if (!body) return NextResponse.json({ ok: false, error: e.badRequest }, { status: 400 });
+
+  const parsed = masterApplicationSchema(lang).safeParse(body);
+  if (!parsed.success) return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
   const d = parsed.data;
-  if (d.website || (d.startedAt && Date.now() - d.startedAt < 2500)) {
-    return NextResponse.json({ ok: true });
-  }
-  if (!rateLimit("master:" + (await clientIp()), 3)) {
-    return NextResponse.json({ ok: false, error: "Слишком много анкет подряд. Попробуйте позже." }, { status: 429 });
-  }
+  if (d.website || (d.startedAt && Date.now() - d.startedAt < 2500)) return NextResponse.json({ ok: true });
+  if (!rateLimit("master:" + (await clientIp()), 3)) return NextResponse.json({ ok: false, error: e.tooMany }, { status: 429 });
 
   try {
     const m = await createMaster({
@@ -49,16 +43,16 @@ export async function POST(req: Request) {
     await notifyAdmin(
       [
         "🧑‍💼 <b>Новая анкета специалиста</b>",
-        `<b>${escapeHtml(m.name)}</b> — ${escapeHtml(categoryLabel(m.category))}`,
+        `<b>${escapeHtml(m.name)}</b> — ${escapeHtml(categoryLabel(m.category, "ru"))}`,
         `<b>Услуги:</b> ${escapeHtml(m.services)}`,
         `<b>Телефон:</b> ${escapeHtml(formatPhone(m.phone))}${m.telegram ? ` · @${escapeHtml(m.telegram)}` : ""}`,
+        `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
         `\nПроверить и опубликовать: ${SITE_URL}/admin/masters/${m.id}`,
       ].join("\n"),
     );
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    const msg = e instanceof DbNotConfiguredError ? "Сайт ещё настраивается, анкеты временно не принимаются." : "Не получилось отправить. Попробуйте ещё раз.";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });
   }
 }

@@ -1,33 +1,27 @@
 import { NextResponse } from "next/server";
-import { requestSchema, firstErrors } from "@/lib/validation";
-import { createRequest, getPublishedMasterBySlug, DbNotConfiguredError } from "@/lib/db";
+import { requestSchema, firstErrors, langFromBody } from "@/lib/validation";
+import { createRequest, getPublishedMasterBySlug } from "@/lib/db";
 import { notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { SITE_URL } from "@/lib/site";
+import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 
 export async function POST(req: Request) {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Неверный запрос" }, { status: 400 });
-  }
-  const parsed = requestSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
-  }
+  const body = await req.json().catch(() => null);
+  const lang = langFromBody(body);
+  const e = getDict(lang).errors;
+  if (!body) return NextResponse.json({ ok: false, error: e.badRequest }, { status: 400 });
+
+  const parsed = requestSchema(lang).safeParse(body);
+  if (!parsed.success) return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
   const data = parsed.data;
 
   // Бот заполнил скрытое поле или отправил форму мгновенно — делаем вид, что всё хорошо.
-  if (data.website || (data.startedAt && Date.now() - data.startedAt < 2500)) {
-    return NextResponse.json({ ok: true });
-  }
-  if (!rateLimit("req:" + (await clientIp()), 5)) {
-    return NextResponse.json({ ok: false, error: "Слишком много заявок подряд. Попробуйте через 10 минут." }, { status: 429 });
-  }
+  if (data.website || (data.startedAt && Date.now() - data.startedAt < 2500)) return NextResponse.json({ ok: true });
+  if (!rateLimit("req:" + (await clientIp()), 5)) return NextResponse.json({ ok: false, error: e.tooMany }, { status: 429 });
 
   try {
     const master = data.master_slug ? await getPublishedMasterBySlug(data.master_slug) : null;
@@ -42,19 +36,18 @@ export async function POST(req: Request) {
 
     const lines = [
       "🆕 <b>Новая заявка</b>",
-      `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category))}`,
-      master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/master/${master.slug}` : "",
+      `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))}`,
+      master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
       `<b>Задача:</b> ${escapeHtml(saved.description)}`,
       saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
       `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
+      `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
       `\n${SITE_URL}/admin`,
     ].filter(Boolean);
     await notifyAdmin(lines.join("\n"));
-
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    const msg = e instanceof DbNotConfiguredError ? "Сайт ещё настраивается, заявки временно не принимаются." : "Не получилось отправить. Попробуйте ещё раз.";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });
   }
 }

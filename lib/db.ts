@@ -317,3 +317,4 @@ export async function adminContactViewsThisMonth(): Promise<Record<string, numbe
   for (const r of rows) counts[r.master_id] = (counts[r.master_id] ?? 0) + 1;
   return counts;
 }
+

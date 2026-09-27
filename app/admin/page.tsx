@@ -31,7 +31,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const tabs = [
     { id: "requests", label: `Заявки клиентов${newReq ? ` · ${newReq} новых` : ""}` },
     { id: "pending", label: `Анкеты${pending.length ? ` · ${pending.length}` : ""}` },
-    { id: "masters", label: `Мастера · ${others.length}` },
+    { id: "masters", label: `Специалисты · ${others.length}` },
   ];
 
   return (
@@ -143,7 +143,7 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
         ))}
         <Link href={`/admin/masters/${m.id}`} className="btn-ghost h-9 px-4 text-[13px]">Редактировать</Link>
         {m.status === "published" && (
-          <Link href={`/master/${m.slug}`} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">На сайте ↗</Link>
+          <Link href={`/ru/master/${m.slug}`} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">На сайте ↗</Link>
         )}
       </div>
     </div>

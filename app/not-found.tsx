@@ -1,17 +1,17 @@
-import Link from "next/link";
+import { headers } from "next/headers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { NotFoundBody } from "@/components/NotFoundBody";
+import { isLocale } from "@/lib/i18n";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const l = (await headers()).get("x-nm-lang");
+  const lang = isLocale(l) ? l : "ru";
   return (
     <>
-      <Header />
-      <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Страница не найдена</h1>
-        <p className="mt-2 text-muted">Возможно, ссылка устарела.</p>
-        <Link href="/" className="btn-primary mt-6">На главную</Link>
-      </div>
-      <Footer />
+      <Header lang={lang} />
+      <NotFoundBody />
+      <Footer lang={lang} />
     </>
   );
 }

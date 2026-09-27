@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "crypto";
 
-export const ADMIN_COOKIE = "mm_admin";
+export const ADMIN_COOKIE = "nm_admin";
 
 function token(): string | null {
   const pwd = process.env.ADMIN_PASSWORD;

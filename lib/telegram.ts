@@ -21,17 +21,11 @@ export function telegramChatId(): string | null {
   return m ? m[0] : null;
 }
 
-/**
- * Отправляет сообщение владельцу сайта в Telegram.
- * Если бот не настроен или Telegram недоступен — просто пишет в лог и не ломает сайт.
- */
-export async function notifyAdmin(html: string): Promise<boolean> {
+/** Отправка в Telegram. */
+async function sendTelegram(html: string): Promise<boolean | null> {
   const token = telegramToken();
   const chatId = telegramChatId();
-  if (!token || !chatId) {
-    console.log(`[telegram] бот не настроен (токен: ${token ? "ok" : "нет"}, chat id: ${chatId ? "ok" : "нет"}), уведомление:\n` + html);
-    return false;
-  }
+  if (!token || !chatId) return null; // не настроено
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
@@ -45,6 +39,49 @@ export async function notifyAdmin(html: string): Promise<boolean> {
     console.error("[telegram] не удалось отправить", e);
     return false;
   }
+}
+
+/**
+ * Отправка на почту через сервис Resend (resend.com) — необязательно.
+ * Включается, если в настройках заданы RESEND_API_KEY и NOTIFY_EMAIL.
+ */
+async function sendEmail(html: string): Promise<boolean | null> {
+  const key = (process.env.RESEND_API_KEY ?? "").trim();
+  const to = (process.env.NOTIFY_EMAIL ?? "").trim();
+  if (!key || !to) return null; // не настроено
+  const text = html.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  const subject = text.split("\n")[0].replace(/^[^\p{L}]+/u, "").slice(0, 120) || "Nomerok";
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        from: process.env.NOTIFY_FROM?.trim() || "Nomerok <onboarding@resend.dev>",
+        to: to.split(/[,;\s]+/).filter(Boolean),
+        subject,
+        text,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) console.error("[email] ошибка", res.status, await res.text());
+    return res.ok;
+  } catch (e) {
+    console.error("[email] не удалось отправить", e);
+    return false;
+  }
+}
+
+/**
+ * Уведомляет владельца сайта: в Telegram и/или на почту — что настроено.
+ * Возвращает true, если хотя бы один способ сработал. Сайт при ошибке не ломается.
+ */
+export async function notifyAdmin(html: string): Promise<boolean> {
+  const [tg, mail] = await Promise.all([sendTelegram(html), sendEmail(html)]);
+  if (tg === null && mail === null) {
+    console.log("[уведомления] ни Telegram, ни почта не настроены. Сообщение:\n" + html);
+    return false;
+  }
+  return tg === true || mail === true;
 }
 
 /** Для /api/health: проверяет токен (getMe), ничего не отправляя. */

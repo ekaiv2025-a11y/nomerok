@@ -7,5 +7,6 @@ export const dynamic = "force-dynamic";
 /** Открывается по адресу /api/health — показывает, всё ли настроено. Секреты не раскрывает. */
 export async function GET() {
   const [db, telegram] = await Promise.all([healthCheck(), telegramHealth()]);
-  return NextResponse.json({ ...db, TELEGRAM: telegram }, { headers: { "Cache-Control": "no-store" } });
+  const EMAIL = { почта_настроена: !!(process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) };
+  return NextResponse.json({ ...db, TELEGRAM: telegram, EMAIL }, { headers: { "Cache-Control": "no-store" } });
 }

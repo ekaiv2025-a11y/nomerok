@@ -1,21 +1,21 @@
 import Link from "next/link";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { href, type Locale } from "@/lib/i18n/config";
 
 // Окончание домена (.ge) показываем серым рядом с названием
 const TLD = (() => {
   try {
-    const host = new URL(SITE_URL).hostname;
-    return host.endsWith(".ge") ? ".ge" : "";
+    return new URL(SITE_URL).hostname.endsWith(".ge") ? ".ge" : "";
   } catch {
     return "";
   }
 })();
 
-export function Logo({ small = false }: { small?: boolean }) {
+export function Logo({ lang, small = false }: { lang: Locale; small?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={`${SITE_NAME} — на главную`}>
-      <LogoMark className={small ? "w-7 h-7" : "w-8 h-8"} />
-      <span className={`font-bold tracking-tight ${small ? "text-[17px]" : "text-[19px]"}`}>
+    <Link href={href(lang)} className="flex shrink-0 items-center gap-2" aria-label={SITE_NAME}>
+      <LogoMark className={small ? "h-7 w-7" : "h-8 w-8"} />
+      <span className={`font-bold tracking-tight ${small ? "text-[17px]" : "text-[17px] sm:text-[19px]"}`}>
         {SITE_NAME}
         {TLD && <span className="font-semibold text-muted">{TLD}</span>}
       </span>

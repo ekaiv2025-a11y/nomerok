@@ -1,8 +1,15 @@
-export function SetupNotice() {
+import Link from "next/link";
+import { getDict, href, type Locale } from "@/lib/i18n";
+
+export function SetupNotice({ lang }: { lang: Locale }) {
+  const t = getDict(lang);
   return (
-    <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-accent/50 bg-[#fdf6e6] p-6 text-center">
-      <p className="font-semibold">Сайт почти готов</p>
-      <p className="mt-1 text-[14px] text-muted">База данных ещё не подключена. Владелец сайта: добавьте ключи Supabase в настройках Vercel (см. README).</p>
+    <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-accent/50 bg-[#fdf6e6] p-6 text-center">
+      <p className="font-semibold">{t.setup.title}</p>
+      <p className="mt-1 text-[14px] text-muted">{t.setup.text}</p>
+      <Link href={href(lang, "/request")} className="btn-primary mt-4">
+        {t.nav.leaveRequest}
+      </Link>
     </div>
   );
 }

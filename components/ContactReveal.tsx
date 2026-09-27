@@ -4,11 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { Phone, MessageCircle, Send, Loader2 } from "lucide-react";
 import { formatPhone, telegramLink, whatsappLink } from "@/lib/phone";
+import { getDict, href, type Locale } from "@/lib/i18n";
 import { SITE_NAME } from "@/lib/site";
 
 type Contacts = { phone: string; telegram: string | null; whatsapp: boolean };
 
-export function ContactReveal({ masterId, slug }: { masterId: string; slug: string }) {
+export function ContactReveal({ masterId, slug, lang }: { masterId: string; slug: string; lang: Locale }) {
+  const t = getDict(lang).reveal;
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
   const [c, setC] = useState<Contacts | null>(null);
@@ -19,19 +21,17 @@ export function ContactReveal({ masterId, slug }: { masterId: string; slug: stri
       const res = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ masterId }),
+        body: JSON.stringify({ masterId, lang }),
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error || "Ошибка");
+      if (!data.ok) throw new Error(data.error || "Error");
       setC({ phone: data.phone, telegram: data.telegram, whatsapp: data.whatsapp });
       setState("idle");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка");
+      setError(e instanceof Error ? e.message : "Error");
       setState("error");
     }
   }
-
-  const greeting = `Здравствуйте! Нашёл(ла) вас на ${SITE_NAME}.`;
 
   return (
     <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
@@ -39,12 +39,10 @@ export function ContactReveal({ masterId, slug }: { masterId: string; slug: stri
         <>
           <button onClick={reveal} disabled={state === "loading"} className="btn-primary h-12 w-full">
             {state === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Phone className="h-4 w-4" />}
-            Показать контакты
+            {t.show}
           </button>
           {state === "error" && <p className="mt-2 text-center text-[13px] text-danger">{error}</p>}
-          <p className="mt-3 text-center text-[12px] leading-snug text-muted">
-            Вы связываетесь со специалистом напрямую. {SITE_NAME} не берёт с клиентов денег.
-          </p>
+          <p className="mt-3 text-center text-[12px] leading-snug text-muted">{t.noFee(SITE_NAME)}</p>
         </>
       ) : (
         <div className="space-y-2.5">
@@ -52,21 +50,19 @@ export function ContactReveal({ masterId, slug }: { masterId: string; slug: stri
             <Phone className="h-4 w-4" /> {formatPhone(c.phone)}
           </a>
           {c.whatsapp && (
-            <a href={whatsappLink(c.phone, greeting)} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#25D366] text-white hover:bg-[#1eb457]">
+            <a href={whatsappLink(c.phone, t.greeting(SITE_NAME))} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#25D366] text-white hover:bg-[#1eb457]">
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
           )}
           <a href={telegramLink(c.telegram, c.phone)} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#229ED9] text-white hover:bg-[#1c89bd]">
             <Send className="h-4 w-4" /> Telegram{c.telegram ? ` @${c.telegram}` : ""}
           </a>
-          <p className="pt-1 text-center text-[12px] leading-snug text-muted">
-            Упомяните, что нашли контакт на {SITE_NAME}.
-          </p>
+          <p className="pt-1 text-center text-[12px] leading-snug text-muted">{t.mention(SITE_NAME)}</p>
         </div>
       )}
       <div className="mt-4 border-t border-line pt-4 text-center">
-        <Link href={`/request?master=${slug}`} className="text-[14px] font-semibold text-brand hover:underline">
-          Или оставьте заявку — специалист перезвонит
+        <Link href={href(lang, `/request?master=${slug}`)} className="text-[14px] font-semibold text-brand hover:underline">
+          {t.orRequest}
         </Link>
       </div>
     </div>
