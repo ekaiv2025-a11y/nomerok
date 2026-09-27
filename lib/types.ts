@@ -55,7 +55,7 @@ export type PublicMaster = Pick<
   | "photo_url"
   | "created_at"
   | "updated_at"
-> & { verified: boolean };
+> & { verified: boolean; demo: boolean };
 
 export type MasterContacts = {
   phone: string;

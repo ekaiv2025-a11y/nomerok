@@ -68,6 +68,7 @@ const ru = {
     notFoundCta: "Оставить заявку →",
   },
   card: {
+    demo: "Пример профиля",
     verified: "Номер подтверждён",
     byAgreement: "Цена по договорённости",
     from: (price: number, unit: string) => `от ${price} ₾ / ${unit}`,
@@ -75,6 +76,8 @@ const ru = {
     experience: (n: number) => `Опыт ${n} ${yearsRu(n)}`,
   },
   master: {
+    demoTitle: "Это пример профиля",
+    demoText: "Так будет выглядеть страница специалиста. Контакты у примера ненастоящие — оставьте заявку, и её получат реальные специалисты.",
     similarTitle: (cat: string) => `Ещё: ${cat.toLowerCase()}`,
     othersTitle: "Другие специалисты",
     allLink: "Все специалисты →",

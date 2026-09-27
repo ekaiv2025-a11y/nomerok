@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { makeSlug } from "./slug";
+import { DEMO_MASTERS, DEMO_PREFIX, isDemoSlug } from "./demo";
 import type {
   ClientRequest,
   Master,
@@ -150,6 +151,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     created_at: m.created_at,
     updated_at: m.updated_at,
     verified: !!m.phone_verified_at,
+    demo: isDemoSlug(m.slug),
   };
 }
 
@@ -198,6 +200,8 @@ export async function getPublishedMasterBySlug(slug: string): Promise<PublicMast
 
 /** Отдаёт контакты опубликованного мастера и записывает факт просмотра. */
 export async function revealContacts(masterId: string, visitor: string): Promise<(MasterContacts & { name: string; slug: string }) | null> {
+  const probe = await adminGetMaster(masterId);
+  if (!probe || isDemoSlug(probe.slug)) return null;
   const sb = supabase();
   if (sb) {
     const m = check(
@@ -526,4 +530,36 @@ export async function uploadPhoto(masterId: string, file: Blob, ext: string): Pr
   // Локальный режим: храним картинку прямо в базе как data-URL
   const buf = Buffer.from(await file.arrayBuffer());
   return `data:${file.type};base64,${buf.toString("base64")}`;
+}
+
+/* ---------- демо-профили ---------- */
+
+export async function adminAddDemoMasters(): Promise<number> {
+  const existing = new Set((await adminListMasters()).map((m) => m.slug));
+  let added = 0;
+  for (const [i, d] of DEMO_MASTERS.entries()) {
+    const slug = DEMO_PREFIX + d.slugBase;
+    if (existing.has(slug)) continue;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { slugBase, ...rest } = d;
+    const m = await createMaster({
+      ...rest,
+      phone: `+99500000000${i}`,
+      telegram: null,
+      whatsapp: false,
+      photo_url: null,
+      status: "published",
+      consent_at: null,
+      admin_note: "[DEMO] пример профиля",
+    });
+    await adminUpdateMaster(m.id, { slug, notify_requests: false });
+    added++;
+  }
+  return added;
+}
+
+export async function adminRemoveDemoMasters(): Promise<number> {
+  const demos = (await adminListMasters()).filter((m) => isDemoSlug(m.slug));
+  for (const m of demos) await adminDeleteMaster(m.id);
+  return demos.length;
 }

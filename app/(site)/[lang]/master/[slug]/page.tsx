@@ -9,7 +9,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Avatar } from "@/components/Avatar";
 import { ContactReveal } from "@/components/ContactReveal";
 import { ShareButtons } from "@/components/ShareButtons";
-import { MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
+import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = t.meta.masterTitle(m.name, categoryLabel(m.category, lang));
   const services = m.services.split(/\n|;/).map((s) => s.trim()).filter(Boolean).join(", ").slice(0, 150);
   const base = pageMeta(lang, `/master/${m.slug}`, title, `${services}. ${priceText(m, lang)}.`);
-  return { ...base, openGraph: { ...base.openGraph, images: m.photo_url ? [m.photo_url] : undefined } };
+  return {
+    ...base,
+    ...(m.demo ? { robots: { index: false } } : {}),
+    openGraph: { ...base.openGraph, images: m.photo_url ? [m.photo_url] : undefined },
+  };
 }
 
 export default async function MasterPage({ params }: Props) {
@@ -55,6 +59,7 @@ export default async function MasterPage({ params }: Props) {
         <div className="min-w-0">
           <h1 className="text-[24px] font-bold leading-tight sm:text-[30px]">{m.name}</h1>
           {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
+          {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
             {cat} · {t.city}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
@@ -65,7 +70,17 @@ export default async function MasterPage({ params }: Props) {
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:gap-10">
         <aside className="lg:sticky lg:top-24 lg:order-2 lg:h-fit">
-          <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
+          {m.demo ? (
+            <div className="rounded-2xl border border-accent/50 bg-[#fdf6e6] p-5">
+              <p className="font-semibold">{t.demoTitle}</p>
+              <p className="mt-1 text-[14px] leading-relaxed text-[#5a4a22]">{t.demoText}</p>
+              <Link href={href(lang, `/request?category=${m.category}`)} className="btn-primary mt-4 h-11 w-full">
+                {getDict(lang).nav.leaveRequest}
+              </Link>
+            </div>
+          ) : (
+            <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
+          )}
         </aside>
 
         <div className="lg:order-1">

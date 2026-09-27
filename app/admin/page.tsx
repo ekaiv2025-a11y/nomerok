@@ -6,7 +6,8 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { connectBot, logout, setMasterStatus, setRequestStatus } from "./actions";
+import { addDemo, connectBot, logout, removeDemo, setMasterStatus, setRequestStatus } from "./actions";
+import { isDemoSlug } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,12 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   if (dbMode() === "none") {
     return <p className="rounded-2xl bg-white p-6">База не подключена. Добавьте SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в Vercel.</p>;
   }
-  const { tab = "requests", bot: botResult } = await searchParams;
+  const { tab = "requests", bot: botResult, demo: demoResult } = await searchParams;
   const [masters, requests, views, responses] = await Promise.all([
     adminListMasters(),
     adminListRequests(),
@@ -140,6 +141,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       {tab === "masters" && (
         <div className="mt-5 space-y-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-4 text-[14px]">
+            <span className="grow">
+              <b>Демо-профили</b> (с пометкой «Пример профиля», без настоящих телефонов): {masters.filter((x) => isDemoSlug(x.slug)).length}
+              {demoResult?.startsWith("added") && <span className="ml-2 text-brand-dark">добавлено: {demoResult.slice(5)}</span>}
+              {demoResult?.startsWith("removed") && <span className="ml-2 text-brand-dark">удалено: {demoResult.slice(7)}</span>}
+            </span>
+            <form action={addDemo}><button className="btn-ghost h-9 px-4 text-[13px]">Добавить примеры</button></form>
+            <form action={removeDemo}><button className="btn-ghost h-9 px-4 text-[13px] text-danger">Удалить все примеры</button></form>
+          </div>
           <p className="text-[13px] text-muted">«Открытий» — сколько разных посетителей открыли контакты специалиста в этом месяце. Пригодится для расчёта оплаты.</p>
           {others.length === 0 && <Empty text="Опубликованных специалистов пока нет. Опубликуйте анкету или добавьте специалиста вручную." />}
           {others.map((m) => (

@@ -23,6 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const masters = await listPublishedMasters().catch(() => []);
   return [
     ...PAGES.flatMap((p) => entry(p.path, p.priority)),
-    ...masters.flatMap((m) => entry(`/master/${m.slug}`, 0.7, m.updated_at)),
+    ...masters.filter((m) => !m.demo).flatMap((m) => entry(`/master/${m.slug}`, 0.7, m.updated_at)),
   ];
 }

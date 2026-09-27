@@ -23,6 +23,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-[16px] font-semibold leading-tight group-hover:text-brand">{m.name}</h3>
           {m.verified && <VerifiedBadge label={t.verified} />}
+          {m.demo && <DemoBadge label={t.demo} />}
           <div className="mt-1 text-[13px] text-muted">{categoryLabel(m.category, lang)}</div>
           {m.experience_years ? <div className="mt-0.5 text-[12px] text-muted">{t.experience(m.experience_years)}</div> : null}
         </div>
@@ -45,4 +46,8 @@ export function VerifiedBadge({ label, large = false }: { label: string; large?:
       {label}
     </span>
   );
+}
+
+export function DemoBadge({ label }: { label: string }) {
+  return <span className="mt-1 inline-flex rounded-full bg-[#fdf6e6] px-2 py-0.5 text-[11.5px] font-medium text-[#8a6a1f]">{label}</span>;
 }

@@ -155,3 +155,19 @@ export async function connectBot() {
   const res = await setupBot(`${proto}://${host}`, secret);
   redirect(`/admin?tab=bot&bot=${res.ok ? "ok" : "fail"}`);
 }
+
+export async function addDemo() {
+  await requireAdmin();
+  const { adminAddDemoMasters } = await import("@/lib/db");
+  const n = await adminAddDemoMasters();
+  refreshPublic(null);
+  redirect(`/admin?tab=masters&demo=added${n}`);
+}
+
+export async function removeDemo() {
+  await requireAdmin();
+  const { adminRemoveDemoMasters } = await import("@/lib/db");
+  const n = await adminRemoveDemoMasters();
+  refreshPublic(null);
+  redirect(`/admin?tab=masters&demo=removed${n}`);
+}

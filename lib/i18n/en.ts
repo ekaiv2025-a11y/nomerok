@@ -63,6 +63,7 @@ const en: Dict = {
     notFoundCta: "Leave a request →",
   },
   card: {
+    demo: "Sample profile",
     verified: "Number verified",
     byAgreement: "Price on request",
     from: (price, unit) => `from ${price} ₾ / ${unit}`,
@@ -70,6 +71,8 @@ const en: Dict = {
     experience: (n) => `${n} ${years(n)} of experience`,
   },
   master: {
+    demoTitle: "This is a sample profile",
+    demoText: "This is how a specialist's page will look. The sample has no real contacts — leave a request and real specialists will receive it.",
     similarTitle: (cat) => `More ${cat.toLowerCase()}`,
     othersTitle: "Other specialists",
     allLink: "All specialists →",
