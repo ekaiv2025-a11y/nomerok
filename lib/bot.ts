@@ -244,6 +244,10 @@ async function onText(msg: TgMessage) {
   }
   if (text === "/help" || text.startsWith("/help@")) return sendTo(chatId, b.help);
 
+  // Человек вставил ссылку t.me/бот?start=… текстом, а не нажал её — понимаем и так
+  const pasted = text.match(/[?&]start=([mr]_[a-f0-9]{16,})/i);
+  if (pasted) return onStart(msg, pasted[1]);
+
   // Любое другое сообщение — пересылаем владельцу сайта
   const who = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
   const tag = msg.from?.username ? ` @${msg.from.username}` : "";
