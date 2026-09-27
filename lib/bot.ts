@@ -14,9 +14,10 @@ import {
   updateRequest,
   adminListResponses,
   adminListMasters,
+  touchActive,
 } from "./db";
-import { daysFromToday, formatDay, servesCategory, todayTbilisi } from "./availability";
-import { hasReviewFrom, listRequestsForFollowup } from "./reviews-db";
+import { daysFromToday, formatDay, isAwayNow, servesCategory, todayTbilisi } from "./availability";
+import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup } from "./reviews-db";
 import { reviewToken } from "./signed";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
@@ -279,6 +280,7 @@ async function onTake(cb: TgCallback, requestId: string) {
     [{ text: b.btnWhatsApp, url: whatsappLink(r.phone) }],
   ]);
   await updateRequest(r.id, { status: "taken" });
+  if (m.missed_direct) await adminUpdateMaster(m.id, { missed_direct: 0 });
 
   // Клиенту — контакты откликнувшегося специалиста
   if (r.client_tg_chat_id) {
@@ -320,6 +322,95 @@ async function onAway(cb: TgCallback, days: number) {
   if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.from.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
   await notifyAdmin(`⏸ <b>${esc(masters[0].name)}</b> поставил(а) паузу ${until ? `до ${until}` : "без срока"}`);
   return sendTo(cb.from.id, b.paused(until ? formatDay(until, masters[0].lang) : null));
+}
+
+/* ---------- активность и архив ---------- */
+
+const DAY = 24 * 3600 * 1000;
+/** Сколько личных заявок подряд без ответа — и профиль уходит в архив */
+export const MISSED_DIRECT_LIMIT = 3;
+
+async function onAlive(cb: TgCallback) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const masters = await getMastersByChatId(cb.from.id);
+  if (!masters[0]) return;
+  if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.from.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
+  return sendTo(cb.from.id, botDict(masters[0].lang).stillHereOk);
+}
+
+export async function unarchiveMaster(m: Master) {
+  await adminUpdateMaster(m.id, {
+    archived_at: null,
+    archived_reason: null,
+    missed_direct: 0,
+    inactive_warned_at: null,
+    last_active_at: new Date().toISOString(),
+  });
+}
+
+async function onUnarchive(cb: TgCallback) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const masters = (await getMastersByChatId(cb.from.id)).filter((m) => m.archived_at);
+  if (!masters.length) return;
+  for (const m of masters) await unarchiveMaster(m);
+  if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.from.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
+  await notifyAdmin(`↩️ <b>${esc(masters[0].name)}</b> вернул(а) профиль из архива`);
+  return sendTo(cb.from.id, botDict(masters[0].lang).unarchived);
+}
+
+export async function archiveMaster(m: Master, reason: "inactive" | "missed") {
+  await adminUpdateMaster(m.id, { archived_at: new Date().toISOString(), archived_reason: reason });
+  if (m.tg_chat_id) {
+    const b = botDict(m.lang);
+    await sendTo(m.tg_chat_id, reason === "inactive" ? b.archivedInactive : b.archivedMissed, [[{ text: b.btnUnarchive, callback_data: "unarchive" }]]);
+  }
+  await notifyAdmin(
+    `📦 <b>${esc(m.name)}</b> — профиль в архиве: ${reason === "inactive" ? "больше месяца без активности" : `${MISSED_DIRECT_LIMIT} личные заявки подряд без ответа`}\n${siteUrl()}/admin/masters/${m.id}`,
+  );
+}
+
+/** Личная заявка сутки без ответа — передаём другим; после нескольких таких — архив. */
+async function checkDirectMisses(): Promise<number> {
+  const now = Date.now();
+  let n = 0;
+  for (const r of await listRequestsForDirectCheck()) {
+    if (!r.master_id || r.direct_checked_at || r.status !== "sent" || now - new Date(r.created_at).getTime() < DAY) continue;
+    const m = await adminGetMaster(r.master_id);
+    await updateRequest(r.id, { direct_checked_at: new Date().toISOString(), master_id: null });
+    n++;
+    if (m) {
+      const missed = (m.missed_direct ?? 0) + 1;
+      await adminUpdateMaster(m.id, { missed_direct: missed });
+      if (m.tg_chat_id) await sendTo(m.tg_chat_id, botDict(m.lang).directMissedMaster);
+      if (missed >= MISSED_DIRECT_LIMIT && !m.archived_at) await archiveMaster(m, "missed");
+    }
+    // Заявка становится общей и уходит другим специалистам направления
+    const sent = await distributeRequest({ ...r, master_id: null }, new Set(m ? [m.id] : ["-"]));
+    if (r.client_tg_chat_id && m) await sendTo(r.client_tg_chat_id, botDict(r.lang).directMissedClient(esc(m.name)));
+    await notifyAdmin(`⏰ Личная заявка для <b>${esc(m?.name ?? "—")}</b> сутки без ответа — передана другим (${sent}).\n«${esc(r.description.slice(0, 80))}»`);
+  }
+  return n;
+}
+
+/** Месяц без активности — предупреждаем; ещё неделя тишины — архив. */
+async function checkInactivity(): Promise<{ warned: number; archived: number }> {
+  const out = { warned: 0, archived: 0 };
+  const now = Date.now();
+  for (const m of await adminListMasters()) {
+    if (m.status !== "published" || m.archived_at || isAwayNow(m) || !m.tg_chat_id || !m.last_active_at) continue;
+    const idle = now - new Date(m.last_active_at).getTime();
+    if (idle < 30 * DAY) continue;
+    if (!m.inactive_warned_at) {
+      const b = botDict(m.lang);
+      await sendTo(m.tg_chat_id, b.inactiveWarn, [[{ text: b.btnStillHere, callback_data: "alive" }]]);
+      await adminUpdateMaster(m.id, { inactive_warned_at: new Date().toISOString() });
+      out.warned++;
+    } else if (now - new Date(m.inactive_warned_at).getTime() >= 7 * DAY) {
+      await archiveMaster(m, "inactive");
+      out.archived++;
+    }
+  }
+  return out;
 }
 
 /** Пауза закончилась — включаем заявки обратно и сообщаем специалисту. */
@@ -400,8 +491,11 @@ async function onClientAnswer(cb: TgCallback, data: string) {
 
 const HOUR = 3600 * 1000;
 
-export async function runFollowups(): Promise<{ noResponse: number; asked: number; reviewInvites: number; pausesEnded: number }> {
-  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded: await endExpiredPauses().catch(() => 0) };
+export async function runFollowups() {
+  const pausesEnded = await endExpiredPauses().catch(() => 0);
+  const directMissed = await checkDirectMisses().catch((e) => (console.error("[direct]", e), 0));
+  const inactivity = await checkInactivity().catch((e) => (console.error("[inactive]", e), { warned: 0, archived: 0 }));
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived };
   const now = Date.now();
   const list = await listRequestsForFollowup();
   for (const r of list) {
@@ -412,7 +506,8 @@ export async function runFollowups(): Promise<{ noResponse: number; asked: numbe
     const short = esc(r.description.slice(0, 60));
 
     // 1. Никто не взял заявку за сутки
-    if ((r.status === "new" || r.status === "sent") && !r.followup_at && age > 20 * HOUR) {
+    const justRedirected = r.direct_checked_at && now - new Date(r.direct_checked_at).getTime() < 20 * HOUR;
+    if ((r.status === "new" || r.status === "sent") && !r.followup_at && age > 20 * HOUR && !justRedirected) {
       await sendTo(chatId, b.noResponse(short), [
         [{ text: b.btnCatalog, url: `${siteUrl()}/${r.lang}` }],
         [{ text: b.btnClose, callback_data: `close:${r.id}` }],
@@ -502,9 +597,17 @@ async function onText(msg: TgMessage) {
 }
 
 export async function handleUpdate(u: TgUpdate): Promise<void> {
+  // Любое действие специалиста в боте = он на связи
+  const fromId = u.callback_query?.from.id ?? u.message?.from?.id;
+  if (fromId) {
+    const mine = await getMastersByChatId(fromId).catch(() => []);
+    if (mine.length) await touchActive(mine);
+  }
   if (u.callback_query) {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
+    if (data === "alive") return void (await onAlive(u.callback_query));
+    if (data === "unarchive") return void (await onUnarchive(u.callback_query));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
     await tg("answerCallbackQuery", { callback_query_id: u.callback_query.id });

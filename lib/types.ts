@@ -39,6 +39,14 @@ export type Master = {
   /** «В отпуске / не принимаю заявки» — до даты away_until (или без срока) */
   is_away: boolean;
   away_until: string | null;
+  /** Последняя активность: бот, кабинет, отклик на заявку */
+  last_active_at: string | null;
+  inactive_warned_at: string | null;
+  /** Профиль в архиве — клиенты его не видят */
+  archived_at: string | null;
+  archived_reason: "inactive" | "missed" | "admin" | null;
+  /** Личных заявок подряд без ответа */
+  missed_direct: number;
   created_at: string;
   updated_at: string;
 };
@@ -91,6 +99,7 @@ export type ClientRequest = {
   outcome_master_id: string | null;
   outcome_at: string | null;
   review_invited_at: string | null;
+  direct_checked_at: string | null;
   created_at: string;
 };
 
@@ -98,7 +107,7 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct"
 > & {
   admin_note?: string;
   lang?: Locale;

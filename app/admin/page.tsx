@@ -6,7 +6,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
@@ -268,11 +268,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <div className="border-t border-line pt-4">
             <h3 className="font-semibold">Напоминания клиентам</h3>
             <p className="mt-1 text-[14px] text-muted">
-              Каждый день в 11:00 бот сам пишет клиентам, подключившим Telegram: если заявку за сутки никто не взял; «Удалось договориться?» через сутки после отклика; и просит отзыв через 2 дня после того, как клиент договорился.
+              Каждый день в 11:00 бот: пишет клиентам, если заявку за сутки никто не взял; спрашивает «Удалось договориться?» через сутки после отклика; просит отзыв через 2 дня после договорённости. Специалистам: личную заявку без ответа сутки передаёт другим (после 3 таких подряд — архив); кто месяц не был активен — предупреждает, ещё через 7 дней — архив; снимает закончившиеся паузы.
             </p>
             {fu && fu !== "fail" && (
               <p className="mt-2 rounded-xl bg-brand-soft p-3 text-[14px] text-brand-dark">
-                Отправлено: «никто не взял» — {fu.split("-")[0]}, «удалось договориться?» — {fu.split("-")[1]}, просьб об отзыве — {fu.split("-")[2]}
+                «Никто не взял» — {fu.split("-")[0]}, «удалось договориться?» — {fu.split("-")[1]}, просьб об отзыве — {fu.split("-")[2]}, пауз
+                закончилось — {fu.split("-")[3] ?? 0}, личных заявок передано другим — {fu.split("-")[4] ?? 0}, предупреждений «давно не заходили» —{" "}
+                {fu.split("-")[5] ?? 0}, в архив — {fu.split("-")[6] ?? 0}
               </p>
             )}
             {fu === "fail" && <p className="mt-2 rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">Не получилось. Выполнена ли миграция 0003?</p>}
@@ -320,6 +322,7 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
           <Link href={`/admin/masters/${m.id}`} className="text-[16px] font-semibold hover:underline">{m.name}</Link>
           <div className="text-[13px] text-muted">
             {[m.category, ...(m.extra_categories ?? [])].map((c) => categoryLabel(c)).join(", ")} · {formatPhone(m.phone)}{m.telegram ? ` · @${m.telegram}` : ""} · {when(m.created_at)}
+            {m.last_active_at ? ` · был(а) активен: ${when(m.last_active_at)}` : ""}
           </div>
           <div className="mt-1 text-[12px]">
             {m.phone_verified_at ? (
@@ -333,6 +336,7 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
         </div>
         <div className="flex items-center gap-2 text-[13px]">
           <span className="rounded-full bg-cream px-2.5 py-0.5">{MASTER_LABEL[m.status]}</span>
+          {m.archived_at && <span className="rounded-full bg-[#fdecea] px-2.5 py-0.5 text-danger">📦 архив{m.archived_reason === "missed" ? " (не отвечал на заявки)" : m.archived_reason === "inactive" ? " (месяц без активности)" : ""}</span>}
           {isAwayNow(m) && <span className="rounded-full bg-[#fdf6e6] px-2.5 py-0.5 text-[#5a4a22]">⏸ пауза{m.away_until ? ` до ${m.away_until}` : ""}</span>}
           <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-brand-dark">Открытий: {views}</span>
         </div>
@@ -348,6 +352,12 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
           </form>
         ))}
         <Link href={`/admin/masters/${m.id}`} className="btn-ghost h-9 px-4 text-[13px]">Редактировать</Link>
+        {m.archived_at && (
+          <form action={adminUnarchive}>
+            <input type="hidden" name="id" value={m.id} />
+            <button className="btn-ghost h-9 px-4 text-[13px]">Вернуть из архива</button>
+          </form>
+        )}
         {m.status === "published" && (
           <Link href={`/ru/master/${m.slug}`} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">На сайте ↗</Link>
         )}

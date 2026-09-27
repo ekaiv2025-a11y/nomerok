@@ -213,5 +213,18 @@ export async function runFollowupsNow() {
   await requireAdmin();
   const { runFollowups } = await import("@/lib/bot");
   const r = await runFollowups().catch(() => null);
-  redirect(`/admin?tab=bot&fu=${r ? `${r.noResponse}-${r.asked}-${r.reviewInvites}` : "fail"}`);
+  redirect(
+    `/admin?tab=bot&fu=${r ? [r.noResponse, r.asked, r.reviewInvites, r.pausesEnded, r.directMissed, r.inactiveWarned, r.archived].join("-") : "fail"}`,
+  );
+}
+
+export async function adminUnarchive(formData: FormData) {
+  await requireAdmin();
+  const { unarchiveMaster } = await import("@/lib/bot");
+  const m = await adminGetMaster(String(formData.get("id")));
+  if (m) {
+    await unarchiveMaster(m);
+    refreshPublic(m.slug);
+  }
+  redirect("/admin?tab=masters");
 }

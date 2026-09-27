@@ -73,7 +73,7 @@ const en: Dict = {
   },
   master: {
     awayTitle: "Not taking orders right now",
-    awayText: "You can still get in touch or leave a request — other specialists in this field will receive it.",
+    awayText: "Their profile is hidden from the catalog for now. See other specialists or leave a request — specialists in this field will receive it.",
     also: "Also:",
     awayUntil: (d) => `Back on ${d}.`,
     demoTitle: "This is a sample profile",
@@ -209,10 +209,14 @@ const en: Dict = {
   },
   notFound: { title: "Page not found", text: "The link may be outdated.", home: "Back to home" },
   cabinet: {
+    archivedTitle: "Profile archived",
+    archivedInactive: "There has been no activity for over a month, so clients can't see your profile right now.",
+    archivedMissed: "Several personal requests went unanswered, so clients can't see your profile right now.",
+    unarchiveBtn: "Put my profile back on the site",
     availTitle: "Receiving requests",
     availOn: "Accepting requests",
     availOnText: "New requests in your fields are sent to you in Telegram.",
-    availOffText: "Requests are paused. Your profile shows “Not taking orders right now”; your contacts stay visible.",
+    availOffText: "You won't receive requests and your profile is hidden from the catalog. Anyone opening an old link will see when you're back.",
     pauseBtn: "Pause",
     pauseFor: "For how long?",
     week: "1 week",
@@ -320,6 +324,7 @@ const en: Dict = {
       "We review profiles before publishing and may edit the text, refuse or hide a profile after complaints.",
       "You can change or delete your profile at any time — just write to us.",
       "Listing is free for now. If that changes, we'll tell you in advance and you decide whether to stay.",
+      "If you don't visit the site or the bot for over a month, or leave several requests sent to you personally unanswered, your profile is archived (the bot warns you first). You can restore it with one tap. When you're busy or on vacation, use pause — your profile is just temporarily hidden.",
     ],
     forbiddenTitle: "Not allowed",
     forbidden: [

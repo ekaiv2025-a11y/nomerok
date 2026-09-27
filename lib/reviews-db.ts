@@ -197,3 +197,16 @@ export async function listRequestsForFollowup(): Promise<ClientRequest[]> {
   if (dbMode() === "none") throw new DbNotConfiguredError();
   return (await readLocal()).requests.filter((r) => r.created_at >= since && r.client_tg_chat_id);
 }
+
+/** Личные заявки (конкретному специалисту) за последние 7 дней — проверить, ответил ли он. */
+export async function listRequestsForDirectCheck(): Promise<ClientRequest[]> {
+  const since = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
+  const sb = supabase();
+  if (sb) {
+    return check(
+      await sb.from("requests").select("*").gte("created_at", since).not("master_id", "is", null).is("direct_checked_at", null).eq("status", "sent").limit(500),
+    ) as ClientRequest[];
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).requests.filter((r) => r.created_at >= since && r.master_id && !r.direct_checked_at && r.status === "sent");
+}

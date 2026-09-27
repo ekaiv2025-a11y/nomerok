@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const base = pageMeta(lang, `/master/${m.slug}`, title, `${services}. ${priceText(m, lang)}.`);
   return {
     ...base,
-    ...(m.demo ? { robots: { index: false } } : {}),
+    ...(m.demo || m.away ? { robots: { index: false } } : {}),
     openGraph: { ...base.openGraph, images: m.photo_url ? [m.photo_url] : undefined },
   };
 }
@@ -99,19 +99,20 @@ export default async function MasterPage({ params }: Props) {
             </div>
           ) : (
             <>
-              {m.away && (
-                <div className="mb-3 rounded-2xl border border-accent/50 bg-[#fdf6e6] p-4">
+              {m.away ? (
+                <div className="rounded-2xl border border-accent/50 bg-[#fdf6e6] p-5">
                   <p className="font-semibold">⏸ {t.awayTitle}</p>
                   <p className="mt-1 text-[14px] leading-relaxed text-[#5a4a22]">
                     {m.away_until ? `${t.awayUntil(formatDay(m.away_until, lang))} ` : ""}
                     {t.awayText}
                   </p>
-                  <Link href={href(lang, `/request?category=${m.category}`)} className="btn-primary mt-3 h-10 w-full text-[14px]">
+                  <Link href={href(lang, `/request?category=${m.category}`)} className="btn-primary mt-4 h-11 w-full">
                     {d.nav.leaveRequest}
                   </Link>
                 </div>
+              ) : (
+                <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
               )}
-              <ContactReveal masterId={m.id} slug={m.slug} lang={lang} hideRequest={m.away} />
             </>
           )}
         </aside>

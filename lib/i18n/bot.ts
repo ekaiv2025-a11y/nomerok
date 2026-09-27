@@ -75,6 +75,15 @@ type BotDict = {
   resumed: string;
   autoResumed: string;
   notSpecialistShort: string;
+  inactiveWarn: string;
+  btnStillHere: string;
+  stillHereOk: string;
+  archivedInactive: string;
+  archivedMissed: string;
+  btnUnarchive: string;
+  unarchived: string;
+  directMissedMaster: string;
+  directMissedClient: (name: string) => string;
   commands: { cabinet: string; help: string; pause: string; resume: string };
   steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials", string>;
 };
@@ -99,7 +108,16 @@ const ru: BotDict = {
   joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
   btnJoinContinue: "📝 Продолжить анкету",
   joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
-  pauseAsk: "На сколько поставить паузу? Пока пауза — новые заявки не приходят, а в профиле клиенты видят «Сейчас не принимает заказы».",
+  inactiveWarn: "👋 Вы давно не заходили в Nomerok. Вы ещё принимаете заказы? Нажмите кнопку — иначе через 7 дней профиль уйдёт в архив и клиенты перестанут его видеть. Если просто заняты — поставьте паузу: /pause",
+  btnStillHere: "✅ Да, я на связи",
+  stillHereOk: "Спасибо! Профиль остаётся на сайте.",
+  archivedInactive: "📦 Ваш профиль перенесён в архив: больше месяца от вас не было активности. Клиенты его сейчас не видят. Вернуть можно в любой момент — кнопкой ниже.",
+  archivedMissed: "📦 Ваш профиль перенесён в архив: несколько заявок, которые клиенты отправили лично вам, остались без ответа. Клиенты его сейчас не видят. Вернуть можно в любой момент — кнопкой ниже.",
+  btnUnarchive: "↩️ Вернуть профиль",
+  unarchived: "✅ Профиль снова на сайте. Чтобы он не уходил в архив, отвечайте на заявки, а когда заняты — ставьте паузу: /pause",
+  directMissedMaster: "⏰ Заявка, которую клиент отправил лично вам, сутки осталась без ответа — мы передали её другим специалистам. Если сейчас заняты — поставьте паузу: /pause",
+  directMissedClient: (name) => `Специалист ${name} пока не ответил — мы отправили вашу заявку другим специалистам этого направления.`,
+  pauseAsk: "На сколько поставить паузу? Пока пауза — новые заявки не приходят, а профиль скрыт из каталога.",
   btnWeek: "1 неделя",
   btn2Weeks: "2 недели",
   btnMonth: "Месяц",
@@ -188,7 +206,16 @@ const en: BotDict = {
   joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
   btnJoinContinue: "📝 Continue profile",
   joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
-  pauseAsk: "How long should the pause be? While paused, you won't receive new requests, and your profile shows “Not taking orders right now”.",
+  inactiveWarn: "👋 You haven't been active on Nomerok for a while. Are you still taking orders? Tap the button — otherwise in 7 days your profile will be archived and clients won't see it. Just busy? Pause instead: /pause",
+  btnStillHere: "✅ Yes, I'm here",
+  stillHereOk: "Thanks! Your profile stays on the site.",
+  archivedInactive: "📦 Your profile has been archived: there has been no activity for over a month. Clients can't see it right now. You can bring it back anytime with the button below.",
+  archivedMissed: "📦 Your profile has been archived: several requests that clients sent to you personally went unanswered. Clients can't see it right now. You can bring it back anytime with the button below.",
+  btnUnarchive: "↩️ Restore profile",
+  unarchived: "✅ Your profile is back on the site. To keep it from being archived, reply to requests — and when you're busy, pause: /pause",
+  directMissedMaster: "⏰ A request a client sent to you personally went unanswered for a day — we passed it on to other specialists. If you're busy right now, pause: /pause",
+  directMissedClient: (name) => `${name} hasn't responded yet — we've sent your request to other specialists in this field.`,
+  pauseAsk: "How long should the pause be? While paused, you won't receive new requests, and your profile is hidden from the catalog.",
   btnWeek: "1 week",
   btn2Weeks: "2 weeks",
   btnMonth: "1 month",
@@ -277,7 +304,16 @@ const ka: BotDict = {
   joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
   btnJoinContinue: "📝 ანკეტის გაგრძელება",
   joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
-  pauseAsk: "რამდენი ხნით ჩავრთოთ პაუზა? პაუზის დროს ახალი განაცხადები არ მოდის, პროფილზე კი ჩანს „ახლა შეკვეთებს არ იღებს“.",
+  inactiveWarn: "👋 დიდი ხანია Nomerok-ზე არ შემოსულხართ. ისევ იღებთ შეკვეთებს? დააჭირეთ ღილაკს — წინააღმდეგ შემთხვევაში 7 დღეში პროფილი არქივში გადავა და კლიენტები მას ვეღარ დაინახავენ. თუ უბრალოდ დაკავებული ხართ — ჩართეთ პაუზა: /pause",
+  btnStillHere: "✅ დიახ, კავშირზე ვარ",
+  stillHereOk: "გმადლობთ! პროფილი საიტზე რჩება.",
+  archivedInactive: "📦 თქვენი პროფილი არქივში გადავიდა: ერთ თვეზე მეტია აქტივობა არ ყოფილა. კლიენტები მას ახლა ვერ ხედავენ. დაბრუნება ნებისმიერ დროს შეგიძლიათ ქვემოთ ღილაკით.",
+  archivedMissed: "📦 თქვენი პროფილი არქივში გადავიდა: რამდენიმე განაცხადი, რომელიც კლიენტებმა პირადად თქვენ გამოგიგზავნეს, უპასუხოდ დარჩა. კლიენტები მას ახლა ვერ ხედავენ. დაბრუნება ნებისმიერ დროს შეგიძლიათ ქვემოთ ღილაკით.",
+  btnUnarchive: "↩️ პროფილის დაბრუნება",
+  unarchived: "✅ პროფილი ისევ საიტზეა. რომ არქივში არ გადავიდეს, უპასუხეთ განაცხადებს, დაკავებულობისას კი ჩართეთ პაუზა: /pause",
+  directMissedMaster: "⏰ განაცხადი, რომელიც კლიენტმა პირადად თქვენ გამოგიგზავნათ, დღე-ღამე უპასუხოდ დარჩა — სხვა სპეციალისტებს გადავეცით. თუ ახლა დაკავებული ხართ — ჩართეთ პაუზა: /pause",
+  directMissedClient: (name) => `სპეციალისტს ${name} ჯერ არ უპასუხია — თქვენი განაცხადი ამ მიმართულების სხვა სპეციალისტებს გავუგზავნეთ.`,
+  pauseAsk: "რამდენი ხნით ჩავრთოთ პაუზა? პაუზის დროს ახალი განაცხადები არ მოდის, პროფილი კი კატალოგიდან დამალულია.",
   btnWeek: "1 კვირა",
   btn2Weeks: "2 კვირა",
   btnMonth: "თვე",

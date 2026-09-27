@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { adminGetMaster } from "@/lib/db";
+import { adminGetMaster, touchActive } from "@/lib/db";
+import { UnarchiveButton } from "@/components/UnarchiveButton";
 import { getDict, href } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
 import { currentSpecialistId } from "@/lib/spec-auth";
@@ -85,6 +86,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
     );
   }
 
+  // Зашёл в кабинет — значит, на связи
+  await touchActive([m]);
   const { steps, percent } = profileSteps(m);
   const rv = getDict(lang).reviews;
   const reviews = await listMasterReviews(m.id).catch(() => []);
@@ -139,6 +142,14 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           )}
         </div>
       </div>
+
+      {m.archived_at && (
+        <div className="mt-4 rounded-2xl border border-danger/40 bg-[#fdecea] p-5">
+          <p className="text-[16px] font-semibold">📦 {t.archivedTitle}</p>
+          <p className="mt-1 text-[14px] leading-relaxed">{m.archived_reason === "missed" ? t.archivedMissed : t.archivedInactive}</p>
+          <UnarchiveButton lang={lang} label={t.unarchiveBtn} />
+        </div>
+      )}
 
       <div className="mt-4">
         <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />

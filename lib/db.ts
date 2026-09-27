@@ -142,6 +142,7 @@ type PublicRow = Omit<PublicMaster, "verified" | "away" | "extra_categories" | "
   extra_categories?: string[] | null;
   is_away?: boolean | null;
   away_until?: string | null;
+  archived_at?: string | null;
 };
 
 function toPublic(m: Master | PublicRow): PublicMaster {
@@ -181,7 +182,8 @@ export function check<T>(res: { data: T | null; error: { message: string } | nul
 
 const BASE_COLUMNS =
   "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at";
-const PUBLIC_COLUMNS = BASE_COLUMNS + ",extra_categories,is_away,away_until";
+const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
+const PUBLIC_COLUMNS = COLUMNS_0004 + ",archived_at";
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {
@@ -192,8 +194,8 @@ function isMissingColumn(err: { message: string } | null): boolean {
 
 /** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
-  // Кто в отпуске — в конце списка
-  const real = (await withRatings(await listPublishedFromDb())).sort((a, b) => Number(a.away) - Number(b.away));
+  // Кто на паузе (в отпуске) — в каталоге не показываем
+  const real = (await withRatings(await listPublishedFromDb())).filter((m) => !m.away);
   if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
   const have = new Set(real.map((m) => m.slug));
   return [...real, ...demoPublicMasters().filter((m) => !have.has(m.slug))];
@@ -204,13 +206,14 @@ async function listPublishedFromDb(): Promise<PublicMaster[]> {
   if (sb) {
     const q = (cols: string) => sb.from("masters").select(cols).eq("status", "published").order("created_at", { ascending: false });
     let res = await q(PUBLIC_COLUMNS);
+    if (isMissingColumn(res.error)) res = await q(COLUMNS_0004);
     if (isMissingColumn(res.error)) res = await q(BASE_COLUMNS);
-    return (check(res) as unknown as PublicRow[]).map(toPublic);
+    return (check(res) as unknown as PublicRow[]).filter((m) => !m.archived_at).map(toPublic);
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
   return d.masters
-    .filter((m) => m.status === "published")
+    .filter((m) => m.status === "published" && !m.archived_at)
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .map(toPublic);
 }
@@ -236,12 +239,13 @@ async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
   if (sb) {
     const q = (cols: string) => sb.from("masters").select(cols).eq("slug", slug).eq("status", "published").maybeSingle();
     let res = await q(PUBLIC_COLUMNS);
+    if (isMissingColumn(res.error)) res = await q(COLUMNS_0004);
     if (isMissingColumn(res.error)) res = await q(BASE_COLUMNS);
-    const row = check(res);
-    return row ? toPublic(row as unknown as PublicRow) : null;
+    const row = check(res) as unknown as PublicRow | null;
+    return row && !row.archived_at ? toPublic(row) : null;
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
-  const m = (await readLocal()).masters.find((x) => x.slug === slug && x.status === "published");
+  const m = (await readLocal()).masters.find((x) => x.slug === slug && x.status === "published" && !x.archived_at);
   return m ? toPublic(m) : null;
 }
 
@@ -249,7 +253,7 @@ async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
 export async function revealContacts(masterId: string, visitor: string): Promise<(MasterContacts & { name: string; slug: string }) | null> {
   if (isDemoSlug(masterId)) return null;
   const probe = await adminGetMaster(masterId);
-  if (!probe || isDemoSlug(probe.slug)) return null;
+  if (!probe || isDemoSlug(probe.slug) || probe.archived_at || isAwayNow(probe)) return null;
   const sb = supabase();
   if (sb) {
     const m = check(
@@ -305,6 +309,11 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     extra_categories: [],
     is_away: false,
     away_until: null,
+    last_active_at: now,
+    inactive_warned_at: null,
+    archived_at: null,
+    archived_reason: null,
+    missed_direct: 0,
     id: randomUUID(),
     created_at: now,
     updated_at: now,
@@ -332,6 +341,7 @@ export async function createRequest(input: NewRequest): Promise<ClientRequest> {
     outcome_master_id: null,
     outcome_at: null,
     review_invited_at: null,
+    direct_checked_at: null,
     created_at: new Date().toISOString(),
   };
   d.requests.push(r);
@@ -465,7 +475,7 @@ export async function listMastersForRequests(category: string): Promise<Master[]
     list = (await readLocal()).masters.filter((m) => m.status === "published" && m.notify_requests && m.tg_chat_id && m.phone_verified_at);
   }
   // Основное или дополнительное направление; кто в отпуске — не получает
-  return list.filter((m) => servesCategory(m, category) && !isAwayNow(m));
+  return list.filter((m) => servesCategory(m, category) && !isAwayNow(m) && !m.archived_at);
 }
 
 export async function getRequest(id: string): Promise<ClientRequest | null> {
@@ -619,4 +629,16 @@ export async function adminRemoveDemoMasters(): Promise<number> {
   const demos = (await adminListMasters()).filter((m) => isDemoSlug(m.slug));
   for (const m of demos) await adminDeleteMaster(m.id);
   return demos.length;
+}
+
+/* ---------- активность специалистов ---------- */
+
+/** Отмечает, что специалист был активен (не чаще раза в час, чтобы не писать в базу лишний раз). */
+export async function touchActive(masters: Pick<Master, "id" | "last_active_at" | "inactive_warned_at">[]): Promise<void> {
+  const now = Date.now();
+  for (const m of masters) {
+    const last = m.last_active_at ? new Date(m.last_active_at).getTime() : 0;
+    if (now - last < 3600 * 1000 && !m.inactive_warned_at) continue;
+    await adminUpdateMaster(m.id, { last_active_at: new Date(now).toISOString(), inactive_warned_at: null }).catch(() => null);
+  }
 }
