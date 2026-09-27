@@ -195,10 +195,6 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
       <Field label={j.telegram} optional={opt} error={errors.telegram}>
         <input name="telegram" defaultValue={initial.telegram ? "@" + initial.telegram : ""} className={fc(errors.telegram)} autoCapitalize="off" />
       </Field>
-      <label className="flex items-center gap-3 text-[15px]">
-        <input type="checkbox" name="whatsapp" defaultChecked={initial.whatsapp} className="h-5 w-5 accent-[#1f6b4f]" />
-        {j.whatsapp}
-      </label>
       <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} />
       <fieldset>
         <legend className="text-[14px] font-semibold">

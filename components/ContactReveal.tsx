@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Phone, MessageCircle, Send, Loader2, Mail } from "lucide-react";
-import { formatPhone, telegramLink, whatsappLink } from "@/lib/phone";
+import { Phone, Send, Loader2, Mail } from "lucide-react";
+import { formatPhone, telegramLink } from "@/lib/phone";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { SITE_NAME } from "@/lib/site";
 
@@ -67,11 +67,6 @@ export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { m
           <a href={`tel:${c.phone}`} className="btn-dark h-12 w-full">
             <Phone className="h-4 w-4" /> {formatPhone(c.phone)}
           </a>
-          {c.whatsapp && (
-            <a href={whatsappLink(c.phone, t.greeting(SITE_NAME))} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#25D366] text-white hover:bg-[#1eb457]">
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
-          )}
           <a href={telegramLink(c.telegram, c.phone)} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#229ED9] text-white hover:bg-[#1c89bd]">
             <Send className="h-4 w-4" /> Telegram{c.telegram ? ` @${c.telegram}` : ""}
           </a>

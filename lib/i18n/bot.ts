@@ -42,7 +42,7 @@ type BotDict = {
   clientLinked: string;
   clientResponse: (name: string, cat: string, phone: string, tg: string) => string;
   btnProfile: string;
-  btnWhatsApp: string;
+  btnTelegram: string;
   btnClose: string;
   closedOk: string;
   noResponse: (desc: string) => string;
@@ -185,7 +185,7 @@ const ru: BotDict = {
   clientResponse: (name, cat, phone, tg) =>
     `🙋 <b>На вашу заявку откликнулся специалист</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nСпециалист свяжется с вами. Если удобнее — позвоните сами.`,
   btnProfile: "Профиль специалиста",
-  btnWhatsApp: "WhatsApp",
+  btnTelegram: "✈️ Telegram",
   commands: { cabinet: "Мой кабинет специалиста", help: "Помощь", pause: "Пауза: отпуск, не принимаю заявки", resume: "Снова принимаю заявки" },
   steps: {
     documents: "загрузите диплом или сертификат в кабинете",
@@ -292,7 +292,7 @@ const en: BotDict = {
   clientResponse: (name, cat, phone, tg) =>
     `🙋 <b>A specialist responded to your request</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nThe specialist will contact you. Feel free to call them yourself.`,
   btnProfile: "Specialist's profile",
-  btnWhatsApp: "WhatsApp",
+  btnTelegram: "✈️ Telegram",
   commands: { cabinet: "My specialist dashboard", help: "Help", pause: "Pause: vacation, not taking requests", resume: "Accept requests again" },
   steps: {
     documents: "upload a diploma or certificate in your dashboard",
@@ -399,7 +399,7 @@ const ka: BotDict = {
   clientResponse: (name, cat, phone, tg) =>
     `🙋 <b>თქვენს განაცხადს გამოეხმაურა სპეციალისტი</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nსპეციალისტი დაგიკავშირდებათ. თუ გირჩევნიათ — თავად დაურეკეთ.`,
   btnProfile: "სპეციალისტის პროფილი",
-  btnWhatsApp: "WhatsApp",
+  btnTelegram: "✈️ Telegram",
   commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება", pause: "პაუზა: შვებულება, არ ვიღებ განაცხადებს", resume: "ისევ ვიღებ განაცხადებს" },
   steps: {
     documents: "ატვირთეთ დიპლომი ან სერტიფიკატი კაბინეტში",

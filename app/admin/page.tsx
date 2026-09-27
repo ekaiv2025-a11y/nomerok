@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { adminContactViewsThisMonth, adminListMasters, adminListRequests, adminListResponses, dbMode } from "@/lib/db";
 import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
-import { formatPhone, whatsappLink } from "@/lib/phone";
+import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
 import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
@@ -242,7 +242,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="text-[14px] font-semibold">{r.name || "Без имени"}</span>
                   <a className="btn-ghost h-9 px-3 text-[13px]" href={`tel:${r.phone}`}>{formatPhone(r.phone)}</a>
-                  <a className="btn-ghost h-9 px-3 text-[13px]" href={whatsappLink(r.phone)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                  <a className="btn-ghost h-9 px-3 text-[13px]" href={telegramLink(null, r.phone)} target="_blank" rel="noopener noreferrer">Telegram</a>
                   <span className="grow" />
                   {(["in_work", "done", "spam"] as RequestStatus[]).filter((s) => s !== r.status).map((s) => (
                     <form key={s} action={setRequestStatus}>

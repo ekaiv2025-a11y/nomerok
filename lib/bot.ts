@@ -22,7 +22,7 @@ import { reviewToken } from "./signed";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
 import { categoryLabel } from "./categories";
-import { formatPhone, normalizePhone, normalizeTelegram, telegramLink, whatsappLink } from "./phone";
+import { formatPhone, normalizePhone, normalizeTelegram, telegramLink } from "./phone";
 import { profileSteps } from "./profile";
 import { SITE_NAME, SITE_URL } from "./site";
 import { escapeHtml, notifyAdmin, sendTo, tg } from "./telegram";
@@ -277,7 +277,7 @@ async function onTake(cb: TgCallback, requestId: string) {
     });
   }
   await sendTo(chatId, b.takenMaster(esc(r.name || "—"), formatPhone(r.phone), esc(r.description)), [
-    [{ text: b.btnWhatsApp, url: whatsappLink(r.phone) }],
+    [{ text: b.btnTelegram, url: telegramLink(null, r.phone) }],
   ]);
   await updateRequest(r.id, { status: "taken" });
   if (m.missed_direct) await adminUpdateMaster(m.id, { missed_direct: 0 });
@@ -287,8 +287,7 @@ async function onTake(cb: TgCallback, requestId: string) {
     const cb2 = botDict(r.lang);
     const tgText = m.telegram ? `@${m.telegram}` : "";
     const buttons = [[{ text: cb2.btnProfile, url: `${siteUrl()}/${r.lang}/master/${m.slug}` }]];
-    if (m.whatsapp) buttons.push([{ text: cb2.btnWhatsApp, url: whatsappLink(m.phone) }]);
-    else buttons.push([{ text: "Telegram", url: telegramLink(m.telegram, m.phone) }]);
+    buttons.push([{ text: cb2.btnTelegram, url: telegramLink(m.telegram, m.phone) }]);
     await sendTo(r.client_tg_chat_id, cb2.clientResponse(esc(m.name), esc(categoryLabel(m.category, r.lang)), formatPhone(m.phone), tgText), buttons);
   }
   await notifyAdmin(

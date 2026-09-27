@@ -233,10 +233,6 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
           <input name="telegram" className={fc(errors.telegram)} placeholder="@ivan_master" autoCapitalize="off" defaultValue={prefill?.telegram ? `@${prefill.telegram}` : undefined} />
         </Field>
       </div>
-      <label className="flex items-center gap-3 text-[15px]">
-        <input type="checkbox" name="whatsapp" defaultChecked className="h-5 w-5 accent-[#1f6b4f]" />
-        {t.whatsapp}
-      </label>
       <label className="flex items-start gap-3 rounded-xl bg-cream p-3.5 text-[14px] leading-snug">
         <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-[#1f6b4f]" />
         <span>
