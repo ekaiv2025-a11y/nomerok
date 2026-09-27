@@ -652,7 +652,7 @@ export async function adminAddDemoMasters(): Promise<number> {
     const slug = DEMO_PREFIX + d.slugBase;
     if (existing.has(slug)) continue;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { slugBase, photo, place, ...rest } = d; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { slugBase, photo, place, works, area, hours, both, ...rest } = d; // eslint-disable-line @typescript-eslint/no-unused-vars
     const m = await createMaster({
       ...rest,
       phone: `+99500000000${i}`,
