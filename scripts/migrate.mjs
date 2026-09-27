@@ -17,13 +17,28 @@ if (!url) {
   process.exit(0);
 }
 
+// Подсказка для проверки строки подключения — без показа пароля
+try {
+  const u = new URL(url);
+  const pw = decodeURIComponent(u.password);
+  console.log(
+    `[migrate] подключение: пользователь «${decodeURIComponent(u.username)}», сервер «${u.hostname}», порт ${u.port || "5432"}, пароль: ${pw.length} символов${
+      /[\[\]]/.test(pw) || pw.includes("YOUR-PASSWORD") ? " — ВНИМАНИЕ: в пароле остались [ ] или YOUR-PASSWORD" : ""
+    }`,
+  );
+} catch {
+  console.log("[migrate] строка DATABASE_URL не похожа на адрес базы (postgresql://…)");
+}
+
 const client = new pg.Client({
   connectionString: url,
   ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false },
 });
 
+let connected = false;
 try {
   await client.connect();
+  connected = true;
   await client.query(`create table if not exists public.schema_migrations (
     name text primary key,
     applied_at timestamptz not null default now()
@@ -64,6 +79,12 @@ try {
   console.log("[migrate] база в актуальном состоянии");
 } catch (e) {
   console.error("[migrate] ОШИБКА:", e.message);
+  // Не смогли подключиться (пароль, адрес) — сайт всё равно выкладываем, базу не трогаем.
+  // Ошибка в самом обновлении базы — останавливаем выкладку, чтобы новый код не работал со старой базой.
+  if (!connected) {
+    console.error("[migrate] база не обновлена: проверьте DATABASE_URL. Сайт выкладывается как обычно.");
+    process.exit(0);
+  }
   process.exit(1);
 } finally {
   await client.end().catch(() => {});
