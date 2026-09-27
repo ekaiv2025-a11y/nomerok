@@ -3,6 +3,9 @@ import type { Locale } from "./i18n/config";
 export type MasterStatus = "pending" | "published" | "hidden" | "rejected";
 export type RequestStatus = "new" | "sent" | "taken" | "in_work" | "done" | "spam";
 
+export type WorkMode = "at_client" | "at_place" | "both" | "online";
+export type PortfolioItem = { url: string; caption: string };
+
 export type Master = {
   id: string;
   slug: string;
@@ -47,6 +50,17 @@ export type Master = {
   archived_reason: "inactive" | "missed" | "admin" | null;
   /** Личных заявок подряд без ответа */
   missed_direct: number;
+  /** Фото работ (до 12) */
+  portfolio: PortfolioItem[];
+  /** Где работает: выезд к клиенту, у себя, и то и другое, онлайн */
+  work_mode: WorkMode;
+  /** Точка, где принимает (показывается на карте) */
+  place_address: string;
+  place_lat: number | null;
+  place_lng: number | null;
+  /** Районы выезда */
+  service_area: string;
+  work_hours: string;
   created_at: string;
   updated_at: string;
 };
@@ -70,6 +84,13 @@ export type PublicMaster = Pick<
   | "updated_at"
   | "extra_categories"
   | "away_until"
+  | "portfolio"
+  | "work_mode"
+  | "place_address"
+  | "place_lat"
+  | "place_lng"
+  | "service_area"
+  | "work_hours"
 > & { away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
@@ -107,7 +128,7 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours"
 > & {
   admin_note?: string;
   lang?: Locale;

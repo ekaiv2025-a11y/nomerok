@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, X } from "lucide-react";
+import { List, Map as MapIcon, Search, X } from "lucide-react";
 import { CATEGORIES, categoryLabel } from "@/lib/categories";
+import { Map, type MapPoint } from "./map/Map";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
 import { MasterCard } from "./MasterCard";
@@ -12,6 +13,7 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
   const t = getDict(lang).catalog;
   const [cat, setCat] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [view, setView] = useState<"list" | "map">("list");
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -33,6 +35,16 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
     });
   }, [masters, cat, q]);
 
+  const mapPoints: MapPoint[] = filtered
+    .filter((m) => m.place_lat != null && m.place_lng != null && (m.work_mode === "at_place" || m.work_mode === "both"))
+    .map((m) => ({
+      lat: m.place_lat!,
+      lng: m.place_lng!,
+      title: m.name,
+      subtitle: `${categoryLabel(m.category, lang)}${m.place_address ? " · " + m.place_address : ""}`,
+      href: href(lang, `/master/${m.slug}`),
+      photo: m.photo_url,
+    }));
   const requestHref = href(lang, `/request${cat !== "all" ? `?category=${cat}` : ""}`);
 
   return (
@@ -66,7 +78,32 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
         </div>
       )}
 
-      {filtered.length > 0 ? (
+      <div className="mt-4 flex items-center gap-1 rounded-full bg-cream p-1 text-[13px] font-medium sm:w-fit">
+        {(["list", "map"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            className={`flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full px-4 sm:flex-none ${view === v ? "bg-white shadow-sm" : "text-muted hover:text-ink"}`}
+          >
+            {v === "list" ? <List className="h-4 w-4" /> : <MapIcon className="h-4 w-4" />}
+            {v === "list" ? t.viewList : t.viewMap}
+          </button>
+        ))}
+      </div>
+
+      {view === "map" ? (
+        <div className="mt-4">
+          {mapPoints.length > 0 ? (
+            <>
+              <Map height={480} points={mapPoints} />
+              <p className="mt-2 text-[13px] text-muted">{t.mapNote}</p>
+            </>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-line bg-cream px-5 py-10 text-center text-[15px] text-muted">{t.mapEmpty}</div>
+          )}
+        </div>
+      ) : filtered.length > 0 ? (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((m) => (
             <MasterCard key={m.id} m={m} lang={lang} />

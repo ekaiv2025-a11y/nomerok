@@ -11,7 +11,7 @@ export function isDemoSlug(slug: string): boolean {
   return slug.startsWith(DEMO_PREFIX);
 }
 
-type Demo = Omit<NewMaster, "status" | "consent_at" | "photo_url" | "phone" | "telegram" | "whatsapp"> & { slugBase: string; photo: string };
+type Demo = Omit<NewMaster, "status" | "consent_at" | "photo_url" | "phone" | "telegram" | "whatsapp"> & { slugBase: string; photo: string; place?: { address: string; lat: number; lng: number } };
 
 /** Фото с Unsplash (бесплатная лицензия), обрезаны по лицу. */
 function unsplash(id: string) {
@@ -34,6 +34,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "nino-tutor",
+    place: { address: "Батуми, район Нового бульвара", lat: 41.6297, lng: 41.6112 },
     photo: unsplash("1494790108377-be9c29b29330"),
     name: "Нино Абашидзе",
     category: "tutor",
@@ -86,6 +87,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "anna-psychologist",
+    place: { address: "Батуми, центр, рядом с площадью Европы", lat: 41.6536, lng: 41.6399 },
     photo: unsplash("1573496359142-b8d87734a5a2"),
     name: "Анна Соколова",
     category: "psychologist",
@@ -112,6 +114,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "irina-beauty",
+    place: { address: "Батуми, ул. Руставели (район)", lat: 41.6494, lng: 41.6343 },
     photo: unsplash("1534528741775-53994a69daeb"),
     name: "Ирина Мельник",
     category: "beauty",
@@ -150,6 +153,13 @@ export function demoPublicMasters(): PublicMaster[] {
     extra_categories: [],
     away_until: null,
     away: false,
+    portfolio: [],
+    work_mode: d.place ? "both" : "at_client",
+    place_address: d.place?.address ?? "",
+    place_lat: d.place?.lat ?? null,
+    place_lng: d.place?.lng ?? null,
+    service_area: d.place ? "" : "Весь Батуми",
+    work_hours: "Пн–Сб, 9:00–19:00",
     verified: false,
     demo: true,
     rating: null,

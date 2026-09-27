@@ -85,7 +85,7 @@ type BotDict = {
   directMissedMaster: string;
   directMissedClient: (name: string) => string;
   commands: { cabinet: string; help: string; pause: string; resume: string };
-  steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials", string>;
+  steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials" | "portfolio" | "where", string>;
 };
 
 const ru: BotDict = {
@@ -176,6 +176,8 @@ const ru: BotDict = {
   btnWhatsApp: "WhatsApp",
   commands: { cabinet: "Мой кабинет специалиста", help: "Помощь", pause: "Пауза: отпуск, не принимаю заявки", resume: "Снова принимаю заявки" },
   steps: {
+    portfolio: "добавьте фото работ (хотя бы 3)",
+    where: "укажите, где работаете (выезд или адрес на карте)",
     verified: "подтвердите номер (кнопка «📱 Поделиться номером»)",
     photo: "добавьте фото",
     about: "расскажите о себе",
@@ -274,6 +276,8 @@ const en: BotDict = {
   btnWhatsApp: "WhatsApp",
   commands: { cabinet: "My specialist dashboard", help: "Help", pause: "Pause: vacation, not taking requests", resume: "Accept requests again" },
   steps: {
+    portfolio: "add photos of your work (at least 3)",
+    where: "say where you work (visits or an address on the map)",
     verified: "verify your number (“📱 Share my number” button)",
     photo: "add a photo",
     about: "tell clients about yourself",
@@ -372,6 +376,8 @@ const ka: BotDict = {
   btnWhatsApp: "WhatsApp",
   commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება", pause: "პაუზა: შვებულება, არ ვიღებ განაცხადებს", resume: "ისევ ვიღებ განაცხადებს" },
   steps: {
+    portfolio: "დაამატეთ სამუშაოების ფოტოები (მინიმუმ 3)",
+    where: "მიუთითეთ, სად მუშაობთ (გამოძახება ან მისამართი რუკაზე)",
     verified: "დაადასტურეთ ნომერი (ღილაკი „📱 ნომრის გაზიარება“)",
     photo: "დაამატეთ ფოტო",
     about: "მოგვიყევით თქვენ შესახებ",

@@ -12,6 +12,8 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
 import { RatingLine, Stars } from "@/components/Stars";
 import { formatDay } from "@/lib/availability";
+import { Gallery } from "@/components/Gallery";
+import { Map } from "@/components/map/Map";
 import { listPublishedReviews } from "@/lib/reviews-db";
 import { botUsername } from "@/lib/telegram";
 
@@ -130,6 +132,54 @@ export default async function MasterPage({ params }: Props) {
               </ul>
             </section>
           )}
+
+          {m.portfolio.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-[18px] font-bold">
+                {t.portfolio} <span className="font-normal text-muted">{m.portfolio.length}</span>
+              </h2>
+              <Gallery items={m.portfolio} />
+            </section>
+          )}
+
+          <section className="mt-8">
+            <h2 className="text-[18px] font-bold">{t.where}</h2>
+            <p className="mt-2 text-[15px]">{t.modes[m.work_mode]}</p>
+            {(m.work_mode === "at_client" || m.work_mode === "both") && m.service_area && (
+              <p className="mt-1 text-[15px] text-[#3a3935]">
+                <span className="text-muted">{t.serviceArea}</span> {m.service_area}
+              </p>
+            )}
+            {m.work_hours && (
+              <p className="mt-1 text-[15px] text-[#3a3935]">
+                <span className="text-muted">{t.workHours}</span> {m.work_hours}
+              </p>
+            )}
+            {m.place_lat != null && m.place_lng != null && (
+              <div className="mt-3">
+                {m.place_address && <p className="mb-2 text-[15px] font-semibold">📍 {m.place_address}</p>}
+                <Map height={260} points={[{ lat: m.place_lat, lng: m.place_lng }]} />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${m.place_lat},${m.place_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost h-10 px-4 text-[14px]"
+                  >
+                    🧭 {t.route}
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${m.place_lat},${m.place_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost h-10 px-4 text-[14px]"
+                  >
+                    {t.openMap}
+                  </a>
+                </div>
+              </div>
+            )}
+          </section>
 
           {m.about && (
             <section className="mt-8">

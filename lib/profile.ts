@@ -4,7 +4,7 @@ import type { Master } from "./types";
 /** Категории, где образование и документы обязательны. */
 const CREDENTIALS_REQUIRED = [...MEDICAL_CATEGORIES, "lawyer", "accountant"];
 
-export type StepId = "verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials";
+export type StepId = "verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials" | "portfolio" | "where";
 export type Step = { id: StepId; done: boolean };
 
 /** Шаги заполнения профиля и готовность в процентах. */
@@ -16,6 +16,14 @@ export function profileSteps(m: Master): { steps: Step[]; percent: number; missi
     { id: "services", done: (m.services ?? "").split(/\n|;/).filter((s) => s.trim()).length >= 2 },
     { id: "price", done: m.price_from != null },
     { id: "languages", done: (m.languages ?? []).length > 0 },
+    { id: "portfolio", done: (m.portfolio ?? []).length >= 3 },
+    {
+      id: "where",
+      done:
+        m.work_mode === "online" ||
+        (m.work_mode === "at_client" && (m.service_area ?? "").trim().length > 1) ||
+        ((m.work_mode === "at_place" || m.work_mode === "both") && m.place_lat != null),
+    },
   ];
   if (CREDENTIALS_REQUIRED.includes(m.category)) steps.push({ id: "credentials", done: (m.credentials ?? "").trim().length >= 5 });
   const done = steps.filter((s) => s.done).length;

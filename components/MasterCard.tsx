@@ -26,6 +26,9 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           {m.verified && <VerifiedBadge label={t.verified} />}
           {m.demo && <DemoBadge label={t.demo} />}
           {m.away && <AwayBadge label={t.away} />}
+          {m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both") && (
+            <span className="ml-1 mt-1 inline-flex rounded-full bg-cream px-2 py-0.5 text-[11.5px] text-muted">📍 {t.atPlace}</span>
+          )}
           <div className="mt-1 text-[13px] text-muted">
             {categoryLabel(m.category, lang)}
             {m.extra_categories?.length ? ` +${m.extra_categories.length}` : ""}
@@ -39,6 +42,14 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         </div>
       </div>
       {firstLine && <p className="mt-3 line-clamp-2 text-[14px] leading-snug text-[#3a3935]">{firstLine}</p>}
+      {m.portfolio?.length > 0 && (
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {m.portfolio.slice(0, 3).map((p) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={p.url} src={p.url} alt="" loading="lazy" className="aspect-square w-full rounded-lg bg-cream object-cover" />
+          ))}
+        </div>
+      )}
       <div className="mt-auto flex items-center justify-between gap-2 pt-4">
         <span className="text-[14px] font-semibold">{priceText(m, lang)}</span>
         <span className="shrink-0 text-[13px] font-semibold text-brand">{t.more}</span>

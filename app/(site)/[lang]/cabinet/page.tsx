@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { adminGetMaster, touchActive } from "@/lib/db";
 import { UnarchiveButton } from "@/components/UnarchiveButton";
+import { PortfolioEditor } from "@/components/PortfolioEditor";
 import { getDict, href } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
 import { currentSpecialistId } from "@/lib/spec-auth";
@@ -174,8 +175,20 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             photo_url: m.photo_url,
             category: m.category,
             extra_categories: m.extra_categories ?? [],
+            where: {
+              work_mode: m.work_mode ?? "at_client",
+              service_area: m.service_area ?? "",
+              work_hours: m.work_hours ?? "",
+              place_address: m.place_address ?? "",
+              place_lat: m.place_lat ?? null,
+              place_lng: m.place_lng ?? null,
+            },
           }}
         />
+      </div>
+
+      <div className="mt-8">
+        <PortfolioEditor lang={lang} initial={Array.isArray(m.portfolio) ? m.portfolio : []} />
       </div>
 
       <section className="mt-8 rounded-2xl border border-line p-5">

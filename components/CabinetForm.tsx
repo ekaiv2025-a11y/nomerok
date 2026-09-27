@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Camera, Loader2 } from "lucide-react";
 import { CATEGORIES, LANGUAGES, PRICE_UNITS, categoryLabel, languageLabel, unitLabel } from "@/lib/categories";
 import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
+import { WhereFields, type WhereValue } from "./WhereFields";
+import { resizeImage } from "@/lib/image-resize";
 import { getDict, type Locale } from "@/lib/i18n";
 import { Field, fc } from "./form-kit";
 
@@ -24,6 +26,7 @@ type Initial = {
   photo_url: string | null;
   category: string;
   extra_categories: string[];
+  where: WhereValue;
 };
 
 export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: string; initial: Initial }) {
@@ -40,13 +43,15 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
   const [message, setMessage] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [extra, setExtra] = useState<string[]>(initial.extra_categories ?? []);
+  const [where, setWhere] = useState<WhereValue>(initial.where);
   function toggleExtra(id: string) {
     setExtra((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= MAX_EXTRA_CATEGORIES ? cur : [...cur, id]));
   }
 
   async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    const file = await resizeImage(raw, 800);
     setPhotoError("");
     setPhotoState("loading");
     const fd = new FormData();
@@ -93,6 +98,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           telegram: f.get("telegram"),
           whatsapp: f.get("whatsapp") === "on",
           extra_categories: extra,
+          ...where,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -133,7 +139,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         <div>
           <p className="text-[14px] font-semibold">{t.photo}</p>
           <p className="mt-0.5 text-[13px] text-muted">{t.photoHint}</p>
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onPhoto} />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhoto} />
           <button type="button" onClick={() => fileRef.current?.click()} className="btn-ghost mt-2 h-9 px-4 text-[13px]" disabled={photoState === "loading"}>
             {photo ? t.photoChange : t.photoUpload}
           </button>
@@ -193,6 +199,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         <input type="checkbox" name="whatsapp" defaultChecked={initial.whatsapp} className="h-5 w-5 accent-[#1f6b4f]" />
         {j.whatsapp}
       </label>
+      <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} />
       <fieldset>
         <legend className="text-[14px] font-semibold">
           {t.extraTitle} <span className="font-normal text-muted">{opt}</span>

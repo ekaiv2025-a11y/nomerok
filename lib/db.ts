@@ -137,7 +137,11 @@ export async function writeLocal(d: LocalData) {
 
 /* ---------- общие помощники ---------- */
 
-type PublicRow = Omit<PublicMaster, "verified" | "away" | "extra_categories" | "away_until"> & {
+type PublicRow = Omit<
+  PublicMaster,
+  "verified" | "away" | "extra_categories" | "away_until" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours"
+> &
+  Partial<Pick<Master, "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours">> & {
   phone_verified_at: string | null;
   extra_categories?: string[] | null;
   is_away?: boolean | null;
@@ -163,6 +167,13 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     updated_at: m.updated_at,
     extra_categories: m.extra_categories ?? [],
     away_until: m.away_until ?? null,
+    portfolio: Array.isArray(m.portfolio) ? m.portfolio : [],
+    work_mode: m.work_mode ?? "at_client",
+    place_address: m.place_address ?? "",
+    place_lat: m.place_lat ?? null,
+    place_lng: m.place_lng ?? null,
+    service_area: m.service_area ?? "",
+    work_hours: m.work_hours ?? "",
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
     demo: isDemoSlug(m.slug),
@@ -183,7 +194,10 @@ export function check<T>(res: { data: T | null; error: { message: string } | nul
 const BASE_COLUMNS =
   "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at";
 const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
-const PUBLIC_COLUMNS = COLUMNS_0004 + ",archived_at";
+const COLUMNS_0005 = COLUMNS_0004 + ",archived_at";
+const PUBLIC_COLUMNS = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";
+/** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
+const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {
@@ -205,9 +219,8 @@ async function listPublishedFromDb(): Promise<PublicMaster[]> {
   const sb = supabase();
   if (sb) {
     const q = (cols: string) => sb.from("masters").select(cols).eq("status", "published").order("created_at", { ascending: false });
-    let res = await q(PUBLIC_COLUMNS);
-    if (isMissingColumn(res.error)) res = await q(COLUMNS_0004);
-    if (isMissingColumn(res.error)) res = await q(BASE_COLUMNS);
+    let res = await q(COLUMN_SETS[0]);
+    for (const cols of COLUMN_SETS.slice(1)) if (isMissingColumn(res.error)) res = await q(cols);
     return (check(res) as unknown as PublicRow[]).filter((m) => !m.archived_at).map(toPublic);
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
@@ -238,9 +251,8 @@ async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
   const sb = supabase();
   if (sb) {
     const q = (cols: string) => sb.from("masters").select(cols).eq("slug", slug).eq("status", "published").maybeSingle();
-    let res = await q(PUBLIC_COLUMNS);
-    if (isMissingColumn(res.error)) res = await q(COLUMNS_0004);
-    if (isMissingColumn(res.error)) res = await q(BASE_COLUMNS);
+    let res = await q(COLUMN_SETS[0]);
+    for (const cols of COLUMN_SETS.slice(1)) if (isMissingColumn(res.error)) res = await q(cols);
     const row = check(res) as unknown as PublicRow | null;
     return row && !row.archived_at ? toPublic(row) : null;
   }
@@ -314,6 +326,13 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     archived_at: null,
     archived_reason: null,
     missed_direct: 0,
+    portfolio: [],
+    work_mode: "at_client",
+    place_address: "",
+    place_lat: null,
+    place_lng: null,
+    service_area: "",
+    work_hours: "",
     id: randomUUID(),
     created_at: now,
     updated_at: now,
@@ -608,7 +627,7 @@ export async function adminAddDemoMasters(): Promise<number> {
     const slug = DEMO_PREFIX + d.slugBase;
     if (existing.has(slug)) continue;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { slugBase, photo, ...rest } = d;
+    const { slugBase, photo, place, ...rest } = d; // eslint-disable-line @typescript-eslint/no-unused-vars
     const m = await createMaster({
       ...rest,
       phone: `+99500000000${i}`,
