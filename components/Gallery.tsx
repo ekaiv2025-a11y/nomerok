@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useState } from "react";
+import { Img } from "./Img";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { PortfolioItem } from "@/lib/types";
 
@@ -31,8 +32,8 @@ export function Gallery({ items }: { items: PortfolioItem[] }) {
     <>
       <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
         {shown.map((it, i) => (
-          <button key={it.url} type="button" onClick={() => setOpen(i)} className="group relative overflow-hidden rounded-xl bg-cream">
-            <img src={it.url} alt={it.caption} loading="lazy" className="aspect-square w-full object-cover transition group-hover:scale-105" />
+          <button key={it.url} type="button" onClick={() => setOpen(i)} className="group relative aspect-square overflow-hidden rounded-xl bg-cream">
+            <Img src={it.url} alt={it.caption} sizes="(max-width: 640px) 33vw, 220px" className="object-cover transition group-hover:scale-105" />
           </button>
         ))}
       </div>

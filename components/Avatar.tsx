@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import { useState } from "react";
 function hue(s: string) {
   let h = 0;
@@ -15,7 +15,18 @@ export function Avatar({ name, photo, size = 56, className = "", alt }: { name: 
   const style = { width: size, height: size };
   const [broken, setBroken] = useState(false);
   if (photo && !broken) {
-    return <img src={photo} alt={alt ?? name} style={style} onError={() => setBroken(true)} loading="lazy" className={`shrink-0 rounded-2xl object-cover bg-cream ${className}`} />;
+    return (
+      <Image
+        src={photo}
+        alt={alt ?? name}
+        width={size}
+        height={size}
+        style={style}
+        onError={() => setBroken(true)}
+        unoptimized={!/^https:\/\/([a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/)/.test(photo)}
+        className={`shrink-0 rounded-2xl object-cover bg-cream ${className}`}
+      />
+    );
   }
   const h = hue(name);
   return (

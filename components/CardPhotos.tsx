@@ -1,9 +1,9 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar } from "./Avatar";
+import { Img } from "./Img";
 
 /**
  * Фото в карточке каталога: первое — фото специалиста, дальше — фото работ.
@@ -42,14 +42,14 @@ export function CardPhotos({ name, photo, works, href, labels }: { name: string;
         className="no-scrollbar flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
       >
         {all.map((u, k) => (
-          <Link key={u} href={href} tabIndex={k === 0 ? 0 : -1} className="block h-full w-full shrink-0 snap-center snap-always" aria-label={k === 0 ? name : undefined}>
-            <img
+          <Link key={u} href={href} tabIndex={k === 0 ? 0 : -1} className="relative block h-full w-full shrink-0 snap-center snap-always" aria-label={k === 0 ? name : undefined}>
+            <Img
               src={u}
               alt=""
-              loading={k === 0 ? "lazy" : "lazy"}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
               draggable={false}
               onError={() => setBroken((s) => new Set(s).add(u))}
-              className="h-full w-full select-none object-cover"
+              className="select-none object-cover"
             />
           </Link>
         ))}
