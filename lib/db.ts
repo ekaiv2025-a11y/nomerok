@@ -81,11 +81,29 @@ export async function healthCheck() {
           ? "неизвестный формат"
           : "не задан";
   let db = "не проверялась";
+  let migrations: Record<string, string> | null = null;
   if (validUrl && key) {
     try {
       const sb = createClient(url, key, { auth: { persistSession: false } });
       const { error } = await sb.from("masters").select("id").limit(1);
       db = error ? "ошибка: " + error.message : "ok — таблицы найдены";
+      if (!error) {
+        // Какие обновления базы выполнены (проверяем по одной колонке/таблице из каждого)
+        const probes: [string, string, string][] = [
+          ["0002 Telegram", "masters", "tg_chat_id"],
+          ["0003 отзывы и жалобы", "reviews", "id"],
+          ["0004 пауза и направления", "masters", "is_away"],
+          ["0005 активность и архив", "masters", "archived_at"],
+          ["0006 фото работ и карта", "masters", "portfolio"],
+          ["0007 документы", "masters", "documents"],
+        ];
+        const res: Record<string, string> = {};
+        for (const [name, table, col] of probes) {
+          const r = await sb.from(table).select(col).limit(1);
+          res[name] = r.error ? "НЕ выполнено" : "✓";
+        }
+        migrations = res;
+      }
     } catch (e) {
       db = "ошибка: " + (e instanceof Error ? e.message : String(e));
     }
@@ -100,6 +118,8 @@ export async function healthCheck() {
     SUPABASE_SERVICE_ROLE_KEY: { задан: !!key, длина: key.length, тип: keyType },
     ADMIN_PASSWORD_задан: (process.env.ADMIN_PASSWORD ?? "").length >= 8,
     база: db,
+    обновления_базы: migrations,
+    автообновление_базы: (process.env.DATABASE_URL ?? "").length > 10 ? "включено (DATABASE_URL задан)" : "выключено (DATABASE_URL не задан)",
   };
 }
 
