@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { adminGetMaster } from "@/lib/db";
 import { MasterEditForm } from "@/components/MasterEditForm";
+import { botLink } from "@/lib/telegram";
+import { profileSteps } from "@/lib/profile";
 import { deleteMaster, setMasterStatus } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,8 @@ export default async function EditMasterPage({ params, searchParams }: { params:
   const m = await adminGetMaster(id);
   if (!m) notFound();
   const back = `/admin/masters/${m.id}`;
+  const tgLink = await botLink(`m_${m.tg_link_token}`);
+  const { percent } = profileSteps(m);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -27,6 +31,24 @@ export default async function EditMasterPage({ params, searchParams }: { params:
       <p className="mt-1 text-[13px] text-muted">
         Согласие на публикацию: {m.consent_at ? new Date(m.consent_at).toLocaleDateString("ru-RU") : "не отмечено"}
       </p>
+      <div className="mt-3 rounded-2xl bg-white p-4 text-[14px]">
+        <p>
+          <b>Telegram:</b>{" "}
+          {m.phone_verified_at
+            ? `✓ номер подтверждён ${new Date(m.phone_verified_at).toLocaleDateString("ru-RU")}`
+            : m.tg_chat_id
+              ? "подключён, номер ещё не подтверждён"
+              : "не подключён"}
+          {m.tg_username ? ` · @${m.tg_username}` : ""} · профиль заполнен на {percent}%
+        </p>
+        {!m.phone_verified_at && tgLink && (
+          <p className="mt-2 text-muted">
+            Ссылка для специалиста (отправьте ему, чтобы подтвердил номер и получал заявки):
+            <br />
+            <span className="select-all break-all font-mono text-[13px] text-ink">{tgLink}</span>
+          </p>
+        )}
+      </div>
       {sp.saved && <p className="mt-3 rounded-xl bg-brand-soft p-3 text-[14px] text-brand-dark">Сохранено</p>}
       {sp.error && <p className="mt-3 rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{sp.error}</p>}
 

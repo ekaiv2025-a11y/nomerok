@@ -2,7 +2,7 @@ import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { promises as fs } from "fs";
 import path from "path";
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { makeSlug } from "./slug";
 import type {
   ClientRequest,
@@ -12,6 +12,7 @@ import type {
   NewMaster,
   NewRequest,
   PublicMaster,
+  RequestResponse,
   RequestStatus,
 } from "./types";
 
@@ -106,14 +107,21 @@ export function dbMode(): "supabase" | "local" | "none" {
 
 /* ---------- локальный режим (только для разработки) ---------- */
 
-type LocalData = { masters: Master[]; requests: ClientRequest[]; contact_views: { master_id: string; visitor: string; created_at: string }[] };
+type LocalData = {
+  masters: Master[];
+  requests: ClientRequest[];
+  contact_views: { master_id: string; visitor: string; created_at: string }[];
+  responses: RequestResponse[];
+  login_tokens: { token: string; master_id: string; expires_at: string }[];
+};
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 
 async function readLocal(): Promise<LocalData> {
   try {
-    return JSON.parse(await fs.readFile(LOCAL_FILE, "utf8"));
+    const d = JSON.parse(await fs.readFile(LOCAL_FILE, "utf8"));
+    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], ...d };
   } catch {
-    return { masters: [], requests: [], contact_views: [] };
+    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [] };
   }
 }
 async function writeLocal(d: LocalData) {
@@ -123,10 +131,30 @@ async function writeLocal(d: LocalData) {
 
 /* ---------- общие помощники ---------- */
 
-function toPublic(m: Master): PublicMaster {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { phone, telegram, whatsapp, admin_note, consent_at, status, ...rest } = m;
-  return rest;
+type PublicRow = Omit<PublicMaster, "verified"> & { phone_verified_at: string | null };
+
+function toPublic(m: Master | PublicRow): PublicMaster {
+  return {
+    id: m.id,
+    slug: m.slug,
+    name: m.name,
+    category: m.category,
+    services: m.services,
+    about: m.about,
+    credentials: m.credentials,
+    experience_years: m.experience_years,
+    languages: m.languages,
+    price_from: m.price_from,
+    price_unit: m.price_unit,
+    photo_url: m.photo_url,
+    created_at: m.created_at,
+    updated_at: m.updated_at,
+    verified: !!m.phone_verified_at,
+  };
+}
+
+export function newToken(): string {
+  return randomBytes(12).toString("hex");
 }
 
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -135,7 +163,7 @@ function check<T>(res: { data: T | null; error: { message: string } | null }): T
 }
 
 const PUBLIC_COLUMNS =
-  "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,created_at,updated_at";
+  "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at";
 
 /* ---------- мастера: публичная часть ---------- */
 
@@ -145,7 +173,7 @@ export async function listPublishedMasters(): Promise<PublicMaster[]> {
     const rows = check(
       await sb.from("masters").select(PUBLIC_COLUMNS).eq("status", "published").order("created_at", { ascending: false }),
     );
-    return rows as unknown as PublicMaster[];
+    return (rows as unknown as PublicRow[]).map(toPublic);
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
@@ -161,7 +189,7 @@ export async function getPublishedMasterBySlug(slug: string): Promise<PublicMast
     const row = check(
       await sb.from("masters").select(PUBLIC_COLUMNS).eq("slug", slug).eq("status", "published").maybeSingle(),
     );
-    return (row as unknown as PublicMaster) ?? null;
+    return row ? toPublic(row as unknown as PublicRow) : null;
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const m = (await readLocal()).masters.find((x) => x.slug === slug && x.status === "published");
@@ -204,24 +232,48 @@ export async function revealContacts(masterId: string, visitor: string): Promise
 /* ---------- создание записей из форм ---------- */
 
 export async function createMaster(input: NewMaster): Promise<Master> {
-  const row = { ...input, slug: makeSlug(input.name, input.category), admin_note: input.admin_note ?? "" };
+  const row = {
+    ...input,
+    lang: input.lang ?? "ru",
+    slug: makeSlug(input.name, input.category),
+    admin_note: input.admin_note ?? "",
+    tg_link_token: newToken(),
+  };
   const sb = supabase();
   if (sb) return check(await sb.from("masters").insert(row).select("*").single()) as Master;
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
   const now = new Date().toISOString();
-  const m: Master = { ...row, id: randomUUID(), created_at: now, updated_at: now };
+  const m: Master = {
+    ...row,
+    tg_chat_id: null,
+    tg_username: null,
+    phone_verified_at: null,
+    notify_requests: true,
+    id: randomUUID(),
+    created_at: now,
+    updated_at: now,
+  };
   d.masters.push(m);
   await writeLocal(d);
   return m;
 }
 
 export async function createRequest(input: NewRequest): Promise<ClientRequest> {
+  const row = { ...input, lang: input.lang ?? "ru", client_link_token: newToken() };
   const sb = supabase();
-  if (sb) return check(await sb.from("requests").insert(input).select("*").single()) as ClientRequest;
+  if (sb) return check(await sb.from("requests").insert(row).select("*").single()) as ClientRequest;
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
-  const r: ClientRequest = { ...input, id: randomUUID(), status: "new", admin_note: "", created_at: new Date().toISOString() };
+  const r: ClientRequest = {
+    ...row,
+    id: randomUUID(),
+    status: "new",
+    admin_note: "",
+    client_tg_chat_id: null,
+    sent_count: 0,
+    created_at: new Date().toISOString(),
+  };
   d.requests.push(r);
   await writeLocal(d);
   return r;
@@ -318,3 +370,160 @@ export async function adminContactViewsThisMonth(): Promise<Record<string, numbe
   return counts;
 }
 
+/* ---------- Telegram, отклики, кабинет ---------- */
+
+export async function getMasterByLinkToken(token: string): Promise<Master | null> {
+  const sb = supabase();
+  if (sb) return (check(await sb.from("masters").select("*").eq("tg_link_token", token).maybeSingle()) as Master) ?? null;
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).masters.find((m) => m.tg_link_token === token) ?? null;
+}
+
+export async function getMastersByChatId(chatId: number): Promise<Master[]> {
+  const sb = supabase();
+  if (sb) return check(await sb.from("masters").select("*").eq("tg_chat_id", chatId).order("created_at", { ascending: false })) as Master[];
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).masters.filter((m) => m.tg_chat_id === chatId);
+}
+
+/** Подтверждённые специалисты категории, которые принимают заявки. */
+export async function listMastersForRequests(category: string): Promise<Master[]> {
+  const sb = supabase();
+  if (sb) {
+    return check(
+      await sb
+        .from("masters")
+        .select("*")
+        .eq("status", "published")
+        .eq("category", category)
+        .eq("notify_requests", true)
+        .not("tg_chat_id", "is", null)
+        .not("phone_verified_at", "is", null),
+    ) as Master[];
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).masters.filter(
+    (m) => m.status === "published" && m.category === category && m.notify_requests && m.tg_chat_id && m.phone_verified_at,
+  );
+}
+
+export async function getRequest(id: string): Promise<ClientRequest | null> {
+  const sb = supabase();
+  if (sb) return (check(await sb.from("requests").select("*").eq("id", id).maybeSingle()) as ClientRequest) ?? null;
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).requests.find((r) => r.id === id) ?? null;
+}
+
+export async function getRequestByLinkToken(token: string): Promise<ClientRequest | null> {
+  const sb = supabase();
+  if (sb) return (check(await sb.from("requests").select("*").eq("client_link_token", token).maybeSingle()) as ClientRequest) ?? null;
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).requests.find((r) => r.client_link_token === token) ?? null;
+}
+
+export async function updateRequest(id: string, patch: Partial<Omit<ClientRequest, "id" | "created_at">>): Promise<void> {
+  const sb = supabase();
+  if (sb) {
+    check(await sb.from("requests").update(patch).eq("id", id));
+    return;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  const d = await readLocal();
+  const i = d.requests.findIndex((r) => r.id === id);
+  if (i >= 0) d.requests[i] = { ...d.requests[i], ...patch };
+  await writeLocal(d);
+}
+
+/** Записывает отклик специалиста. created=false — если он уже откликался. */
+export async function addResponse(requestId: string, masterId: string): Promise<{ created: boolean; total: number }> {
+  const sb = supabase();
+  if (sb) {
+    const ins = await sb.from("request_responses").insert({ request_id: requestId, master_id: masterId });
+    const created = !ins.error;
+    if (ins.error && !/duplicate|unique/i.test(ins.error.message)) throw new Error(ins.error.message);
+    const { count } = await sb.from("request_responses").select("id", { count: "exact", head: true }).eq("request_id", requestId);
+    return { created, total: count ?? 0 };
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  const d = await readLocal();
+  const exists = d.responses.some((r) => r.request_id === requestId && r.master_id === masterId);
+  if (!exists) d.responses.push({ id: d.responses.length + 1, request_id: requestId, master_id: masterId, created_at: new Date().toISOString() });
+  await writeLocal(d);
+  return { created: !exists, total: d.responses.filter((r) => r.request_id === requestId).length };
+}
+
+export async function hasResponse(requestId: string, masterId: string): Promise<boolean> {
+  const sb = supabase();
+  if (sb) {
+    const rows = check(await sb.from("request_responses").select("id").eq("request_id", requestId).eq("master_id", masterId).limit(1)) as unknown[];
+    return rows.length > 0;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).responses.some((r) => r.request_id === requestId && r.master_id === masterId);
+}
+
+export async function countResponses(requestId: string): Promise<number> {
+  const sb = supabase();
+  if (sb) {
+    const { count } = await sb.from("request_responses").select("id", { count: "exact", head: true }).eq("request_id", requestId);
+    return count ?? 0;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).responses.filter((r) => r.request_id === requestId).length;
+}
+
+/** Для админки: кто откликнулся на какие заявки. */
+export async function adminListResponses(): Promise<RequestResponse[]> {
+  const sb = supabase();
+  if (sb) return check(await sb.from("request_responses").select("*").order("created_at", { ascending: false }).limit(2000)) as RequestResponse[];
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).responses;
+}
+
+/** Ссылка для входа в кабинет: действует 24 часа. */
+export async function createLoginToken(masterId: string): Promise<string> {
+  const token = newToken() + newToken();
+  const expires_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+  const sb = supabase();
+  if (sb) {
+    await sb.from("login_tokens").delete().lt("expires_at", new Date().toISOString());
+    check(await sb.from("login_tokens").insert({ token, master_id: masterId, expires_at }));
+    return token;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  const d = await readLocal();
+  d.login_tokens = d.login_tokens.filter((t) => t.expires_at > new Date().toISOString());
+  d.login_tokens.push({ token, master_id: masterId, expires_at });
+  await writeLocal(d);
+  return token;
+}
+
+export async function resolveLoginToken(token: string): Promise<string | null> {
+  const now = new Date().toISOString();
+  const sb = supabase();
+  if (sb) {
+    const row = check(await sb.from("login_tokens").select("master_id,expires_at").eq("token", token).maybeSingle()) as {
+      master_id: string;
+      expires_at: string;
+    } | null;
+    return row && row.expires_at > now ? row.master_id : null;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  const t = (await readLocal()).login_tokens.find((x) => x.token === token);
+  return t && t.expires_at > now ? t.master_id : null;
+}
+
+/** Загрузка фото специалиста. Возвращает публичную ссылку. */
+export async function uploadPhoto(masterId: string, file: Blob, ext: string): Promise<string> {
+  const sb = supabase();
+  if (sb) {
+    const key = `${masterId}/${Date.now()}.${ext}`;
+    const up = await sb.storage.from("photos").upload(key, file, { contentType: file.type, upsert: true });
+    if (up.error) throw new Error(up.error.message);
+    return sb.storage.from("photos").getPublicUrl(key).data.publicUrl;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  // Локальный режим: храним картинку прямо в базе как data-URL
+  const buf = Buffer.from(await file.arrayBuffer());
+  return `data:${file.type};base64,${buf.toString("base64")}`;
+}

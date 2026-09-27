@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "crypto";
 
 export function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -21,13 +22,76 @@ export function telegramChatId(): string | null {
   return m ? m[0] : null;
 }
 
-/** Отправка в Telegram. */
+const API_BASE = (process.env.TELEGRAM_API_BASE || "https://api.telegram.org").replace(/\/$/, "");
+
+/** Вызов любого метода Telegram Bot API. Возвращает result или null при ошибке. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function tg<T = any>(method: string, payload: Record<string, unknown> = {}): Promise<T | null> {
+  const token = telegramToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_BASE}/bot${token}/${method}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(8000),
+    });
+    const j = await res.json().catch(() => null);
+    if (!j?.ok) {
+      console.error(`[telegram] ${method} ошибка`, res.status, JSON.stringify(j));
+      return null;
+    }
+    return j.result as T;
+  } catch (e) {
+    console.error(`[telegram] ${method} не удалось`, e);
+    return null;
+  }
+}
+
+type Button = { text: string; url?: string; callback_data?: string };
+
+/** Сообщение пользователю бота. buttons — ряды кнопок под сообщением. */
+export async function sendTo(chatId: number | string, html: string, buttons?: Button[][], extra: Record<string, unknown> = {}) {
+  return tg("sendMessage", {
+    chat_id: chatId,
+    text: html,
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+    ...(buttons ? { reply_markup: { inline_keyboard: buttons } } : {}),
+    ...extra,
+  });
+}
+
+let cachedUsername: string | null = null;
+/** Имя бота (для ссылок t.me/…). */
+export async function botUsername(): Promise<string | null> {
+  const env = (process.env.TELEGRAM_BOT_USERNAME ?? "").replace(/^@/, "").trim();
+  if (env) return env;
+  if (cachedUsername) return cachedUsername;
+  const me = await tg<{ username: string }>("getMe");
+  cachedUsername = me?.username ?? null;
+  return cachedUsername;
+}
+
+export async function botLink(payload: string): Promise<string | null> {
+  const u = await botUsername();
+  return u ? `https://t.me/${u}?start=${payload}` : null;
+}
+
+/** Секрет, которым Telegram подписывает запросы к нашему вебхуку. */
+export function webhookSecret(): string | null {
+  const token = telegramToken();
+  if (!token) return null;
+  return createHash("sha256").update("nomerok-webhook|" + token).digest("hex").slice(0, 48);
+}
+
+/** Отправка в Telegram владельцу. */
 async function sendTelegram(html: string): Promise<boolean | null> {
   const token = telegramToken();
   const chatId = telegramChatId();
   if (!token || !chatId) return null; // не настроено
   try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`${API_BASE}/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text: html, parse_mode: "HTML", disable_web_page_preview: true }),
@@ -91,12 +155,17 @@ export async function telegramHealth() {
   let bot = "токен не найден в настройке TELEGRAM_BOT_TOKEN";
   if (token) {
     try {
-      const r = await fetch(`https://api.telegram.org/bot${token}/getMe`, { signal: AbortSignal.timeout(5000) });
+      const r = await fetch(`${API_BASE}/bot${token}/getMe`, { signal: AbortSignal.timeout(5000) });
       const j = await r.json();
       bot = j.ok ? `ok — @${j.result.username}` : `ошибка: ${j.description}`;
     } catch (e) {
       bot = "ошибка связи: " + (e instanceof Error ? e.message : String(e));
     }
   }
-  return { бот: bot, chat_id: chatId ? `ok (${chatId.length} цифр)` : "не найден в TELEGRAM_ADMIN_CHAT_ID" };
+  const wh = token ? await tg<{ url: string; last_error_message?: string; pending_update_count: number }>("getWebhookInfo") : null;
+  return {
+    бот: bot,
+    chat_id: chatId ? `ok (${chatId.length} цифр)` : "не найден в TELEGRAM_ADMIN_CHAT_ID",
+    вебхук: wh ? (wh.url ? `подключён: ${wh.url}${wh.last_error_message ? ` (последняя ошибка: ${wh.last_error_message})` : ""}` : "не подключён — нажмите «Подключить бота» в админке") : "—",
+  };
 }

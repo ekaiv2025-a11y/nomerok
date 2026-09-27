@@ -9,7 +9,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Avatar } from "@/components/Avatar";
 import { ContactReveal } from "@/components/ContactReveal";
 import { ShareButtons } from "@/components/ShareButtons";
-import { MasterCard, priceText } from "@/components/MasterCard";
+import { MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +54,7 @@ export default async function MasterPage({ params }: Props) {
         <Avatar name={m.name} photo={m.photo_url} size={88} />
         <div className="min-w-0">
           <h1 className="text-[24px] font-bold leading-tight sm:text-[30px]">{m.name}</h1>
+          {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
           <p className="mt-1 text-[15px] text-muted">
             {cat} · {t.city}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}

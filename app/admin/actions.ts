@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE, adminCookieValue, checkPassword, requireAdmin } from "@/lib/admin-auth";
 import {
+  adminGetMaster,
   adminDeleteMaster,
   adminGetMasterSlug,
   adminSetMasterStatus,
@@ -15,6 +16,9 @@ import {
 import { CATEGORY_IDS, LANGUAGES, PRICE_UNITS } from "@/lib/categories";
 import { normalizePhone, normalizeTelegram } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
+import { notifyMasterStatus, setupBot } from "@/lib/bot";
+import { webhookSecret } from "@/lib/telegram";
+import { headers } from "next/headers";
 import { clientIp } from "@/lib/request-info";
 import type { MasterStatus, RequestStatus } from "@/lib/types";
 
@@ -51,7 +55,10 @@ export async function setMasterStatus(formData: FormData) {
   const id = String(formData.get("id"));
   const status = String(formData.get("status")) as MasterStatus;
   if (!MASTER_STATUSES.includes(status)) return;
+  const before = await adminGetMaster(id);
   await adminSetMasterStatus(id, status);
+  // Сообщаем специалисту в Telegram об изменении статуса
+  if (before && before.status !== status) await notifyMasterStatus({ ...before, status }, status).catch((e) => console.error("[notify]", e));
   refreshPublic(await adminGetMasterSlug(id));
   revalidatePath("/admin");
   const back = String(formData.get("back") || "");
@@ -135,4 +142,16 @@ export async function saveMaster(formData: FormData) {
     refreshPublic(m.slug);
     redirect(`/admin/masters/${m.id}?saved=1`);
   }
+}
+
+/** Подключает Telegram-бота к сайту (вебхук + команды). */
+export async function connectBot() {
+  await requireAdmin();
+  const secret = webhookSecret();
+  if (!secret) redirect("/admin?tab=bot&bot=notoken");
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  const proto = h.get("x-forwarded-proto") || "https";
+  const res = await setupBot(`${proto}://${host}`, secret);
+  redirect(`/admin?tab=bot&bot=${res.ok ? "ok" : "fail"}`);
 }

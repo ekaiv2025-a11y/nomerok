@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { masterApplicationSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { createMaster } from "@/lib/db";
-import { notifyAdmin, escapeHtml } from "@/lib/telegram";
+import { botLink, notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
@@ -38,6 +38,7 @@ export async function POST(req: Request) {
       photo_url: null,
       status: "pending",
       consent_at: new Date().toISOString(),
+      lang,
     });
 
     await notifyAdmin(
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
         `\nПроверить и опубликовать: ${SITE_URL}/admin/masters/${m.id}`,
       ].join("\n"),
     );
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, tgLink: await botLink(`m_${m.tg_link_token}`) });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });

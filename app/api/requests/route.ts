@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requestSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { createRequest, getPublishedMasterBySlug } from "@/lib/db";
-import { notifyAdmin, escapeHtml } from "@/lib/telegram";
+import { botLink, notifyAdmin, escapeHtml } from "@/lib/telegram";
+import { distributeRequest } from "@/lib/bot";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
@@ -32,6 +33,13 @@ export async function POST(req: Request) {
       name: data.name,
       phone: data.phone,
       master_id: master?.id ?? null,
+      lang,
+    });
+
+    // Рассылаем заявку подтверждённым специалистам в Telegram
+    const sent = await distributeRequest(saved).catch((err) => {
+      console.error("[distribute]", err);
+      return 0;
     });
 
     const lines = [
@@ -42,10 +50,13 @@ export async function POST(req: Request) {
       saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
       `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
       `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
+      sent > 0
+        ? `📨 Отправлено специалистам в Telegram: ${sent}`
+        : "⚠️ Нет специалистов с подтверждённым Telegram для этой заявки — передайте вручную.",
       `\n${SITE_URL}/admin`,
     ].filter(Boolean);
     await notifyAdmin(lines.join("\n"));
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, tgLink: await botLink(`r_${saved.client_link_token}`) });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });

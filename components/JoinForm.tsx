@@ -5,13 +5,13 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { LANGUAGES, PRICE_UNITS, languageLabel, unitLabel } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
-import { Field, Honeypot, fc, useSubmit } from "./form-kit";
+import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
 
 export function JoinForm({ lang }: { lang: Locale }) {
   const d = getDict(lang);
   const t = d.join;
   const opt = d.form.optional;
-  const { state, errors, message, submit } = useSubmit("/api/masters", lang);
+  const { state, errors, message, submit, result } = useSubmit("/api/masters", lang);
 
   if (state === "done") {
     return (
@@ -19,6 +19,7 @@ export function JoinForm({ lang }: { lang: Locale }) {
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
         <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
         <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneText}</p>
+        <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
         <Link href={href(lang)} className="btn-ghost mt-5">
           {d.form.toHome}
         </Link>

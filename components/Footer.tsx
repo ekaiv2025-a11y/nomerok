@@ -32,6 +32,7 @@ export function Footer({ lang }: { lang: Locale }) {
           <ul className="space-y-2 text-[13px] text-muted">
             <L to="/join">{t.placeProfile}</L>
             <L to="/how#specialists">{t.conditions}</L>
+            <L to="/cabinet">{t.cabinet}</L>
           </ul>
         </div>
         <div>

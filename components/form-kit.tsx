@@ -10,6 +10,7 @@ export function useSubmit(url: string, lang: Locale) {
   const [state, setState] = useState<SubmitState>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
+  const [result, setResult] = useState<Record<string, unknown>>({});
   const startedAt = useRef(Date.now());
 
   async function submit(payload: Record<string, unknown>) {
@@ -24,6 +25,7 @@ export function useSubmit(url: string, lang: Locale) {
       });
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
+        setResult(data);
         setState("done");
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
@@ -43,7 +45,7 @@ export function useSubmit(url: string, lang: Locale) {
     }
   }
 
-  return { state, errors, message, submit };
+  return { state, errors, message, submit, result };
 }
 
 export function Field({
@@ -85,4 +87,21 @@ export function Honeypot({ label }: { label: string }) {
 
 export function fc(err?: string) {
   return `field ${err ? "field-error" : ""}`;
+}
+
+/** Блок «подключите Telegram» после отправки формы. */
+export function TelegramStep({ title, text, button, link }: { title: string; text: string; button: string; link?: unknown }) {
+  if (typeof link !== "string" || !link) return null;
+  return (
+    <div className="mt-5 rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5 text-left">
+      <p className="font-semibold text-[#0f5c82]">{title}</p>
+      <p className="mt-1 text-[14px] leading-relaxed text-[#2f5d74]">{text}</p>
+      <a href={link} target="_blank" rel="noopener noreferrer" className="btn mt-4 h-12 w-full bg-[#229ED9] text-white hover:bg-[#1c89bd]">
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+          <path d="M9.04 15.47 8.9 19.6c.42 0 .6-.18.82-.4l1.97-1.88 4.08 2.99c.75.41 1.28.2 1.48-.69l2.68-12.57c.26-1.2-.44-1.67-1.17-1.39L3.2 11.05c-1.08.42-1.06 1.03-.19 1.3l4.04 1.26 9.39-5.92c.44-.29.84-.13.51.16"/>
+        </svg>
+        {button}
+      </a>
+    </div>
+  );
 }
