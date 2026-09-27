@@ -54,7 +54,9 @@ type BotDict = {
   dealOk: (name: string) => string;
   laterOk: string;
   noHelpOk: string;
-  btnComplain: string;
+  btnResend: string;
+  resentOk: (n: number) => string;
+  resentNone: string;
   reviewInvite: (name: string) => string;
   btnReview: string;
   reviewStart: (name: string) => string;
@@ -98,8 +100,10 @@ const ru: BotDict = {
   btnNoHelp: "❌ Никто не помог",
   dealOk: (name) => `Отлично! Через пару дней спросим, как прошла работа с ${name} — ваш отзыв поможет другим клиентам.`,
   laterOk: "Хорошо, удачи! Если что-то пойдёт не так — напишите сюда.",
-  noHelpOk: "Жаль. Мы сообщили администратору и постараемся помочь. Если специалист повёл себя нечестно — можно пожаловаться.",
-  btnComplain: "⚠️ Пожаловаться",
+  noHelpOk: "Жаль, что не получилось. Можем разослать заявку ещё раз другим специалистам — или выберите сами в каталоге.",
+  btnResend: "🔁 Разослать ещё раз",
+  resentOk: (n) => `Отправили заявку ещё ${n} специалистам. Как только кто-то откликнется — пришлём контакты сюда.`,
+  resentNone: "Других специалистов этого направления пока нет. Мы передали заявку администратору — постараемся найти специалиста вручную.",
   reviewInvite: (name) => `Как прошла работа с <b>${name}</b>? Оставьте короткий отзыв — можно с фото. Отзывы помогают другим клиентам выбрать специалиста.`,
   btnReview: "⭐ Оставить отзыв",
   reviewStart: (name) => `Оставьте отзыв о специалисте <b>${name}</b>. Отзыв появится на сайте после проверки. Ссылка действует 7 дней.`,
@@ -176,8 +180,10 @@ const en: BotDict = {
   btnNoHelp: "❌ No one helped",
   dealOk: (name) => `Great! In a couple of days we'll ask how the work with ${name} went — your review will help other clients.`,
   laterOk: "OK, good luck! If anything goes wrong, write here.",
-  noHelpOk: "Sorry to hear that. We've told our team and will try to help. If a specialist acted dishonestly, you can file a complaint.",
-  btnComplain: "⚠️ Complain",
+  noHelpOk: "Sorry it didn't work out. We can send your request to other specialists — or pick one yourself in the catalog.",
+  btnResend: "🔁 Send it out again",
+  resentOk: (n) => `We sent your request to ${n} more specialists. As soon as someone responds, we'll send their contacts here.`,
+  resentNone: "There are no other specialists in this field yet. We've passed your request to our team and will try to find someone manually.",
   reviewInvite: (name) => `How did the work with <b>${name}</b> go? Leave a short review — photos welcome. Reviews help other clients choose.`,
   btnReview: "⭐ Leave a review",
   reviewStart: (name) => `Leave a review for <b>${name}</b>. It will appear on the website after moderation. The link is valid for 7 days.`,
@@ -254,8 +260,10 @@ const ka: BotDict = {
   btnNoHelp: "❌ არავინ დამეხმარა",
   dealOk: (name) => `შესანიშნავია! ორიოდე დღეში გკითხავთ, როგორ ჩაიარა მუშაობამ ${name}-თან — თქვენი შეფასება სხვა კლიენტებს დაეხმარება.`,
   laterOk: "კარგი, წარმატებები! თუ რამე არასწორად წავა — მოგვწერეთ აქ.",
-  noHelpOk: "სამწუხაროა. ადმინისტრატორს ვაცნობეთ და შევეცდებით დაგეხმაროთ. თუ სპეციალისტი არაკეთილსინდისიერად მოიქცა — შეგიძლიათ საჩივრის დატოვება.",
-  btnComplain: "⚠️ საჩივარი",
+  noHelpOk: "სამწუხაროა, რომ ვერ გამოვიდა. შეგვიძლია განაცხადი სხვა სპეციალისტებსაც გავუგზავნოთ — ან თავად აირჩიეთ კატალოგში.",
+  btnResend: "🔁 ხელახლა გაგზავნა",
+  resentOk: (n) => `განაცხადი კიდევ ${n} სპეციალისტს გავუგზავნეთ. როგორც კი ვინმე გამოეხმაურება — კონტაქტებს აქ გამოგიგზავნით.`,
+  resentNone: "ამ მიმართულების სხვა სპეციალისტები ჯერ არ არიან. განაცხადი ადმინისტრატორს გადავეცით — შევეცდებით სპეციალისტის ხელით პოვნას.",
   reviewInvite: (name) => `როგორ ჩაიარა მუშაობამ <b>${name}</b>-თან? დატოვეთ მოკლე შეფასება — შეიძლება ფოტოთი. შეფასებები სხვა კლიენტებს არჩევანში ეხმარება.`,
   btnReview: "⭐ შეფასების დატოვება",
   reviewStart: (name) => `დატოვეთ შეფასება სპეციალისტზე <b>${name}</b>. შემოწმების შემდეგ გამოჩნდება საიტზე. ბმული მოქმედებს 7 დღე.`,

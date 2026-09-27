@@ -38,7 +38,7 @@ function siteUrl(): string {
 /* ---------- рассылка заявки специалистам ---------- */
 
 /** Отправляет заявку подходящим специалистам в Telegram. Возвращает, скольким отправлено. */
-export async function distributeRequest(r: ClientRequest): Promise<number> {
+export async function distributeRequest(r: ClientRequest, exclude: Set<string> = new Set()): Promise<number> {
   let targets: Master[] = [];
   if (r.master_id) {
     const m = await adminGetMaster(r.master_id);
@@ -46,6 +46,7 @@ export async function distributeRequest(r: ClientRequest): Promise<number> {
   } else {
     targets = await listMastersForRequests(r.category);
   }
+  targets = targets.filter((m) => !exclude.has(m.id));
   let sent = 0;
   for (const m of targets) {
     const b = botDict(m.lang);
@@ -55,7 +56,7 @@ export async function distributeRequest(r: ClientRequest): Promise<number> {
     const ok = await sendTo(m.tg_chat_id!, text, [[{ text: b.btnTake, callback_data: `take:${r.id}` }]]);
     if (ok) sent++;
   }
-  if (sent > 0) await updateRequest(r.id, { sent_count: sent, status: "sent" });
+  if (sent > 0) await updateRequest(r.id, { sent_count: (exclude.size ? r.sent_count ?? 0 : 0) + sent, status: "sent" });
   return sent;
 }
 
@@ -305,6 +306,8 @@ async function respondersOf(requestId: string): Promise<Master[]> {
   return list;
 }
 
+const RESENT_MARK = "[разослана повторно]";
+
 async function onClientAnswer(cb: TgCallback, data: string) {
   const [kind, requestId, idx] = data.split(":");
   const r = await getRequest(requestId);
@@ -332,10 +335,26 @@ async function onClientAnswer(cb: TgCallback, data: string) {
   if (kind === "nohelp") {
     await clearButtons();
     await updateRequest(r.id, { outcome: "none", outcome_at: now });
-    await notifyAdmin(
-      `😕 Клиенту никто не помог по заявке «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}). Свяжитесь с клиентом.\n${siteUrl()}/admin`,
-    );
-    return sendTo(chatId, b.noHelpOk, [[{ text: b.btnComplain, url: `${siteUrl()}/${r.lang}/complaint` }]]);
+    await notifyAdmin(`😕 Клиенту не подошли откликнувшиеся специалисты по заявке «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}). Клиенту предложено разослать заявку ещё раз.`);
+    // Повторно разослать можно один раз — чтобы не засыпать специалистов одной и той же заявкой
+    if ((r.admin_note ?? "").includes(RESENT_MARK)) return sendTo(chatId, b.resentNone, [[{ text: b.btnCatalog, url: `${siteUrl()}/${r.lang}` }]]);
+    return sendTo(chatId, b.noHelpOk, [
+      [{ text: b.btnResend, callback_data: `resend:${r.id}` }],
+      [{ text: b.btnCatalog, url: `${siteUrl()}/${r.lang}` }],
+      [{ text: b.btnClose, callback_data: `close:${r.id}` }],
+    ]);
+  }
+  if (kind === "resend") {
+    await clearButtons();
+    if (r.status === "done") return sendTo(chatId, b.closedOk);
+    if ((r.admin_note ?? "").includes(RESENT_MARK)) return sendTo(chatId, b.resentNone);
+    const already = new Set((await adminListResponses()).filter((x) => x.request_id === r.id).map((x) => x.master_id));
+    const sent = await distributeRequest(r, already.size ? already : new Set(["-"]));
+    // Начинаем заново: через сутки снова спросим, удалось ли договориться
+    await updateRequest(r.id, { outcome: null, outcome_at: null, followup_at: null, admin_note: `${r.admin_note ?? ""} ${RESENT_MARK}`.trim() });
+    if (sent > 0) return sendTo(chatId, b.resentOk(sent));
+    await notifyAdmin(`⚠️ Заявку «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}) некому разослать повторно — найдите специалиста вручную.\n${siteUrl()}/admin`);
+    return sendTo(chatId, b.resentNone);
   }
   if (kind === "deal") {
     const m = (await respondersOf(r.id))[Number(idx)];
@@ -437,7 +456,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   if (u.callback_query) {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
-    if (/^(close|deal|later|nohelp):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
+    if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
     await tg("answerCallbackQuery", { callback_query_id: u.callback_query.id });
     return;
   }
