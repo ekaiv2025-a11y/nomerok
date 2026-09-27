@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "./Avatar";
+import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
@@ -26,6 +27,11 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           {m.demo && <DemoBadge label={t.demo} />}
           <div className="mt-1 text-[13px] text-muted">{categoryLabel(m.category, lang)}</div>
           {m.experience_years ? <div className="mt-0.5 text-[12px] text-muted">{t.experience(m.experience_years)}</div> : null}
+          {m.rating != null && m.reviews > 0 && (
+            <div className="mt-1">
+              <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
+            </div>
+          )}
         </div>
       </div>
       {firstLine && <p className="mt-3 line-clamp-2 text-[14px] leading-snug text-[#3a3935]">{firstLine}</p>}

@@ -15,6 +15,8 @@ import type {
   PublicMaster,
   RequestResponse,
   RequestStatus,
+  Review,
+  Complaint,
 } from "./types";
 
 /*
@@ -49,7 +51,7 @@ export function cleanKey(raw: string | undefined): string {
   return (raw ?? "").replace(/[\s"'`«»]/g, "");
 }
 
-function supabase(): SupabaseClient | null {
+export function supabase(): SupabaseClient | null {
   const url = cleanSupabaseUrl(process.env.SUPABASE_URL);
   const key = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!url || !key) return null;
@@ -114,18 +116,20 @@ type LocalData = {
   contact_views: { master_id: string; visitor: string; created_at: string }[];
   responses: RequestResponse[];
   login_tokens: { token: string; master_id: string; expires_at: string }[];
+  reviews: Review[];
+  complaints: Complaint[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 
-async function readLocal(): Promise<LocalData> {
+export async function readLocal(): Promise<LocalData> {
   try {
     const d = JSON.parse(await fs.readFile(LOCAL_FILE, "utf8"));
-    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], ...d };
+    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [], ...d };
   } catch {
-    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [] };
+    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [] };
   }
 }
-async function writeLocal(d: LocalData) {
+export async function writeLocal(d: LocalData) {
   await fs.mkdir(path.dirname(LOCAL_FILE), { recursive: true });
   await fs.writeFile(LOCAL_FILE, JSON.stringify(d, null, 2));
 }
@@ -152,6 +156,8 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     updated_at: m.updated_at,
     verified: !!m.phone_verified_at,
     demo: isDemoSlug(m.slug),
+    rating: null,
+    reviews: 0,
   };
 }
 
@@ -159,7 +165,7 @@ export function newToken(): string {
   return randomBytes(12).toString("hex");
 }
 
-function check<T>(res: { data: T | null; error: { message: string } | null }): T {
+export function check<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message);
   return res.data as T;
 }
@@ -171,7 +177,7 @@ const PUBLIC_COLUMNS =
 
 /** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
-  const real = await listPublishedFromDb();
+  const real = await withRatings(await listPublishedFromDb());
   if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
   const have = new Set(real.map((m) => m.slug));
   return [...real, ...demoPublicMasters().filter((m) => !have.has(m.slug))];
@@ -195,7 +201,18 @@ async function listPublishedFromDb(): Promise<PublicMaster[]> {
 
 export async function getPublishedMasterBySlug(slug: string): Promise<PublicMaster | null> {
   if (isDemoSlug(slug)) return (await listPublishedMasters()).find((m) => m.slug === slug) ?? null;
-  return getPublishedFromDb(slug);
+  const m = await getPublishedFromDb(slug);
+  return m ? (await withRatings([m]))[0] : null;
+}
+
+/** Средняя оценка и число опубликованных отзывов. Если таблицы отзывов ещё нет — просто без оценок. */
+async function withRatings(list: PublicMaster[]): Promise<PublicMaster[]> {
+  const { reviewStats } = await import("./reviews-db");
+  const stats = await reviewStats().catch(() => new Map<string, { sum: number; n: number }>());
+  return list.map((m) => {
+    const st = stats.get(m.id);
+    return st ? { ...m, rating: Math.round((st.sum / st.n) * 10) / 10, reviews: st.n } : m;
+  });
 }
 
 async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
@@ -290,6 +307,11 @@ export async function createRequest(input: NewRequest): Promise<ClientRequest> {
     admin_note: "",
     client_tg_chat_id: null,
     sent_count: 0,
+    followup_at: null,
+    outcome: null,
+    outcome_master_id: null,
+    outcome_at: null,
+    review_invited_at: null,
     created_at: new Date().toISOString(),
   };
   d.requests.push(r);

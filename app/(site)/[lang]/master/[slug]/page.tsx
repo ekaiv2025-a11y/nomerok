@@ -10,6 +10,9 @@ import { Avatar } from "@/components/Avatar";
 import { ContactReveal } from "@/components/ContactReveal";
 import { ShareButtons } from "@/components/ShareButtons";
 import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
+import { RatingLine, Stars } from "@/components/Stars";
+import { listPublishedReviews } from "@/lib/reviews-db";
+import { botUsername } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +39,12 @@ export default async function MasterPage({ params }: Props) {
   if (!isLocale(lang)) notFound();
   const m = await getPublishedMasterBySlug(slug);
   if (!m) notFound();
-  const t = getDict(lang).master;
+  const d = getDict(lang);
+  const t = d.master;
+  const rv = d.reviews;
+  const reviews = m.demo ? [] : await listPublishedReviews(m.id).catch(() => []);
+  const bot = m.demo ? null : await botUsername();
+  const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
 
   const services = m.services.split(/\n|;/).map((s) => s.trim()).filter(Boolean);
@@ -64,6 +72,11 @@ export default async function MasterPage({ params }: Props) {
             {cat} · {t.city}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
+          {m.rating != null && m.reviews > 0 && (
+            <a href="#reviews" className="mt-1.5 block">
+              <RatingLine rating={m.rating} count={m.reviews} label={d.reviews.count(m.reviews)} />
+            </a>
+          )}
           <p className="mt-2 text-[17px] font-semibold">{priceText(m, lang)}</p>
         </div>
       </div>
@@ -138,7 +151,71 @@ export default async function MasterPage({ params }: Props) {
             <p className="mt-10 rounded-xl border border-accent/40 bg-[#fdf6e6] p-4 text-[13px] leading-relaxed text-[#5a4a22]">{t.medical(SITE_NAME)}</p>
           )}
 
-          <p className="mt-6 rounded-xl bg-cream p-4 text-[13px] leading-relaxed text-muted">{t.noReviews(SITE_NAME)}</p>
+          {!m.demo && (
+            <section id="reviews" className="mt-10 scroll-mt-24">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-[18px] font-bold">
+                  {rv.title}
+                  {reviews.length > 0 && <span className="ml-2 font-normal text-muted">{reviews.length}</span>}
+                </h2>
+                {m.rating != null && m.reviews > 0 && <RatingLine rating={m.rating} count={m.reviews} label={rv.count(m.reviews)} />}
+              </div>
+              {reviews.length === 0 ? (
+                <p className="mt-3 rounded-xl bg-cream p-4 text-[14px] leading-relaxed text-muted">{rv.none}</p>
+              ) : (
+                <ul className="mt-4 space-y-4">
+                  {reviews.map((r) => (
+                    <li key={r.id} className="rounded-2xl border border-line p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold">{r.author_name}</span>
+                        <span className="text-[13px] text-muted">{dateFmt.format(new Date(r.created_at))}</span>
+                      </div>
+                      <Stars value={r.rating} size={15} className="mt-1" />
+                      <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-[#3a3935]">{r.text}</p>
+                      {r.photos.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {r.photos.map((p) => (
+                            <a key={p} href={p} target="_blank" rel="noopener noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={p} alt="" loading="lazy" className="h-24 w-24 rounded-xl bg-cream object-cover hover:opacity-90" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      {r.reply && (
+                        <div className="mt-3 rounded-xl bg-cream p-3">
+                          <p className="text-[13px] font-semibold">{rv.reply}</p>
+                          <p className="mt-1 whitespace-pre-line text-[14px] leading-relaxed text-[#3a3935]">{r.reply}</p>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {bot && (
+                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-line p-4 sm:flex-row sm:items-center">
+                  <p className="flex-1 text-[14px] leading-relaxed text-muted">{rv.leaveHint}</p>
+                  <a
+                    href={`https://t.me/${bot}?start=rv_${m.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn h-11 shrink-0 gap-2 bg-[#229ED9] px-5 text-white hover:bg-[#1c89bd]"
+                  >
+                    ⭐ {rv.leave}
+                  </a>
+                </div>
+              )}
+            </section>
+          )}
+
+          <p className="mt-6 rounded-xl bg-cream p-4 text-[13px] leading-relaxed text-muted">{t.directNote(SITE_NAME)}</p>
+          {!m.demo && (
+            <p className="mt-4 text-[13px]">
+              <Link href={href(lang, `/complaint?m=${m.slug}`)} className="text-muted underline hover:text-danger">
+                ⚠️ {d.complaint.link}
+              </Link>
+            </p>
+          )}
         </div>
       </div>
 

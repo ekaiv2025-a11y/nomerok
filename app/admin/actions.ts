@@ -171,3 +171,47 @@ export async function removeDemo() {
   refreshPublic(null);
   redirect(`/admin?tab=masters&demo=removed${n}`);
 }
+
+/* ---------- отзывы и жалобы ---------- */
+
+export async function setReviewStatus(formData: FormData) {
+  await requireAdmin();
+  const { adminSetReviewStatus, getReview } = await import("@/lib/reviews-db");
+  const { notifyReviewPublished } = await import("@/lib/bot");
+  const id = String(formData.get("id"));
+  const status = String(formData.get("status"));
+  if (status !== "published" && status !== "rejected" && status !== "pending") return;
+  const before = await getReview(id);
+  await adminSetReviewStatus(id, status);
+  if (before && before.status !== "published" && status === "published") {
+    await notifyReviewPublished({ ...before, status }).catch((e) => console.error("[review notify]", e));
+  }
+  refreshPublic(before ? await adminGetMasterSlug(before.master_id) : null);
+  redirect("/admin?tab=reviews");
+}
+
+export async function deleteReview(formData: FormData) {
+  await requireAdmin();
+  const { adminDeleteReview, getReview } = await import("@/lib/reviews-db");
+  const id = String(formData.get("id"));
+  const before = await getReview(id);
+  await adminDeleteReview(id);
+  refreshPublic(before ? await adminGetMasterSlug(before.master_id) : null);
+  redirect("/admin?tab=reviews");
+}
+
+export async function setComplaintStatus(formData: FormData) {
+  await requireAdmin();
+  const { adminSetComplaintStatus } = await import("@/lib/reviews-db");
+  const status = String(formData.get("status"));
+  if (!["new", "in_review", "resolved", "rejected"].includes(status)) return;
+  await adminSetComplaintStatus(String(formData.get("id")), status as "new" | "in_review" | "resolved" | "rejected");
+  redirect("/admin?tab=complaints");
+}
+
+export async function runFollowupsNow() {
+  await requireAdmin();
+  const { runFollowups } = await import("@/lib/bot");
+  const r = await runFollowups().catch(() => null);
+  redirect(`/admin?tab=bot&fu=${r ? `${r.noResponse}-${r.asked}-${r.reviewInvites}` : "fail"}`);
+}

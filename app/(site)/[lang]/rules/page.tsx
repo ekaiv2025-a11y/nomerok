@@ -20,6 +20,8 @@ export default async function RulesPage({ params }: LangParams) {
       <ul>{t.clients.map((s, i) => <li key={i}>{s}</li>)}</ul>
       <h2>{t.specialistsTitle}</h2>
       <ul>{t.specialists.map((s, i) => <li key={i}>{s}</li>)}</ul>
+      <h2>{t.reviewsTitle}</h2>
+      <ul>{t.reviewsRules.map((s, i) => <li key={i}>{s}</li>)}</ul>
       <h2>{t.forbiddenTitle}</h2>
       <ul>{t.forbidden.map((s, i) => <li key={i}>{s}</li>)}</ul>
       <p className="mt-6 rounded-xl bg-cream p-4 text-[14px]">{t.note}</p>

@@ -43,6 +43,27 @@ type BotDict = {
   clientResponse: (name: string, cat: string, phone: string, tg: string) => string;
   btnProfile: string;
   btnWhatsApp: string;
+  btnClose: string;
+  closedOk: string;
+  noResponse: (desc: string) => string;
+  btnCatalog: string;
+  followupAsk: (desc: string) => string;
+  btnDealWith: (name: string) => string;
+  btnLater: string;
+  btnNoHelp: string;
+  dealOk: (name: string) => string;
+  laterOk: string;
+  noHelpOk: string;
+  btnComplain: string;
+  reviewInvite: (name: string) => string;
+  btnReview: string;
+  reviewStart: (name: string) => string;
+  ownReview: string;
+  alreadyReviewed: string;
+  reviewNotFound: string;
+  reviewReceived: string;
+  reviewPublishedClient: (name: string) => string;
+  reviewPublishedMaster: (stars: string) => string;
   commands: { cabinet: string; help: string };
   steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials", string>;
 };
@@ -67,6 +88,27 @@ const ru: BotDict = {
   joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
   btnJoinContinue: "📝 Продолжить анкету",
   joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
+  btnClose: "❌ Заявка больше не нужна",
+  closedOk: "Заявка закрыта — специалисты больше её не получат. Понадобится снова — оставьте новую на сайте.",
+  noResponse: (desc) => `Пока никто не взял вашу заявку «${desc}». Мы передали её администратору — постараемся найти специалиста. Можно также выбрать самому в каталоге.`,
+  btnCatalog: "🔎 Открыть каталог",
+  followupAsk: (desc) => `Удалось договориться со специалистом по заявке «${desc}»?`,
+  btnDealWith: (name) => `✅ Да, с ${name}`,
+  btnLater: "⏳ Ещё решаем",
+  btnNoHelp: "❌ Никто не помог",
+  dealOk: (name) => `Отлично! Через пару дней спросим, как прошла работа с ${name} — ваш отзыв поможет другим клиентам.`,
+  laterOk: "Хорошо, удачи! Если что-то пойдёт не так — напишите сюда.",
+  noHelpOk: "Жаль. Мы сообщили администратору и постараемся помочь. Если специалист повёл себя нечестно — можно пожаловаться.",
+  btnComplain: "⚠️ Пожаловаться",
+  reviewInvite: (name) => `Как прошла работа с <b>${name}</b>? Оставьте короткий отзыв — можно с фото. Отзывы помогают другим клиентам выбрать специалиста.`,
+  btnReview: "⭐ Оставить отзыв",
+  reviewStart: (name) => `Оставьте отзыв о специалисте <b>${name}</b>. Отзыв появится на сайте после проверки. Ссылка действует 7 дней.`,
+  ownReview: "Нельзя оставить отзыв о своём профиле 🙂",
+  alreadyReviewed: "Вы уже оставили отзыв об этом специалисте. Спасибо!",
+  reviewNotFound: "Специалист не найден — возможно, профиль скрыт.",
+  reviewReceived: "Спасибо за отзыв! Он появится на сайте после проверки — обычно в течение дня.",
+  reviewPublishedClient: (name) => `Ваш отзыв о ${name} опубликован. Спасибо!`,
+  reviewPublishedMaster: (stars) => `⭐ У вас новый отзыв: ${stars}. Посмотреть и ответить можно в кабинете.`,
   linkInvalid: "Эта ссылка устарела или неверна. Откройте её заново с сайта.",
   approved: (url) => `🎉 <b>Ваш профиль опубликован!</b>\n${url}\n\nТеперь клиенты видят вас в каталоге.`,
   approvedAllDone: "Профиль заполнен полностью — отлично! 👍",
@@ -87,7 +129,7 @@ const ru: BotDict = {
   requestFull: "На эту заявку уже откликнулись другие специалисты.",
   notAllowed: "Откликаться могут только специалисты с опубликованным профилем и подтверждённым номером.",
   requestGone: "Заявка больше не актуальна.",
-  clientLinked: "✅ Готово! Как только специалист откликнется на вашу заявку, мы пришлём сюда его контакты.",
+  clientLinked: "✅ Готово! Как только специалист откликнется на вашу заявку, мы пришлём сюда его контакты. А через день спросим, удалось ли договориться.",
   clientResponse: (name, cat, phone, tg) =>
     `🙋 <b>На вашу заявку откликнулся специалист</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nСпециалист свяжется с вами. Если удобнее — позвоните сами.`,
   btnProfile: "Профиль специалиста",
@@ -124,6 +166,27 @@ const en: BotDict = {
   joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
   btnJoinContinue: "📝 Continue profile",
   joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
+  btnClose: "❌ I no longer need this",
+  closedOk: "Request closed — specialists won't receive it anymore. Need help again? Leave a new request on the website.",
+  noResponse: (desc) => `No one has taken your request “${desc}” yet. We've passed it to our team and will try to find a specialist. You can also pick one yourself in the catalog.`,
+  btnCatalog: "🔎 Open the catalog",
+  followupAsk: (desc) => `Did you come to an agreement with a specialist about “${desc}”?`,
+  btnDealWith: (name) => `✅ Yes, with ${name}`,
+  btnLater: "⏳ Still deciding",
+  btnNoHelp: "❌ No one helped",
+  dealOk: (name) => `Great! In a couple of days we'll ask how the work with ${name} went — your review will help other clients.`,
+  laterOk: "OK, good luck! If anything goes wrong, write here.",
+  noHelpOk: "Sorry to hear that. We've told our team and will try to help. If a specialist acted dishonestly, you can file a complaint.",
+  btnComplain: "⚠️ Complain",
+  reviewInvite: (name) => `How did the work with <b>${name}</b> go? Leave a short review — photos welcome. Reviews help other clients choose.`,
+  btnReview: "⭐ Leave a review",
+  reviewStart: (name) => `Leave a review for <b>${name}</b>. It will appear on the website after moderation. The link is valid for 7 days.`,
+  ownReview: "You can't review your own profile 🙂",
+  alreadyReviewed: "You've already reviewed this specialist. Thank you!",
+  reviewNotFound: "Specialist not found — the profile may be hidden.",
+  reviewReceived: "Thanks for your review! It will appear on the website after moderation, usually within a day.",
+  reviewPublishedClient: (name) => `Your review of ${name} is now published. Thank you!`,
+  reviewPublishedMaster: (stars) => `⭐ You have a new review: ${stars}. You can read and reply in your dashboard.`,
   linkInvalid: "This link is outdated or invalid. Please open it again from the website.",
   approved: (url) => `🎉 <b>Your profile is live!</b>\n${url}\n\nClients can now see you in the catalogue.`,
   approvedAllDone: "Your profile is complete — great! 👍",
@@ -144,7 +207,7 @@ const en: BotDict = {
   requestFull: "Other specialists have already responded to this request.",
   notAllowed: "Only specialists with a published profile and a verified number can respond.",
   requestGone: "This request is no longer active.",
-  clientLinked: "✅ Done! As soon as a specialist responds to your request, we'll send their contacts here.",
+  clientLinked: "✅ Done! As soon as a specialist responds to your request, we'll send their contacts here. A day later we'll ask whether you reached an agreement.",
   clientResponse: (name, cat, phone, tg) =>
     `🙋 <b>A specialist responded to your request</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nThe specialist will contact you. Feel free to call them yourself.`,
   btnProfile: "Specialist's profile",
@@ -181,6 +244,27 @@ const ka: BotDict = {
   joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
   btnJoinContinue: "📝 ანკეტის გაგრძელება",
   joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
+  btnClose: "❌ განაცხადი აღარ მჭირდება",
+  closedOk: "განაცხადი დაიხურა — სპეციალისტები მას აღარ მიიღებენ. თუ ისევ დაგჭირდებათ — დატოვეთ ახალი საიტზე.",
+  noResponse: (desc) => `თქვენი განაცხადი „${desc}“ ჯერ არავის აუღია. გადავეცით ადმინისტრატორს — შევეცდებით სპეციალისტის პოვნას. შეგიძლიათ თავადაც აირჩიოთ კატალოგში.`,
+  btnCatalog: "🔎 კატალოგის გახსნა",
+  followupAsk: (desc) => `მოახერხეთ სპეციალისტთან შეთანხმება განაცხადზე „${desc}“?`,
+  btnDealWith: (name) => `✅ დიახ, ${name}-თან`,
+  btnLater: "⏳ ჯერ ვწყვეტთ",
+  btnNoHelp: "❌ არავინ დამეხმარა",
+  dealOk: (name) => `შესანიშნავია! ორიოდე დღეში გკითხავთ, როგორ ჩაიარა მუშაობამ ${name}-თან — თქვენი შეფასება სხვა კლიენტებს დაეხმარება.`,
+  laterOk: "კარგი, წარმატებები! თუ რამე არასწორად წავა — მოგვწერეთ აქ.",
+  noHelpOk: "სამწუხაროა. ადმინისტრატორს ვაცნობეთ და შევეცდებით დაგეხმაროთ. თუ სპეციალისტი არაკეთილსინდისიერად მოიქცა — შეგიძლიათ საჩივრის დატოვება.",
+  btnComplain: "⚠️ საჩივარი",
+  reviewInvite: (name) => `როგორ ჩაიარა მუშაობამ <b>${name}</b>-თან? დატოვეთ მოკლე შეფასება — შეიძლება ფოტოთი. შეფასებები სხვა კლიენტებს არჩევანში ეხმარება.`,
+  btnReview: "⭐ შეფასების დატოვება",
+  reviewStart: (name) => `დატოვეთ შეფასება სპეციალისტზე <b>${name}</b>. შემოწმების შემდეგ გამოჩნდება საიტზე. ბმული მოქმედებს 7 დღე.`,
+  ownReview: "საკუთარ პროფილზე შეფასების დატოვება არ შეიძლება 🙂",
+  alreadyReviewed: "ამ სპეციალისტზე შეფასება უკვე დატოვეთ. გმადლობთ!",
+  reviewNotFound: "სპეციალისტი ვერ მოიძებნა — შესაძლოა პროფილი დამალულია.",
+  reviewReceived: "გმადლობთ შეფასებისთვის! შემოწმების შემდეგ გამოჩნდება საიტზე — ჩვეულებრივ დღის განმავლობაში.",
+  reviewPublishedClient: (name) => `თქვენი შეფასება ${name}-ზე გამოქვეყნდა. გმადლობთ!`,
+  reviewPublishedMaster: (stars) => `⭐ ახალი შეფასება გაქვთ: ${stars}. ნახვა და პასუხი შეგიძლიათ კაბინეტში.`,
   linkInvalid: "ეს ბმული მოძველებულია ან არასწორია. გახსენით ხელახლა საიტიდან.",
   approved: (url) => `🎉 <b>თქვენი პროფილი გამოქვეყნდა!</b>\n${url}\n\nახლა კლიენტები გხედავენ კატალოგში.`,
   approvedAllDone: "პროფილი სრულად არის შევსებული — შესანიშნავია! 👍",
@@ -201,7 +285,7 @@ const ka: BotDict = {
   requestFull: "ამ განაცხადს უკვე გამოეხმაურნენ სხვა სპეციალისტები.",
   notAllowed: "გამოხმაურება შეუძლიათ მხოლოდ სპეციალისტებს გამოქვეყნებული პროფილითა და დადასტურებული ნომრით.",
   requestGone: "განაცხადი აღარ არის აქტუალური.",
-  clientLinked: "✅ მზადაა! როგორც კი სპეციალისტი გამოეხმაურება თქვენს განაცხადს, მის კონტაქტებს აქ გამოგიგზავნით.",
+  clientLinked: "✅ მზადაა! როგორც კი სპეციალისტი გამოეხმაურება თქვენს განაცხადს, მის კონტაქტებს აქ გამოგიგზავნით. დღის შემდეგ გკითხავთ, მოახერხეთ თუ არა შეთანხმება.",
   clientResponse: (name, cat, phone, tg) =>
     `🙋 <b>თქვენს განაცხადს გამოეხმაურა სპეციალისტი</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nსპეციალისტი დაგიკავშირდებათ. თუ გირჩევნიათ — თავად დაურეკეთ.`,
   btnProfile: "სპეციალისტის პროფილი",

@@ -12,7 +12,11 @@ import {
   hasResponse,
   listMastersForRequests,
   updateRequest,
+  adminListResponses,
 } from "./db";
+import { hasReviewFrom, listRequestsForFollowup } from "./reviews-db";
+import { reviewToken } from "./signed";
+import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
 import { categoryLabel } from "./categories";
 import { formatPhone, normalizePhone, normalizeTelegram, telegramLink, whatsappLink } from "./phone";
@@ -146,8 +150,12 @@ async function onStart(msg: TgMessage, payload: string) {
     const r = await getRequestByLinkToken(payload.slice(2));
     if (!r) return sendTo(chatId, botDict(guessLang(from)).linkInvalid);
     await updateRequest(r.id, { client_tg_chat_id: chatId });
-    return sendTo(chatId, botDict(r.lang).clientLinked);
+    const b = botDict(r.lang);
+    return sendTo(chatId, b.clientLinked, r.status === "done" ? undefined : [[{ text: b.btnClose, callback_data: `close:${r.id}` }]]);
   }
+
+  // «Оставить отзыв» со страницы специалиста: t.me/бот?start=rv_ID
+  if (payload.startsWith("rv_")) return sendReviewLink(chatId, from, payload.slice(3), null);
 
   // «Заполнить анкету через Telegram» с сайта: t.me/бот?start=j_ru
   if (payload.startsWith("j_")) {
@@ -164,6 +172,20 @@ async function onStart(msg: TgMessage, payload: string) {
   const masters = await getMastersByChatId(chatId);
   if (masters[0]) return sendCabinetLink(masters[0]);
   return welcome(chatId, guessLang(from));
+}
+
+/** Присылает ссылку на форму отзыва (человек подтверждён своим Telegram). */
+async function sendReviewLink(chatId: number, from: TgUser | undefined, masterId: string, requestId: string | null, langHint?: string, nameHint?: string) {
+  const lang = langHint ?? guessLang(from);
+  const b = botDict(lang);
+  const m = /^[0-9a-f-]{36}$/i.test(masterId) ? await adminGetMaster(masterId).catch(() => null) : null;
+  if (!m || m.status !== "published") return sendTo(chatId, b.reviewNotFound);
+  if (m.tg_chat_id === chatId) return sendTo(chatId, b.ownReview);
+  if (await hasReviewFrom(m.id, chatId).catch(() => false)) return sendTo(chatId, b.alreadyReviewed);
+  const token = reviewToken({ m: m.id, c: chatId, n: (nameHint || [from?.first_name, from?.last_name].filter(Boolean).join(" ")).slice(0, 60), r: requestId });
+  return sendTo(chatId, requestId ? b.reviewInvite(esc(m.name)) : b.reviewStart(esc(m.name)), [
+    [{ text: b.btnReview, url: `${siteUrl()}/${lang}/review?t=${token}` }],
+  ]);
 }
 
 /** Номер получен, анкеты ещё нет — отдаём ссылку на анкету с подставленными данными. */
@@ -271,6 +293,121 @@ async function onTake(cb: TgCallback, requestId: string) {
   );
 }
 
+/* ---------- ответы клиента: закрыть заявку, «удалось договориться?» ---------- */
+
+async function respondersOf(requestId: string): Promise<Master[]> {
+  const all = (await adminListResponses()).filter((x) => x.request_id === requestId).sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const list: Master[] = [];
+  for (const x of all) {
+    const m = await adminGetMaster(x.master_id);
+    if (m) list.push(m);
+  }
+  return list;
+}
+
+async function onClientAnswer(cb: TgCallback, data: string) {
+  const [kind, requestId, idx] = data.split(":");
+  const r = await getRequest(requestId);
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  if (!r || r.client_tg_chat_id !== cb.from.id) return;
+  const b = botDict(r.lang);
+  const chatId = cb.from.id;
+  const clearButtons = () =>
+    cb.message && tg("editMessageReplyMarkup", { chat_id: chatId, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
+  const now = new Date().toISOString();
+  const short = esc(r.description.slice(0, 60));
+
+  if (kind === "close") {
+    await clearButtons();
+    if (r.status !== "done") {
+      await updateRequest(r.id, { status: "done", outcome: r.outcome ?? "closed", outcome_at: r.outcome_at ?? now });
+      await notifyAdmin(`🔒 Клиент закрыл заявку «${short}» (${esc(r.name || "—")})`);
+    }
+    return sendTo(chatId, b.closedOk);
+  }
+  if (kind === "later") {
+    await clearButtons();
+    return sendTo(chatId, b.laterOk);
+  }
+  if (kind === "nohelp") {
+    await clearButtons();
+    await updateRequest(r.id, { outcome: "none", outcome_at: now });
+    await notifyAdmin(
+      `😕 Клиенту никто не помог по заявке «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}). Свяжитесь с клиентом.\n${siteUrl()}/admin`,
+    );
+    return sendTo(chatId, b.noHelpOk, [[{ text: b.btnComplain, url: `${siteUrl()}/${r.lang}/complaint` }]]);
+  }
+  if (kind === "deal") {
+    const m = (await respondersOf(r.id))[Number(idx)];
+    if (!m) return;
+    await clearButtons();
+    await updateRequest(r.id, { status: "in_work", outcome: "agreed", outcome_master_id: m.id, outcome_at: now });
+    await notifyAdmin(`🤝 Клиент договорился с <b>${esc(m.name)}</b> по заявке «${short}»`);
+    return sendTo(chatId, b.dealOk(esc(m.name)));
+  }
+}
+
+/* ---------- ежедневные напоминания (запускает /api/cron/daily) ---------- */
+
+const HOUR = 3600 * 1000;
+
+export async function runFollowups(): Promise<{ noResponse: number; asked: number; reviewInvites: number }> {
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0 };
+  const now = Date.now();
+  const list = await listRequestsForFollowup();
+  for (const r of list) {
+    const chatId = r.client_tg_chat_id;
+    if (!chatId || r.status === "spam") continue;
+    const b = botDict(r.lang);
+    const age = now - new Date(r.created_at).getTime();
+    const short = esc(r.description.slice(0, 60));
+
+    // 1. Никто не взял заявку за сутки
+    if ((r.status === "new" || r.status === "sent") && !r.followup_at && age > 20 * HOUR) {
+      await sendTo(chatId, b.noResponse(short), [
+        [{ text: b.btnCatalog, url: `${siteUrl()}/${r.lang}` }],
+        [{ text: b.btnClose, callback_data: `close:${r.id}` }],
+      ]);
+      await updateRequest(r.id, { followup_at: new Date().toISOString() });
+      await notifyAdmin(`⏰ Заявку «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}) за сутки никто не взял — передайте вручную.\n${siteUrl()}/admin`);
+      out.noResponse++;
+      continue;
+    }
+
+    // 2. Кто-то откликнулся — через сутки спрашиваем, удалось ли договориться
+    if (r.status === "taken" && !r.followup_at && !r.outcome && age > 20 * HOUR) {
+      const ms = await respondersOf(r.id);
+      if (!ms.length) continue;
+      const buttons = ms.slice(0, 3).map((m, i) => [{ text: b.btnDealWith(m.name.split(" ")[0]), callback_data: `deal:${r.id}:${i}` }]);
+      buttons.push([{ text: b.btnLater, callback_data: `later:${r.id}` }], [{ text: b.btnNoHelp, callback_data: `nohelp:${r.id}` }]);
+      await sendTo(chatId, b.followupAsk(short), buttons);
+      await updateRequest(r.id, { followup_at: new Date().toISOString() });
+      out.asked++;
+      continue;
+    }
+
+    // 3. Договорились — через 2 дня просим отзыв
+    if (r.outcome === "agreed" && r.outcome_master_id && !r.review_invited_at && r.outcome_at && now - new Date(r.outcome_at).getTime() > 44 * HOUR) {
+      await sendReviewLink(chatId, undefined, r.outcome_master_id, r.id, r.lang, r.name);
+      await updateRequest(r.id, { review_invited_at: new Date().toISOString(), status: "done" });
+      out.reviewInvites++;
+    }
+  }
+  return out;
+}
+
+/** Отзыв опубликован — сообщаем специалисту и автору. */
+export async function notifyReviewPublished(rv: Review) {
+  const m = await adminGetMaster(rv.master_id);
+  if (m?.tg_chat_id) {
+    const b = botDict(m.lang);
+    await sendTo(m.tg_chat_id, b.reviewPublishedMaster("★".repeat(rv.rating) + "☆".repeat(5 - rv.rating)), [
+      [{ text: b.btnCabinet, url: `${siteUrl()}/${m.lang}/cabinet` }],
+    ]);
+  }
+  if (m) await sendTo(rv.author_chat_id, botDict(m.lang).reviewPublishedClient(esc(m.name)));
+}
+
 async function onText(msg: TgMessage) {
   const chatId = msg.chat.id;
   const text = (msg.text ?? "").trim();
@@ -300,6 +437,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   if (u.callback_query) {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
+    if (/^(close|deal|later|nohelp):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
     await tg("answerCallbackQuery", { callback_query_id: u.callback_query.id });
     return;
   }

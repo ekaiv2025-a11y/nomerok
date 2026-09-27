@@ -6,7 +6,9 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { connectBot, logout, removeDemo, setMasterStatus, setRequestStatus } from "./actions";
+import { connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
+import { getDict } from "@/lib/i18n";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
@@ -18,18 +20,27 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   if (dbMode() === "none") {
     return <p className="rounded-2xl bg-white p-6">База не подключена. Добавьте SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в Vercel.</p>;
   }
-  const { tab = "requests", bot: botResult } = await searchParams;
+  const { tab = "requests", bot: botResult, fu } = await searchParams;
   const [masters, requests, views, responses] = await Promise.all([
     adminListMasters(),
     adminListRequests(),
     adminContactViewsThisMonth(),
     adminListResponses().catch(() => []),
   ]);
+  // Если миграция 0003 ещё не выполнена — таблиц нет, показываем подсказку
+  let needMigration = false;
+  const [reviews, complaints] = await Promise.all([
+    adminListReviews().catch(() => ((needMigration = true), [])),
+    adminListComplaints().catch(() => ((needMigration = true), [])),
+  ]);
+  const pendingReviews = reviews.filter((r) => r.status === "pending").length;
+  const newComplaints = complaints.filter((c) => c.status === "new").length;
+  const REASONS = getDict("ru").complaint.reasons as Record<string, string>;
   const respByReq = new Map<string, string[]>();
   for (const x of responses) respByReq.set(x.request_id, [...(respByReq.get(x.request_id) ?? []), x.master_id]);
   const byId = new Map(masters.map((m) => [m.id, m]));
@@ -42,6 +53,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { id: "requests", label: `Заявки клиентов${newReq ? ` · ${newReq} новых` : ""}` },
     { id: "pending", label: `Анкеты${pending.length ? ` · ${pending.length}` : ""}` },
     { id: "masters", label: `Специалисты · ${others.length}` },
+    { id: "reviews", label: `Отзывы${pendingReviews ? ` · ${pendingReviews} на проверке` : ""}` },
+    { id: "complaints", label: `Жалобы${newComplaints ? ` · ${newComplaints} новых` : ""}` },
     { id: "bot", label: "Telegram-бот" },
   ];
 
@@ -65,6 +78,119 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
+      {needMigration && (
+        <p className="mt-4 rounded-2xl bg-[#fdecea] p-4 text-[14px] text-danger">
+          Отзывы и жалобы ещё не включены: выполните в Supabase файл <b>supabase/migrations/0003_reviews.sql</b> (SQL Editor → New query → вставить → Run).
+        </p>
+      )}
+
+      {tab === "reviews" && (
+        <div className="mt-5 space-y-3">
+          {reviews.length === 0 && <Empty text="Отзывов пока нет. Клиенты оставляют их по ссылке из бота: сами со страницы специалиста или по приглашению после выполненной заявки." />}
+          {reviews.map((r) => {
+            const m = byId.get(r.master_id);
+            return (
+              <div key={r.id} className={`rounded-2xl bg-white p-4 ${r.status === "pending" ? "ring-2 ring-accent" : ""}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
+                  <span>
+                    {when(r.created_at)} · о {m ? <Link className="underline" href={`/admin/masters/${m.id}`}>{m.name}</Link> : "—"} · от <b className="text-ink">{r.author_name}</b>
+                    {r.request_id ? " · клиент по заявке" : ""}
+                  </span>
+                  <span className="rounded-full bg-cream px-2.5 py-0.5">{r.status === "pending" ? "На проверке" : r.status === "published" ? "Опубликован" : "Отклонён"}</span>
+                </div>
+                <p className="mt-2 text-[18px] text-[#e5a50a]">{"★".repeat(r.rating)}<span className="text-[#dcd8cc]">{"★".repeat(5 - r.rating)}</span></p>
+                <p className="mt-1 whitespace-pre-line text-[15px]">{r.text}</p>
+                {r.photos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {r.photos.map((p) => (
+                      <a key={p} href={p} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p} alt="" className="h-20 w-20 rounded-xl object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {r.reply && <p className="mt-2 rounded-xl bg-cream p-2.5 text-[13px]"><b>Ответ специалиста:</b> {r.reply}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {r.status !== "published" && (
+                    <form action={setReviewStatus}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <input type="hidden" name="status" value="published" />
+                      <button className="btn-primary h-9 px-4 text-[13px]">Опубликовать</button>
+                    </form>
+                  )}
+                  {r.status !== "rejected" && (
+                    <form action={setReviewStatus}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <input type="hidden" name="status" value="rejected" />
+                      <button className="btn-ghost h-9 px-4 text-[13px]">{r.status === "published" ? "Снять с сайта" : "Отклонить"}</button>
+                    </form>
+                  )}
+                  <form action={deleteReview}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <button className="h-9 px-3 text-[13px] text-danger hover:underline">Удалить</button>
+                  </form>
+                </div>
+              </div>
+            );
+          })}
+          <p className="text-[12px] text-muted">Публикуйте честные отзывы, в том числе негативные. Отклоняйте только оскорбления, рекламу, чужие личные данные и отзывы не по делу.</p>
+        </div>
+      )}
+
+      {tab === "complaints" && (
+        <div className="mt-5 space-y-3">
+          {complaints.length === 0 && <Empty text="Жалоб нет." />}
+          {complaints.map((c) => {
+            const m = c.master_id ? byId.get(c.master_id) : null;
+            const label = { new: "Новая", in_review: "В работе", resolved: "Решена", rejected: "Отклонена" }[c.status];
+            return (
+              <div key={c.id} className={`rounded-2xl bg-white p-4 ${c.status === "new" ? "ring-2 ring-danger/60" : ""}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
+                  <span>
+                    {when(c.created_at)} · <b className="text-ink">{REASONS[c.reason] ?? c.reason}</b> · на{" "}
+                    {m ? <Link className="underline" href={`/admin/masters/${m.id}`}>{m.name}</Link> : c.master_name || "не указано"}
+                  </span>
+                  <span className="rounded-full bg-cream px-2.5 py-0.5">{label}</span>
+                </div>
+                <p className="mt-2 whitespace-pre-line text-[15px]">{c.text}</p>
+                <p className="mt-2 text-[14px]">Контакт: <b>{c.contact}</b></p>
+                {c.photos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {c.photos.map((p) => (
+                      <a key={p} href={p} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p} alt="" className="h-20 w-20 rounded-xl object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(["in_review", "resolved", "rejected"] as const).filter((s) => s !== c.status).map((s) => (
+                    <form key={s} action={setComplaintStatus}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <input type="hidden" name="status" value={s} />
+                      <button className="h-9 rounded-full border border-line px-3 text-[13px] hover:bg-cream">
+                        {{ in_review: "В работу", resolved: "Решено", rejected: "Отклонить" }[s]}
+                      </button>
+                    </form>
+                  ))}
+                  {m && m.status === "published" && (
+                    <form action={setMasterStatus}>
+                      <input type="hidden" name="id" value={m.id} />
+                      <input type="hidden" name="status" value="hidden" />
+                      <input type="hidden" name="back" value="/admin?tab=complaints" />
+                      <button className="h-9 rounded-full border border-danger/40 px-3 text-[13px] text-danger hover:bg-[#fdecea]">Скрыть профиль</button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          <p className="text-[12px] text-muted">Специалист жалобу не видит. Свяжитесь с клиентом и со специалистом, выслушайте обе стороны. Скрытый профиль можно вернуть во вкладке «Специалисты».</p>
+        </div>
+      )}
+
       {tab === "requests" && (
         <div className="mt-5 space-y-3">
           {requests.length === 0 && <Empty text="Заявок пока нет. Как только клиент отправит форму, она появится здесь и придёт вам в Telegram." />}
@@ -84,6 +210,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                     <> · ✋ Откликнулись: {(respByReq.get(r.id) ?? []).map((id) => byId.get(id)?.name ?? "—").join(", ")}</>
                   )}
                   {r.client_tg_chat_id ? " · 🔔 клиент подключил Telegram" : ""}
+                  {r.outcome === "agreed" && <> · 🤝 договорились{r.outcome_master_id && byId.get(r.outcome_master_id) ? ` с ${byId.get(r.outcome_master_id)!.name}` : ""}</>}
+                  {r.outcome === "none" && <b className="text-danger"> · 😕 клиенту никто не помог</b>}
+                  {r.outcome === "closed" && " · 🔒 клиент закрыл заявку"}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="text-[14px] font-semibold">{r.name || "Без имени"}</span>
@@ -135,6 +264,21 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <form action={connectBot}>
             <button className="btn-primary h-10 text-[14px]">{webhook?.url ? "Переподключить бота" : "Подключить бота к сайту"}</button>
           </form>
+          <div className="border-t border-line pt-4">
+            <h3 className="font-semibold">Напоминания клиентам</h3>
+            <p className="mt-1 text-[14px] text-muted">
+              Каждый день в 11:00 бот сам пишет клиентам, подключившим Telegram: если заявку за сутки никто не взял; «Удалось договориться?» через сутки после отклика; и просит отзыв через 2 дня после того, как клиент договорился.
+            </p>
+            {fu && fu !== "fail" && (
+              <p className="mt-2 rounded-xl bg-brand-soft p-3 text-[14px] text-brand-dark">
+                Отправлено: «никто не взял» — {fu.split("-")[0]}, «удалось договориться?» — {fu.split("-")[1]}, просьб об отзыве — {fu.split("-")[2]}
+              </p>
+            )}
+            {fu === "fail" && <p className="mt-2 rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">Не получилось. Выполнена ли миграция 0003?</p>}
+            <form action={runFollowupsNow} className="mt-3">
+              <button className="btn-ghost h-10 text-[14px]">Отправить напоминания сейчас</button>
+            </form>
+          </div>
           <p className="text-[12px] text-muted">Нажимайте эту кнопку на том адресе сайта, где он будет работать (например, после подключения домена nomerok.ge — зайдите в админку через него и нажмите ещё раз).</p>
         </div>
       )}

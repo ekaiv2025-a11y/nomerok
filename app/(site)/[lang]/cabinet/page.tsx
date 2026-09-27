@@ -9,6 +9,9 @@ import { profileSteps } from "@/lib/profile";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { CabinetForm } from "@/components/CabinetForm";
+import { ReviewReply } from "@/components/ReviewReply";
+import { Stars } from "@/components/Stars";
+import { listMasterReviews } from "@/lib/reviews-db";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +84,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   }
 
   const { steps, percent } = profileSteps(m);
+  const rv = getDict(lang).reviews;
+  const reviews = await listMasterReviews(m.id).catch(() => []);
   const verifyLink = m.phone_verified_at ? null : await botLink(`m_${m.tg_link_token}`);
   const statusColor =
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
@@ -153,6 +158,36 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           }}
         />
       </div>
+
+      <section className="mt-8 rounded-2xl border border-line p-5">
+        <h2 className="text-[18px] font-bold">{rv.cabinetTitle}</h2>
+        {reviews.length === 0 ? (
+          <p className="mt-2 text-[14px] leading-relaxed text-muted">{rv.cabinetNone}</p>
+        ) : (
+          <ul className="mt-4 space-y-5">
+            {reviews.map((r) => (
+              <li key={r.id} className="border-t border-line pt-4 first:border-0 first:pt-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <b>{r.author_name}</b>
+                  <Stars value={r.rating} size={14} />
+                </div>
+                <p className="mt-1 whitespace-pre-line text-[15px] text-[#3a3935]">{r.text}</p>
+                {r.photos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {r.photos.map((p) => (
+                      <a key={p} href={p} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+                <ReviewReply lang={lang} reviewId={r.id} initial={r.reply} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

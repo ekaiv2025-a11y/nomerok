@@ -55,7 +55,7 @@ export type PublicMaster = Pick<
   | "photo_url"
   | "created_at"
   | "updated_at"
-> & { verified: boolean; demo: boolean };
+> & { verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
   phone: string;
@@ -77,6 +77,13 @@ export type ClientRequest = {
   client_tg_chat_id: number | null;
   client_link_token: string;
   sent_count: number;
+  /** Когда клиенту отправили вопрос «Удалось договориться?» */
+  followup_at: string | null;
+  /** agreed — договорились, none — никто не помог, closed — заявка больше не нужна */
+  outcome: "agreed" | "none" | "closed" | null;
+  outcome_master_id: string | null;
+  outcome_at: string | null;
+  review_invited_at: string | null;
   created_at: string;
 };
 
@@ -91,3 +98,34 @@ export type NewMaster = Omit<
 };
 
 export type NewRequest = Pick<ClientRequest, "category" | "description" | "when_text" | "name" | "phone" | "master_id"> & { lang?: Locale };
+
+export type ReviewStatus = "pending" | "published" | "rejected";
+export type Review = {
+  id: string;
+  master_id: string;
+  request_id: string | null;
+  author_name: string;
+  author_chat_id: number;
+  rating: number;
+  text: string;
+  photos: string[];
+  status: ReviewStatus;
+  reply: string;
+  reply_at: string | null;
+  created_at: string;
+};
+export type PublicReview = Pick<Review, "id" | "author_name" | "rating" | "text" | "photos" | "reply" | "reply_at" | "created_at">;
+
+export type ComplaintStatus = "new" | "in_review" | "resolved" | "rejected";
+export type Complaint = {
+  id: string;
+  master_id: string | null;
+  master_name: string;
+  reason: string;
+  text: string;
+  contact: string;
+  photos: string[];
+  status: ComplaintStatus;
+  admin_note: string;
+  created_at: string;
+};

@@ -149,5 +149,7 @@ export function demoPublicMasters(): PublicMaster[] {
     updated_at: DEMO_DATE,
     verified: false,
     demo: true,
+    rating: null,
+    reviews: 0,
   }));
 }
