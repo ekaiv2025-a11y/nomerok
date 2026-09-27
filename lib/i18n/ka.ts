@@ -74,6 +74,8 @@ const ka: Dict = {
     notFoundCta: "განაცხადის განთავსება →",
   },
   card: {
+    prevPhoto: "წინა ფოტო",
+    nextPhoto: "შემდეგი ფოტო",
     docsVerified: "დოკუმენტები შემოწმებულია",
     atPlace: "იღებს თავისთან",
     away: "შეკვეთებს არ იღებს",

@@ -81,6 +81,8 @@ const ru = {
     notFoundCta: "Разместить заявку →",
   },
   card: {
+    prevPhoto: "Предыдущее фото",
+    nextPhoto: "Следующее фото",
     docsVerified: "Документы проверены",
     atPlace: "Принимает у себя",
     away: "Не принимает заказы",

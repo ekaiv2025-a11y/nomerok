@@ -76,6 +76,8 @@ const en: Dict = {
     notFoundCta: "Post a request →",
   },
   card: {
+    prevPhoto: "Previous photo",
+    nextPhoto: "Next photo",
     docsVerified: "Documents verified",
     atPlace: "Receives clients",
     away: "Not taking orders",

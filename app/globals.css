@@ -80,3 +80,9 @@ body {
 .prose-page ul {
   @apply list-disc pl-5 space-y-1;
 }
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Avatar } from "./Avatar";
+import { CardPhotos } from "./CardPhotos";
 import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
@@ -14,21 +14,27 @@ export function priceText(m: Pick<PublicMaster, "price_from" | "price_unit">, la
 export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
   const firstLine = m.services.split(/\n|;/)[0]?.trim() ?? "";
+  const link = href(lang, `/master/${m.slug}`);
   const atPlace = m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both");
   // Вертикальная карточка: фото сверху, ниже — кто это, чем занимается и цена. Вся карточка ведёт в профиль.
   return (
-    <Link
-      href={href(lang, `/master/${m.slug}`)}
+    <div
       className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition hover:-translate-y-0.5 hover:border-[#cfcac0] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
     >
       <div className="relative aspect-square w-full overflow-hidden bg-cream">
-        <CardPhoto name={m.name} photo={m.photo_url} />
-        <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+        <CardPhotos
+          name={m.name}
+          photo={m.photo_url}
+          works={(m.portfolio ?? []).map((p) => p.url)}
+          href={link}
+          labels={{ prev: t.prevPhoto, next: t.nextPhoto }}
+        />
+        <div className="pointer-events-none absolute left-2 top-2 flex flex-wrap gap-1">
           {m.demo && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-[#8a6a1f] shadow-sm">{t.demo}</span>}
           {m.away && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-muted shadow-sm">⏸ {t.away}</span>}
         </div>
       </div>
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
+      <Link href={link} className="flex flex-1 flex-col p-3 sm:p-4">
         <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight group-hover:text-brand sm:text-[16px]">
           {m.name}
           {m.verified && (
@@ -57,14 +63,9 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         )}
         {firstLine && <p className="mt-2 hidden line-clamp-2 text-[13.5px] leading-snug text-[#3a3935] sm:block">{firstLine}</p>}
         <div className="mt-auto pt-2.5 text-[14px] font-semibold sm:pt-3">{priceText(m, lang)}</div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
-}
-
-function CardPhoto({ name, photo }: { name: string; photo: string | null }) {
-  // Avatar сам покажет инициалы, если фото нет или оно не загрузилось
-  return <Avatar name={name} photo={photo} alt="" size={400} className="!h-full !w-full !rounded-none !text-[48px] transition duration-300 group-hover:scale-[1.03]" />;
 }
 
 export function VerifiedBadge({ label, large = false }: { label: string; large?: boolean }) {
