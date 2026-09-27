@@ -12,8 +12,10 @@ export default async function Home() {
   try {
     masters = await listPublishedMasters();
   } catch (e) {
-    if (e instanceof DbNotConfiguredError) notConfigured = true;
-    else throw e;
+    // Любая ошибка базы — показываем аккуратное сообщение, а не белый экран.
+    console.error(e);
+    notConfigured = true;
+    if (!(e instanceof DbNotConfiguredError)) console.error("Ошибка базы. Проверьте /api/health");
   }
 
   return (

@@ -32,12 +32,74 @@ export class DbNotConfiguredError extends Error {
 
 let client: SupabaseClient | null = null;
 
+/**
+ * Приводит адрес Supabase к правильному виду, даже если при копировании
+ * попали пробелы, переносы строк, кавычки или хвост /rest/v1/.
+ */
+export function cleanSupabaseUrl(raw: string | undefined): string {
+  let u = (raw ?? "").replace(/[\s"'`«»]/g, "");
+  u = u.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
+  if (u && !/^https?:\/\//i.test(u)) u = "https://" + u;
+  return u;
+}
+
+export function cleanKey(raw: string | undefined): string {
+  return (raw ?? "").replace(/[\s"'`«»]/g, "");
+}
+
 function supabase(): SupabaseClient | null {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = cleanSupabaseUrl(process.env.SUPABASE_URL);
+  const key = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!url || !key) return null;
   if (!client) client = createClient(url, key, { auth: { persistSession: false } });
   return client;
+}
+
+/** Проверка подключения для страницы /api/health — без раскрытия секретов. */
+export async function healthCheck() {
+  const rawUrl = process.env.SUPABASE_URL ?? "";
+  const url = cleanSupabaseUrl(rawUrl);
+  const key = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  // eslint-disable-next-line no-control-regex
+  const nonAscii = [...url].filter((c) => /[^\x00-\x7F]/.test(c));
+  let validUrl = false;
+  try {
+    validUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) && !!new URL(url);
+  } catch {}
+  const keyType = key.startsWith("sb_secret_")
+    ? "secret (sb_secret_…) — подходит"
+    : key.startsWith("sb_publishable_")
+      ? "publishable — НЕ ТОТ ключ, нужен secret"
+      : key.startsWith("eyJ")
+        ? "legacy JWT (service_role или anon)"
+        : key
+          ? "неизвестный формат"
+          : "не задан";
+  let db = "не проверялась";
+  if (validUrl && key) {
+    try {
+      const sb = createClient(url, key, { auth: { persistSession: false } });
+      const { error } = await sb.from("masters").select("id").limit(1);
+      db = error ? "ошибка: " + error.message : "ok — таблицы найдены";
+    } catch (e) {
+      db = "ошибка: " + (e instanceof Error ? e.message : String(e));
+    }
+  }
+  return {
+    SUPABASE_URL: {
+      задан: !!rawUrl,
+      после_очистки: validUrl ? url : "(скрыто, неверный формат)",
+      формат_верный: validUrl,
+      русские_или_особые_символы: nonAscii.length ? nonAscii.join(" ") : "нет",
+    },
+    SUPABASE_SERVICE_ROLE_KEY: { задан: !!key, длина: key.length, тип: keyType },
+    TELEGRAM: {
+      токен_задан: !!process.env.TELEGRAM_BOT_TOKEN,
+      chat_id_задан: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
+    },
+    ADMIN_PASSWORD_задан: (process.env.ADMIN_PASSWORD ?? "").length >= 8,
+    база: db,
+  };
 }
 
 export function dbMode(): "supabase" | "local" | "none" {
