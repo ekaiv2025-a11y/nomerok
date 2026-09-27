@@ -182,7 +182,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           photo={m.photo_url}
           verified={!!m.phone_verified_at}
           rating={rating}
-          profileUrl={`${SITE_URL}/${lang}/master/${m.slug}?from=qr`}
+          profileUrl={`${SITE_URL}/${lang}/master/${m.slug}`}
           reviewUrl={bot ? `https://t.me/${bot}?start=rv_${m.id}` : null}
         />
       </div>
