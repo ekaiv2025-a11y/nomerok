@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { List, Map as MapIcon, Search, X } from "lucide-react";
 import { CATEGORIES, categoryLabel } from "@/lib/categories";
@@ -12,6 +12,14 @@ import { MasterCard } from "./MasterCard";
 export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Locale }) {
   const t = getDict(lang).catalog;
   const [cat, setCat] = useState<string>("all");
+  // Ссылка вида nomerok.ge/ru?cat=plumber сразу открывает нужное направление (удобно для баннеров и чатов)
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("cat");
+    if (c && CATEGORIES.some((x) => x.id === c)) {
+      setCat(c);
+      document.getElementById("masters")?.scrollIntoView({ block: "start" });
+    }
+  }, []);
   const [q, setQ] = useState("");
   const [view, setView] = useState<"list" | "map">("list");
 
