@@ -93,10 +93,6 @@ export async function healthCheck() {
       русские_или_особые_символы: nonAscii.length ? nonAscii.join(" ") : "нет",
     },
     SUPABASE_SERVICE_ROLE_KEY: { задан: !!key, длина: key.length, тип: keyType },
-    TELEGRAM: {
-      токен_задан: !!process.env.TELEGRAM_BOT_TOKEN,
-      chat_id_задан: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
-    },
     ADMIN_PASSWORD_задан: (process.env.ADMIN_PASSWORD ?? "").length >= 8,
     база: db,
   };
