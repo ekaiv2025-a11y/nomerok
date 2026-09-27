@@ -8,6 +8,14 @@ import { LANG_COOKIE, isLocale, pickLocale } from "@/lib/i18n/config";
  */
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Старый адрес *.vercel.app → основной домен (API и админку не трогаем: на них завязан бот).
+  const host = req.headers.get("host") ?? "";
+  if (process.env.VERCEL_ENV === "production" && host.endsWith(".vercel.app") && process.env.NEXT_PUBLIC_SITE_URL) {
+    const target = new URL(pathname + req.nextUrl.search, process.env.NEXT_PUBLIC_SITE_URL);
+    if (target.host !== host) return NextResponse.redirect(target, 308);
+  }
+
   const first = pathname.split("/")[1];
 
   if (isLocale(first)) {
