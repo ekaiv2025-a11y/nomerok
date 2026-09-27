@@ -25,7 +25,8 @@ export async function POST(req: Request) {
   if (!rateLimit("req:" + (await clientIp()), 5)) return NextResponse.json({ ok: false, error: e.tooMany }, { status: 429 });
 
   try {
-    const master = data.master_slug ? await getPublishedMasterBySlug(data.master_slug) : null;
+    const found = data.master_slug ? await getPublishedMasterBySlug(data.master_slug) : null;
+    const master = found && !found.demo ? found : null;
     const saved = await createRequest({
       category: data.category,
       description: data.description,

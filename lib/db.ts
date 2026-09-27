@@ -4,7 +4,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { makeSlug } from "./slug";
-import { DEMO_MASTERS, DEMO_PREFIX, isDemoSlug } from "./demo";
+import { DEMO_MASTERS, DEMO_PREFIX, DEMO_UNTIL, demoPublicMasters, isDemoSlug } from "./demo";
 import type {
   ClientRequest,
   Master,
@@ -169,7 +169,15 @@ const PUBLIC_COLUMNS =
 
 /* ---------- мастера: публичная часть ---------- */
 
+/** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
+  const real = await listPublishedFromDb();
+  if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
+  const have = new Set(real.map((m) => m.slug));
+  return [...real, ...demoPublicMasters().filter((m) => !have.has(m.slug))];
+}
+
+async function listPublishedFromDb(): Promise<PublicMaster[]> {
   const sb = supabase();
   if (sb) {
     const rows = check(
@@ -186,6 +194,11 @@ export async function listPublishedMasters(): Promise<PublicMaster[]> {
 }
 
 export async function getPublishedMasterBySlug(slug: string): Promise<PublicMaster | null> {
+  if (isDemoSlug(slug)) return (await listPublishedMasters()).find((m) => m.slug === slug) ?? null;
+  return getPublishedFromDb(slug);
+}
+
+async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
   const sb = supabase();
   if (sb) {
     const row = check(
@@ -200,6 +213,7 @@ export async function getPublishedMasterBySlug(slug: string): Promise<PublicMast
 
 /** Отдаёт контакты опубликованного мастера и записывает факт просмотра. */
 export async function revealContacts(masterId: string, visitor: string): Promise<(MasterContacts & { name: string; slug: string }) | null> {
+  if (isDemoSlug(masterId)) return null;
   const probe = await adminGetMaster(masterId);
   if (!probe || isDemoSlug(probe.slug)) return null;
   const sb = supabase();
@@ -541,13 +555,13 @@ export async function adminAddDemoMasters(): Promise<number> {
     const slug = DEMO_PREFIX + d.slugBase;
     if (existing.has(slug)) continue;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { slugBase, ...rest } = d;
+    const { slugBase, photo, ...rest } = d;
     const m = await createMaster({
       ...rest,
       phone: `+99500000000${i}`,
       telegram: null,
       whatsapp: false,
-      photo_url: null,
+      photo_url: photo,
       status: "published",
       consent_at: null,
       admin_note: "[DEMO] пример профиля",

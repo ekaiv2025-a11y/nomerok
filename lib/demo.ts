@@ -1,9 +1,9 @@
-import type { NewMaster } from "./types";
+import type { NewMaster, PublicMaster } from "./types";
 
 /*
  * Демо-профили: показывают, как выглядит каталог, пока нет настоящих специалистов.
  * Отмечены «Пример профиля», телефоны несуществующие (+995 000 …), заявки им не уходят.
- * Добавить/удалить — кнопками в админке (вкладка «Специалисты»).
+ * Показываются автоматически, пока на сайте меньше DEMO_UNTIL настоящих специалистов.
  */
 export const DEMO_PREFIX = "demo-";
 
@@ -11,11 +11,17 @@ export function isDemoSlug(slug: string): boolean {
   return slug.startsWith(DEMO_PREFIX);
 }
 
-type Demo = Omit<NewMaster, "status" | "consent_at" | "photo_url" | "phone" | "telegram" | "whatsapp"> & { slugBase: string };
+type Demo = Omit<NewMaster, "status" | "consent_at" | "photo_url" | "phone" | "telegram" | "whatsapp"> & { slugBase: string; photo: string };
+
+/** Фото с Unsplash (бесплатная лицензия), обрезаны по лицу. */
+function unsplash(id: string) {
+  return `https://images.unsplash.com/photo-${id}?w=400&h=400&fit=crop&crop=faces&auto=format&q=80`;
+}
 
 export const DEMO_MASTERS: Demo[] = [
   {
     slugBase: "giorgi-plumber",
+    photo: unsplash("1506794778202-cad84cf45f1d"),
     name: "Гиорги Мчедлидзе",
     category: "plumber",
     services: "Замена смесителя — 40 ₾\nУстранение засора — 50 ₾\nУстановка бойлера — 90 ₾\nЗамена труб — по договорённости",
@@ -28,6 +34,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "nino-tutor",
+    photo: unsplash("1494790108377-be9c29b29330"),
     name: "Нино Абашидзе",
     category: "tutor",
     services: "Английский для детей 6–12 лет — 35 ₾\nПодготовка к IELTS — 60 ₾\nРазговорный английский для взрослых — 45 ₾",
@@ -40,6 +47,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "elena-cleaning",
+    photo: unsplash("1438761681033-6461ffad8d80"),
     name: "Елена Коваленко",
     category: "cleaning",
     services: "Уборка квартиры до 60 м² — 80 ₾\nГенеральная уборка — 150 ₾\nУборка после ремонта — от 200 ₾\nМойка окон — 10 ₾ / окно",
@@ -52,6 +60,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "levan-electrician",
+    photo: unsplash("1500648767791-00dcc994a43e"),
     name: "Леван Джапаридзе",
     category: "electrician",
     services: "Установка розетки / выключателя — 20 ₾\nПодключение люстры — 30 ₾\nЗамена проводки — по договорённости\nДиагностика — 40 ₾",
@@ -64,6 +73,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "tamar-nanny",
+    photo: unsplash("1544005313-94ddf0286df2"),
     name: "Тамар Беридзе",
     category: "nanny",
     services: "Няня на час — 15 ₾\nНяня на день — 90 ₾\nВечерняя няня — 20 ₾ / час",
@@ -76,6 +86,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "anna-psychologist",
+    photo: unsplash("1573496359142-b8d87734a5a2"),
     name: "Анна Соколова",
     category: "psychologist",
     services: "Индивидуальная консультация (60 мин) — 80 ₾\nОнлайн-консультация — 70 ₾\nСемейная консультация — 120 ₾",
@@ -88,6 +99,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "david-aircon",
+    photo: unsplash("1472099645785-5658abf4ff4e"),
     name: "Давид Кахидзе",
     category: "aircon",
     services: "Чистка кондиционера — 50 ₾\nЗаправка фреоном — 80 ₾\nУстановка кондиционера — от 150 ₾",
@@ -100,6 +112,7 @@ export const DEMO_MASTERS: Demo[] = [
   },
   {
     slugBase: "irina-beauty",
+    photo: unsplash("1534528741775-53994a69daeb"),
     name: "Ирина Мельник",
     category: "beauty",
     services: "Маникюр с покрытием — 45 ₾\nПедикюр — 60 ₾\nНаращивание ресниц — 70 ₾",
@@ -111,3 +124,30 @@ export const DEMO_MASTERS: Demo[] = [
     price_unit: "услуга",
   },
 ];
+
+/** Когда настоящих опубликованных специалистов станет столько — примеры исчезнут сами. */
+export const DEMO_UNTIL = 6;
+
+const DEMO_DATE = "2026-09-01T00:00:00.000Z";
+
+/** Примеры в виде публичных карточек (в базе их нет). */
+export function demoPublicMasters(): PublicMaster[] {
+  return DEMO_MASTERS.map((d) => ({
+    id: DEMO_PREFIX + d.slugBase,
+    slug: DEMO_PREFIX + d.slugBase,
+    name: d.name,
+    category: d.category,
+    services: d.services,
+    about: d.about,
+    credentials: d.credentials,
+    experience_years: d.experience_years,
+    languages: d.languages,
+    price_from: d.price_from,
+    price_unit: d.price_unit,
+    photo_url: d.photo,
+    created_at: DEMO_DATE,
+    updated_at: DEMO_DATE,
+    verified: false,
+    demo: true,
+  }));
+}
