@@ -139,15 +139,16 @@ type LocalData = {
   login_tokens: { token: string; master_id: string; expires_at: string }[];
   reviews: Review[];
   complaints: Complaint[];
+  profile_views: { master_id: string; visitor: string; day: string; created_at: string }[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 
 export async function readLocal(): Promise<LocalData> {
   try {
     const d = JSON.parse(await fs.readFile(LOCAL_FILE, "utf8"));
-    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [], ...d };
+    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [], profile_views: [], ...d };
   } catch {
-    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [] };
+    return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [], profile_views: [] };
   }
 }
 export async function writeLocal(d: LocalData) {
@@ -356,6 +357,7 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     service_area: "",
     work_hours: "",
     documents: [],
+    stats_sent_at: null,
     id: randomUUID(),
     created_at: now,
     updated_at: now,

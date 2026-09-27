@@ -10,6 +10,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Avatar } from "@/components/Avatar";
 import { ContactReveal } from "@/components/ContactReveal";
 import { StickyContactBar } from "@/components/StickyContactBar";
+import { ViewTracker } from "@/components/ViewTracker";
 import { ShareButtons } from "@/components/ShareButtons";
 import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
 import { RatingLine, Stars } from "@/components/Stars";
@@ -123,6 +124,7 @@ export default async function MasterPage({ params }: Props) {
                 </div>
               ) : (
                 <>
+                  <ViewTracker masterId={m.id} />
                   <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
                   <StickyContactBar contactsLabel={t.stickyContacts} writeLabel={t.stickyWrite} writeHref={href(lang, `/master/${m.slug}/message`)} />
                 </>

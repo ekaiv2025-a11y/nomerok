@@ -84,6 +84,10 @@ type BotDict = {
   unarchived: string;
   directMissedMaster: string;
   directMissedClient: (name: string) => string;
+  weeklyStats: (views: number, contacts: number, taken: number) => string;
+  statsTipPhotos: string;
+  statsTipReviews: string;
+  statsTipDone: string;
   commands: { cabinet: string; help: string; pause: string; resume: string };
   steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials" | "portfolio" | "where" | "documents", string>;
   docVerified: (title: string) => string;
@@ -110,6 +114,10 @@ const ru: BotDict = {
   joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
   btnJoinContinue: "📝 Продолжить анкету",
   joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
+  weeklyStats: (views, contacts, taken) => `📊 <b>Ваша неделя на Nomerok</b>\n\n👀 Посмотрели профиль: <b>${views}</b>\n📞 Открыли контакты: <b>${contacts}</b>\n✋ Вы взяли заявок: <b>${taken}</b>`,
+  statsTipPhotos: "💡 Добавьте фото работ — такие профили смотрят заметно чаще.",
+  statsTipReviews: "💡 Попросите довольных клиентов оставить отзыв: в кабинете есть табличка с QR-кодом.",
+  statsTipDone: "Так держать! 💪",
   docVerified: (title) => `✅ Документ «${title}» проверен — в профиле появилась отметка «Документы проверены».`,
   docRejected: (title) => `Документ «${title}» не принят. Возможно, его плохо видно или он не подходит. Если есть вопросы — напишите сюда.`,
   inactiveWarn: "👋 Вы давно не заходили в Nomerok. Вы ещё принимаете заказы? Нажмите кнопку — иначе через 7 дней профиль уйдёт в архив и клиенты перестанут его видеть. Если просто заняты — поставьте паузу: /pause",
@@ -213,6 +221,10 @@ const en: BotDict = {
   joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
   btnJoinContinue: "📝 Continue profile",
   joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
+  weeklyStats: (views, contacts, taken) => `📊 <b>Your week on Nomerok</b>\n\n👀 Profile views: <b>${views}</b>\n📞 Opened your contacts: <b>${contacts}</b>\n✋ Requests you took: <b>${taken}</b>`,
+  statsTipPhotos: "💡 Add photos of your work — such profiles get noticeably more views.",
+  statsTipReviews: "💡 Ask happy clients for a review: there's a QR sign in your dashboard.",
+  statsTipDone: "Keep it up! 💪",
   docVerified: (title) => `✅ Your document “${title}” is verified — your profile now shows “Documents verified”.`,
   docRejected: (title) => `Your document “${title}” wasn't accepted. It may be unreadable or unsuitable. Any questions — write here.`,
   inactiveWarn: "👋 You haven't been active on Nomerok for a while. Are you still taking orders? Tap the button — otherwise in 7 days your profile will be archived and clients won't see it. Just busy? Pause instead: /pause",
@@ -316,6 +328,10 @@ const ka: BotDict = {
   joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
   btnJoinContinue: "📝 ანკეტის გაგრძელება",
   joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
+  weeklyStats: (views, contacts, taken) => `📊 <b>თქვენი კვირა Nomerok-ზე</b>\n\n👀 პროფილი ნახეს: <b>${views}</b>\n📞 კონტაქტები გახსნეს: <b>${contacts}</b>\n✋ აიღეთ განაცხადი: <b>${taken}</b>`,
+  statsTipPhotos: "💡 დაამატეთ ნამუშევრების ფოტოები — ასეთ პროფილებს გაცილებით ხშირად ნახულობენ.",
+  statsTipReviews: "💡 სთხოვეთ კმაყოფილ კლიენტებს შეფასება: კაბინეტში არის ფირფიტა QR-კოდით.",
+  statsTipDone: "ასე გააგრძელეთ! 💪",
   docVerified: (title) => `✅ დოკუმენტი „${title}“ შემოწმებულია — პროფილში გამოჩნდა ნიშანი „დოკუმენტები შემოწმებულია“.`,
   docRejected: (title) => `დოკუმენტი „${title}“ არ მიიღეს. შესაძლოა ცუდად ჩანს ან არ შეესაბამება. კითხვების შემთხვევაში — მოგვწერეთ აქ.`,
   inactiveWarn: "👋 დიდი ხანია Nomerok-ზე არ შემოსულხართ. ისევ იღებთ შეკვეთებს? დააჭირეთ ღილაკს — წინააღმდეგ შემთხვევაში 7 დღეში პროფილი არქივში გადავა და კლიენტები მას ვეღარ დაინახავენ. თუ უბრალოდ დაკავებული ხართ — ჩართეთ პაუზა: /pause",

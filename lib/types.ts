@@ -78,6 +78,8 @@ export type Master = {
   service_area: string;
   work_hours: string;
   documents: MasterDocument[];
+  /** Когда отправили недельную сводку в бот */
+  stats_sent_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -145,7 +147,7 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents" | "stats_sent_at"
 > & {
   admin_note?: string;
   lang?: Locale;

@@ -413,6 +413,28 @@ async function checkInactivity(): Promise<{ warned: number; archived: number }> 
   return out;
 }
 
+/** По понедельникам — недельная сводка специалисту: просмотры, контакты, взятые заявки. */
+async function sendWeeklyStats(force = false): Promise<number> {
+  const weekday = new Date(todayTbilisi() + "T12:00:00Z").getUTCDay(); // 1 = понедельник
+  if (weekday !== 1 && !force) return 0;
+  const { masterStats } = await import("./stats");
+  const { reviewStats } = await import("./reviews-db");
+  const reviewsBy = await reviewStats().catch(() => new Map<string, { sum: number; n: number }>());
+  let n = 0;
+  for (const m of await adminListMasters()) {
+    if (m.status !== "published" || m.archived_at || !m.tg_chat_id || !m.phone_verified_at) continue;
+    if (m.stats_sent_at && Date.now() - new Date(m.stats_sent_at).getTime() < 6 * DAY) continue;
+    const st = await masterStats(m.id, 7).catch(() => null);
+    if (!st) continue;
+    const b = botDict(m.lang);
+    const tip = !(m.portfolio ?? []).length ? b.statsTipPhotos : !reviewsBy.get(m.id) ? b.statsTipReviews : b.statsTipDone;
+    await sendTo(m.tg_chat_id, `${b.weeklyStats(st.views, st.contacts, st.taken)}\n\n${tip}`, [[await cabinetButton(m)]]);
+    await adminUpdateMaster(m.id, { stats_sent_at: new Date().toISOString() });
+    n++;
+  }
+  return n;
+}
+
 /** Пауза закончилась — включаем заявки обратно и сообщаем специалисту. */
 async function endExpiredPauses(): Promise<number> {
   const today = todayTbilisi();
@@ -495,7 +517,8 @@ export async function runFollowups() {
   const pausesEnded = await endExpiredPauses().catch(() => 0);
   const directMissed = await checkDirectMisses().catch((e) => (console.error("[direct]", e), 0));
   const inactivity = await checkInactivity().catch((e) => (console.error("[inactive]", e), { warned: 0, archived: 0 }));
-  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived };
+  const weeklyStats = await sendWeeklyStats().catch((e) => (console.error("[stats]", e), 0));
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats };
   const now = Date.now();
   const list = await listRequestsForFollowup();
   for (const r of list) {

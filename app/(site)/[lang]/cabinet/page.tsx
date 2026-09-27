@@ -5,6 +5,10 @@ import { UnarchiveButton } from "@/components/UnarchiveButton";
 import { PortfolioEditor } from "@/components/PortfolioEditor";
 import { DocumentsEditor } from "@/components/DocumentsEditor";
 import { signedUrls } from "@/lib/documents";
+import { masterStats, viewsByDay } from "@/lib/stats";
+import { StatsCard } from "@/components/StatsCard";
+import { QrCards } from "@/components/QrCards";
+import { SITE_URL } from "@/lib/site";
 import { getDict, href } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
 import { currentSpecialistId } from "@/lib/spec-auth";
@@ -94,6 +98,14 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const { steps, percent } = profileSteps(m);
   const rv = getDict(lang).reviews;
   const reviews = await listMasterReviews(m.id).catch(() => []);
+  const zero = { views: 0, contacts: 0, taken: 0 };
+  const [week, month, byDay] = await Promise.all([
+    masterStats(m.id, 7).catch(() => zero),
+    masterStats(m.id, 30).catch(() => zero),
+    viewsByDay(m.id, 30).catch(() => []),
+  ]);
+  const rating = reviews.length ? { value: reviews.reduce((a, r) => a + r.rating, 0) / reviews.length, count: reviews.length } : null;
+  const bot = await botUsername();
   const docList = Array.isArray(m.documents) ? m.documents : [];
   const docUrls = await signedUrls(docList.map((x) => x.path)).catch(() => ({}) as Record<string, string>);
   const myDocs = docList.map((x) => ({ id: x.id, title: x.title, kind: x.kind, type: x.type, public: x.public, status: x.status, url: docUrls[x.path] ?? null }));
@@ -159,6 +171,20 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       <div className="mt-4">
         <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
+        <QrCards
+          lang={lang}
+          name={m.name}
+          category={categoryLabel(m.category, lang)}
+          photo={m.photo_url}
+          verified={!!m.phone_verified_at}
+          rating={rating}
+          profileUrl={`${SITE_URL}/${lang}/master/${m.slug}?from=qr`}
+          reviewUrl={bot ? `https://t.me/${bot}?start=rv_${m.id}` : null}
+        />
       </div>
 
       <div className="mt-6">
