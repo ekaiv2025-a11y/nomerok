@@ -97,7 +97,7 @@ type BotDict = {
 const ru: BotDict = {
   welcome: (site) => `👋 Здравствуйте! Это бот сервиса <b>${site}</b> — специалисты в Батуми.\n\nЗдесь специалисты подтверждают номер и получают заявки, а клиенты — отклики на свои заявки.`,
   btnFind: "🔎 Найти специалиста",
-  btnJoin: "🧑‍🔧 Разместить профиль",
+  btnJoin: "🧑‍🔧 Зарегистрироваться как специалист",
   btnCabinet: "👤 Мой кабинет",
   askContact: (name, phone) =>
     `Здравствуйте, ${name}! 👋\n\nЧтобы подтвердить номер <b>${phone}</b>, нажмите кнопку <b>«📱 Поделиться номером»</b> внизу экрана.\n\nТак клиенты увидят отметку «Номер подтверждён», а вы будете получать заявки.`,
@@ -204,7 +204,7 @@ const ru: BotDict = {
 const en: BotDict = {
   welcome: (site) => `👋 Hello! This is the <b>${site}</b> bot — specialists in Batumi.\n\nSpecialists confirm their number and receive requests here; clients receive responses to their requests.`,
   btnFind: "🔎 Find a specialist",
-  btnJoin: "🧑‍🔧 List your profile",
+  btnJoin: "🧑‍🔧 Sign up as a specialist",
   btnCabinet: "👤 My dashboard",
   askContact: (name, phone) =>
     `Hello, ${name}! 👋\n\nTo confirm the number <b>${phone}</b>, tap <b>“📱 Share my number”</b> at the bottom of the screen.\n\nClients will see a “Number verified” badge and you'll receive requests.`,
@@ -311,7 +311,7 @@ const en: BotDict = {
 const ka: BotDict = {
   welcome: (site) => `👋 გამარჯობა! ეს არის <b>${site}</b>-ის ბოტი — სპეციალისტები ბათუმში.\n\nაქ სპეციალისტები ადასტურებენ ნომერს და იღებენ განაცხადებს, კლიენტები კი — გამოხმაურებებს.`,
   btnFind: "🔎 სპეციალისტის პოვნა",
-  btnJoin: "🧑‍🔧 პროფილის განთავსება",
+  btnJoin: "🧑‍🔧 რეგისტრაცია სპეციალისტად",
   btnCabinet: "👤 ჩემი კაბინეტი",
   askContact: (name, phone) =>
     `გამარჯობა, ${name}! 👋\n\nნომრის <b>${phone}</b> დასადასტურებლად დააჭირეთ ღილაკს <b>„📱 ნომრის გაზიარება“</b> ეკრანის ქვედა ნაწილში.\n\nკლიენტები დაინახავენ ნიშანს „ნომერი დადასტურებულია“, თქვენ კი მიიღებთ განაცხადებს.`,
