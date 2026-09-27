@@ -89,7 +89,7 @@ const en: Dict = {
   master: {
     documents: "Documents",
     docsVerified: "Documents verified",
-    docsVerifiedNote: "Nomerok has checked this specialist's documents.",
+    docsVerifiedNote: "NomerOk has checked this specialist's documents.",
     kinds: { diploma: "Diploma", certificate: "Certificate", license: "License", other: "Document" },
     portfolio: "Photos of work",
     where: "Where they work",
@@ -324,7 +324,7 @@ const en: Dict = {
     title: "Specialist dashboard",
     loginText: "No passwords or sign-up — sign in with Telegram, just like an SMS code.",
     loginBtn: "Sign in with Telegram",
-    loginSteps: ["Tap the button — Telegram opens", "Tap “Start” in the Nomerok chat", "The bot sends a link — tap it and you’re in"],
+    loginSteps: ["Tap the button — Telegram opens", "Tap “Start” in the NomerOk chat", "The bot sends a link — tap it and you’re in"],
     loginStepsTitle: "How it works",
     loginSafe: "The bot can’t see your chats and sends nothing extra: only your sign-in link and new requests in your field. You can turn it off anytime.",
     expired: "The sign-in link has expired — tap the button below to get a new one.",
@@ -403,7 +403,7 @@ const en: Dict = {
   },
   rules: {
     title: "Site rules",
-    intro: "Nomerok is a catalogue of specialists in Batumi. We help clients and specialists find each other; they agree the details directly.",
+    intro: "NomerOk is a catalogue of specialists in Batumi. We help clients and specialists find each other; they agree the details directly.",
     clientsTitle: "For clients",
     clients: [
       "Using the site and leaving requests is free.",

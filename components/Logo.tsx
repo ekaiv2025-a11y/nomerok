@@ -17,7 +17,13 @@ export function Logo({ lang, small = false }: { lang: Locale; small?: boolean })
       <LogoMark className={small ? "h-7 w-7" : "h-8 w-8"} />
       {/* На очень узких телефонах — только значок, чтобы шапка помещалась */}
       <span className={`font-bold tracking-tight ${small ? "text-[17px]" : "hidden text-[17px] min-[440px]:inline sm:text-[19px]"}`}>
-        {SITE_NAME}
+        {SITE_NAME === "NomerOk" ? (
+          <>
+            Nomer<span className="text-brand">Ok</span>
+          </>
+        ) : (
+          SITE_NAME
+        )}
         {TLD && <span className={`font-semibold text-muted ${small ? "" : "hidden min-[480px]:inline"}`}>{TLD}</span>}
       </span>
     </Link>

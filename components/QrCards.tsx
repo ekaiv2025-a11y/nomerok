@@ -84,7 +84,7 @@ async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null>
   ctx.fill();
   ctx.fillStyle = "#fff";
   ctx.font = `bold 46px ${FONT}`;
-  ctx.fillText("Nomerok.ge", 150, 76);
+  ctx.fillText("NomerOk.ge", 150, 76);
 
   let y = 200;
   if (kind === "card") {

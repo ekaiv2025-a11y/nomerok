@@ -114,13 +114,13 @@ async function sendEmail(html: string): Promise<boolean | null> {
   const to = (process.env.NOTIFY_EMAIL ?? "").trim();
   if (!key || !to) return null; // не настроено
   const text = html.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-  const subject = text.split("\n")[0].replace(/^[^\p{L}]+/u, "").slice(0, 120) || "Nomerok";
+  const subject = text.split("\n")[0].replace(/^[^\p{L}]+/u, "").slice(0, 120) || "NomerOk"
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({
-        from: process.env.NOTIFY_FROM?.trim() || "Nomerok <onboarding@resend.dev>",
+        from: process.env.NOTIFY_FROM?.trim() || "NomerOk <onboarding@resend.dev>",
         to: to.split(/[,;\s]+/).filter(Boolean),
         subject,
         text,
