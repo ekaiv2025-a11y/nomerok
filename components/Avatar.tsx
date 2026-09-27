@@ -11,11 +11,11 @@ function initials(name: string) {
   return ((p[0]?.[0] ?? "") + (p[1]?.[0] ?? "")).toUpperCase() || "?";
 }
 
-export function Avatar({ name, photo, size = 56, className = "" }: { name: string; photo?: string | null; size?: number; className?: string }) {
+export function Avatar({ name, photo, size = 56, className = "", alt }: { name: string; photo?: string | null; size?: number; className?: string; alt?: string }) {
   const style = { width: size, height: size };
   const [broken, setBroken] = useState(false);
   if (photo && !broken) {
-    return <img src={photo} alt={name} style={style} onError={() => setBroken(true)} loading="lazy" className={`shrink-0 rounded-2xl object-cover bg-cream ${className}`} />;
+    return <img src={photo} alt={alt ?? name} style={style} onError={() => setBroken(true)} loading="lazy" className={`shrink-0 rounded-2xl object-cover bg-cream ${className}`} />;
   }
   const h = hue(name);
   return (

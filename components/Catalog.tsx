@@ -112,11 +112,11 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
           )}
         </div>
       ) : filtered.length > 0 ? (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {filtered.map((m) => (
             <MasterCard key={m.id} m={m} lang={lang} />
           ))}
-          <Link href={requestHref} className="flex flex-col justify-center rounded-2xl border border-dashed border-brand/40 bg-brand-soft p-5 transition hover:border-brand">
+          <Link href={requestHref} className="col-span-2 flex flex-col justify-center rounded-2xl border border-dashed border-brand/40 bg-brand-soft p-5 sm:col-span-1 transition hover:border-brand">
             <p className="font-semibold text-brand-dark">{t.notFoundTitle}</p>
             <p className="mt-1 text-[14px] text-[#3d5a4c]">{t.notFoundText}</p>
             <span className="mt-3 text-[14px] font-semibold text-brand">{t.notFoundCta}</span>

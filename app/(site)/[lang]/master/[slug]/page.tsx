@@ -58,10 +58,10 @@ export default async function MasterPage({ params }: Props) {
   const services = m.services.split(/\n|;/).map((s) => s.trim()).filter(Boolean);
   const url = `${SITE_URL}/${lang}/master/${m.slug}`;
 
-  // Другие специалисты: сначала из той же категории, потом остальные (до 6 штук)
+  // Другие специалисты: сначала из той же категории, потом остальные (до 8 штук)
   const all = await listPublishedMasters().catch(() => []);
   const others = all.filter((x) => x.id !== m.id);
-  const similar = [...others.filter((x) => x.category === m.category), ...others.filter((x) => x.category !== m.category)].slice(0, 6);
+  const similar = [...others.filter((x) => x.category === m.category), ...others.filter((x) => x.category !== m.category)].slice(0, 8);
   const sameCount = others.filter((x) => x.category === m.category).length;
 
   return (
@@ -338,7 +338,7 @@ export default async function MasterPage({ params }: Props) {
               {t.allLink}
             </Link>
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {similar.map((x) => (
               <MasterCard key={x.id} m={x} lang={lang} />
             ))}

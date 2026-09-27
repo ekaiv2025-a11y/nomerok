@@ -14,59 +14,57 @@ export function priceText(m: Pick<PublicMaster, "price_from" | "price_unit">, la
 export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
   const firstLine = m.services.split(/\n|;/)[0]?.trim() ?? "";
+  const atPlace = m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both");
+  // Вертикальная карточка: фото сверху, ниже — кто это, чем занимается и цена. Вся карточка ведёт в профиль.
   return (
-    <div
-      className="group relative flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#cfcac0] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+    <Link
+      href={href(lang, `/master/${m.slug}`)}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition hover:-translate-y-0.5 hover:border-[#cfcac0] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
     >
-      <div className="flex items-start gap-3">
-        <Avatar name={m.name} photo={m.photo_url} size={56} />
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[16px] font-semibold leading-tight group-hover:text-brand">
-            {/* Вся карточка кликабельна и ведёт в профиль */}
-            <Link href={href(lang, `/master/${m.slug}`)} className="after:absolute after:inset-0 after:rounded-2xl">
-              {m.name}
-            </Link>
-          </h3>
-          {m.verified && <VerifiedBadge label={t.verified} />}
-          {m.docs_verified && (
-            <span className="ml-1">
-              <VerifiedBadge label={t.docsVerified} />
-            </span>
+      <div className="relative aspect-square w-full overflow-hidden bg-cream">
+        <CardPhoto name={m.name} photo={m.photo_url} />
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+          {m.demo && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-[#8a6a1f] shadow-sm">{t.demo}</span>}
+          {m.away && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-muted shadow-sm">⏸ {t.away}</span>}
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight group-hover:text-brand sm:text-[16px]">
+          {m.name}
+          {m.verified && (
+            <svg viewBox="0 0 16 16" className="ml-1 inline h-3.5 w-3.5 -translate-y-px text-brand" aria-label={t.verified}>
+              <title>{t.verified}</title>
+              <circle cx="8" cy="8" r="8" fill="currentColor" />
+              <path d="M4.5 8.3l2.2 2.2 4.8-4.8" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           )}
-          {m.demo && <DemoBadge label={t.demo} />}
-          {m.away && <AwayBadge label={t.away} />}
-          {m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both") && (
-            <span className="ml-1 mt-1 inline-flex rounded-full bg-cream px-2 py-0.5 text-[11.5px] text-muted">📍 {t.atPlace}</span>
-          )}
-          <div className="mt-1 text-[13px] text-muted">
-            {categoryLabel(m.category, lang)}
-            {m.extra_categories?.length ? ` +${m.extra_categories.length}` : ""}
+        </h3>
+        <div className="mt-1 text-[13px] text-muted">
+          {categoryLabel(m.category, lang)}
+          {m.extra_categories?.length ? ` +${m.extra_categories.length}` : ""}
+          {m.experience_years ? <span className="hidden sm:inline"> · {t.experience(m.experience_years)}</span> : null}
+        </div>
+        {m.rating != null && m.reviews > 0 && (
+          <div className="mt-1">
+            <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
           </div>
-          {m.experience_years ? <div className="mt-0.5 text-[12px] text-muted">{t.experience(m.experience_years)}</div> : null}
-          {m.rating != null && m.reviews > 0 && (
-            <div className="mt-1">
-              <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
-            </div>
-          )}
-        </div>
+        )}
+        {(m.docs_verified || atPlace) && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {m.docs_verified && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-dark">✓ {t.docsVerified}</span>}
+            {atPlace && <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {t.atPlace}</span>}
+          </div>
+        )}
+        {firstLine && <p className="mt-2 hidden line-clamp-2 text-[13.5px] leading-snug text-[#3a3935] sm:block">{firstLine}</p>}
+        <div className="mt-auto pt-2.5 text-[14px] font-semibold sm:pt-3">{priceText(m, lang)}</div>
       </div>
-      {firstLine && <p className="mt-3 line-clamp-2 text-[14px] leading-snug text-[#3a3935]">{firstLine}</p>}
-      {m.portfolio?.length > 0 && (
-        <div className="mt-3 grid grid-cols-3 gap-1.5">
-          {m.portfolio.slice(0, 3).map((p) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.url} src={p.url} alt="" loading="lazy" className="aspect-square w-full rounded-lg bg-cream object-cover" />
-          ))}
-        </div>
-      )}
-      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-        <span className="text-[14px] font-semibold">{priceText(m, lang)}</span>
-        <Link href={href(lang, `/master/${m.slug}#contact`)} className="btn-primary relative z-10 h-9 shrink-0 px-4 text-[13px]">
-          {t.more}
-        </Link>
-      </div>
-    </div>
+    </Link>
   );
+}
+
+function CardPhoto({ name, photo }: { name: string; photo: string | null }) {
+  // Avatar сам покажет инициалы, если фото нет или оно не загрузилось
+  return <Avatar name={name} photo={photo} alt="" size={400} className="!h-full !w-full !rounded-none !text-[48px] transition duration-300 group-hover:scale-[1.03]" />;
 }
 
 export function VerifiedBadge({ label, large = false }: { label: string; large?: boolean }) {
