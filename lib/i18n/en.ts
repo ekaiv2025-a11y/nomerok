@@ -68,6 +68,9 @@ const en: Dict = {
     experience: (n) => `${n} ${years(n)} of experience`,
   },
   master: {
+    similarTitle: (cat) => `More ${cat.toLowerCase()}`,
+    othersTitle: "Other specialists",
+    allLink: "All specialists →",
     back: "← All specialists",
     city: "Batumi",
     experience: (n) => `${n} ${years(n)} of experience`,

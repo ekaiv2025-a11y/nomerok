@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedMasterBySlug } from "@/lib/db";
-import { categoryLabel, languageLabel, MEDICAL_CATEGORIES } from "@/lib/categories";
+import { getPublishedMasterBySlug, listPublishedMasters } from "@/lib/db";
+import { categoryLabel, categoryPlural, languageLabel, MEDICAL_CATEGORIES } from "@/lib/categories";
 import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Avatar } from "@/components/Avatar";
 import { ContactReveal } from "@/components/ContactReveal";
 import { ShareButtons } from "@/components/ShareButtons";
-import { priceText } from "@/components/MasterCard";
+import { MasterCard, priceText } from "@/components/MasterCard";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +37,12 @@ export default async function MasterPage({ params }: Props) {
 
   const services = m.services.split(/\n|;/).map((s) => s.trim()).filter(Boolean);
   const url = `${SITE_URL}/${lang}/master/${m.slug}`;
+
+  // Другие специалисты: сначала из той же категории, потом остальные (до 6 штук)
+  const all = await listPublishedMasters().catch(() => []);
+  const others = all.filter((x) => x.id !== m.id);
+  const similar = [...others.filter((x) => x.category === m.category), ...others.filter((x) => x.category !== m.category)].slice(0, 6);
+  const sameCount = others.filter((x) => x.category === m.category).length;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-8 pt-5 sm:px-6 sm:pt-8">
@@ -119,6 +125,22 @@ export default async function MasterPage({ params }: Props) {
           <p className="mt-6 rounded-xl bg-cream p-4 text-[13px] leading-relaxed text-muted">{t.noReviews(SITE_NAME)}</p>
         </div>
       </div>
+
+      {similar.length > 0 && (
+        <section className="mt-14 border-t border-line pt-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-[20px] font-bold">{sameCount > 0 ? t.similarTitle(categoryPlural(m.category, lang)) : t.othersTitle}</h2>
+            <Link href={href(lang)} className="text-[14px] font-semibold text-brand hover:underline">
+              {t.allLink}
+            </Link>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {similar.map((x) => (
+              <MasterCard key={x.id} m={x} lang={lang} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -73,6 +73,9 @@ const ru = {
     experience: (n: number) => `Опыт ${n} ${yearsRu(n)}`,
   },
   master: {
+    similarTitle: (cat: string) => `Ещё: ${cat.toLowerCase()}`,
+    othersTitle: "Другие специалисты",
+    allLink: "Все специалисты →",
     back: "← Все специалисты",
     city: "Батуми",
     experience: (n: number) => `опыт ${n} ${yearsRu(n)}`,

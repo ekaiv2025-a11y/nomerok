@@ -66,6 +66,9 @@ const ka: Dict = {
     experience: (n) => `გამოცდილება ${n} წელი`,
   },
   master: {
+    similarTitle: (cat) => `სხვა: ${cat}`,
+    othersTitle: "სხვა სპეციალისტები",
+    allLink: "ყველა სპეციალისტი →",
     back: "← ყველა სპეციალისტი",
     city: "ბათუმი",
     experience: (n) => `გამოცდილება ${n} წელი`,
