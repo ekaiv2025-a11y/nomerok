@@ -7,7 +7,7 @@ import { categoryLabel, categoryPlural, languageLabel, MEDICAL_CATEGORIES } from
 import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { Avatar } from "@/components/Avatar";
+import { AvatarZoom } from "@/components/AvatarZoom";
 import { ContactReveal } from "@/components/ContactReveal";
 import { StickyContactBar } from "@/components/StickyContactBar";
 import { ViewTracker } from "@/components/ViewTracker";
@@ -74,7 +74,7 @@ export default async function MasterPage({ params }: Props) {
       </Link>
 
       <div className="mt-4 flex items-start gap-4">
-        <Avatar name={m.name} photo={m.photo_url} size={88} />
+        <AvatarZoom name={m.name} photo={m.photo_url} size={88} />
         <div className="min-w-0">
           <h1 className="text-[24px] font-bold leading-tight sm:text-[30px]">{m.name}</h1>
           {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
