@@ -21,6 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={lang}>
       {ads && (
         <head>
+          <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
           <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossOrigin="anonymous" />
         </head>
       )}
