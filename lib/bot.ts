@@ -610,6 +610,21 @@ async function onText(msg: TgMessage) {
   const pasted = text.match(/[?&]start=([mr]_[a-f0-9]{16,})/i);
   if (pasted) return onStart(msg, pasted[1]);
 
+  // Человек набрал номер телефона текстом вместо кнопки «Поделиться номером» — подсказываем
+  const looksLikePhone = !/\p{L}/u.test(text) && (text.match(/\d/g) ?? []).length >= 9;
+  if (looksLikePhone && !masters[0]) {
+    await tg("sendMessage", {
+      chat_id: chatId,
+      text: b.typedPhone,
+      parse_mode: "HTML",
+      reply_markup: { keyboard: [[{ text: b.btnShareContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true },
+    });
+    const who0 = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
+    const tag0 = msg.from?.username ? ` @${msg.from.username}` : "";
+    await notifyAdmin(`📱 ${esc(who0 || "—")}${esc(tag0)} ввёл(а) номер текстом вместо кнопки — бот подсказал нажать «Поделиться номером»:\n\n${esc(text)}`);
+    return;
+  }
+
   // Любое другое сообщение — пересылаем владельцу сайта
   const who = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
   const tag = msg.from?.username ? ` @${msg.from.username}` : "";

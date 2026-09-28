@@ -30,6 +30,7 @@ type BotDict = {
   notSpecialist: string;
   help: string;
   forwarded: string;
+  typedPhone: string;
   newRequest: (cat: string, desc: string, when: string) => string;
   directRequest: (desc: string, when: string) => string;
   btnTake: string;
@@ -171,6 +172,7 @@ const ru: BotDict = {
   notSpecialist: "Этот Telegram не привязан к анкете специалиста. Заполните анкету на сайте, и после отправки нажмите «Подтвердить номер в Telegram».",
   help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/pause — пауза (отпуск, не принимаю заявки)\n/resume — снова принимаю заявки\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
   forwarded: "Спасибо! Передали сообщение команде, ответим в ближайшее время.",
+  typedPhone: "📱 Номер не нужно вводить вручную — нажмите кнопку «Поделиться номером» внизу экрана. Так мы подтвердим, что номер ваш, и продолжим регистрацию.\n\nЕсли кнопки не видно — нажмите на значок ⌨️ рядом с полем ввода.",
   newRequest: (cat, desc, when) => `🆕 <b>Новая заявка: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру», чтобы получить телефон клиента.`,
   directRequest: (desc, when) => `✉️ <b>Клиент написал лично вам</b> (со страницы вашего профиля)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру заказ», чтобы получить телефон клиента. Если не ответить в течение суток, задача уйдёт другим специалистам.`,
   btnTake: "✋ Беру заказ",
@@ -278,6 +280,7 @@ const en: BotDict = {
   notSpecialist: "This Telegram isn't linked to a specialist profile. Fill in the form on the website and then tap “Verify number in Telegram”.",
   help: "Commands:\n/cabinet — link to your dashboard\n/pause — pause (vacation, not taking requests)\n/resume — accept requests again\n/help — help\n\nAny other message will be passed to our team.",
   forwarded: "Thanks! We've passed your message to the team and will reply soon.",
+  typedPhone: "📱 No need to type your number — tap the “Share my number” button at the bottom of the screen. This confirms the number is yours and continues your sign-up.\n\nDon't see the button? Tap the ⌨️ icon next to the message field.",
   newRequest: (cat, desc, when) => `🆕 <b>New request: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone.`,
   directRequest: (desc, when) => `✉️ <b>A client messaged you personally</b> (from your profile page)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nTap “I'll take it” to get the client's phone. If there's no reply within a day, the job goes to other specialists.`,
   btnTake: "✋ I'll take it",
@@ -385,6 +388,7 @@ const ka: BotDict = {
   notSpecialist: "ეს Telegram არ არის მიბმული სპეციალისტის ანკეტაზე. შეავსეთ ანკეტა საიტზე და გაგზავნის შემდეგ დააჭირეთ „ნომრის დადასტურება Telegram-ში“.",
   help: "ბრძანებები:\n/cabinet — ბმული თქვენს კაბინეტზე\n/pause — პაუზა (შვებულება, არ ვიღებ განაცხადებს)\n/resume — ისევ ვიღებ განაცხადებს\n/help — დახმარება\n\nნებისმიერ სხვა შეტყობინებას გადავცემთ გუნდს.",
   forwarded: "გმადლობთ! შეტყობინება გადავეცით გუნდს, მალე გიპასუხებთ.",
+  typedPhone: "📱 ნომრის ხელით შეყვანა არ არის საჭირო — დააჭირეთ ღილაკს „ნომრის გაზიარება“ ეკრანის ქვედა ნაწილში. ასე დავადასტურებთ, რომ ნომერი თქვენია, და გავაგრძელებთ რეგისტრაციას.\n\nღილაკი არ ჩანს? დააჭირეთ ⌨️ ხატულას შეტყობინების ველის გვერდით.",
   newRequest: (cat, desc, when) => `🆕 <b>ახალი განაცხადი: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ“, რომ მიიღოთ კლიენტის ტელეფონი.`,
   directRequest: (desc, when) => `✉️ <b>კლიენტმა პირადად თქვენ მოგწერათ</b> (თქვენი პროფილის გვერდიდან)\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nდააჭირეთ „ვიღებ შეკვეთას“, რომ მიიღოთ კლიენტის ტელეფონი. თუ დღე-ღამეში არ უპასუხებთ, ამოცანა სხვა სპეციალისტებს გადაეცემა.`,
   btnTake: "✋ ვიღებ შეკვეთას",
