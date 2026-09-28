@@ -108,7 +108,7 @@ const en: Dict = {
     demoText: "This is how a specialist's page will look. The sample has no real contacts — post a request and real specialists will receive it.",
     similarTitle: (cat) => `More ${cat.toLowerCase()}`,
     othersTitle: "Other specialists",
-    allLink: "All specialists →",
+    allLink: "See all →",
     back: "← All specialists",
     city: "Batumi",
     experience: (n) => `${n} ${years(n)} of experience`,

@@ -61,8 +61,11 @@ export default async function MasterPage({ params }: Props) {
   // Другие специалисты: сначала из той же категории, потом остальные (до 8 штук)
   const all = await listPublishedMasters().catch(() => []);
   const others = all.filter((x) => x.id !== m.id);
-  const similar = [...others.filter((x) => x.category === m.category), ...others.filter((x) => x.category !== m.category)].slice(0, 8);
-  const sameCount = others.filter((x) => x.category === m.category).length;
+  // Похожие — только того же направления (основного или дополнительного), без сантехников под маникюром
+  const mine = new Set([m.category, ...m.extra_categories]);
+  const related = (x: (typeof others)[number]) => mine.has(x.category) || x.extra_categories.some((c) => mine.has(c));
+  const similar = [...others.filter((x) => x.category === m.category), ...others.filter((x) => x.category !== m.category && related(x))].slice(0, 8);
+  const sameCount = similar.length;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8 lg:pb-8">
@@ -334,7 +337,7 @@ export default async function MasterPage({ params }: Props) {
         <section className="mt-14 border-t border-line pt-8">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[20px] font-bold">{sameCount > 0 ? t.similarTitle(categoryPlural(m.category, lang)) : t.othersTitle}</h2>
-            <Link href={href(lang)} className="text-[14px] font-semibold text-brand hover:underline">
+            <Link href={`${href(lang)}?cat=${m.category}`} className="text-[14px] font-semibold text-brand hover:underline">
               {t.allLink}
             </Link>
           </div>
