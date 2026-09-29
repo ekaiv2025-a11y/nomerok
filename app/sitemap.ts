@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { listPublishedMasters } from "@/lib/db";
 import { LOCALES } from "@/lib/i18n/config";
+import { seoCategoryIds } from "@/lib/seo-categories";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const masters = await listPublishedMasters().catch(() => []);
   return [
     ...PAGES.flatMap((p) => entry(p.path, p.priority)),
+    ...seoCategoryIds().flatMap((c) => entry(`/services/${c}`, 0.9)),
     ...masters.filter((m) => !m.demo).flatMap((m) => entry(`/master/${m.slug}`, 0.7, m.updated_at)),
   ];
 }
