@@ -71,7 +71,7 @@ export default async function MasterPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8 lg:pb-8">
-      <Link href={href(lang)} className="text-[14px] text-muted hover:text-ink">
+      <Link href={href(lang)} className="inline-flex h-10 items-center rounded-full border border-line bg-white px-4 text-[15px] font-semibold text-ink shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:bg-cream">
         {t.back}
       </Link>
 
@@ -335,7 +335,6 @@ export default async function MasterPage({ params }: Props) {
               <ShareButtons url={url} text={t.shareText(m.name, cat)} lang={lang} />
             </div>
           </section>
-          <p className="mt-6 rounded-xl bg-cream p-4 text-[13px] leading-relaxed text-muted">{t.directNote(SITE_NAME)}</p>
           {!m.demo && (
             <p className="mt-4 text-[13px]">
               <Link href={href(lang, `/complaint?m=${m.slug}`)} className="text-muted underline hover:text-danger">
@@ -347,17 +346,15 @@ export default async function MasterPage({ params }: Props) {
 
       {similar.length > 0 && (
         <section className="mt-14 border-t border-line pt-8">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-[20px] font-bold">{sameCount > 0 ? t.similarTitle(categoryPlural(m.category, lang)) : t.othersTitle}</h2>
-            <Link href={m.city === "batumi" && seoCategoryIds().includes(m.category) ? href(lang, `/services/${m.category}`) : `${href(lang)}?${m.city !== "batumi" ? `city=${m.city}&` : ""}cat=${m.category}`} className="text-[14px] font-semibold text-brand hover:underline">
-              {t.allLink}
-            </Link>
-          </div>
+          <h2 className="text-[20px] font-bold">{sameCount > 0 ? t.similarTitle(categoryPlural(m.category, lang)) : t.othersTitle}</h2>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {similar.map((x) => (
               <MasterCard key={x.id} m={x} lang={lang} />
             ))}
           </div>
+          <Link href={m.city === "batumi" && seoCategoryIds().includes(m.category) ? href(lang, `/services/${m.category}`) : `${href(lang)}?${m.city !== "batumi" ? `city=${m.city}&` : ""}cat=${m.category}`} className="btn-ghost mx-auto mt-6 flex h-12 w-full max-w-xs text-[15px]">
+              {t.allLink}
+            </Link>
         </section>
       )}
     </div>
