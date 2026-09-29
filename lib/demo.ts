@@ -229,6 +229,7 @@ export function demoPublicMasters(): PublicMaster[] {
     service_area: d.area ?? "",
     work_hours: d.hours,
     city: "batumi",
+    links: {},
     docs_verified: false,
     verified: false,
     demo: true,

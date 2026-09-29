@@ -98,6 +98,7 @@ export async function healthCheck() {
           ["0007 документы", "masters", "documents"],
           ["0008 просмотры профилей", "profile_views", "id"],
           ["0009 города", "masters", "city"],
+          ["0010 соцсети", "masters", "links"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -198,6 +199,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     service_area: m.service_area ?? "",
     work_hours: m.work_hours ?? "",
     city: m.city ?? "batumi",
+    links: m.links && typeof m.links === "object" ? m.links : {},
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.status === "verified"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -222,9 +224,10 @@ const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
 const COLUMNS_0005 = COLUMNS_0004 + ",archived_at";
 const COLUMNS_0006 = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";
 const COLUMNS_0007 = COLUMNS_0006 + ",documents";
-const PUBLIC_COLUMNS = COLUMNS_0007 + ",city";
+const COLUMNS_0009 = COLUMNS_0007 + ",city";
+const PUBLIC_COLUMNS = COLUMNS_0009 + ",links";
 /** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
-const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {
@@ -361,6 +364,7 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     service_area: "",
     work_hours: "",
     city: "batumi",
+    links: {},
     documents: [],
     stats_sent_at: null,
     id: randomUUID(),

@@ -8,6 +8,7 @@ import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
 import { WhereFields, type WhereValue } from "./WhereFields";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
+import { LinkFields, readLinkFields } from "./SocialLinks";
 import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
 
 export type JoinPrefill = { token: string; name: string; phone: string; telegram: string | null; hasPhoto: boolean };
@@ -93,6 +94,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
       name: f.get("name"),
       category: f.get("category"),
       city: f.get("city"),
+      links: readLinkFields(f),
       services: f.get("services"),
       about: f.get("about"),
       credentials: f.get("credentials"),
@@ -246,6 +248,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
       </div>
       {/* Где работает: выезд / у себя (адрес и точка на карте) / онлайн */}
       <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} city={city} />
+      <LinkFields lang={lang} />
       <label className="flex items-start gap-3 rounded-xl bg-cream p-3.5 text-[14px] leading-snug">
         <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-[#1f6b4f]" />
         <span>

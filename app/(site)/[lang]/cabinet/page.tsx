@@ -206,6 +206,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             photo_url: m.photo_url,
             category: m.category,
             city: m.city ?? "batumi",
+            links: m.links ?? {},
             extra_categories: m.extra_categories ?? [],
             where: {
               work_mode: m.work_mode ?? "at_client",

@@ -8,6 +8,8 @@ import { CATEGORIES, LANGUAGES, PRICE_UNITS, categoryLabel, languageLabel, unitL
 import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
 import { WhereFields, type WhereValue } from "./WhereFields";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
+import { LinkFields, readLinkFields } from "./SocialLinks";
+import type { MasterLinks } from "@/lib/links";
 import { resizeImage } from "@/lib/image-resize";
 import { getDict, type Locale } from "@/lib/i18n";
 import { Field, fc } from "./form-kit";
@@ -27,6 +29,7 @@ type Initial = {
   photo_url: string | null;
   category: string;
   city: string;
+  links: MasterLinks;
   extra_categories: string[];
   where: WhereValue;
 };
@@ -102,6 +105,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           whatsapp: f.get("whatsapp") === "on",
           extra_categories: extra,
           city: f.get("city"),
+          links: readLinkFields(f),
           ...where,
         }),
       });
@@ -205,6 +209,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         <input name="telegram" defaultValue={initial.telegram ? "@" + initial.telegram : ""} className={fc(errors.telegram)} autoCapitalize="off" />
       </Field>
       <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} city={city} />
+      <LinkFields lang={lang} initial={initial.links} />
       <fieldset>
         <legend className="text-[14px] font-semibold">
           {t.extraTitle} <span className="font-normal text-muted">{opt}</span>

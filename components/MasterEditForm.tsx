@@ -3,6 +3,7 @@ import { formatPhone } from "@/lib/phone";
 import type { Master } from "@/lib/types";
 import { CategoryOptions } from "./CategoryOptions";
 import { CityOptions } from "./CitySelect";
+import { LinkFields } from "./SocialLinks";
 import { saveMaster } from "@/app/admin/actions";
 
 export function MasterEditForm({ m }: { m?: Master }) {
@@ -30,6 +31,7 @@ export function MasterEditForm({ m }: { m?: Master }) {
           </select>
         </L>
       </div>
+      <LinkFields lang="ru" initial={m?.links} />
       <L label="Услуги" hint="Каждая с новой строки"><textarea name="services" rows={6} defaultValue={m?.services} className="field" /></L>
       <L label="О специалисте"><textarea name="about" rows={4} defaultValue={m?.about} className="field" /></L>
       <L label="Образование и документы" hint="Диплом, лицензия, место работы. Обязательно проверьте у врачей"><textarea name="credentials" rows={3} defaultValue={m?.credentials} className="field" /></L>

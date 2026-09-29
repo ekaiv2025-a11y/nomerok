@@ -8,6 +8,7 @@ import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { AvatarZoom } from "@/components/AvatarZoom";
+import { SocialLinks } from "@/components/SocialLinks";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { cityIn, cityLabel } from "@/lib/cities";
 import { ContactReveal } from "@/components/ContactReveal";
@@ -165,6 +166,8 @@ export default async function MasterPage({ params }: Props) {
               <Gallery items={m.portfolio} />
             </section>
           )}
+
+          <SocialLinks links={m.links} lang={lang} />
 
           <section className="mt-8">
             <h2 className="text-[18px] font-bold">{t.where}</h2>
