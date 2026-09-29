@@ -1,0 +1,23 @@
+@font-face{font-family:M;font-weight:400;src:url(manrope-cyrillic-400-normal.woff2) format("woff2");unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:M;font-weight:400;src:url(manrope-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:M;font-weight:600;src:url(manrope-cyrillic-600-normal.woff2) format("woff2");unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:M;font-weight:600;src:url(manrope-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:M;font-weight:800;src:url(manrope-cyrillic-800-normal.woff2) format("woff2");unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:M;font-weight:800;src:url(manrope-latin-800-normal.woff2) format("woff2")}
+:root{--g:#1f6b4f;--gd:#174f3b;--gs:#e7f2ec;--c:#f7f4ee;--a:#e0a526;--ink:#1c1b18;--mut:#6b6a65;--tg:#229ED9}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:var(--w);height:var(--h);overflow:hidden}
+body{font-family:M,system-ui,sans-serif;color:var(--ink);background:var(--c);-webkit-font-smoothing:antialiased}
+.logo{display:flex;align-items:center;gap:.35em;font-weight:800;letter-spacing:-.02em}
+.logo .mk{width:1.35em;height:1.35em;border-radius:.3em;background:var(--g);display:grid;place-items:center;color:#fff;position:relative;font-size:1em}
+.logo .mk::after{content:"";position:absolute;right:-.12em;top:-.12em;width:.34em;height:.34em;border-radius:50%;background:var(--a);border:.06em solid var(--c)}
+.logo .tld{color:var(--mut);font-weight:600}
+.on-g .logo .tld{color:#bfe0d1}.on-g .logo .mk{background:#fff;color:var(--g)}.on-g .logo .mk::after{border-color:var(--g)}
+.chip{display:inline-flex;align-items:center;gap:.4em;border-radius:999px;padding:.45em 1em;background:#fff;border:2px solid #e6e1d6;font-weight:600;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;border-radius:999px;padding:.7em 1.4em;font-weight:800;background:var(--g);color:#fff}
+.btn.y{background:var(--a);color:var(--ink)}
+.btn.w{background:#fff;color:var(--g)}
+.card{background:#fff;border-radius:28px;box-shadow:0 18px 50px rgba(0,0,0,.10)}
+.badge{display:inline-flex;align-items:center;gap:.35em;border-radius:999px;background:var(--gs);color:var(--gd);font-weight:600;padding:.3em .8em}
+.hl{background:linear-gradient(transparent 58%,rgba(224,165,38,.55) 58%)}
+.logo .ok{color:var(--g)}.on-g .logo .ok{color:var(--a)}

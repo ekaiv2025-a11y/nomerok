@@ -1,0 +1,53 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+:root{--w:1080px;--h:1920px}
+.sc{position:absolute;inset:0;padding:260px 80px;display:flex;flex-direction:column}
+.big{font-size:96px;font-weight:800;letter-spacing:-.03em;line-height:1.04}
+.bub{background:#fff;border-radius:34px 34px 34px 8px;padding:26px 34px;font-size:40px;align-self:flex-start;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.prof{background:#fff;border-radius:44px;padding:50px;margin-top:50px;box-shadow:0 30px 80px rgba(0,0,0,.14)}
+.row{display:flex;gap:28px;align-items:center}
+.av{width:170px;height:170px;border-radius:40px;background:var(--gs);display:grid;place-items:center;font-size:90px}
+.sv{border-top:2px solid #eee8dc;padding:22px 0;font-size:38px}
+.ph{flex:1;aspect-ratio:1;border-radius:22px;background:linear-gradient(135deg,#d8e7de,#b9d3c4)}
+.tg{background:#dfe9ef;border-radius:44px;padding:40px;margin-top:50px}
+.msg{background:#fff;border-radius:32px 32px 32px 10px;padding:34px;font-size:38px;line-height:1.4}
+</style></head><body>
+<div class="sc" id="s1"><div class="big">Клиенты ищут мастеров в чатах…</div>
+ <div style="display:flex;flex-direction:column;gap:24px;margin-top:70px" id="chat">
+  <div class="bub" id="c1">Посоветуйте электрика 🙏</div><div class="bub" id="c2">Нужна няня на вечер</div><div class="bub" id="c3">Кто делает ремонт ванной?</div><div class="bub" id="c4">Репетитор по английскому для ребёнка?</div>
+ </div>
+ <div class="big" id="s1b" style="margin-top:auto;color:var(--g)">…и не находят вас</div>
+</div>
+<div class="sc" id="s2"><div class="big" style="font-size:80px">Ваша бесплатная витрина <span class="hl">за 3 минуты</span></div>
+ <div class="prof" id="pf">
+  <div class="row"><div class="av">🧰</div><div><div style="font-size:52px;font-weight:800">Ваше имя</div><div style="font-size:36px;color:var(--mut);margin-top:6px">Электрик · Батуми</div>
+   <div style="display:flex;gap:10px;margin-top:14px;font-size:28px"><span class="badge" id="b1">✓ Номер подтверждён</span><span class="badge" id="b2">✓ Документы</span></div></div></div>
+  <div style="margin-top:30px" id="svs"><div class="sv">Розетка / выключатель — от 20 ₾</div><div class="sv">Подключение люстры — от 30 ₾</div></div>
+  <div style="display:flex;gap:14px;margin-top:20px" id="phs"><div class="ph"></div><div class="ph" style="background:linear-gradient(135deg,#f3e3bd,#e7cd8e)"></div><div class="ph"></div></div>
+  <div style="font-size:32px;color:var(--mut);margin-top:24px" id="map">📍 Адрес на карте · часы работы · отзывы</div>
+ </div>
+</div>
+<div class="sc" id="s3"><div class="big" style="font-size:80px">Заявки — <span class="hl">прямо в Telegram</span></div>
+ <div class="tg" id="tg">
+  <div class="msg" id="m1">🆕 <b>Новая заявка: Электрик</b><br><br>Не работают розетки на кухне, нужно посмотреть.<br><br>🕒 Завтра утром</div>
+  <div class="msg" id="m2" style="margin-top:14px;text-align:center;font-weight:800;color:var(--tg);border-radius:22px;padding:26px">✋ Беру заказ</div>
+ </div>
+ <div id="s3b" style="font-size:44px;color:var(--mut);margin-top:40px;font-weight:600;text-align:center">Нажали — и получили телефон клиента</div>
+</div>
+<div class="sc on-g" id="s4" style="background:var(--g);color:#fff;justify-content:center;align-items:center;text-align:center">
+ <div style="font-size:90px" class="logo" id="lg"><span class="mk">N</span><span>Nomer<span class="ok">Ok</span><span class="tld">.ge</span></span></div>
+ <div style="font-size:66px;font-weight:800;margin-top:60px;line-height:1.15" id="t4">Бесплатно.<br>Без комиссии.<br><span style="color:var(--a)">Клиенты — напрямую.</span></div>
+ <div class="btn y" style="font-size:50px;margin-top:80px" id="b4">nomerok.ge/join</div>
+</div>
+<script src="reel-common.js"></script><script>
+const $=id=>document.getElementById(id);
+window.DURATION=15;
+window.render=function(t){
+ show($('s1'),t,0,.4,3.3,3.7); ['c1','c2','c3','c4'].forEach((id,i)=>show($(id),t,.5+i*.45,.9+i*.45,0,0,40)); show($('s1b'),t,2.4,2.9);
+ show($('s2'),t,3.5,4,7.8,8.2); show($('pf'),t,4,4.6,0,0,80); show($('b1'),t,5,5.4,0,0,20); show($('b2'),t,5.4,5.8,0,0,20); show($('svs'),t,5.8,6.3,0,0,30); show($('phs'),t,6.3,6.8,0,0,30); show($('map'),t,6.9,7.3,0,0,20);
+ show($('s3'),t,8,8.4,11.4,11.8); show($('m1'),t,8.5,9,0,0,40); show($('m2'),t,9.2,9.6,0,0,30);
+ const p=prog(t,9.9,10.1)-prog(t,10.1,10.3); $('m2').style.transform=`scale(${1-p*0.08})`; $('m2').style.background=t>10&&t<11.4?'#e7f2ec':'#fff';
+ show($('s3b'),t,10.3,10.8);
+ show($('s4'),t,11.6,12,0,0,0); show($('lg'),t,11.9,12.5,0,0,40); show($('t4'),t,12.4,13,0,0,40); show($('b4'),t,13,13.5,0,0,30);
+};
+window.render(0);
+</script></body></html>
