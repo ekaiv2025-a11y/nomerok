@@ -66,6 +66,8 @@ export async function POST(req: Request) {
     ...(hasLinks || Object.keys(links).length ? { links } : {}),
     lang,
   });
-  await notifyAdmin(`✏️ <b>${escapeHtml(d.name)}</b> обновил(а) профиль в кабинете\n${SITE_URL}/admin/masters/${id}`);
+  // Правки сразу видны на сайте, подтверждать не нужно. Сообщаем тихо и только если поменялся текст анкеты.
+  const textChanged = (["name", "services", "about", "credentials"] as const).some((k) => (m[k] ?? "") !== (d[k] ?? ""));
+  if (textChanged) await notifyAdmin(`✏️ <b>${escapeHtml(d.name)}</b> изменил(а) текст профиля\n${SITE_URL}/admin/masters/${id}`, { silent: true });
   return NextResponse.json({ ok: true });
 }

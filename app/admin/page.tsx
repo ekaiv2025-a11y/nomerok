@@ -6,13 +6,14 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, deleteMaster, deleteRequest, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
 import { AdminDocs } from "@/components/AdminDocs";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 import { isAwayNow } from "@/lib/availability";
+import { ConfirmButton } from "@/components/ConfirmButton";
 
 export const dynamic = "force-dynamic";
 
@@ -251,6 +252,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       <button className="h-9 rounded-full border border-line px-3 text-[13px] hover:bg-cream">{REQ_LABEL[s]}</button>
                     </form>
                   ))}
+                  <form action={deleteRequest}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <ConfirmButton message="Удалить заявку навсегда?" className="h-9 rounded-full border border-line px-3 text-[13px] text-danger hover:bg-[#fdecea]">Удалить</ConfirmButton>
+                  </form>
                 </div>
               </div>
             );
@@ -378,6 +383,13 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
             <button className={a.primary ? "btn-primary h-9 px-4 text-[13px]" : "btn-ghost h-9 px-4 text-[13px]"}>{a.label}</button>
           </form>
         ))}
+        {m.status !== "published" && (
+          <form action={deleteMaster}>
+            <input type="hidden" name="id" value={m.id} />
+            <input type="hidden" name="back" value={back} />
+            <ConfirmButton message={`Удалить анкету «${m.name}» навсегда?`} className="btn-ghost h-9 px-4 text-[13px] text-danger">Удалить</ConfirmButton>
+          </form>
+        )}
         <Link href={`/admin/masters/${m.id}`} className="btn-ghost h-9 px-4 text-[13px]">Редактировать</Link>
         {m.archived_at && (
           <form action={adminUnarchive}>

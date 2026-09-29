@@ -86,7 +86,7 @@ export function webhookSecret(): string | null {
 }
 
 /** Отправка в Telegram владельцу. */
-async function sendTelegram(html: string): Promise<boolean | null> {
+async function sendTelegram(html: string, silent = false): Promise<boolean | null> {
   const token = telegramToken();
   const chatId = telegramChatId();
   if (!token || !chatId) return null; // не настроено
@@ -94,7 +94,7 @@ async function sendTelegram(html: string): Promise<boolean | null> {
     const res = await fetch(`${API_BASE}/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: html, parse_mode: "HTML", disable_web_page_preview: true }),
+      body: JSON.stringify({ chat_id: chatId, text: html, parse_mode: "HTML", disable_web_page_preview: true, disable_notification: silent }),
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) console.error("[telegram] ошибка", res.status, await res.text());
@@ -139,8 +139,9 @@ async function sendEmail(html: string): Promise<boolean | null> {
  * Уведомляет владельца сайта: в Telegram и/или на почту — что настроено.
  * Возвращает true, если хотя бы один способ сработал. Сайт при ошибке не ломается.
  */
-export async function notifyAdmin(html: string): Promise<boolean> {
-  const [tg, mail] = await Promise.all([sendTelegram(html), sendEmail(html)]);
+/** silent: без звука в Telegram и без письма (для мелких событий вроде правки профиля). */
+export async function notifyAdmin(html: string, opts: { silent?: boolean } = {}): Promise<boolean> {
+  const [tg, mail] = await Promise.all([sendTelegram(html, !!opts.silent), opts.silent ? Promise.resolve(null) : sendEmail(html)]);
   if (tg === null && mail === null) {
     console.log("[уведомления] ни Telegram, ни почта не настроены. Сообщение:\n" + html);
     return false;

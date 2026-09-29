@@ -470,6 +470,19 @@ export async function adminListRequests(): Promise<ClientRequest[]> {
   return (await readLocal()).requests.sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
+export async function adminDeleteRequest(id: string) {
+  const sb = supabase();
+  if (sb) {
+    check(await sb.from("requests").delete().eq("id", id));
+    return;
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  const d = await readLocal();
+  d.requests = d.requests.filter((r) => r.id !== id);
+  d.responses = d.responses.filter((r) => r.request_id !== id);
+  await writeLocal(d);
+}
+
 export async function adminSetRequestStatus(id: string, status: RequestStatus) {
   const sb = supabase();
   if (sb) {

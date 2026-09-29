@@ -10,6 +10,7 @@ import { ADMIN_COOKIE, adminCookieValue, checkPassword, requireAdmin } from "@/l
 import {
   adminGetMaster,
   adminDeleteMaster,
+  adminDeleteRequest,
   adminGetMasterSlug,
   adminSetMasterStatus,
   adminSetRequestStatus,
@@ -74,7 +75,8 @@ export async function deleteMaster(formData: FormData) {
   const slug = await adminGetMasterSlug(id);
   await adminDeleteMaster(id);
   refreshPublic(slug);
-  redirect("/admin?tab=masters");
+  const back = String(formData.get("back") || "");
+  redirect(back.startsWith("/admin") ? back : "/admin?tab=masters");
 }
 
 export async function setRequestStatus(formData: FormData) {
@@ -83,6 +85,12 @@ export async function setRequestStatus(formData: FormData) {
   const status = String(formData.get("status")) as RequestStatus;
   if (!REQUEST_STATUSES.includes(status)) return;
   await adminSetRequestStatus(id, status);
+  revalidatePath("/admin");
+}
+
+export async function deleteRequest(formData: FormData) {
+  await requireAdmin();
+  await adminDeleteRequest(String(formData.get("id")));
   revalidatePath("/admin");
 }
 
