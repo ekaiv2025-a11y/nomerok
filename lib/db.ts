@@ -99,6 +99,7 @@ export async function healthCheck() {
           ["0008 просмотры профилей", "profile_views", "id"],
           ["0009 города", "masters", "city"],
           ["0010 соцсети", "masters", "links"],
+          ["0011 приглашения", "outreach", "tg_user_id"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -143,6 +144,7 @@ type LocalData = {
   reviews: Review[];
   complaints: Complaint[];
   profile_views: { master_id: string; visitor: string; day: string; created_at: string }[];
+  outreach?: { tg_user_id: string; name: string; category: string; status: string; created_at: string }[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 

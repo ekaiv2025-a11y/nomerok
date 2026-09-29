@@ -327,6 +327,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <Link href="/admin/links" className="block rounded-2xl bg-white p-4 text-[14px] font-semibold text-brand hover:bg-brand-soft">
             🔗 Перенести ссылки из текстов анкет в «Соцсети и сайт» →
           </Link>
+          <Link href="/admin/leads" className="block rounded-2xl bg-white p-4 text-[14px] font-semibold text-brand hover:bg-brand-soft">
+            🔎 Поиск специалистов в чатах Telegram →
+          </Link>
           <p className="text-[13px] text-muted">«Открытий» — сколько разных посетителей открыли контакты специалиста в этом месяце. Пригодится для расчёта оплаты.</p>
           {others.length === 0 && <Empty text="Опубликованных специалистов пока нет. Опубликуйте анкету или добавьте специалиста вручную." />}
           {others.map((m) => (
