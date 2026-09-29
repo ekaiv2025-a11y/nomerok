@@ -40,7 +40,7 @@ export const SEO_CATEGORIES: Record<string, Partial<Record<Locale, SeoText>>> = 
       ],
       chooseTitle: "Как выбрать сантехника",
       choose: [
-        "Смотрите фото работ в профиле — видно, как мастер делает разводку и отделку.",
+        "Смотрите фото работ в профиле — видно, насколько аккуратно мастер работает.",
         "Обратите внимание на отметку «Номер подтверждён»: мастер подтвердил номер через Telegram.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Спросите цену и гарантию до начала работы. Хороший мастер сначала смотрит, потом называет цену.",
@@ -84,7 +84,7 @@ export const SEO_CATEGORIES: Record<string, Partial<Record<Locale, SeoText>>> = 
       ],
       chooseTitle: "How to choose a plumber",
       choose: [
-        "Look at work photos in the profile.",
+        "Look at work photos in the profile — you can see how neatly the plumber works.",
         "Check the “Phone verified” badge — the number was confirmed via Telegram.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the price and warranty before work starts.",
@@ -119,7 +119,7 @@ export const SEO_CATEGORIES: Record<string, Partial<Record<Locale, SeoText>>> = 
       ],
       chooseTitle: "როგორ ავირჩიოთ სანტექნიკოსი",
       choose: [
-        "ნახეთ სამუშაოების ფოტოები პროფილში.",
+        "ნახეთ სამუშაოების ფოტოები პროფილში — ჩანს, რამდენად ფრთხილად მუშაობს ხელოსანი.",
         "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "ფასი და გარანტია შეათანხმეთ სამუშაოს დაწყებამდე.",
