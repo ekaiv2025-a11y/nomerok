@@ -2,6 +2,10 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { SITE_NAME } from "@/lib/site";
+import { CATEGORIES, categoryPlural } from "@/lib/categories";
+import { seoCategoryIds } from "@/lib/seo-categories";
+
+const IN_CITY = { ru: "в Батуми", en: "in Batumi", ka: "ბათუმში" } as const;
 
 export function Footer({ lang }: { lang: Locale }) {
   const t = getDict(lang).footer;
@@ -42,6 +46,18 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/rules">{t.rules}</L>
           </ul>
         </div>
+      </div>
+      {/* Все направления — ссылки на страницы услуг (удобно людям и поисковикам) */}
+      <div className="border-t border-line">
+        <ul className="mx-auto flex max-w-6xl flex-wrap gap-x-4 gap-y-1.5 px-4 py-5 text-[12.5px] text-muted sm:px-6">
+          {CATEGORIES.filter((c) => seoCategoryIds().includes(c.id)).map((c) => (
+            <li key={c.id}>
+              <Link href={href(lang, `/services/${c.id}`)} className="hover:text-ink">
+                {categoryPlural(c.id, lang)} {IN_CITY[lang]}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
       <div className="border-t border-line">
         <p className="mx-auto max-w-6xl px-4 py-4 text-[12px] text-muted sm:px-6">
