@@ -8,6 +8,7 @@ import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { AvatarZoom } from "@/components/AvatarZoom";
+import { seoCategoryIds } from "@/lib/seo-categories";
 import { ContactReveal } from "@/components/ContactReveal";
 import { StickyContactBar } from "@/components/StickyContactBar";
 import { ViewTracker } from "@/components/ViewTracker";
@@ -337,7 +338,7 @@ export default async function MasterPage({ params }: Props) {
         <section className="mt-14 border-t border-line pt-8">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[20px] font-bold">{sameCount > 0 ? t.similarTitle(categoryPlural(m.category, lang)) : t.othersTitle}</h2>
-            <Link href={`${href(lang)}?cat=${m.category}`} className="text-[14px] font-semibold text-brand hover:underline">
+            <Link href={seoCategoryIds().includes(m.category) ? href(lang, `/services/${m.category}`) : `${href(lang)}?cat=${m.category}`} className="text-[14px] font-semibold text-brand hover:underline">
               {t.allLink}
             </Link>
           </div>
