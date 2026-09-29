@@ -65,9 +65,8 @@ export default async function MasterPage({ params }: Props) {
   const all = await listPublishedMasters().catch(() => []);
   const others = all.filter((x) => x.id !== m.id && x.city === m.city);
   // Похожие — только того же направления (основного или дополнительного), без сантехников под маникюром
-  const mine = new Set([m.category, ...m.extra_categories]);
-  const related = (x: (typeof others)[number]) => mine.has(x.category) || x.extra_categories.some((c) => mine.has(c));
-  const similar = [...others.filter((x) => x.category === m.category), ...others.filter((x) => x.category !== m.category && related(x))].slice(0, 8);
+  // Только та же основная категория: доп. категории («Также») дают странные совпадения
+  const similar = others.filter((x) => x.category === m.category).slice(0, 8);
   const sameCount = similar.length;
 
   return (
