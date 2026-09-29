@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const m = await getPublishedMasterBySlug(slug).catch(() => null);
   if (!m) return { title: t.meta.masterNotFound };
   const title = t.meta.masterTitle(m.name, categoryLabel(m.category, lang));
-  const services = m.services.split(/\n|;/).map((s) => s.trim()).filter(Boolean).join(", ").slice(0, 150);
+  const services = m.services.split(/\n/).map((s) => s.trim()).filter(Boolean).join(", ").slice(0, 150);
   const base = pageMeta(lang, `/master/${m.slug}`, title, `${services}. ${priceText(m, lang)}.`);
   return {
     ...base,
@@ -56,7 +56,7 @@ export default async function MasterPage({ params }: Props) {
   const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
 
-  const services = m.services.split(/\n|;/).map((s) => s.trim()).filter(Boolean);
+  const services = m.services.split(/\n/).map((s) => s.trim()).filter(Boolean);
   const url = `${SITE_URL}/${lang}/master/${m.slug}`;
 
   // Другие специалисты: сначала из той же категории, потом остальные (до 8 штук)
@@ -89,9 +89,9 @@ export default async function MasterPage({ params }: Props) {
             {cat} · {t.city}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
-          {m.extra_categories.length > 0 && (
+          {m.extra_categories.filter((c) => c !== "other").length > 0 && (
             <p className="mt-0.5 text-[14px] text-muted">
-              {t.also} {m.extra_categories.map((c) => categoryLabel(c, lang)).join(", ")}
+              {t.also} {m.extra_categories.filter((c) => c !== "other").map((c) => categoryLabel(c, lang)).join(", ")}
             </p>
           )}
           {m.rating != null && m.reviews > 0 && (
@@ -141,13 +141,18 @@ export default async function MasterPage({ params }: Props) {
           {services.length > 0 && (
             <section>
               <h2 className="text-[18px] font-bold">{t.services}</h2>
-              <ul className="mt-3 divide-y divide-line rounded-2xl border border-line">
-                {services.map((s, i) => (
-                  <li key={i} className="px-4 py-3 text-[15px]">
-                    {s}
-                  </li>
-                ))}
-              </ul>
+              {/* Короткие строки (услуга — цена) — списком; если специалист написал связный текст — показываем как текст */}
+              {services.some((s) => s.length > 90) ? (
+                <p className="mt-3 whitespace-pre-line rounded-2xl border border-line px-4 py-3 text-[15px] leading-relaxed">{m.services.trim()}</p>
+              ) : (
+                <ul className="mt-3 divide-y divide-line rounded-2xl border border-line">
+                  {services.map((s, i) => (
+                    <li key={i} className="px-4 py-3 text-[15px]">
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           )}
 

@@ -13,7 +13,7 @@ export function profileSteps(m: Master): { steps: Step[]; percent: number; missi
     { id: "verified", done: !!m.phone_verified_at },
     { id: "photo", done: !!m.photo_url },
     { id: "about", done: (m.about ?? "").trim().length >= 40 },
-    { id: "services", done: (m.services ?? "").split(/\n|;/).filter((s) => s.trim()).length >= 2 },
+    { id: "services", done: (m.services ?? "").split(/\n/).filter((s) => s.trim()).length >= 2 },
     { id: "price", done: m.price_from != null },
     { id: "languages", done: (m.languages ?? []).length > 0 },
     { id: "portfolio", done: (m.portfolio ?? []).length >= 3 },
