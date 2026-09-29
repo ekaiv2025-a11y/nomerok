@@ -199,6 +199,14 @@ export default async function MasterPage({ params }: Props) {
                   >
                     {t.openMap}
                   </a>
+                  <a
+                    href={`https://yandex.ru/maps/?pt=${m.place_lng},${m.place_lat}&z=17&l=map`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost h-10 px-4 text-[14px]"
+                  >
+                    {t.openYandex}
+                  </a>
                 </div>
               </div>
             )}
