@@ -57,7 +57,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         {(m.docs_verified || atPlace) && (
           <div className="mt-1.5 flex flex-wrap gap-1">
             {m.docs_verified && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-dark">✓ {t.docsVerified}</span>}
-            {atPlace && <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {t.atPlace}</span>}
+            {atPlace && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {m.place_address?.trim() || t.atPlace}</span>}
           </div>
         )}
         {firstLine && <p className="mt-2 hidden line-clamp-2 text-[13.5px] leading-snug text-[#3a3935] sm:block">{firstLine}</p>}

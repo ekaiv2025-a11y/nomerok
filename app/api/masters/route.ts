@@ -31,6 +31,22 @@ export async function POST(req: Request) {
   if (d.website || (d.startedAt && Date.now() - d.startedAt < 2500)) return NextResponse.json({ ok: true });
   if (!rateLimit("master:" + (await clientIp()), 3)) return NextResponse.json({ ok: false, error: e.tooMany }, { status: 429 });
 
+  // Где работает (необязательно): при «у себя» нужна точка на карте
+  const mode = ["at_client", "at_place", "both", "online"].includes(body.work_mode) ? (body.work_mode as "at_client" | "at_place" | "both" | "online") : "at_client";
+  const lat = Number(body.place_lat);
+  const lng = Number(body.place_lng);
+  const hasPoint = body.place_lat != null && Number.isFinite(lat) && Number.isFinite(lng) && lat > 41 && lat < 43.7 && lng > 40 && lng < 46.8;
+  const needsPlace = mode === "at_place" || mode === "both";
+  if (needsPlace && !hasPoint) return NextResponse.json({ ok: false, fields: { place: getDict(lang).cabinet.placeRequired } }, { status: 422 });
+  const where = {
+    work_mode: mode,
+    service_area: String(body.service_area ?? "").trim().slice(0, 200),
+    work_hours: String(body.work_hours ?? "").trim().slice(0, 120),
+    place_address: needsPlace ? String(body.place_address ?? "").trim().slice(0, 200) : "",
+    place_lat: needsPlace ? Math.round(lat * 1e6) / 1e6 : null,
+    place_lng: needsPlace ? Math.round(lng * 1e6) / 1e6 : null,
+  };
+
   try {
     const m = await createMaster({
       name: d.name,
@@ -50,6 +66,8 @@ export async function POST(req: Request) {
       consent_at: new Date().toISOString(),
       lang,
     });
+
+    await adminUpdateMaster(m.id, where).catch(() => {});
 
     if (pre) {
       await adminUpdateMaster(m.id, { tg_chat_id: pre.chatId, tg_username: pre.username, phone_verified_at: new Date().toISOString() });

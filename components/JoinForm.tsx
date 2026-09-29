@@ -6,6 +6,7 @@ import { Camera, CheckCircle2, Loader2 } from "lucide-react";
 import { LANGUAGES, PRICE_UNITS, languageLabel, unitLabel } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
+import { WhereFields, type WhereValue } from "./WhereFields";
 import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
 
 export type JoinPrefill = { token: string; name: string; phone: string; telegram: string | null; hasPhoto: boolean };
@@ -20,6 +21,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
 
   // Фото: своё (файл) или аватарка из Telegram
   const [file, setFile] = useState<File | null>(null);
+  const [where, setWhere] = useState<WhereValue>({ work_mode: "at_client", service_area: "", work_hours: "", place_address: "", place_lat: null, place_lng: null });
   const [preview, setPreview] = useState<string | null>(null);
   const [useTgPhoto, setUseTgPhoto] = useState(!!prefill?.hasPhoto);
   const [photoError, setPhotoError] = useState("");
@@ -98,6 +100,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
       phone: f.get("phone"),
       telegram: f.get("telegram"),
       whatsapp: f.get("whatsapp") === "on",
+      ...where,
       tg: prefill?.token,
       tgPhoto: !!prefill && useTgPhoto && !file,
       consent: f.get("consent") === "on",
@@ -233,6 +236,8 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
           <input name="telegram" className={fc(errors.telegram)} placeholder="@ivan_master" autoCapitalize="off" defaultValue={prefill?.telegram ? `@${prefill.telegram}` : undefined} />
         </Field>
       </div>
+      {/* Где работает: выезд / у себя (адрес и точка на карте) / онлайн */}
+      <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} />
       <label className="flex items-start gap-3 rounded-xl bg-cream p-3.5 text-[14px] leading-snug">
         <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-[#1f6b4f]" />
         <span>
