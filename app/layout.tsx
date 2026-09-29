@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site";
 import { isLocale } from "@/lib/i18n/config";
 
@@ -29,7 +30,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossOrigin="anonymous" />
         </head>
       )}
-      <body className="min-h-screen font-sans antialiased">{children}</body>
+      <body className="min-h-screen font-sans antialiased">
+        {children}
+        {/* Счётчик посещений Vercel (включается во вкладке Analytics проекта) — только на страницах сайта */}
+        {ads && <Analytics />}
+      </body>
     </html>
   );
 }
