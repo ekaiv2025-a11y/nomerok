@@ -13,7 +13,6 @@ export function priceText(m: Pick<PublicMaster, "price_from" | "price_unit">, la
 
 export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
-  const firstLine = m.services.split(/\n/)[0]?.trim() ?? "";
   const link = href(lang, `/master/${m.slug}`);
   const atPlace = m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both");
   // Вертикальная карточка: фото сверху, ниже — кто это, чем занимается и цена. Вся карточка ведёт в профиль.
@@ -60,7 +59,6 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             {atPlace && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {m.place_address?.trim() || t.atPlace}</span>}
           </div>
         )}
-        {firstLine && <p className="mt-2 hidden line-clamp-2 text-[13.5px] leading-snug text-[#3a3935] sm:block">{firstLine}</p>}
         <div className="mt-auto pt-2.5 text-[14px] font-semibold sm:pt-3">{priceText(m, lang)}</div>
       </Link>
     </div>
