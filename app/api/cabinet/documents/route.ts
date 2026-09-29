@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       uploaded_at: new Date().toISOString(),
     };
     await notifyAdmin(
-      `📄 <b>${escapeHtml(r.m.name)}</b> загрузил(а) документ: ${escapeHtml(title)}${doc.public ? "" : " (только для проверки)"}\nПроверить: ${SITE_URL}/admin?tab=docs`,
+      `📄 <b>${escapeHtml(r.m.name)}</b> загрузил(а) документ: ${escapeHtml(title)}${doc.public ? " — уже в профиле" : " (скрыт от клиентов)"}\nПосмотреть: ${SITE_URL}/admin?tab=docs`,
     );
     return save(r.m.id, [...docs, doc]);
   } catch (e) {

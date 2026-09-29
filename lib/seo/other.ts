@@ -21,7 +21,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "Как выбрать мастера красоты",
       choose: [
         "Смотрите фото работ в профиле — по ним видно стиль и аккуратность мастера.",
-        "Обратите внимание на отметку «Номер подтверждён», а у косметологов — «Документы проверены»: дипломы и сертификаты проверены.",
+        "Обратите внимание на отметку «Номер подтверждён», а у косметологов посмотрите раздел «Документы» с дипломами и сертификатами.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Спросите, как мастер стерилизует инструменты, и уточните цену услуги до записи.",
         "Не хотите искать сами — оставьте заявку: её получат все мастера этого направления.",
@@ -65,7 +65,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "How to choose a beauty specialist",
       choose: [
         "Look at work photos in the profile — they show the specialist's style and precision.",
-        "Check the “Number verified” badge, and for cosmetologists “Documents verified” — their diplomas and certificates were checked.",
+        "Check the “Number verified” badge, and for cosmetologists see the “Documents” section with diplomas and certificates.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Ask how tools are sterilised and confirm the price before booking.",
         "Don't want to search? Post a request — every specialist in this category gets it.",
@@ -106,7 +106,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ სილამაზის ოსტატი",
       choose: [
         "ნახეთ ნამუშევრების ფოტოები პროფილში — ჩანს ოსტატის სტილი და სიზუსტე.",
-        "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“, კოსმეტოლოგებთან კი — „დოკუმენტები შემოწმებულია“.",
+        "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“, კოსმეტოლოგებთან კი — განყოფილებას „დოკუმენტები“.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "ჰკითხეთ, როგორ ასტერილებს ოსტატი ინსტრუმენტებს, და ფასი ჩაწერამდე დააზუსტეთ.",
         "არ გსურთ თავად ძებნა? დატოვეთ განაცხადი — მას ამ მიმართულების ყველა ოსტატი მიიღებს.",
@@ -146,7 +146,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "Как выбрать фитнес-тренера",
       choose: [
         "Смотрите фото и описание в профиле — видно, с какими целями тренер работает.",
-        "Обратите внимание на отметки «Номер подтверждён» и «Документы проверены»: сертификаты тренера проверены.",
+        "Обратите внимание на отметку «Номер подтверждён» и раздел «Документы» в профиле — документы загружает сам специалист.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Заранее договоритесь о цене, месте и расписании тренировок, спросите про пробное занятие.",
         "Не знаете, кого выбрать, — оставьте заявку: её получат все тренеры каталога.",
@@ -190,7 +190,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "How to choose a fitness trainer",
       choose: [
         "Look at photos and the description in the profile — you'll see what goals the trainer works with.",
-        "Check the “Number verified” and “Documents verified” badges — the trainer's certificates were checked.",
+        "Look for the “Number verified” badge and the “Documents” section — documents are uploaded by the specialist.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the price, place and schedule in advance, and ask about a trial session.",
         "Not sure who to pick? Post a request — every trainer in the catalogue gets it.",
@@ -231,7 +231,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ ფიტნეს-ტრენერი",
       choose: [
         "ნახეთ ფოტოები და აღწერა პროფილში — ჩანს, რა მიზნებზე მუშაობს ტრენერი.",
-        "მიაქციეთ ყურადღება ნიშნებს „ნომერი დადასტურებულია“ და „დოკუმენტები შემოწმებულია“.",
+        "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“ და განყოფილებას „დოკუმენტები“.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "ფასი, ადგილი და განრიგი წინასწარ შეათანხმეთ, ჰკითხეთ საცდელი ვარჯიშის შესახებ.",
         "არ იცით, ვინ აირჩიოთ? დატოვეთ განაცხადი — მას ყველა ტრენერი მიიღებს.",
@@ -271,7 +271,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "Как выбрать юриста",
       choose: [
         "Смотрите в профиле специализацию и опыт — выберите юриста, который занимается именно вашим вопросом.",
-        "Обратите внимание на отметки «Номер подтверждён» и «Документы проверены»: диплом юриста проверен.",
+        "Обратите внимание на отметку «Номер подтверждён» и раздел «Документы» в профиле — документы загружает сам специалист.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Заранее договоритесь о стоимости, сроках и о том, что входит в работу.",
         "Не знаете, к кому обратиться, — оставьте заявку: её получат все юристы каталога.",
@@ -315,7 +315,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "How to choose a lawyer",
       choose: [
         "Check the area of practice and experience in the profile — pick a lawyer who handles your kind of issue.",
-        "Look for the “Number verified” and “Documents verified” badges — the lawyer's diploma was checked.",
+        "Look for the “Number verified” badge and the “Documents” section — documents are uploaded by the specialist.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the fee, timeline and scope of work in advance.",
         "Not sure who to contact? Post a request — every lawyer in the catalogue gets it.",
@@ -356,7 +356,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ იურისტი",
       choose: [
         "ნახეთ სპეციალიზაცია და გამოცდილება პროფილში — აირჩიეთ იურისტი, რომელიც თქვენს საკითხზე მუშაობს.",
-        "მიაქციეთ ყურადღება ნიშნებს „ნომერი დადასტურებულია“ და „დოკუმენტები შემოწმებულია“.",
+        "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“ და განყოფილებას „დოკუმენტები“.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "ფასი, ვადები და სამუშაოს მოცულობა წინასწარ შეათანხმეთ.",
         "არ იცით, ვის მიმართოთ? დატოვეთ განაცხადი — მას ყველა იურისტი მიიღებს.",
@@ -396,7 +396,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "Как выбрать бухгалтера",
       choose: [
         "Смотрите в профиле, с кем работает бухгалтер: с ИП, компаниями или физическими лицами.",
-        "Обратите внимание на отметки «Номер подтверждён» и «Документы проверены»: дипломы и сертификаты проверены.",
+        "Обратите внимание на отметку «Номер подтверждён» и раздел «Документы» в профиле — документы загружает сам специалист.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Заранее договоритесь о цене, сроках и о том, какие задачи бухгалтер берёт на себя.",
         "Нужна помощь срочно — оставьте заявку: её получат все бухгалтеры каталога.",
@@ -440,7 +440,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "How to choose an accountant",
       choose: [
         "Check in the profile who the accountant works with: sole proprietors, companies or individuals.",
-        "Look for the “Number verified” and “Documents verified” badges — diplomas and certificates were checked.",
+        "Look for the “Number verified” badge and the “Documents” section — documents are uploaded by the specialist.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the fee, deadlines and exactly which tasks the accountant takes on.",
         "Need help fast? Post a request — every accountant in the catalogue gets it.",
@@ -481,7 +481,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ ბუღალტერი",
       choose: [
         "ნახეთ პროფილში, ვისთან მუშაობს ბუღალტერი: მეწარმეებთან, კომპანიებთან თუ ფიზიკურ პირებთან.",
-        "მიაქციეთ ყურადღება ნიშნებს „ნომერი დადასტურებულია“ და „დოკუმენტები შემოწმებულია“.",
+        "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“ და განყოფილებას „დოკუმენტები“.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "ფასი, ვადები და სამუშაოს მოცულობა წინასწარ შეათანხმეთ.",
         "სასწრაფოდ გჭირდებათ დახმარება? დატოვეთ განაცხადი — მას ყველა ბუღალტერი მიიღებს.",
@@ -520,7 +520,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "Как выбрать переводчика",
       choose: [
         "Смотрите в профиле, с какими языками и типами текстов работает переводчик.",
-        "Обратите внимание на отметки «Номер подтверждён» и «Документы проверены»: дипломы переводчика проверены.",
+        "Обратите внимание на отметку «Номер подтверждён» и раздел «Документы» в профиле — документы загружает сам специалист.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Заранее договоритесь о цене, сроках и формате — нужен ли перевод с заверением.",
         "Нужен перевод срочно — оставьте заявку: её получат все переводчики каталога.",
@@ -563,7 +563,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "How to choose a translator",
       choose: [
         "Check in the profile which languages and types of text the translator works with.",
-        "Look for the “Number verified” and “Documents verified” badges — the translator's diplomas were checked.",
+        "Look for the “Number verified” badge and the “Documents” section — documents are uploaded by the specialist.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the price, deadline and format in advance — including whether you need certification.",
         "Need it urgently? Post a request — every translator in the catalogue gets it.",
@@ -603,7 +603,7 @@ export const SEO_OTHER: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ თარჯიმანი",
       choose: [
         "ნახეთ პროფილში, რომელ ენებსა და ტექსტებზე მუშაობს თარჯიმანი.",
-        "მიაქციეთ ყურადღება ნიშნებს „ნომერი დადასტურებულია“ და „დოკუმენტები შემოწმებულია“.",
+        "მიაქციეთ ყურადღება ნიშანს „ნომერი დადასტურებულია“ და განყოფილებას „დოკუმენტები“.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "ფასი, ვადა და ფორმატი წინასწარ შეათანხმეთ — გჭირდებათ თუ არა დამოწმება.",
         "სასწრაფოდ გჭირდებათ თარგმანი? დატოვეთ განაცხადი — მას ყველა თარჯიმანი მიიღებს.",

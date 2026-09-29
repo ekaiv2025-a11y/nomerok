@@ -23,7 +23,7 @@ export const SEO_KIDS: SeoContent = {
         "Сначала встретьтесь лично и поговорите — посмотрите, как няня общается с ребёнком.",
         "Попросите контакты семей, с которыми няня работала раньше, и поговорите с ними.",
         "Проведите пробный час, пока вы дома, — так спокойнее и вам, и ребёнку.",
-        "Спросите про опыт с детьми такого же возраста и умеет ли няня оказывать первую помощь. Смотрите образование, отметку «Документы проверены» и отзывы — их оставляют только через Telegram.",
+        "Спросите про опыт с детьми такого же возраста и умеет ли няня оказывать первую помощь. Смотрите образование, раздел «Документы» и отзывы — их оставляют только через Telegram.",
         "Не хотите искать сами — оставьте заявку: её получат все няни каталога, свободные откликнутся.",
       ],
       priceQ: "Сколько стоят услуги няни в Батуми?",
@@ -38,7 +38,7 @@ export const SEO_KIDS: SeoContent = {
         },
         {
           q: "NomerOk проверяет нянь?",
-          a: "Сервис подтверждает номер телефона через Telegram, а по желанию специалиста проверяет дипломы и сертификаты (отметка «Документы проверены»). Проверку прошлого сервис не проводит, поэтому обязательно встретьтесь лично и спросите рекомендации от других семей.",
+          a: "Сервис подтверждает номер телефона через Telegram; дипломы и сертификаты специалист выкладывает в профиль сам. Документы и прошлое сервис не проверяет, поэтому обязательно встретьтесь лично и спросите рекомендации от других семей.",
         },
         {
           q: "Есть няни, которые говорят по-русски или по-английски?",
@@ -67,7 +67,7 @@ export const SEO_KIDS: SeoContent = {
         "Meet in person first and talk — watch how the nanny interacts with your child.",
         "Ask for contacts of families the nanny has worked with and talk to them.",
         "Arrange a trial hour while you are at home — it's calmer for both you and your child.",
-        "Ask about experience with children of the same age and first-aid training. Check education, the “Documents verified” badge and reviews — they can only be left via Telegram.",
+        "Ask about experience with children of the same age and first-aid training. Check education, the “Documents” section and reviews — they can only be left via Telegram.",
         "Don't want to search yourself? Post a request — every nanny in the catalogue gets it, and those who are free will reply.",
       ],
       priceQ: "How much does a nanny cost in Batumi?",
@@ -77,7 +77,7 @@ export const SEO_KIDS: SeoContent = {
           : "Each nanny lists prices in their profile. The final price depends on the schedule, the child's age and the number of children — discuss it when you meet.",
       faq: [
         { q: "Can I meet a nanny before hiring?", a: "Yes, and you should. Message the nanny directly and arrange a meeting. A trial hour while you are at home is a good idea." },
-        { q: "Does NomerOk check nannies?", a: "The service confirms phone numbers via Telegram and, if the specialist asks, verifies diplomas and certificates (“Documents verified” badge). It does not do background checks, so always meet in person and ask other families for references." },
+        { q: "Does NomerOk check nannies?", a: "The service confirms phone numbers via Telegram; specialists upload diplomas and certificates to their profile themselves. The service does not check documents or backgrounds, so always meet in person and ask other families for references." },
         { q: "Are there English- or Russian-speaking nannies?", a: "Each profile lists the languages the nanny speaks. Choose the one that suits you and your child." },
       ],
     },
@@ -102,7 +102,7 @@ export const SEO_KIDS: SeoContent = {
         "ჯერ პირადად შეხვდით და ისაუბრეთ — ნახეთ, როგორ ურთიერთობს ძიძა ბავშვთან.",
         "სთხოვეთ იმ ოჯახების კონტაქტები, სადაც ადრე მუშაობდა, და დაელაპარაკეთ მათ.",
         "მოაწყვეთ საცდელი საათი, როცა თქვენ სახლში ხართ.",
-        "ჰკითხეთ იმავე ასაკის ბავშვებთან გამოცდილებაზე და პირველი დახმარების ცოდნაზე. ნახეთ განათლება, ნიშანი „დოკუმენტები შემოწმებულია“ და შეფასებები.",
+        "ჰკითხეთ იმავე ასაკის ბავშვებთან გამოცდილებაზე და პირველი დახმარების ცოდნაზე. ნახეთ განათლება, განყოფილება „დოკუმენტები“ და შეფასებები.",
         "არ გსურთ თავად ძებნა? დატოვეთ განაცხადი — მას კატალოგის ყველა ძიძა მიიღებს.",
       ],
       priceQ: "რა ღირს ძიძის მომსახურება ბათუმში?",
@@ -136,7 +136,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "Как выбрать репетитора",
       choose: [
-        "Смотрите в профиле образование и опыт — и отметку «Документы проверены»: сервис проверил диплом.",
+        "Смотрите в профиле образование и опыт — и раздел «Документы», если специалист их выложил.",
         "Уточните, на каком языке идут занятия и с каким классом репетитор работает.",
         "Договоритесь о пробном занятии — так ребёнок поймёт, удобно ли ему.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
@@ -180,7 +180,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "How to choose a tutor",
       choose: [
-        "Check education and experience in the profile — and the “Documents verified” badge: the service has checked the diploma.",
+        "Check education and experience in the profile — and the “Documents” section, if the specialist has uploaded them.",
         "Ask which language lessons are taught in and which school years the tutor works with.",
         "Arrange a trial lesson so your child can see if it feels right.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
@@ -215,7 +215,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "როგორ ავირჩიოთ რეპეტიტორი",
       choose: [
-        "ნახეთ პროფილში განათლება და გამოცდილება, ასევე ნიშანი „დოკუმენტები შემოწმებულია“.",
+        "ნახეთ პროფილში განათლება და გამოცდილება, ასევე განყოფილება „დოკუმენტები“.",
         "გაარკვიეთ, რა ენაზე ატარებს გაკვეთილებს და რომელ კლასებთან მუშაობს.",
         "შეთანხმდით საცდელ გაკვეთილზე.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
@@ -253,7 +253,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "Как выбрать логопеда или дефектолога",
       choose: [
-        "Смотрите образование в профиле и отметку «Документы проверены»: сервис проверил диплом или сертификат.",
+        "Смотрите образование в профиле и раздел «Документы», если специалист их выложил.",
         "Уточните, на каком языке идут занятия, — это особенно важно для детей, которые растут с двумя языками.",
         "Сначала запишитесь на консультацию: специалист посмотрит ребёнка и расскажет, как будут идти занятия.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
@@ -275,7 +275,7 @@ export const SEO_KIDS: SeoContent = {
         },
         {
           q: "Как проверить квалификацию логопеда?",
-          a: "Смотрите образование в профиле и спросите диплом. Если у специалиста стоит отметка «Документы проверены», сервис уже проверил его документы.",
+          a: "Смотрите образование в профиле и спросите диплом. Если специалист выложил документы, они есть в разделе «Документы» профиля.",
         },
       ],
     },
@@ -298,7 +298,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "How to choose a speech therapist",
       choose: [
-        "Check education in the profile and the “Documents verified” badge: the service has checked the diploma or certificate.",
+        "Check education in the profile and the “Documents” section, if the specialist has uploaded them.",
         "Ask which language sessions are in — especially important for bilingual children.",
         "Start with a consultation: the specialist will meet your child and explain how sessions will go.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
@@ -312,7 +312,7 @@ export const SEO_KIDS: SeoContent = {
       faq: [
         { q: "What language are sessions in?", a: "Each profile lists the languages the specialist works in. Choose one who works in your child's native language." },
         { q: "Are online sessions possible?", a: "Some specialists work online. Ask directly whether this format suits your child." },
-        { q: "How can I check a speech therapist's qualifications?", a: "Look at education in the profile and ask to see the diploma. The “Documents verified” badge means the service has already checked the documents." },
+        { q: "How can I check a speech therapist's qualifications?", a: "Look at education in the profile and ask to see the diploma. If the specialist has uploaded documents, they are in the profile’s “Documents” section." },
       ],
     },
     ka: {
@@ -334,7 +334,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "როგორ ავირჩიოთ ლოგოპედი ან დეფექტოლოგი",
       choose: [
-        "ნახეთ პროფილში განათლება და ნიშანი „დოკუმენტები შემოწმებულია“.",
+        "ნახეთ პროფილში განათლება და განყოფილება „დოკუმენტები“.",
         "გაარკვიეთ, რა ენაზე ატარებს მეცადინეობას — ეს განსაკუთრებით მნიშვნელოვანია ორენოვანი ბავშვებისთვის.",
         "დაიწყეთ კონსულტაციით: სპეციალისტი გაიცნობს ბავშვს და აგიხსნით, როგორ წარიმართება მეცადინეობა.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
@@ -347,7 +347,7 @@ export const SEO_KIDS: SeoContent = {
           : "თითოეული სპეციალისტი ფასებს პროფილში უთითებს. ფასი დამოკიდებულია მეცადინეობის ხანგრძლივობასა და ფორმატზე.",
       faq: [
         { q: "რა ენაზე მიმდინარეობს მეცადინეობა?", a: "თითოეული სპეციალისტის პროფილში ენებია მითითებული. აირჩიეთ ის, ვინც ბავშვის მშობლიურ ენაზე მუშაობს." },
-        { q: "როგორ შევამოწმო ლოგოპედის კვალიფიკაცია?", a: "ნახეთ განათლება პროფილში და სთხოვეთ დიპლომი. ნიშანი „დოკუმენტები შემოწმებულია“ ნიშნავს, რომ სერვისმა დოკუმენტები უკვე შეამოწმა." },
+        { q: "როგორ შევამოწმო ლოგოპედის კვალიფიკაცია?", a: "ნახეთ განათლება პროფილში და სთხოვეთ დიპლომი. თუ სპეციალისტმა დოკუმენტები ატვირთა, ისინი პროფილის განყოფილებაშია „დოკუმენტები“." },
       ],
     },
   },
@@ -372,7 +372,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "Как выбрать курсы или преподавателя",
       choose: [
-        "Смотрите образование в профиле и отметку «Документы проверены»: сервис проверил диплом или сертификат.",
+        "Смотрите образование в профиле и раздел «Документы», если специалист их выложил.",
         "Уточните, на каком языке преподаватель объясняет, — для начинающих это важно.",
         "Спросите, с каким возрастом и уровнем преподаватель работает, и договоритесь о пробном занятии.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
@@ -417,7 +417,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "How to choose a course or teacher",
       choose: [
-        "Check education in the profile and the “Documents verified” badge: the service has checked the diploma or certificate.",
+        "Check education in the profile and the “Documents” section, if the specialist has uploaded them.",
         "Ask which language the teacher explains in — this matters for beginners.",
         "Ask which ages and levels the teacher works with, and arrange a trial lesson.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
@@ -453,7 +453,7 @@ export const SEO_KIDS: SeoContent = {
       ],
       chooseTitle: "როგორ ავირჩიოთ კურსი ან მასწავლებელი",
       choose: [
-        "ნახეთ პროფილში განათლება და ნიშანი „დოკუმენტები შემოწმებულია“.",
+        "ნახეთ პროფილში განათლება და განყოფილება „დოკუმენტები“.",
         "გაარკვიეთ, რა ენაზე ხსნის მასწავლებელი — დამწყებთათვის ეს მნიშვნელოვანია.",
         "ჰკითხეთ, რა ასაკთან და დონესთან მუშაობს, და შეთანხმდით საცდელ გაკვეთილზე.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
@@ -491,7 +491,7 @@ export const SEO_KIDS: SeoContent = {
       chooseTitle: "Как выбрать преподавателя",
       choose: [
         "Смотрите в профиле фото и видео работ учеников — так видно подход преподавателя.",
-        "Проверьте образование и отметку «Документы проверены»: сервис проверил диплом.",
+        "Проверьте образование и раздел «Документы», если специалист их выложил.",
         "Уточните, с какого возраста преподаватель берёт детей, и договоритесь о пробном уроке.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Не знаете, кого выбрать, — оставьте заявку: её получат все преподаватели этого направления.",
@@ -535,7 +535,7 @@ export const SEO_KIDS: SeoContent = {
       chooseTitle: "How to choose a teacher",
       choose: [
         "Look at photos and videos of students' work in the profile — they show the teacher's approach.",
-        "Check education and the “Documents verified” badge: the service has checked the diploma.",
+        "Check education and the “Documents” section, if the specialist has uploaded them.",
         "Ask from what age the teacher takes children, and arrange a trial lesson.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Not sure whom to choose? Post a request — every teacher in this category gets it.",
@@ -570,7 +570,7 @@ export const SEO_KIDS: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ მასწავლებელი",
       choose: [
         "ნახეთ პროფილში მოსწავლეების ნამუშევრების ფოტოები და ვიდეოები.",
-        "შეამოწმეთ განათლება და ნიშანი „დოკუმენტები შემოწმებულია“.",
+        "შეამოწმეთ განათლება და განყოფილება „დოკუმენტები“.",
         "ჰკითხეთ, რა ასაკიდან იღებს ბავშვებს, და შეთანხმდით საცდელ გაკვეთილზე.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "არ იცით, ვინ აირჩიოთ? დატოვეთ განაცხადი — მას ყველა მასწავლებელი მიიღებს.",

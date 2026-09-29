@@ -22,7 +22,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "Как выбрать врача",
       choose: [
         "Смотрите в профиле образование, специализацию и опыт — их указывает сам врач.",
-        "Обратите внимание на отметку «Документы проверены»: диплом или лицензию проверил NomerOk.",
+        "Посмотрите раздел «Документы» в профиле — дипломы и сертификаты туда загружает сам специалист. При сомнениях попросите показать оригинал.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Проверьте языки приёма: в профиле видно, говорит ли врач по-русски, по-английски или по-грузински.",
         "Не знаете, к кому обратиться, — оставьте заявку: её получат все врачи каталога.",
@@ -67,7 +67,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "How to choose a doctor",
       choose: [
         "Check the education, specialisation and experience in the profile — the doctor lists them.",
-        "Look for the “Documents verified” badge — NomerOk has checked the diploma or licence.",
+        "See the “Documents” section of the profile — diplomas and certificates are uploaded by the specialist. If in doubt, ask to see the original.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Check consultation languages — the profile shows whether the doctor speaks English, Russian or Georgian.",
         "Not sure who to see? Post a request — every doctor in the catalogue gets it.",
@@ -112,7 +112,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ ექიმი",
       choose: [
         "ნახეთ პროფილში განათლება, სპეციალიზაცია და გამოცდილება — მათ თავად ექიმი უთითებს.",
-        "მიაქციეთ ყურადღება ნიშანს „დოკუმენტები შემოწმებულია“ — დიპლომი ან ლიცენზია NomerOk-მა შეამოწმა.",
+        "ნახეთ პროფილში განყოფილება „დოკუმენტები“ — დიპლომებსა და სერტიფიკატებს თავად სპეციალისტი ტვირთავს.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "შეამოწმეთ მიღების ენები — პროფილში ჩანს, საუბრობს თუ არა ექიმი რუსულად ან ინგლისურად.",
         "არ იცით, ვის მიმართოთ? დატოვეთ განაცხადი — მას კატალოგის ყველა ექიმი მიიღებს.",
@@ -156,7 +156,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "Как выбрать стоматолога",
       choose: [
         "Смотрите в профиле образование и специализацию — их указывает сам врач.",
-        "Обратите внимание на отметку «Документы проверены»: диплом или лицензию проверил NomerOk.",
+        "Посмотрите раздел «Документы» в профиле — дипломы и сертификаты туда загружает сам специалист. При сомнениях попросите показать оригинал.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Проверьте языки приёма и адрес клиники на карте — удобно выбрать ближе к дому.",
         "Не знаете, куда обратиться, — оставьте заявку: её получат все стоматологи каталога.",
@@ -201,7 +201,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "How to choose a dentist",
       choose: [
         "Check the education and specialisation in the profile — the dentist lists them.",
-        "Look for the “Documents verified” badge — NomerOk has checked the diploma or licence.",
+        "See the “Documents” section of the profile — diplomas and certificates are uploaded by the specialist. If in doubt, ask to see the original.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Check consultation languages and the clinic location on the map.",
         "Not sure where to go? Post a request — every dentist in the catalogue gets it.",
@@ -246,7 +246,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ სტომატოლოგი",
       choose: [
         "ნახეთ პროფილში განათლება და სპეციალიზაცია — მათ თავად ექიმი უთითებს.",
-        "მიაქციეთ ყურადღება ნიშანს „დოკუმენტები შემოწმებულია“ — დიპლომი ან ლიცენზია NomerOk-მა შეამოწმა.",
+        "ნახეთ პროფილში განყოფილება „დოკუმენტები“ — დიპლომებსა და სერტიფიკატებს თავად სპეციალისტი ტვირთავს.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "შეამოწმეთ მიღების ენები და კლინიკის მისამართი რუკაზე.",
         "არ იცით, ვის მიმართოთ? დატოვეთ განაცხადი — მას კატალოგის ყველა სტომატოლოგი მიიღებს.",
@@ -289,7 +289,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "Как выбрать психолога",
       choose: [
         "Смотрите в профиле образование и подход, в котором работает специалист.",
-        "Обратите внимание на отметку «Документы проверены»: диплом или сертификаты проверил NomerOk.",
+        "Посмотрите раздел «Документы» в профиле — дипломы и сертификаты туда загружает сам специалист. При сомнениях попросите показать оригинал.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Выбирайте язык консультации, на котором вам легко говорить, и начните с ознакомительной встречи.",
         "Не знаете, кого выбрать, — оставьте заявку: её получат все психологи каталога.",
@@ -333,7 +333,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "How to choose a psychologist",
       choose: [
         "Check the education and the approach the specialist works in — both are in the profile.",
-        "Look for the “Documents verified” badge — NomerOk has checked the diploma or certificates.",
+        "See the “Documents” section of the profile — diplomas and certificates are uploaded by the specialist. If in doubt, ask to see the original.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Choose a session language you're comfortable in, and start with an introductory meeting.",
         "Not sure who to pick? Post a request — every psychologist in the catalogue gets it.",
@@ -377,7 +377,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ ფსიქოლოგი",
       choose: [
         "ნახეთ პროფილში განათლება და მიდგომა, რომლითაც სპეციალისტი მუშაობს.",
-        "მიაქციეთ ყურადღება ნიშანს „დოკუმენტები შემოწმებულია“ — დიპლომი ან სერტიფიკატები NomerOk-მა შეამოწმა.",
+        "ნახეთ პროფილში განყოფილება „დოკუმენტები“ — დიპლომებსა და სერტიფიკატებს თავად სპეციალისტი ტვირთავს.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "აირჩიეთ ენა, რომელზეც თავისუფლად საუბრობთ, და დაიწყეთ გაცნობითი შეხვედრით.",
         "არ იცით, ვინ აირჩიოთ? დატოვეთ განაცხადი — მას კატალოგის ყველა ფსიქოლოგი მიიღებს.",
@@ -425,7 +425,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "Как выбрать массажиста",
       choose: [
         "Смотрите в профиле образование, курсы и виды массажа, которые делает специалист.",
-        "Обратите внимание на отметку «Документы проверены»: дипломы и сертификаты проверил NomerOk.",
+        "Посмотрите раздел «Документы» в профиле — дипломы и сертификаты туда загружает сам специалист. При сомнениях попросите показать оригинал.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Уточните заранее цену, длительность сеанса и язык общения.",
         "Нужно на сегодня — оставьте заявку: её получат все массажисты каталога.",
@@ -470,7 +470,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "How to choose a massage therapist",
       choose: [
         "Check the training, courses and massage types listed in the profile.",
-        "Look for the “Documents verified” badge — NomerOk has checked the diplomas and certificates.",
+        "See the “Documents” section of the profile — diplomas and certificates are uploaded by the specialist. If in doubt, ask to see the original.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the price, session length and language in advance.",
         "Need it today? Post a request — every massage therapist in the catalogue gets it.",
@@ -515,7 +515,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ მასაჟისტი",
       choose: [
         "ნახეთ პროფილში განათლება, კურსები და მასაჟის სახეები.",
-        "მიაქციეთ ყურადღება ნიშანს „დოკუმენტები შემოწმებულია“ — დიპლომები და სერტიფიკატები NomerOk-მა შეამოწმა.",
+        "ნახეთ პროფილში განყოფილება „დოკუმენტები“ — დიპლომებსა და სერტიფიკატებს თავად სპეციალისტი ტვირთავს.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "წინასწარ შეათანხმეთ ფასი, სეანსის ხანგრძლივობა და საუბრის ენა.",
         "დღესვე გჭირდებათ? დატოვეთ განაცხადი — მას კატალოგის ყველა მასაჟისტი მიიღებს.",
@@ -558,7 +558,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "Как выбрать ветеринара",
       choose: [
         "Смотрите в профиле образование, опыт и то, с какими животными работает врач.",
-        "Обратите внимание на отметку «Документы проверены»: диплом или лицензию проверил NomerOk.",
+        "Посмотрите раздел «Документы» в профиле — дипломы и сертификаты туда загружает сам специалист. При сомнениях попросите показать оригинал.",
         "Читайте отзывы — их оставляют только через Telegram, накрутить их нельзя.",
         "Проверьте язык общения и адрес клиники на карте — или есть ли выезд на дом.",
         "Не знаете, к кому обратиться, — оставьте заявку: её получат все ветеринары каталога.",
@@ -602,7 +602,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "How to choose a vet",
       choose: [
         "Check the education, experience and which animals the vet works with — all in the profile.",
-        "Look for the “Documents verified” badge — NomerOk has checked the diploma or licence.",
+        "See the “Documents” section of the profile — diplomas and certificates are uploaded by the specialist. If in doubt, ask to see the original.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Check the language, the clinic location on the map, or whether home visits are offered.",
         "Not sure who to call? Post a request — every vet in the catalogue gets it.",
@@ -646,7 +646,7 @@ export const SEO_HEALTH: SeoContent = {
       chooseTitle: "როგორ ავირჩიოთ ვეტერინარი",
       choose: [
         "ნახეთ პროფილში განათლება, გამოცდილება და რა ცხოველებთან მუშაობს ექიმი.",
-        "მიაქციეთ ყურადღება ნიშანს „დოკუმენტები შემოწმებულია“ — დიპლომი ან ლიცენზია NomerOk-მა შეამოწმა.",
+        "ნახეთ პროფილში განყოფილება „დოკუმენტები“ — დიპლომებსა და სერტიფიკატებს თავად სპეციალისტი ტვირთავს.",
         "წაიკითხეთ შეფასებები — მათი დატოვება მხოლოდ Telegram-ით შეიძლება.",
         "შეამოწმეთ საუბრის ენა, კლინიკის მისამართი რუკაზე ან ბინაზე ვიზიტის შესაძლებლობა.",
         "არ იცით, ვის მიმართოთ? დატოვეთ განაცხადი — მას კატალოგის ყველა ვეტერინარი მიიღებს.",

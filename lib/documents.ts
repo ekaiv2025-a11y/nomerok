@@ -51,9 +51,9 @@ export async function signedUrls(paths: string[]): Promise<Record<string, string
   return out;
 }
 
-/** Для страницы специалиста: только проверенные документы, которые он разрешил показывать. */
+/** Для страницы специалиста: документы, которые он разрешил показывать (сразу, без проверки; админ может скрыть). */
 export async function publicDocuments(docs: MasterDocument[] | null | undefined): Promise<PublicDocument[]> {
-  const list = (docs ?? []).filter((d) => d.status === "verified" && d.public);
+  const list = (docs ?? []).filter((d) => d.status !== "rejected" && d.public);
   if (!list.length) return [];
   const urls = await signedUrls(list.map((d) => d.path)).catch(() => ({}) as Record<string, string>);
   return list.filter((d) => urls[d.path]).map((d) => ({ id: d.id, title: d.title, kind: d.kind, type: d.type, url: urls[d.path] }));

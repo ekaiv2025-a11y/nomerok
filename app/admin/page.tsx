@@ -60,7 +60,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { id: "pending", label: `Анкеты${pending.length ? ` · ${pending.length}` : ""}` },
     { id: "masters", label: `Специалисты · ${others.length}` },
     { id: "reviews", label: `Отзывы${pendingReviews ? ` · ${pendingReviews} на проверке` : ""}` },
-    { id: "docs", label: `Документы${docsToCheck.length ? ` · ${docsToCheck.length} на проверке` : ""}` },
+    { id: "docs", label: `Документы${docsToCheck.length ? ` · ${docsToCheck.length} новых` : ""}` },
     { id: "complaints", label: `Жалобы${newComplaints ? ` · ${newComplaints} новых` : ""}` },
     { id: "bot", label: "Telegram-бот" },
   ];

@@ -258,11 +258,11 @@ export async function setDocumentStatus(formData: FormData) {
   if (!doc) return;
   const docs = (m.documents ?? []).map((d) => (d.id === docId ? { ...d, status: status as "verified" | "rejected" | "pending" } : d));
   await adminUpdateMaster(m.id, { documents: docs });
-  if (m.tg_chat_id && doc.status !== status && (status === "verified" || status === "rejected")) {
+  if (m.tg_chat_id && doc.status !== status && status === "rejected") {
     const { sendTo } = await import("@/lib/telegram");
     const { botDict } = await import("@/lib/i18n/bot");
     const b = botDict(m.lang);
-    await sendTo(m.tg_chat_id, status === "verified" ? b.docVerified(doc.title) : b.docRejected(doc.title)).catch(() => null);
+    await sendTo(m.tg_chat_id, b.docRejected(doc.title)).catch(() => null);
   }
   refreshPublic(m.slug);
   redirect(back);

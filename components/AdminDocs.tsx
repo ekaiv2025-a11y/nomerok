@@ -2,7 +2,7 @@ import { setDocumentStatus } from "@/app/admin/actions";
 import type { MasterDocument } from "@/lib/types";
 
 const KIND = { diploma: "Диплом", certificate: "Сертификат", license: "Лицензия", other: "Другое" } as const;
-const STATUS = { pending: "На проверке", verified: "Проверен", rejected: "Не принят" } as const;
+const STATUS = { pending: "Новый", verified: "Просмотрен", rejected: "Скрыт с сайта" } as const;
 
 /** Админка: список документов специалиста с кнопками «Проверено / Не принят». */
 export function AdminDocs({ masterId, docs, urls, back }: { masterId: string; docs: MasterDocument[]; urls: Record<string, string>; back: string }) {
@@ -25,7 +25,7 @@ export function AdminDocs({ masterId, docs, urls, back }: { masterId: string; do
               {d.title}
             </a>
             <div className="text-[12px] text-muted">
-              {KIND[d.kind]} · {STATUS[d.status]} · {d.public ? "показывать клиентам" : "только для проверки"} · {new Date(d.uploaded_at).toLocaleDateString("ru-RU")}
+              {KIND[d.kind]} · {STATUS[d.status]} · {d.public ? "виден клиентам" : "специалист скрыл"} · {new Date(d.uploaded_at).toLocaleDateString("ru-RU")}
             </div>
           </div>
           <div className="flex gap-2">
@@ -38,7 +38,7 @@ export function AdminDocs({ masterId, docs, urls, back }: { masterId: string; do
                   <input type="hidden" name="status" value={s} />
                   <input type="hidden" name="back" value={back} />
                   <button className={s === "verified" ? "btn-primary h-9 px-3 text-[13px]" : "btn-ghost h-9 px-3 text-[13px]"}>
-                    {s === "verified" ? "✓ Проверено" : "Не принят"}
+                    {s === "verified" ? (d.status === "rejected" ? "Вернуть на сайт" : "✓ Просмотрено") : "Скрыть с сайта"}
                   </button>
                 </form>
               ))}

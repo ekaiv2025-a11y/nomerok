@@ -53,9 +53,8 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
           </div>
         )}
-        {(m.docs_verified || atPlace) && (
+        {atPlace && (
           <div className="mt-1.5 flex flex-wrap gap-1">
-            {m.docs_verified && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-dark">✓ {t.docsVerified}</span>}
             {atPlace && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {m.place_address?.trim() || t.atPlace}</span>}
           </div>
         )}

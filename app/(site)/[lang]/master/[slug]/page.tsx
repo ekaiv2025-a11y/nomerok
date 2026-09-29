@@ -80,11 +80,6 @@ export default async function MasterPage({ params }: Props) {
         <div className="min-w-0">
           <h1 className="text-[24px] font-bold leading-tight sm:text-[30px]">{m.name}</h1>
           {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
-          {m.docs_verified && (
-            <a href="#documents" className="ml-1.5">
-              <VerifiedBadge label={t.docsVerified} large />
-            </a>
-          )}
           {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
             {cat} · {cityLabel(m.city, lang)}
@@ -232,7 +227,7 @@ export default async function MasterPage({ params }: Props) {
           {docs.length > 0 && (
             <section id="documents" className="mt-8 scroll-mt-24">
               <h2 className="text-[18px] font-bold">{t.documents}</h2>
-              <p className="mt-1 text-[13px] text-brand-dark">✓ {t.docsVerifiedNote}</p>
+              <p className="mt-1 text-[13px] text-muted">{t.docsVerifiedNote}</p>
               {docs.some((x) => x.type === "image") && (
                 <Gallery items={docs.filter((x) => x.type === "image").map((x) => ({ url: x.url, caption: `${t.kinds[x.kind]}: ${x.title}` }))} />
               )}

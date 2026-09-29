@@ -201,7 +201,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     city: m.city ?? "batumi",
     links: m.links && typeof m.links === "object" ? m.links : {},
     has_tg: !!(m as { telegram?: string | null }).telegram,
-    docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.status === "verified"),
+    docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
     demo: isDemoSlug(m.slug),
