@@ -1,4 +1,8 @@
 import type { Locale } from "./i18n/config";
+import { SEO_HOME } from "./seo/home";
+import { SEO_KIDS } from "./seo/kids";
+import { SEO_HEALTH } from "./seo/health";
+import { SEO_OTHER } from "./seo/other";
 
 /*
  * Страницы-лендинги по направлениям (для поиска Google и Яндекса): /ru/services/plumber
@@ -20,7 +24,9 @@ export type SeoText = {
   priceA: (price: string | null) => string;
 };
 
-export const SEO_CATEGORIES: Record<string, Partial<Record<Locale, SeoText>>> = {
+export type SeoContent = Record<string, Partial<Record<Locale, SeoText>>>;
+
+const BASE: SeoContent = {
   plumber: {
     ru: {
       title: "Сантехники в Батуми — цены, отзывы, контакты напрямую",
@@ -85,7 +91,7 @@ export const SEO_CATEGORIES: Record<string, Partial<Record<Locale, SeoText>>> = 
       chooseTitle: "How to choose a plumber",
       choose: [
         "Look at work photos in the profile — you can see how neatly the plumber works.",
-        "Check the “Phone verified” badge — the number was confirmed via Telegram.",
+        "Check the “Number verified” badge — the number was confirmed via Telegram.",
         "Read reviews — they can only be left via Telegram, so they can't be faked.",
         "Agree on the price and warranty before work starts.",
         "Urgent? Post a request — every plumber in the catalogue gets it at once.",
@@ -137,6 +143,8 @@ export const SEO_CATEGORIES: Record<string, Partial<Record<Locale, SeoText>>> = 
     },
   },
 };
+
+export const SEO_CATEGORIES: SeoContent = { ...BASE, ...SEO_HOME, ...SEO_KIDS, ...SEO_HEALTH, ...SEO_OTHER };
 
 export function seoText(cat: string, lang: Locale): SeoText | null {
   return SEO_CATEGORIES[cat]?.[lang] ?? null;
