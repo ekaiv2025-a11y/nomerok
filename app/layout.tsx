@@ -6,7 +6,11 @@ import { isLocale } from "@/lib/i18n/config";
 
 const ADSENSE_CLIENT = "ca-pub-5576253699234226";
 
-export const metadata: Metadata = { metadataBase: new URL(SITE_URL) };
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  // Подтверждение сайта в Google Search Console
+  verification: { google: "aP1Zi8ZLQQ8sCMkHwzWjo1_KSyFPKDUuGy0r4-VXWtA" },
+};
 
 export const viewport: Viewport = { themeColor: "#1f6b4f", width: "device-width", initialScale: 1 };
 
