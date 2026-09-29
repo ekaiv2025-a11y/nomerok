@@ -163,7 +163,7 @@ export async function writeLocal(d: LocalData) {
 
 type PublicRow = Omit<
   PublicMaster,
-  "verified" | "away" | "extra_categories" | "away_until" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours"
+  "verified" | "has_tg" | "away" | "extra_categories" | "away_until" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours"
 > &
   Partial<Pick<Master, "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents">> & {
   phone_verified_at: string | null;
@@ -200,6 +200,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     work_hours: m.work_hours ?? "",
     city: m.city ?? "batumi",
     links: m.links && typeof m.links === "object" ? m.links : {},
+    has_tg: !!(m as { telegram?: string | null }).telegram,
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.status === "verified"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -219,7 +220,7 @@ export function check<T>(res: { data: T | null; error: { message: string } | nul
 }
 
 const BASE_COLUMNS =
-  "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at";
+  "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at,telegram";
 const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
 const COLUMNS_0005 = COLUMNS_0004 + ",archived_at";
 const COLUMNS_0006 = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";

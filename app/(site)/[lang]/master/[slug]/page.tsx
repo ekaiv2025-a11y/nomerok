@@ -166,7 +166,7 @@ export default async function MasterPage({ params }: Props) {
             </section>
           )}
 
-          <SocialLinks links={m.links} lang={lang} />
+          <SocialLinks links={m.links} lang={lang} tgMasterId={m.has_tg && !m.demo ? m.id : null} />
 
           <section className="mt-8">
             <h2 className="text-[18px] font-bold">{t.where}</h2>

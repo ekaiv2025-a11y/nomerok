@@ -231,6 +231,7 @@ export function demoPublicMasters(): PublicMaster[] {
     city: "batumi",
     links: {},
     docs_verified: false,
+    has_tg: false,
     verified: false,
     demo: true,
     rating: null,

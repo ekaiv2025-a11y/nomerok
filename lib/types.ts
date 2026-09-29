@@ -117,7 +117,7 @@ export type PublicMaster = Pick<
   | "work_hours"
   | "city"
   | "links"
-> & { docs_verified: boolean; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
+> & { docs_verified: boolean; has_tg: boolean; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
   phone: string;

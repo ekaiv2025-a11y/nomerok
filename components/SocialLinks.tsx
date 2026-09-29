@@ -1,6 +1,8 @@
 import { linkLabel, LINK_KINDS, type LinkKind, type MasterLinks } from "@/lib/links";
 import type { Locale } from "@/lib/i18n";
 
+import { TgContactButton } from "./TgContactButton";
+
 export const LINK_TEXT: Record<Locale, { title: string; hint: string; placeholder: string; names: Record<LinkKind, string> }> = {
   ru: {
     title: "Соцсети и сайт",
@@ -78,14 +80,15 @@ const STYLE: Record<LinkKind, { bg: string; icon: React.ReactNode }> = {
 };
 
 /** Профиль: кнопки соцсетей в фирменных цветах. */
-export function SocialLinks({ links, lang }: { links: MasterLinks; lang: Locale }) {
+export function SocialLinks({ links, lang, tgMasterId }: { links: MasterLinks; lang: Locale; tgMasterId?: string | null }) {
   const items = LINK_KINDS.filter((k) => links[k]);
-  if (!items.length) return null;
+  if (!items.length && !tgMasterId) return null;
   const t = LINK_TEXT[lang];
   return (
     <section className="mt-8">
       <h2 className="text-[18px] font-bold">{t.title}</h2>
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {tgMasterId && <TgContactButton masterId={tgMasterId} lang={lang} icon={STYLE.tg_channel.icon} bg={STYLE.tg_channel.bg} />}
         {items.map((k) => (
           <a
             key={k}
