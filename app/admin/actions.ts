@@ -259,3 +259,13 @@ export async function setDocumentStatus(formData: FormData) {
   refreshPublic(m.slug);
   redirect(back);
 }
+
+/** Переносит ссылки из текстов анкет в «Соцсети и сайт» (у одного специалиста или у всех). */
+export async function applyLinks(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "") || undefined;
+  const { applyLinkMoves } = await import("@/lib/link-migration");
+  const n = await applyLinkMoves(id);
+  revalidatePath("/", "layout");
+  redirect(`/admin/links?done=${n}`);
+}

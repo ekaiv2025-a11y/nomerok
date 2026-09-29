@@ -319,6 +319,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               <form action={removeDemo} className="mt-2"><button className="btn-ghost h-9 px-4 text-[13px] text-danger">Удалить старые примеры из базы</button></form>
             )}
           </div>
+          <Link href="/admin/links" className="block rounded-2xl bg-white p-4 text-[14px] font-semibold text-brand hover:bg-brand-soft">
+            🔗 Перенести ссылки из текстов анкет в «Соцсети и сайт» →
+          </Link>
           <p className="text-[13px] text-muted">«Открытий» — сколько разных посетителей открыли контакты специалиста в этом месяце. Пригодится для расчёта оплаты.</p>
           {others.length === 0 && <Empty text="Опубликованных специалистов пока нет. Опубликуйте анкету или добавьте специалиста вручную." />}
           {others.map((m) => (

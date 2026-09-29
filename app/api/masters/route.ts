@@ -13,6 +13,7 @@ import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 import { cityLabel, cityOf } from "@/lib/cities";
 import { normalizeLinks } from "@/lib/links";
+import { pullLinks } from "@/lib/extract-links";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -49,6 +50,8 @@ export async function POST(req: Request) {
     place_lng: needsPlace ? Math.round(lng * 1e6) / 1e6 : null,
   };
 
+  const links = pullLinks(d, d.telegram ?? null, normalizeLinks(body.links));
+
   try {
     const m = await createMaster({
       name: d.name,
@@ -71,7 +74,6 @@ export async function POST(req: Request) {
 
     await adminUpdateMaster(m.id, where).catch(() => {});
     await adminUpdateMaster(m.id, { city: cityOf(body.city) }).catch(() => {});
-    const links = normalizeLinks(body.links);
     if (Object.keys(links).length) await adminUpdateMaster(m.id, { links }).catch(() => {});
 
     if (pre) {

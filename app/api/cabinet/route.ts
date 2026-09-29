@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isCity } from "@/lib/cities";
 import { normalizeLinks } from "@/lib/links";
+import { pullLinks } from "@/lib/extract-links";
 import { adminGetMaster, adminUpdateMaster } from "@/lib/db";
 import { cabinetSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { currentSpecialistId } from "@/lib/spec-auth";
@@ -46,6 +47,8 @@ export async function POST(req: Request) {
     };
   }
   if (extra.length > MAX_EXTRA_CATEGORIES) return NextResponse.json({ ok: false, fields: { extra_categories: getDict(lang).cabinet.extraMax } }, { status: 422 });
+  const hasLinks = !!body.links && typeof body.links === "object";
+  const links = pullLinks(d, d.telegram ?? null, hasLinks ? normalizeLinks(body.links) : {});
   await adminUpdateMaster(id, {
     name: d.name,
     services: d.services,
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
     ...(Array.isArray(body.extra_categories) ? { extra_categories: extra } : {}),
     ...(where ? where : {}),
     ...(isCity(body.city) ? { city: body.city } : {}),
-    ...(body.links && typeof body.links === "object" ? { links: normalizeLinks(body.links) } : {}),
+    ...(hasLinks || Object.keys(links).length ? { links } : {}),
     lang,
   });
   await notifyAdmin(`✏️ <b>${escapeHtml(d.name)}</b> обновил(а) профиль в кабинете\n${SITE_URL}/admin/masters/${id}`);
