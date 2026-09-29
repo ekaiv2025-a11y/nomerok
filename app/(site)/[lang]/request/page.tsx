@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return pageMeta(lang, "/request", t.request, t.requestDesc);
 }
 
-type Props = LangParams & { searchParams: Promise<{ category?: string; master?: string }> };
+type Props = LangParams & { searchParams: Promise<{ category?: string; master?: string; city?: string }> };
 
 /** Общая заявка: её получают все специалисты направления. Написать конкретному — на странице специалиста. */
 export default async function RequestPage({ params, searchParams }: Props) {
@@ -35,7 +35,7 @@ export default async function RequestPage({ params, searchParams }: Props) {
         ))}
       </ol>
       <div className="mt-6">
-        <RequestForm lang={lang} defaultCategory={sp.category} />
+        <RequestForm lang={lang} defaultCategory={sp.category} defaultCity={sp.city} />
       </div>
       <p className="mt-6 text-center text-[14px]">
         <Link href={href(lang) + "#masters"} className="font-semibold text-brand hover:underline">

@@ -9,12 +9,12 @@ const en: Dict = {
     description:
       "Handymen, tutors, doctors, nannies and other specialists in Batumi. Contact them directly, no middlemen. Can't find the right one? Post a request and specialists will contact you.",
     request: "Post a request",
-    requestDesc: "Describe what you need — specialists in that field in Batumi will receive it and contact you.",
+    requestDesc: "Describe what you need — specialists in that field in your city will receive it and contact you.",
     join: "Specialist sign-up",
-    joinDesc: (site) => `Specialists in Batumi: sign up on ${site} and get clients directly.`,
+    joinDesc: (site) => `Specialists in Batumi and across Georgia: sign up on ${site} and get clients directly.`,
     how: "How it works",
     contacts: "Contact us",
-    masterTitle: (name, cat) => `${name} — ${cat.toLowerCase()} in Batumi`,
+    masterTitle: (name, cat, where = "in Batumi") => `${name} — ${cat.toLowerCase()} ${where}`,
     masterNotFound: "Specialist not found",
   },
   nav: {
@@ -44,7 +44,7 @@ const en: Dict = {
     rules: "Site rules",
   },
   home: {
-    h1a: "Specialists in Batumi —",
+    h1a: (where = "in Batumi") => `Specialists ${where} —`,
     h1b: "direct",
     sub: "Choose a specialist and message them directly — or post a request and specialists will respond themselves.",
     steps: ["Choose a specialist", "Open their contacts", "Agree directly"],
@@ -156,7 +156,7 @@ const en: Dict = {
     tgBtn: "Get responses in Telegram",
     title: "Post a request",
     subMaster: "The specialist will receive your request and contact you.",
-    subGeneral: "Describe the job — specialists in that field in Batumi will receive it. Those ready to take it will contact you. It's free.",
+    subGeneral: "Describe the job — specialists in that field in your city will receive it. Those ready to take it will contact you. It's free.",
     toMaster: "Request to:",
     who: "Who do you need?",
     what: "What needs to be done?",

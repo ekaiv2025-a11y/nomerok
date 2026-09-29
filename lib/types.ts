@@ -70,6 +70,8 @@ export type Master = {
   portfolio: PortfolioItem[];
   /** Где работает: выезд к клиенту, у себя, и то и другое, онлайн */
   work_mode: WorkMode;
+  /** Город (id из lib/cities), по умолчанию batumi */
+  city: string;
   /** Точка, где принимает (показывается на карте) */
   place_address: string;
   place_lat: number | null;
@@ -110,6 +112,7 @@ export type PublicMaster = Pick<
   | "place_lng"
   | "service_area"
   | "work_hours"
+  | "city"
 > & { docs_verified: boolean; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
@@ -130,6 +133,7 @@ export type ClientRequest = {
   admin_note: string;
   lang: Locale;
   client_tg_chat_id: number | null;
+  city: string;
   client_link_token: string;
   sent_count: number;
   /** Когда клиенту отправили вопрос «Удалось договориться?» */
@@ -147,13 +151,13 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents" | "stats_sent_at"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents" | "stats_sent_at" | "city"
 > & {
   admin_note?: string;
   lang?: Locale;
 };
 
-export type NewRequest = Pick<ClientRequest, "category" | "description" | "when_text" | "name" | "phone" | "master_id"> & { lang?: Locale };
+export type NewRequest = Pick<ClientRequest, "category" | "description" | "when_text" | "name" | "phone" | "master_id"> & { lang?: Locale; city?: string };
 
 export type ReviewStatus = "pending" | "published" | "rejected";
 export type Review = {

@@ -2,6 +2,7 @@ import { LANGUAGES, PRICE_UNITS } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import type { Master } from "@/lib/types";
 import { CategoryOptions } from "./CategoryOptions";
+import { CityOptions } from "./CitySelect";
 import { saveMaster } from "@/app/admin/actions";
 
 export function MasterEditForm({ m }: { m?: Master }) {
@@ -21,6 +22,11 @@ export function MasterEditForm({ m }: { m?: Master }) {
           <select name="category" defaultValue={m?.category ?? ""} className="field" required>
             <option value="" disabled>Выберите…</option>
             <CategoryOptions />
+          </select>
+        </L>
+        <L label="Город">
+          <select name="city" defaultValue={m?.city ?? "batumi"} className="field">
+            <CityOptions lang="ru" />
           </select>
         </L>
       </div>

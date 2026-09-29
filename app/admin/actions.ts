@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { cityOf } from "@/lib/cities";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE, adminCookieValue, checkPassword, requireAdmin } from "@/lib/admin-auth";
@@ -122,23 +123,25 @@ function parseMasterForm(formData: FormData) {
       photo_url: photo || null,
       admin_note: s("admin_note"),
     },
+    city: cityOf(formData.get("city")),
   };
 }
 
 export async function saveMaster(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  const { errors, data } = parseMasterForm(formData);
+  const { errors, data, city } = parseMasterForm(formData);
   const base = id ? `/admin/masters/${id}` : "/admin/masters/new";
   if (errors.length) redirect(`${base}?error=${encodeURIComponent("Проверьте: " + errors.join(", "))}`);
 
   if (id) {
-    await adminUpdateMaster(id, data);
+    await adminUpdateMaster(id, { ...data, city });
     refreshPublic(await adminGetMasterSlug(id));
     redirect(`${base}?saved=1`);
   } else {
     const status = String(formData.get("status")) === "published" ? "published" : "pending";
     const m = await createMaster({ ...data, status, consent_at: formData.get("consent") === "on" ? new Date().toISOString() : null });
+    await adminUpdateMaster(m.id, { city }).catch(() => {});
     refreshPublic(m.slug);
     redirect(`/admin/masters/${m.id}?saved=1`);
   }

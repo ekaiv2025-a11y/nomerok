@@ -8,9 +8,21 @@ import { Map, type MapPoint } from "./map/Map";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
 import { MasterCard } from "./MasterCard";
+import { useRouter } from "next/navigation";
+import { CITIES, type CityId } from "@/lib/cities";
+import { MapPin } from "lucide-react";
 
-export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Locale }) {
+export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[]; lang: Locale; city: CityId }) {
   const t = getDict(lang).catalog;
+  const router = useRouter();
+  // Город: показываем специалистов выбранного города; в списке — Батуми и города, где уже кто-то есть
+  const masters = useMemo(() => all.filter((m) => (m.city ?? "batumi") === city), [all, city]);
+  const cityCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const m of all) c[m.city ?? "batumi"] = (c[m.city ?? "batumi"] ?? 0) + 1;
+    return c;
+  }, [all]);
+  const cities = CITIES.filter((c) => c.id === "batumi" || c.id === city || cityCounts[c.id]);
   const [cat, setCat] = useState<string>("all");
   // Ссылка вида nomerok.ge/ru?cat=plumber сразу открывает нужное направление (удобно для баннеров и чатов)
   useEffect(() => {
@@ -53,7 +65,7 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
       href: href(lang, `/master/${m.slug}`),
       photo: m.photo_url,
     }));
-  const requestHref = href(lang, `/request${cat !== "all" ? `?category=${cat}` : ""}`);
+  const requestHref = href(lang, `/request?${new URLSearchParams({ ...(cat !== "all" ? { category: cat } : {}), ...(city !== "batumi" ? { city } : {}) }).toString()}`);
 
   return (
     <section id="masters" className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -72,6 +84,25 @@ export function Catalog({ masters, lang }: { masters: PublicMaster[]; lang: Loca
           </button>
         )}
       </div>
+
+      {cities.length > 1 && (
+        <label className="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white pl-3.5 pr-2 text-[14px] font-semibold">
+          <MapPin className="h-4 w-4 text-brand" aria-hidden />
+          <select
+            value={city}
+            onChange={(e) => router.push(e.target.value === "batumi" ? `/${lang}#masters` : `/${lang}?city=${e.target.value}#masters`)}
+            className="h-full bg-transparent pr-1 outline-none"
+            aria-label="City"
+          >
+            {cities.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label[lang]}
+                {cityCounts[c.id] ? ` · ${cityCounts[c.id]}` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {visibleCats.length > 1 && (
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>

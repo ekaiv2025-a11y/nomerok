@@ -11,6 +11,7 @@ import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
+import { cityLabel, cityOf } from "@/lib/cities";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
     });
 
     await adminUpdateMaster(m.id, where).catch(() => {});
+    await adminUpdateMaster(m.id, { city: cityOf(body.city) }).catch(() => {});
 
     if (pre) {
       await adminUpdateMaster(m.id, { tg_chat_id: pre.chatId, tg_username: pre.username, phone_verified_at: new Date().toISOString() });
@@ -87,6 +89,7 @@ export async function POST(req: Request) {
         `<b>${escapeHtml(m.name)}</b> — ${escapeHtml(categoryLabel(m.category, "ru"))}`,
         `<b>Услуги:</b> ${escapeHtml(m.services)}`,
         `<b>Телефон:</b> ${escapeHtml(formatPhone(m.phone))}${m.telegram ? ` · @${escapeHtml(m.telegram)}` : ""}`,
+        `<b>Город:</b> ${cityLabel(cityOf(body.city), "ru")}`,
         `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
         pre ? "✅ Номер подтверждён через Telegram" : "",
         `\nПроверить и опубликовать: ${SITE_URL}/admin/masters/${m.id}`,

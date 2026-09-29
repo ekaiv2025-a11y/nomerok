@@ -9,6 +9,7 @@ import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
+import { cityLabel, cityOf } from "@/lib/cities";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
       phone: data.phone,
       master_id: master?.id ?? null,
       lang,
+      city: master ? (master.city ?? "batumi") : cityOf(body.city),
     });
 
     // Рассылаем заявку подтверждённым специалистам в Telegram
@@ -46,7 +48,7 @@ export async function POST(req: Request) {
 
     const lines = [
       master ? "✉️ <b>Сообщение специалисту</b>" : "🆕 <b>Новая заявка</b>",
-      `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))}`,
+      `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}`,
       master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
       `<b>Задача:</b> ${escapeHtml(saved.description)}`,
       saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",

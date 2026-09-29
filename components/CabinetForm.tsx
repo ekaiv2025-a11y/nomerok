@@ -7,6 +7,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { CATEGORIES, LANGUAGES, PRICE_UNITS, categoryLabel, languageLabel, unitLabel } from "@/lib/categories";
 import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
 import { WhereFields, type WhereValue } from "./WhereFields";
+import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { resizeImage } from "@/lib/image-resize";
 import { getDict, type Locale } from "@/lib/i18n";
 import { Field, fc } from "./form-kit";
@@ -25,6 +26,7 @@ type Initial = {
   notify_requests: boolean;
   photo_url: string | null;
   category: string;
+  city: string;
   extra_categories: string[];
   where: WhereValue;
 };
@@ -44,6 +46,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
   const fileRef = useRef<HTMLInputElement>(null);
   const [extra, setExtra] = useState<string[]>(initial.extra_categories ?? []);
   const [where, setWhere] = useState<WhereValue>(initial.where);
+  const [city, setCity] = useState(initial.city || "batumi");
   function toggleExtra(id: string) {
     setExtra((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= MAX_EXTRA_CATEGORIES ? cur : [...cur, id]));
   }
@@ -98,6 +101,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           telegram: f.get("telegram"),
           whatsapp: f.get("whatsapp") === "on",
           extra_categories: extra,
+          city: f.get("city"),
           ...where,
         }),
       });
@@ -192,10 +196,15 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           ))}
         </div>
       </fieldset>
+      <Field label={CITY_LABEL[lang]}>
+        <select name="city" value={city} onChange={(e) => setCity(e.target.value)} className={fc()}>
+          <CityOptions lang={lang} />
+        </select>
+      </Field>
       <Field label={j.telegram} optional={opt} error={errors.telegram}>
         <input name="telegram" defaultValue={initial.telegram ? "@" + initial.telegram : ""} className={fc(errors.telegram)} autoCapitalize="off" />
       </Field>
-      <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} />
+      <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} city={city} />
       <fieldset>
         <legend className="text-[14px] font-semibold">
           {t.extraTitle} <span className="font-normal text-muted">{opt}</span>

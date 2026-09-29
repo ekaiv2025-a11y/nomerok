@@ -9,6 +9,7 @@ import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { AvatarZoom } from "@/components/AvatarZoom";
 import { seoCategoryIds } from "@/lib/seo-categories";
+import { cityIn, cityLabel } from "@/lib/cities";
 import { ContactReveal } from "@/components/ContactReveal";
 import { StickyContactBar } from "@/components/StickyContactBar";
 import { ViewTracker } from "@/components/ViewTracker";
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = getDict(lang);
   const m = await getPublishedMasterBySlug(slug).catch(() => null);
   if (!m) return { title: t.meta.masterNotFound };
-  const title = t.meta.masterTitle(m.name, categoryLabel(m.category, lang));
+  const title = t.meta.masterTitle(m.name, categoryLabel(m.category, lang), cityIn(m.city, lang));
   const services = m.services.split(/\n/).map((s) => s.trim()).filter(Boolean).join(", ").slice(0, 150);
   const base = pageMeta(lang, `/master/${m.slug}`, title, `${services}. ${priceText(m, lang)}.`);
   return {
@@ -61,7 +62,7 @@ export default async function MasterPage({ params }: Props) {
 
   // Другие специалисты: сначала из той же категории, потом остальные (до 8 штук)
   const all = await listPublishedMasters().catch(() => []);
-  const others = all.filter((x) => x.id !== m.id);
+  const others = all.filter((x) => x.id !== m.id && x.city === m.city);
   // Похожие — только того же направления (основного или дополнительного), без сантехников под маникюром
   const mine = new Set([m.category, ...m.extra_categories]);
   const related = (x: (typeof others)[number]) => mine.has(x.category) || x.extra_categories.some((c) => mine.has(c));
@@ -86,7 +87,7 @@ export default async function MasterPage({ params }: Props) {
           )}
           {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
-            {cat} · {t.city}
+            {cat} · {cityLabel(m.city, lang)}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
           {m.extra_categories.filter((c) => c !== "other").length > 0 && (
@@ -351,7 +352,7 @@ export default async function MasterPage({ params }: Props) {
         <section className="mt-14 border-t border-line pt-8">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[20px] font-bold">{sameCount > 0 ? t.similarTitle(categoryPlural(m.category, lang)) : t.othersTitle}</h2>
-            <Link href={seoCategoryIds().includes(m.category) ? href(lang, `/services/${m.category}`) : `${href(lang)}?cat=${m.category}`} className="text-[14px] font-semibold text-brand hover:underline">
+            <Link href={m.city === "batumi" && seoCategoryIds().includes(m.category) ? href(lang, `/services/${m.category}`) : `${href(lang)}?${m.city !== "batumi" ? `city=${m.city}&` : ""}cat=${m.category}`} className="text-[14px] font-semibold text-brand hover:underline">
               {t.allLink}
             </Link>
           </div>

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import { getDict, type Locale } from "@/lib/i18n";
 import { Map } from "./map/Map";
 import type { WorkMode } from "@/lib/types";
+import { cityCenter, cityLabel } from "@/lib/cities";
 
 export type WhereValue = {
   work_mode: WorkMode;
@@ -18,13 +19,18 @@ export type WhereValue = {
 const MODES: WorkMode[] = ["at_client", "at_place", "both", "online"];
 
 /** Кабинет: где работает специалист — выезд, у себя (точка на карте), онлайн. */
-export function WhereFields({ lang, value, onChange, error }: { lang: Locale; value: WhereValue; onChange: (v: WhereValue) => void; error?: string }) {
+export function WhereFields({ lang, value, onChange, error, city = "batumi" }: { lang: Locale; value: WhereValue; onChange: (v: WhereValue) => void; error?: string; city?: string }) {
   const t = getDict(lang).cabinet;
   const [query, setQuery] = useState(value.place_address);
   const [searching, setSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [focus, setFocus] = useState<[number, number] | null>(null);
   const set = (patch: Partial<WhereValue>) => onChange({ ...value, ...patch });
+  // Сменили город, а точки ещё нет — показываем карту этого города
+  useEffect(() => {
+    if (value.place_lat == null) setFocus(cityCenter(city));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city]);
   const needsPlace = value.work_mode === "at_place" || value.work_mode === "both";
   const visits = value.work_mode === "at_client" || value.work_mode === "both";
 
@@ -32,7 +38,10 @@ export function WhereFields({ lang, value, onChange, error }: { lang: Locale; va
     if (!query.trim()) return;
     setSearching(true);
     setNotFound(false);
-    const j = await fetch(`/api/geocode?lang=${lang}&q=${encodeURIComponent(query.includes("Batumi") || query.includes("Батуми") ? query : query + ", Батуми")}`)
+    // Ищем адрес в выбранном городе, если город не написан в самом адресе
+    const names = [cityLabel(city, "ru"), cityLabel(city, "en"), cityLabel(city, "ka")];
+    const full = names.some((n) => query.toLowerCase().includes(n.toLowerCase())) ? query : `${query}, ${cityLabel(city, "ru")}`;
+    const j = await fetch(`/api/geocode?lang=${lang}&q=${encodeURIComponent(full)}`)
       .then((r) => r.json())
       .catch(() => ({}));
     setSearching(false);

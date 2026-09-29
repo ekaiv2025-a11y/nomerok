@@ -195,6 +195,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     place_lng: m.place_lng ?? null,
     service_area: m.service_area ?? "",
     work_hours: m.work_hours ?? "",
+    city: m.city ?? "batumi",
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.status === "verified"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -218,9 +219,10 @@ const BASE_COLUMNS =
 const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
 const COLUMNS_0005 = COLUMNS_0004 + ",archived_at";
 const COLUMNS_0006 = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";
-const PUBLIC_COLUMNS = COLUMNS_0006 + ",documents";
+const COLUMNS_0007 = COLUMNS_0006 + ",documents";
+const PUBLIC_COLUMNS = COLUMNS_0007 + ",city";
 /** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
-const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {
@@ -356,6 +358,7 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     place_lng: null,
     service_area: "",
     work_hours: "",
+    city: "batumi",
     documents: [],
     stats_sent_at: null,
     id: randomUUID(),
@@ -368,9 +371,18 @@ export async function createMaster(input: NewMaster): Promise<Master> {
 }
 
 export async function createRequest(input: NewRequest): Promise<ClientRequest> {
-  const row = { ...input, lang: input.lang ?? "ru", client_link_token: newToken() };
+  const row = { ...input, city: input.city ?? "batumi", lang: input.lang ?? "ru", client_link_token: newToken() };
   const sb = supabase();
-  if (sb) return check(await sb.from("requests").insert(row).select("*").single()) as ClientRequest;
+  if (sb) {
+    let res = await sb.from("requests").insert(row).select("*").single();
+    // Миграция 0009 ещё не выполнена — сохраняем без города
+    if (isMissingColumn(res.error)) {
+      const { city: _c, ...noCity } = row; // eslint-disable-line @typescript-eslint/no-unused-vars
+      res = await sb.from("requests").insert(noCity).select("*").single();
+    }
+    const saved = check(res) as ClientRequest;
+    return { ...saved, city: saved.city ?? "batumi" };
+  }
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
   const r: ClientRequest = {
@@ -501,7 +513,7 @@ export async function getMastersByChatId(chatId: number): Promise<Master[]> {
 }
 
 /** Подтверждённые специалисты категории, которые принимают заявки. */
-export async function listMastersForRequests(category: string): Promise<Master[]> {
+export async function listMastersForRequests(category: string, city = "batumi"): Promise<Master[]> {
   const sb = supabase();
   let list: Master[];
   if (sb) {
@@ -519,7 +531,7 @@ export async function listMastersForRequests(category: string): Promise<Master[]
     list = (await readLocal()).masters.filter((m) => m.status === "published" && m.notify_requests && m.tg_chat_id && m.phone_verified_at);
   }
   // Основное или дополнительное направление; кто в отпуске — не получает
-  return list.filter((m) => servesCategory(m, category) && !isAwayNow(m) && !m.archived_at);
+  return list.filter((m) => servesCategory(m, category) && (m.city ?? "batumi") === city && !isAwayNow(m) && !m.archived_at);
 }
 
 export async function getRequest(id: string): Promise<ClientRequest | null> {

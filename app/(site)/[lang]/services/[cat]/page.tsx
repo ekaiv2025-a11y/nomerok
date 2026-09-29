@@ -80,7 +80,8 @@ export default async function ServicePage({ params }: Props) {
 
   const all = await listPublishedMasters().catch(() => []);
   const masters = all.filter(
-    (m) => m.category === cat || m.extra_categories.includes(cat),
+    // Страницы услуг пока только про Батуми
+    (m) => m.city === "batumi" && (m.category === cat || m.extra_categories.includes(cat)),
   );
   // Цена «от» — только по настоящим специалистам, примеры не считаем
   const priced = masters

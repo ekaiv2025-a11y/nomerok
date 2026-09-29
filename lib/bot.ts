@@ -47,7 +47,7 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
     const m = await adminGetMaster(r.master_id);
     if (m && m.status === "published" && m.tg_chat_id && m.phone_verified_at) targets = [m];
   } else {
-    targets = await listMastersForRequests(r.category);
+    targets = await listMastersForRequests(r.category, r.city ?? "batumi");
   }
   targets = targets.filter((m) => !exclude.has(m.id));
   let sent = 0;

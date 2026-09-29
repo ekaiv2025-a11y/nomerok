@@ -6,11 +6,13 @@ import { CATEGORIES } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
 import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
+import { CITY_LABEL, CityOptions } from "./CitySelect";
+import { isCity } from "@/lib/cities";
 
-type Props = { lang: Locale; defaultCategory?: string };
+type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string };
 
 /** Общая заявка — для всех специалистов направления. */
-export function RequestForm({ lang, defaultCategory }: Props) {
+export function RequestForm({ lang, defaultCategory, defaultCity }: Props) {
   const d = getDict(lang);
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
@@ -34,6 +36,7 @@ export function RequestForm({ lang, defaultCategory }: Props) {
     const f = new FormData(e.currentTarget);
     submit({
       category: f.get("category"),
+      city: f.get("city"),
       description: f.get("description"),
       when_text: f.get("when_text"),
       name: f.get("name"),
@@ -57,6 +60,11 @@ export function RequestForm({ lang, defaultCategory }: Props) {
       </Field>
       <Field label={t.what} hint={t.whatHint} error={errors.description}>
         <textarea name="description" rows={4} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
+      </Field>
+      <Field label={CITY_LABEL[lang]}>
+        <select name="city" defaultValue={isCity(defaultCity) ? defaultCity : "batumi"} className={fc()}>
+          <CityOptions lang={lang} />
+        </select>
       </Field>
       <Field label={t.when} optional={d.form.optional} error={errors.when_text}>
         <input name="when_text" className={fc(errors.when_text)} placeholder={t.whenPlaceholder} />

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isCity } from "@/lib/cities";
 import { adminGetMaster, adminUpdateMaster } from "@/lib/db";
 import { cabinetSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { currentSpecialistId } from "@/lib/spec-auth";
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
     whatsapp: d.whatsapp,
     ...(Array.isArray(body.extra_categories) ? { extra_categories: extra } : {}),
     ...(where ? where : {}),
+    ...(isCity(body.city) ? { city: body.city } : {}),
     lang,
   });
   await notifyAdmin(`✏️ <b>${escapeHtml(d.name)}</b> обновил(а) профиль в кабинете\n${SITE_URL}/admin/masters/${id}`);

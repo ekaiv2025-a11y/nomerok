@@ -7,6 +7,7 @@ import { LANGUAGES, PRICE_UNITS, languageLabel, unitLabel } from "@/lib/categori
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
 import { WhereFields, type WhereValue } from "./WhereFields";
+import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
 
 export type JoinPrefill = { token: string; name: string; phone: string; telegram: string | null; hasPhoto: boolean };
@@ -21,6 +22,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
 
   // Фото: своё (файл) или аватарка из Telegram
   const [file, setFile] = useState<File | null>(null);
+  const [city, setCity] = useState("batumi");
   const [where, setWhere] = useState<WhereValue>({ work_mode: "at_client", service_area: "", work_hours: "", place_address: "", place_lat: null, place_lng: null });
   const [preview, setPreview] = useState<string | null>(null);
   const [useTgPhoto, setUseTgPhoto] = useState(!!prefill?.hasPhoto);
@@ -90,6 +92,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
     submit({
       name: f.get("name"),
       category: f.get("category"),
+      city: f.get("city"),
       services: f.get("services"),
       about: f.get("about"),
       credentials: f.get("credentials"),
@@ -177,6 +180,11 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
             <CategoryOptions lang={lang} />
           </select>
         </Field>
+        <Field label={CITY_LABEL[lang]}>
+          <select name="city" value={city} onChange={(e) => setCity(e.target.value)} className={fc()}>
+            <CityOptions lang={lang} />
+          </select>
+        </Field>
       </div>
       <Field label={t.services} hint={t.servicesHint} error={errors.services}>
         <textarea name="services" rows={5} className={fc(errors.services)} required placeholder={t.servicesPlaceholder} />
@@ -237,7 +245,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
         </Field>
       </div>
       {/* Где работает: выезд / у себя (адрес и точка на карте) / онлайн */}
-      <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} />
+      <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} city={city} />
       <label className="flex items-start gap-3 rounded-xl bg-cream p-3.5 text-[14px] leading-snug">
         <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-[#1f6b4f]" />
         <span>
