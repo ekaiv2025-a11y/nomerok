@@ -20,6 +20,7 @@ export const CATEGORIES = [
   { id: "plumber", group: "home", label: { ru: "Сантехник", ka: "სანტექნიკოსი", en: "Plumber" }, plural: { ru: "Сантехники", ka: "სანტექნიკოსები", en: "Plumbers" } },
   { id: "electrician", group: "home", label: { ru: "Электрик", ka: "ელექტრიკოსი", en: "Electrician" }, plural: { ru: "Электрики", ka: "ელექტრიკოსები", en: "Electricians" } },
   { id: "repair", group: "home", label: { ru: "Ремонт и отделка", ka: "რემონტი და მოპირკეთება", en: "Renovation" }, plural: { ru: "Ремонт и отделка", ka: "რემონტი", en: "Renovation" } },
+  { id: "inspection", group: "home", label: { ru: "Технадзор и приёмка квартир", ka: "ტექზედამხედველობა და ბინის მიღება", en: "Building inspection" }, plural: { ru: "Технадзор", ka: "ტექზედამხედველობა", en: "Building inspectors" } },
   { id: "handyman", group: "home", label: { ru: "Мастер на час", ka: "ხელოსანი საათობრივად", en: "Handyman" }, plural: { ru: "Мастер на час", ka: "ხელოსნები", en: "Handymen" } },
   { id: "aircon", group: "home", label: { ru: "Кондиционеры", ka: "კონდიციონერები", en: "Air conditioning" }, plural: { ru: "Кондиционеры", ka: "კონდიციონერები", en: "Air conditioning" } },
   { id: "appliances", group: "home", label: { ru: "Ремонт техники", ka: "ტექნიკის შეკეთება", en: "Appliance repair" }, plural: { ru: "Ремонт техники", ka: "ტექნიკის შეკეთება", en: "Appliance repair" } },

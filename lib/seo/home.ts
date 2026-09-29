@@ -1,6 +1,125 @@
 import type { SeoContent } from "../seo-categories";
 
 export const SEO_HOME: SeoContent = {
+  inspection: {
+    ru: {
+      title: "Технадзор и приёмка квартир в Батуми — инженеры, цены, контакты",
+      description:
+        "Технадзор в Батуми: приёмка квартиры от застройщика, проверка перед покупкой, обследование зданий и контроль ремонта. Цены и контакты инженеров напрямую.",
+      h1: "Технадзор и приёмка квартир в Батуми",
+      lead: "Инженеры, которые проверят квартиру перед покупкой или при приёмке от застройщика, найдут скрытые дефекты и проконтролируют ремонт. Связывайтесь напрямую — или оставьте заявку.",
+      servicesTitle: "С чем помогут",
+      services: [
+        "Приёмка квартиры от застройщика",
+        "Проверка квартиры или дома перед покупкой",
+        "Технический надзор за ремонтом и строительством",
+        "Обследование конструкций: бетон, арматура, трещины",
+        "Тепловизионная съёмка: мостики холода, утечки тепла",
+        "Проверка гидроизоляции, влажности и вентиляции",
+        "Заключение с фото и списком дефектов для застройщика",
+      ],
+      chooseTitle: "Как выбрать специалиста",
+      choose: [
+        "Спросите, какими приборами он работает и что будет в заключении: фото, замеры, список дефектов.",
+        "Посмотрите раздел «Документы» и образование в профиле — документы загружает сам специалист, при сомнениях попросите оригинал.",
+        "Договоритесь о проверке до подписания акта приёмки — потом добиться исправлений сложнее.",
+        "Уточните цену заранее: она зависит от площади и того, нужны ли инструментальные измерения.",
+      ],
+      priceQ: "Сколько стоит приёмка квартиры в Батуми?",
+      priceA: (p) =>
+        p
+          ? `Каждый специалист указывает цены в своём профиле. Сейчас в каталоге — ${p}. Итог зависит от площади и набора проверок.`
+          : "Каждый специалист указывает цены в своём профиле. Итог зависит от площади квартиры и того, нужны ли инструментальные измерения.",
+      faq: [
+        {
+          q: "Зачем нужна приёмка квартиры от застройщика?",
+          a: "Инженер находит дефекты, которые сложно заметить самому: неровные стены и стяжку, трещины, проблемы с окнами, гидроизоляцией и электрикой. Список дефектов можно передать застройщику до подписания акта.",
+        },
+        {
+          q: "Берёт ли NomerOk комиссию?",
+          a: "Нет. Вы договариваетесь со специалистом напрямую и платите только ему.",
+        },
+      ],
+    },
+    en: {
+      title: "Building inspection in Batumi — snagging, pre-purchase checks, contacts",
+      description:
+        "Building inspectors in Batumi: new-build handover (snagging), pre-purchase surveys, structural checks and renovation supervision. Prices and direct contacts.",
+      h1: "Building inspection in Batumi",
+      lead: "Engineers who check a flat before you buy it or accept it from the developer, find hidden defects and supervise renovation. Contact them directly — or leave a request.",
+      servicesTitle: "What they can help with",
+      services: [
+        "New-build handover inspection (snagging)",
+        "Pre-purchase survey of a flat or house",
+        "Supervision of renovation and construction",
+        "Structural checks: concrete, rebar, cracks",
+        "Thermal imaging: cold bridges and heat loss",
+        "Waterproofing, moisture and ventilation checks",
+        "Written report with photos and a defect list",
+      ],
+      chooseTitle: "How to choose",
+      choose: [
+        "Ask which instruments they use and what the report includes: photos, measurements, a defect list.",
+        "Check education and the “Documents” section — documents are uploaded by the specialist; if in doubt, ask to see the original.",
+        "Book the inspection before signing the handover act — getting fixes afterwards is harder.",
+        "Agree on the price in advance: it depends on floor area and whether instrument measurements are needed.",
+      ],
+      priceQ: "How much does a handover inspection cost in Batumi?",
+      priceA: (p) =>
+        p
+          ? `Each specialist lists prices in their profile. In the catalog now — ${p}. The total depends on floor area and the checks you need.`
+          : "Each specialist lists prices in their profile. The total depends on floor area and whether instrument measurements are needed.",
+      faq: [
+        {
+          q: "Why inspect a new flat before accepting it?",
+          a: "An engineer finds defects that are hard to spot yourself: uneven walls and screed, cracks, window, waterproofing and wiring issues. You can hand the defect list to the developer before signing.",
+        },
+        {
+          q: "Does NomerOk take a commission?",
+          a: "No. You deal with the specialist directly and pay only them.",
+        },
+      ],
+    },
+    ka: {
+      title: "ტექზედამხედველობა და ბინის მიღება ბათუმში — ინჟინრები, ფასები",
+      description:
+        "ტექზედამხედველობა ბათუმში: ბინის მიღება დეველოპერისგან, შემოწმება ყიდვამდე, შენობების კვლევა და რემონტის კონტროლი. ფასები და პირდაპირი კონტაქტი.",
+      h1: "ტექზედამხედველობა და ბინის მიღება ბათუმში",
+      lead: "ინჟინრები, რომლებიც შეამოწმებენ ბინას ყიდვამდე ან დეველოპერისგან მიღებისას, იპოვიან ფარულ დეფექტებს და გააკონტროლებენ რემონტს. დაუკავშირდით პირდაპირ ან დატოვეთ განაცხადი.",
+      servicesTitle: "რაში დაგეხმარებიან",
+      services: [
+        "ბინის მიღება დეველოპერისგან",
+        "ბინის ან სახლის შემოწმება ყიდვამდე",
+        "რემონტისა და მშენებლობის ტექზედამხედველობა",
+        "კონსტრუქციების კვლევა: ბეტონი, არმატურა, ბზარები",
+        "თერმოვიზიური გადაღება",
+        "ჰიდროიზოლაციის, ტენიანობის და ვენტილაციის შემოწმება",
+        "დასკვნა ფოტოებით და დეფექტების სიით",
+      ],
+      chooseTitle: "როგორ ავირჩიოთ სპეციალისტი",
+      choose: [
+        "ჰკითხეთ, რა ხელსაწყოებით მუშაობს და რა იქნება დასკვნაში.",
+        "ნახეთ პროფილში განათლება და განყოფილება „დოკუმენტები“ — დოკუმენტებს თავად სპეციალისტი ტვირთავს.",
+        "შემოწმება მიღების აქტის ხელმოწერამდე დაგეგმეთ.",
+        "ფასი წინასწარ დააზუსტეთ: ის ფართობზე და შემოწმებების მოცულობაზეა დამოკიდებული.",
+      ],
+      priceQ: "რა ღირს ბინის მიღება ბათუმში?",
+      priceA: (p) =>
+        p
+          ? `თითოეული სპეციალისტი ფასებს პროფილში უთითებს. ახლა კატალოგში — ${p}. საბოლოო ფასი ფართობზეა დამოკიდებული.`
+          : "თითოეული სპეციალისტი ფასებს პროფილში უთითებს. საბოლოო ფასი ფართობზე და შემოწმებების მოცულობაზეა დამოკიდებული.",
+      faq: [
+        {
+          q: "რატომ არის საჭირო ბინის მიღება სპეციალისტთან ერთად?",
+          a: "ინჟინერი პოულობს დეფექტებს, რომლებსაც თავად ძნელად შეამჩნევთ. დეფექტების სია შეგიძლიათ დეველოპერს გადასცეთ აქტის ხელმოწერამდე.",
+        },
+        {
+          q: "იღებს თუ არა NomerOk საკომისიოს?",
+          a: "არა. სპეციალისტს პირდაპირ უთანხმდებით და მხოლოდ მას უხდით.",
+        },
+      ],
+    },
+  },
   electrician: {
     ru: {
       title: "Электрики в Батуми — цены, отзывы, контакты напрямую",
