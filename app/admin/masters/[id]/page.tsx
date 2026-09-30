@@ -9,6 +9,7 @@ import { signedUrls } from "@/lib/documents";
 import { AdminDocs } from "@/components/AdminDocs";
 import { askMasterFixPhone, deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
 import { formatPhone, telegramLink } from "@/lib/phone";
+import { isFakePhone } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,9 @@ export default async function EditMasterPage({ params, searchParams }: { params:
             </>
           )}
         </form>
+        {isFakePhone(m.phone) && (
+          <p className="mt-2 text-[13px] font-semibold text-danger">⚠️ Номер {formatPhone(m.phone)} похож на ненастоящий — не публикуйте, пока специалист не исправит.</p>
+        )}
         {!m.tg_chat_id && (
           <p className="mt-2 text-[13px] text-[#8a5a00]">⚠️ Telegram не подключён — заявки через бота он получать не будет, пока не откроет ссылку ниже.</p>
         )}

@@ -9,6 +9,13 @@ export function langFromBody(body: unknown): Locale {
   return isLocale(l) ? l : "ru";
 }
 
+/** Явно ненастоящий номер: 00 00 00, 11 11 11, 12 34 56 и т.п. в конце. */
+export function isFakePhone(p: string): boolean {
+  const d = p.replace(/\D/g, "");
+  const tail = d.slice(-6);
+  return /^(\d)\1{5}$/.test(tail) || tail === "123456" || tail === "654321";
+}
+
 function phone(lang: Locale) {
   const e = getDict(lang).errors;
   return z
@@ -17,7 +24,7 @@ function phone(lang: Locale) {
     .min(1, e.phoneRequired)
     .transform((v, ctx) => {
       const p = normalizePhone(v);
-      if (!p) {
+      if (!p || isFakePhone(p)) {
         ctx.addIssue({ code: "custom", message: e.phoneInvalid });
         return z.NEVER;
       }

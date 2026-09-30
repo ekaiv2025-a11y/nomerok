@@ -4,7 +4,7 @@ import { normalizeLinks } from "@/lib/links";
 import { pullLinks } from "@/lib/extract-links";
 import { adminGetMaster, adminUpdateMaster } from "@/lib/db";
 import { normalizePhone } from "@/lib/phone";
-import { cabinetSchema, firstErrors, langFromBody } from "@/lib/validation";
+import { cabinetSchema, firstErrors, isFakePhone, langFromBody } from "@/lib/validation";
 import { currentSpecialistId } from "@/lib/spec-auth";
 import { notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { getDict } from "@/lib/i18n";
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   let phonePatch: Record<string, unknown> = {};
   if (typeof body.phone === "string" && body.phone.trim()) {
     const np = normalizePhone(body.phone);
-    if (!np) return NextResponse.json({ ok: false, fields: { phone: getDict(lang).errors.phoneInvalid } }, { status: 422 });
+    if (!np || isFakePhone(np)) return NextResponse.json({ ok: false, fields: { phone: getDict(lang).errors.phoneInvalid } }, { status: 422 });
     if (np.replace(/\D/g, "") !== m.phone.replace(/\D/g, "")) {
       phonePatch = { phone: np, phone_verified_at: null, ...(m.tg_chat_id && (m.phone_verified_at || m.tg_verified_at) ? { tg_verified_at: new Date().toISOString() } : {}) };
     }
