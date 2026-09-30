@@ -296,7 +296,7 @@ async function getPublishedFromDb(slug: string): Promise<PublicMaster | null> {
 }
 
 /** Отдаёт контакты опубликованного мастера и записывает факт просмотра. */
-export async function revealContacts(masterId: string, visitor: string): Promise<(MasterContacts & { name: string; slug: string }) | null> {
+export async function revealContacts(masterId: string, visitor: string): Promise<(MasterContacts & { name: string; slug: string; instagram: string | null }) | null> {
   if (isDemoSlug(masterId)) return null;
   const probe = await adminGetMaster(masterId);
   if (!probe || isDemoSlug(probe.slug) || probe.archived_at || isAwayNow(probe)) return null;
@@ -317,7 +317,7 @@ export async function revealContacts(masterId: string, visitor: string): Promise
       await sb.from("contact_views").select("id").eq("master_id", masterId).eq("visitor", visitor).gte("created_at", since).limit(1),
     ) as unknown[];
     if (recent.length === 0) check(await sb.from("contact_views").insert({ master_id: masterId, visitor }));
-    return { phone: m.phone, telegram: m.telegram, whatsapp: m.whatsapp, name: m.name, slug: m.slug };
+    return { phone: m.phone, telegram: m.telegram, whatsapp: m.whatsapp, name: m.name, slug: m.slug, instagram: probe.links?.instagram ?? null };
   }
   if (dbMode() === "none") throw new DbNotConfiguredError();
   const d = await readLocal();
@@ -328,7 +328,7 @@ export async function revealContacts(masterId: string, visitor: string): Promise
     d.contact_views.push({ master_id: masterId, visitor, created_at: new Date().toISOString() });
     await writeLocal(d);
   }
-  return { phone: m.phone, telegram: m.telegram, whatsapp: m.whatsapp, name: m.name, slug: m.slug };
+  return { phone: m.phone, telegram: m.telegram, whatsapp: m.whatsapp, name: m.name, slug: m.slug, instagram: m.links?.instagram ?? null };
 }
 
 /* ---------- создание записей из форм ---------- */

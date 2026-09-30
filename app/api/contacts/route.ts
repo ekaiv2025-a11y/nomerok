@@ -1,3 +1,4 @@
+import { isFakePhone } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { revealContacts } from "@/lib/db";
@@ -21,7 +22,9 @@ export async function POST(req: Request) {
   try {
     const c = await revealContacts(parsed.data.masterId, await visitorId());
     if (!c) return NextResponse.json({ ok: false, error: e.notFound }, { status: 404 });
-    return NextResponse.json({ ok: true, phone: c.phone, telegram: c.telegram, whatsapp: c.whatsapp });
+    // Ненастоящий номер (00 00 00 и т.п.) не показываем — клиенту даём Telegram/Instagram
+    const phone = isFakePhone(c.phone) ? null : c.phone;
+    return NextResponse.json({ ok: true, phone, telegram: c.telegram, whatsapp: c.whatsapp, instagram: c.instagram });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false, error: e.loadContacts }, { status: 500 });

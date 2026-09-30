@@ -7,7 +7,7 @@ import { formatPhone, telegramLink } from "@/lib/phone";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { SITE_NAME } from "@/lib/site";
 
-type Contacts = { phone: string; telegram: string | null; whatsapp: boolean };
+type Contacts = { phone: string | null; telegram: string | null; whatsapp: boolean; instagram: string | null };
 
 export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { masterId: string; slug: string; lang: Locale; hideRequest?: boolean }) {
   const t = getDict(lang).reveal;
@@ -25,7 +25,7 @@ export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { m
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "Error");
-      setC({ phone: data.phone, telegram: data.telegram, whatsapp: data.whatsapp });
+      setC({ phone: data.phone ?? null, telegram: data.telegram, whatsapp: data.whatsapp, instagram: data.instagram ?? null });
       setState("idle");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -64,12 +64,21 @@ export function ContactReveal({ masterId, slug, lang, hideRequest = false }: { m
         </>
       ) : (
         <div className="space-y-2.5">
-          <a href={`tel:${c.phone}`} className="btn-dark h-12 w-full">
-            <Phone className="h-4 w-4" /> {formatPhone(c.phone)}
-          </a>
-          <a href={telegramLink(c.telegram, c.phone)} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#229ED9] text-white hover:bg-[#1c89bd]">
-            <Send className="h-4 w-4" /> Telegram{c.telegram ? ` @${c.telegram}` : ""}
-          </a>
+          {c.phone && (
+            <a href={`tel:${c.phone}`} className="btn-dark h-12 w-full">
+              <Phone className="h-4 w-4" /> {formatPhone(c.phone)}
+            </a>
+          )}
+          {(c.telegram || c.phone) && (
+            <a href={telegramLink(c.telegram, c.phone ?? "")} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full bg-[#229ED9] text-white hover:bg-[#1c89bd]">
+              <Send className="h-4 w-4" /> Telegram{c.telegram ? ` @${c.telegram}` : ""}
+            </a>
+          )}
+          {c.instagram && !c.phone && (
+            <a href={c.instagram} target="_blank" rel="noopener noreferrer" className="btn h-12 w-full text-white" style={{ background: "linear-gradient(45deg,#f58529,#dd2a7b 50%,#8134af 80%,#515bd4)" }}>
+              Instagram — написать в Direct
+            </a>
+          )}
           <p className="pt-1 text-center text-[12px] leading-snug text-muted">{t.mention(SITE_NAME)}</p>
         </div>
       )}

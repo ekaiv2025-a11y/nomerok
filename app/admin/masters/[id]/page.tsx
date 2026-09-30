@@ -63,7 +63,7 @@ export default async function EditMasterPage({ params, searchParams }: { params:
           )}
         </form>
         {isFakePhone(m.phone) && (
-          <p className="mt-2 text-[13px] font-semibold text-danger">⚠️ Номер {formatPhone(m.phone)} похож на ненастоящий — не публикуйте, пока специалист не исправит.</p>
+          <p className="mt-2 text-[13px] font-semibold text-danger">⚠️ Номер {formatPhone(m.phone)} похож на ненастоящий — на сайте он не показывается. {m.links?.instagram || m.telegram ? "Клиенты увидят вместо него Instagram / Telegram." : "Других контактов нет — клиенты смогут только написать через сайт."}</p>
         )}
         {!m.tg_chat_id && (
           <p className="mt-2 text-[13px] text-[#8a5a00]">⚠️ Telegram не подключён — заявки через бота он получать не будет, пока не откроет ссылку ниже.</p>
