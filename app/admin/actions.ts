@@ -88,6 +88,16 @@ export async function setRequestStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** Подтвердить номер вручную (если бот не смог: номер в Telegram другой). Сначала позвоните специалисту. */
+export async function verifyPhoneManually(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const on = String(formData.get("on")) === "1";
+  await adminUpdateMaster(id, { phone_verified_at: on ? new Date().toISOString() : null });
+  refreshPublic(await adminGetMasterSlug(id));
+  redirect(`/admin/masters/${id}?saved=1`);
+}
+
 export async function deleteRequest(formData: FormData) {
   await requireAdmin();
   await adminDeleteRequest(String(formData.get("id")));

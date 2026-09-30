@@ -7,7 +7,7 @@ import { botLink } from "@/lib/telegram";
 import { profileSteps } from "@/lib/profile";
 import { signedUrls } from "@/lib/documents";
 import { AdminDocs } from "@/components/AdminDocs";
-import { deleteMaster, setMasterStatus } from "../../actions";
+import { deleteMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,22 @@ export default async function EditMasterPage({ params, searchParams }: { params:
               : "не подключён"}
           {m.tg_username ? ` · @${m.tg_username}` : ""} · профиль заполнен на {percent}%
         </p>
-        {!m.phone_verified_at && tgLink && (
+        <form action={verifyPhoneManually} className="mt-2">
+          <input type="hidden" name="id" value={m.id} />
+          <input type="hidden" name="on" value={m.phone_verified_at ? "0" : "1"} />
+          {m.phone_verified_at ? (
+            <button className="text-[13px] text-muted underline">Снять отметку «Номер подтверждён»</button>
+          ) : (
+            <>
+              <button className="btn-ghost h-9 px-4 text-[13px]">✓ Подтвердить номер вручную</button>
+              <span className="ml-2 text-[12px] text-muted">Если бот не смог (в Telegram другой номер). Сначала позвоните по номеру из анкеты.</span>
+            </>
+          )}
+        </form>
+        {!m.tg_chat_id && (
+          <p className="mt-2 text-[13px] text-[#8a5a00]">⚠️ Telegram не подключён — заявки через бота он получать не будет, пока не откроет ссылку ниже.</p>
+        )}
+        {(!m.phone_verified_at || !m.tg_chat_id) && tgLink && (
           <p className="mt-2 text-muted">
             Ссылка для специалиста (отправьте ему, чтобы подтвердил номер и получал заявки):
             <br />
