@@ -10,6 +10,7 @@ import { AdminDocs } from "@/components/AdminDocs";
 import { askMasterFixPhone, deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import { isFakePhone } from "@/lib/validation";
+import { AdminQuickMessage } from "@/components/AdminQuickMessage";
 
 export const dynamic = "force-dynamic";
 
@@ -98,7 +99,17 @@ export default async function EditMasterPage({ params, searchParams }: { params:
             <p className="text-[12px] text-muted">Придёт от бота NomerOk. Ответ специалиста придёт вам в Telegram как «Сообщение боту».</p>
           </form>
         ) : (
-          <p className="mt-1 text-muted">Бот у специалиста не подключён — напишите напрямую:</p>
+          <>
+            <p className="mt-1 text-muted">Бот у специалиста не подключён — отправьте ему ссылку, чтобы он закончил регистрацию:</p>
+            <AdminQuickMessage
+              text={`Здравствуйте, ${m.name.split(" ")[0]}! Это NomerOk.ge, вы оставили у нас анкету 🙂\n\n${isFakePhone(m.phone) ? `В ней указан номер ${formatPhone(m.phone)} — клиенты не смогут с вами связаться. ` : ""}Чтобы закончить регистрацию, откройте ссылку: ${tgLink ?? ""}\nОткроется наш бот — нажмите «Поделиться номером», номер подставится и подтвердится сам. После этого мы опубликуем профиль и заявки клиентов будут приходить вам в Telegram.\n\nДмитрий, NomerOk`}
+              channels={[
+                ...(m.links?.instagram ? [{ label: "Instagram", href: `https://ig.me/m/${m.links.instagram.replace(/\/+$/, "").split("/").pop()}` }] : []),
+                ...(m.telegram ? [{ label: `Telegram @${m.telegram}`, href: `https://t.me/${m.telegram}` }] : []),
+                ...(!isFakePhone(m.phone) ? [{ label: "Telegram по номеру", href: telegramLink(null, m.phone) }] : []),
+              ]}
+            />
+          </>
         )}
         <div className="mt-2 flex flex-wrap gap-2">
           {m.telegram && <a href={`https://t.me/${m.telegram}`} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">Telegram @{m.telegram}</a>}
