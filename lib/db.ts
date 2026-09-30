@@ -176,6 +176,17 @@ type PublicRow = Omit<
   archived_at?: string | null;
 };
 
+/** «Telegram-канал», совпадающий с личным ником, — это не канал, а тот же контакт: не показываем дважды. */
+function withoutPersonalTg(links: Master["links"], personal: string | null | undefined): Master["links"] {
+  const ch = links?.tg_channel;
+  if (!ch || !personal) return links;
+  const handle = ch.replace(/^https?:\/\/(www\.)?(t|telegram)\.me\//i, "").replace(/[/?#].*$/, "").replace(/^@/, "").toLowerCase();
+  if (handle !== personal.replace(/^@/, "").toLowerCase()) return links;
+  const rest = { ...links };
+  delete rest.tg_channel;
+  return rest;
+}
+
 function toPublic(m: Master | PublicRow): PublicMaster {
   return {
     id: m.id,
@@ -202,7 +213,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     service_area: m.service_area ?? "",
     work_hours: m.work_hours ?? "",
     city: m.city ?? "batumi",
-    links: m.links && typeof m.links === "object" ? m.links : {},
+    links: withoutPersonalTg(m.links && typeof m.links === "object" ? m.links : {}, (m as { telegram?: string | null }).telegram),
     has_tg: !!(m as { telegram?: string | null }).telegram,
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),

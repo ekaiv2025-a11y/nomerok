@@ -102,7 +102,7 @@ export function SocialLinks({ links, lang, tgMasterId }: { links: MasterLinks; l
             </span>
             <span className="min-w-0">
               <span className="block text-[12.5px] text-muted">{t.names[k]}</span>
-              <span className="block truncate text-[15px] font-semibold group-hover:text-brand">{linkLabel(k, links[k]!)}</span>
+              <span className="block truncate text-[15px] font-semibold group-hover:text-brand">{linkLabel(k, links[k]!, lang)}</span>
             </span>
           </a>
         ))}

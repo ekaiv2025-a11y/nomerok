@@ -46,12 +46,17 @@ export function normalizeLinks(input: unknown): MasterLinks {
 }
 
 /** Короткая подпись для кнопки: @name или домен сайта. */
-export function linkLabel(kind: LinkKind, url: string): string {
+const OPEN = { ru: "Открыть профиль", en: "Open profile", ka: "პროფილის გახსნა" } as const;
+
+export function linkLabel(kind: LinkKind, url: string, lang: keyof typeof OPEN = "ru"): string {
   try {
     const u = new URL(url);
     if (kind === "website") return u.hostname.replace(/^www\./, "");
     const path = u.pathname.replace(/^\/+|\/+$/g, "");
-    return path.startsWith("@") ? path : "@" + path.split("/")[0];
+    const first = path.split("/")[0];
+    // Служебные адреса (facebook.com/share/…, profile.php?id=…, youtube.com/channel/…) — имени в них нет
+    if (!first || /^(share|profile\.php|people|pages|p|groups|channel|c|watch|user)$/i.test(first)) return OPEN[lang];
+    return path.startsWith("@") ? first : "@" + first;
   } catch {
     return url;
   }
