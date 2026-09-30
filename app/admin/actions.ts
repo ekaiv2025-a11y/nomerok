@@ -98,6 +98,19 @@ export async function verifyPhoneManually(formData: FormData) {
   redirect(`/admin/masters/${id}?saved=1`);
 }
 
+/** Написать специалисту от имени бота (ответ придёт вам как «Сообщение боту»). */
+export async function messageMaster(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const text = String(formData.get("text") ?? "").trim().slice(0, 3500);
+  const m = await adminGetMaster(id);
+  if (!m || !text) redirect(`/admin/masters/${id}`);
+  if (!m.tg_chat_id) redirect(`/admin/masters/${id}?error=${encodeURIComponent("У специалиста не подключён Telegram-бот — напишите ему по номеру или в Telegram")}`);
+  const { sendTo, escapeHtml } = await import("@/lib/telegram");
+  const ok = await sendTo(m.tg_chat_id, `💬 <b>Сообщение от NomerOk</b>\n\n${escapeHtml(text)}\n\n<i>Ответьте сюда — мы увидим.</i>`).catch(() => null);
+  redirect(`/admin/masters/${id}?${ok ? "sent=1" : `error=${encodeURIComponent("Не удалось отправить: возможно, специалист остановил бота")}`}`);
+}
+
 export async function deleteRequest(formData: FormData) {
   await requireAdmin();
   await adminDeleteRequest(String(formData.get("id")));

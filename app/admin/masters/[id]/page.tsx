@@ -7,13 +7,14 @@ import { botLink } from "@/lib/telegram";
 import { profileSteps } from "@/lib/profile";
 import { signedUrls } from "@/lib/documents";
 import { AdminDocs } from "@/components/AdminDocs";
-import { deleteMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
+import { deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
+import { formatPhone, telegramLink } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
 const LABEL = { pending: "На проверке", published: "Опубликован", hidden: "Скрыт", rejected: "Отклонён" } as const;
 
-export default async function EditMasterPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
+export default async function EditMasterPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; sent?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   const { id } = await params;
   const sp = await searchParams;
@@ -70,6 +71,31 @@ export default async function EditMasterPage({ params, searchParams }: { params:
           </p>
         )}
       </div>
+      <div className="mt-3 rounded-2xl bg-white p-4 text-[14px]">
+        <p className="font-semibold">Написать специалисту</p>
+        {m.tg_chat_id ? (
+          <form action={messageMaster} className="mt-2 space-y-2">
+            <input type="hidden" name="id" value={m.id} />
+            <textarea
+              name="text"
+              required
+              rows={4}
+              className="field w-full py-2"
+              defaultValue={`Здравствуйте, ${m.name.split(" ")[0]}! Это NomerOk. В вашей анкете указан номер ${formatPhone(m.phone)} — похоже, он неполный или с ошибкой. Пришлите, пожалуйста, правильный номер ответом на это сообщение, мы исправим.`}
+            />
+            <button className="btn-primary h-9 px-4 text-[13px]">Отправить через бота</button>
+            <p className="text-[12px] text-muted">Придёт от бота NomerOk. Ответ специалиста придёт вам в Telegram как «Сообщение боту».</p>
+          </form>
+        ) : (
+          <p className="mt-1 text-muted">Бот у специалиста не подключён — напишите напрямую:</p>
+        )}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {m.telegram && <a href={`https://t.me/${m.telegram}`} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">Telegram @{m.telegram}</a>}
+          <a href={`tel:${m.phone}`} className="btn-ghost h-9 px-4 text-[13px]">📞 {formatPhone(m.phone)}</a>
+          <a href={telegramLink(null, m.phone)} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">Telegram по номеру</a>
+        </div>
+      </div>
+      {sp.sent && <p className="mt-3 rounded-xl bg-brand-soft p-3 text-[14px] text-brand-dark">Сообщение отправлено</p>}
       {sp.saved && <p className="mt-3 rounded-xl bg-brand-soft p-3 text-[14px] text-brand-dark">Сохранено</p>}
       {sp.error && <p className="mt-3 rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{sp.error}</p>}
 
