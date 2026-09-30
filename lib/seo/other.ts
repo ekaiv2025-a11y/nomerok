@@ -1,6 +1,61 @@
 import type { SeoContent } from "../seo-categories";
 
 export const SEO_OTHER: SeoContent = {
+  art: {
+    ru: {
+      title: "Художники и хендмейд в Батуми — картины на заказ, роспись, подарки",
+      description: "Художники и мастера хендмейда Батуми: картины на заказ, интерьерная живопись, портреты, роспись, изделия ручной работы. Смотрите работы и пишите напрямую.",
+      h1: "Художники и хендмейд в Батуми",
+      lead: "Картины на заказ, интерьерная живопись, роспись и изделия ручной работы. Смотрите работы в профилях и договаривайтесь с автором напрямую.",
+      servicesTitle: "Что можно заказать",
+      services: [
+        "Картину на заказ по вашей идее или под интерьер",
+        "Готовые работы: пейзажи, абстракция, концептуальное искусство",
+        "Портрет по фото",
+        "Роспись стен и предметов интерьера",
+        "Изделия ручной работы и подарки",
+        "Мастер-классы и творческие коллаборации",
+      ],
+      chooseTitle: "Как выбрать художника",
+      choose: [
+        "Смотрите работы в профиле и соцсетях автора — стиль и техника видны сразу.",
+        "Обсудите размер, сроки, количество эскизов и правок до начала работы.",
+        "Уточните, входит ли в цену рама, покрытие лаком и доставка.",
+      ],
+      priceQ: "Сколько стоит картина на заказ в Батуми?",
+      priceA: (p) =>
+        p
+          ? `Каждый автор указывает цены в профиле. Сейчас в каталоге — ${p}. Итог зависит от размера, техники и сложности.`
+          : "Каждый автор указывает цены в профиле. Итог зависит от размера, техники и сложности работы.",
+      faq: [{ q: "Берёт ли NomerOk комиссию?", a: "Нет. Вы договариваетесь с автором напрямую и платите только ему." }],
+    },
+    en: {
+      title: "Artists & handmade in Batumi — commissioned paintings, murals, gifts",
+      description: "Batumi artists and makers: commissioned paintings, interior art, portraits, murals and handmade items. See the work and contact the artist directly.",
+      h1: "Artists & handmade in Batumi",
+      lead: "Commissioned paintings, interior art, murals and handmade items. See the work in profiles and agree directly with the artist.",
+      servicesTitle: "What you can order",
+      services: ["A painting to order or to match your interior", "Ready works: landscapes, abstract, conceptual art", "A portrait from a photo", "Murals and painted decor", "Handmade items and gifts", "Workshops and creative collaborations"],
+      chooseTitle: "How to choose",
+      choose: ["Look at the works in the profile and on social media — style and technique are obvious.", "Agree on size, deadlines, sketches and revisions before starting.", "Check whether framing, varnish and delivery are included."],
+      priceQ: "How much does a commissioned painting cost in Batumi?",
+      priceA: (p) => (p ? `Each artist lists prices in their profile. In the catalog now — ${p}. The total depends on size, technique and complexity.` : "Each artist lists prices in their profile. The total depends on size, technique and complexity."),
+      faq: [{ q: "Does NomerOk take a commission?", a: "No. You deal with the artist directly and pay only them." }],
+    },
+    ka: {
+      title: "მხატვრები და ხელნაკეთი ბათუმში — ნახატები შეკვეთით, მოხატვა, საჩუქრები",
+      description: "ბათუმის მხატვრები და ოსტატები: ნახატები შეკვეთით, ინტერიერის ნახატები, პორტრეტები, მოხატვა და ხელნაკეთი ნივთები. დაუკავშირდით ავტორს პირდაპირ.",
+      h1: "მხატვრები და ხელნაკეთი ბათუმში",
+      lead: "ნახატები შეკვეთით, ინტერიერის ნახატები, მოხატვა და ხელნაკეთი ნივთები. ნახეთ ნამუშევრები პროფილებში და შეუთანხმდით ავტორს პირდაპირ.",
+      servicesTitle: "რისი შეკვეთა შეიძლება",
+      services: ["ნახატი შეკვეთით", "მზა ნამუშევრები: პეიზაჟები, აბსტრაქცია, კონცეპტუალური ხელოვნება", "პორტრეტი ფოტოდან", "კედლების და ინტერიერის მოხატვა", "ხელნაკეთი ნივთები და საჩუქრები", "მასტერკლასები და თანამშრომლობა"],
+      chooseTitle: "როგორ ავირჩიოთ მხატვარი",
+      choose: ["ნახეთ ნამუშევრები პროფილში და სოციალურ ქსელებში.", "წინასწარ შეათანხმეთ ზომა, ვადები და ესკიზები.", "დააზუსტეთ, შედის თუ არა ფასში ჩარჩო და მიტანა."],
+      priceQ: "რა ღირს ნახატი შეკვეთით ბათუმში?",
+      priceA: (p) => (p ? `თითოეული ავტორი ფასებს პროფილში უთითებს. ახლა კატალოგში — ${p}.` : "თითოეული ავტორი ფასებს პროფილში უთითებს. ფასი ზომაზე, ტექნიკაზე და სირთულეზეა დამოკიდებული."),
+      faq: [{ q: "იღებს თუ არა NomerOk საკომისიოს?", a: "არა. ავტორს პირდაპირ უთანხმდებით და მხოლოდ მას უხდით." }],
+    },
+  },
   beauty: {
     ru: {
       title: "Мастера красоты в Батуми — цены, отзывы, контакты напрямую",

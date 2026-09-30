@@ -43,6 +43,7 @@ export const CATEGORIES = [
   { id: "translator", group: "business", label: { ru: "Переводчик", ka: "თარჯიმანი", en: "Translator" }, plural: { ru: "Переводчики", ka: "თარჯიმნები", en: "Translators" } },
   { id: "realtor", group: "business", label: { ru: "Риелтор", ka: "რიელტორი", en: "Real estate agent" }, plural: { ru: "Риелторы", ka: "რიელტორები", en: "Real estate agents" } },
   { id: "photo", group: "business", label: { ru: "Фото и видео", ka: "ფოტო და ვიდეო", en: "Photo & video" }, plural: { ru: "Фото и видео", ka: "ფოტო და ვიდეო", en: "Photo & video" } },
+  { id: "art", group: "other", label: { ru: "Художник и хендмейд", ka: "მხატვარი და ხელნაკეთი", en: "Art & handmade" }, plural: { ru: "Художники и хендмейд", ka: "მხატვრები და ხელნაკეთი", en: "Artists & handmade" } },
   { id: "other", group: "other", label: { ru: "Другое", ka: "სხვა", en: "Other" }, plural: { ru: "Другое", ka: "სხვა", en: "Other" } },
 ] as const satisfies readonly Cat[];
 
