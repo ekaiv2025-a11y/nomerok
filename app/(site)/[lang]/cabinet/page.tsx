@@ -109,7 +109,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const docList = Array.isArray(m.documents) ? m.documents : [];
   const docUrls = await signedUrls(docList.map((x) => x.path)).catch(() => ({}) as Record<string, string>);
   const myDocs = docList.map((x) => ({ id: x.id, title: x.title, kind: x.kind, type: x.type, public: x.public, status: x.status, url: docUrls[x.path] ?? null }));
-  const verifyLink = m.phone_verified_at || m.tg_verified_at ? null : await botLink(`m_${m.tg_link_token}`);
+  const verifyLink = m.phone_verified_at ? null : await botLink(`m_${m.tg_link_token}`);
   const statusColor =
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
 

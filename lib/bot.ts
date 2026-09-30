@@ -91,6 +91,13 @@ export async function notifyMasterStatus(m: Master, status: MasterStatus): Promi
   }
 }
 
+/** Админка → «Попросить исправить номер»: сообщение с кнопкой входа в кабинет. */
+export async function askFixPhone(m: Master): Promise<boolean> {
+  if (!m.tg_chat_id) return false;
+  const res = await sendTo(m.tg_chat_id, botDict(m.lang).fixPhone(formatPhone(m.phone)), [[await cabinetButton(m)]]).catch(() => null);
+  return !!res;
+}
+
 export async function sendCabinetLink(m: Master): Promise<void> {
   if (!m.tg_chat_id) return;
   await sendTo(m.tg_chat_id, `${botDict(m.lang).cabinetLink}\n\n${stepsText(m)}`, [[await cabinetButton(m)]]);
@@ -143,7 +150,7 @@ async function onStart(msg: TgMessage, payload: string) {
     const m = await getMasterByLinkToken(payload.slice(2));
     if (!m) return sendTo(chatId, botDict(guessLang(from)).linkInvalid);
     await adminUpdateMaster(m.id, { tg_chat_id: chatId, tg_username: from?.username ?? null });
-    if (canGetRequests(m)) {
+    if (m.phone_verified_at) {
       await sendTo(chatId, botDict(m.lang).alreadyVerified);
       return sendCabinetLink({ ...m, tg_chat_id: chatId });
     }
@@ -223,14 +230,14 @@ async function onContact(msg: TgMessage) {
   if (c.user_id && msg.from && c.user_id !== msg.from.id) return sendTo(chatId, botDict(lang).notOwnContact);
 
   const masters = await getMastersByChatId(chatId);
-  const m = masters.find((x) => !canGetRequests(x)) ?? masters[0];
+  const m = masters.find((x) => !x.phone_verified_at) ?? masters[0];
   if (!m) {
     const phone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
     if (!phone || (c.user_id && msg.from && c.user_id !== msg.from.id)) return sendTo(chatId, botDict(lang).noPendingProfile, undefined, removeKeyboard);
     return onJoinContact(msg, phone);
   }
   const b = botDict(m.lang);
-  if (canGetRequests(m)) return sendTo(chatId, b.alreadyVerified, undefined, removeKeyboard);
+  if (m.phone_verified_at) return sendTo(chatId, b.alreadyVerified, undefined, removeKeyboard);
 
   const tgPhone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
   const same = tgPhone && tgPhone.replace(/\D/g, "") === m.phone.replace(/\D/g, "");
@@ -259,11 +266,11 @@ async function onPhoneChoice(cb: TgCallback, data: string) {
   await tg("answerCallbackQuery", { callback_query_id: cb.id });
   const chatId = cb.from.id;
   const masters = await getMastersByChatId(chatId);
-  const m = masters.find((x) => !canGetRequests(x)) ?? masters[0];
+  const m = masters.find((x) => !x.phone_verified_at) ?? masters[0];
   if (!m) return;
   const b = botDict(m.lang);
   if (cb.message) await tg("editMessageReplyMarkup", { chat_id: chatId, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
-  if (canGetRequests(m)) return sendTo(chatId, b.alreadyVerified);
+  if (m.phone_verified_at) return sendTo(chatId, b.alreadyVerified);
   const now = new Date().toISOString();
   const uname = normalizeTelegram(cb.from.username);
   const base: Partial<Master> = !m.telegram && uname ? { telegram: uname } : {};

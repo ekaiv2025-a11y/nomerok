@@ -111,6 +111,16 @@ export async function messageMaster(formData: FormData) {
   redirect(`/admin/masters/${id}?${ok ? "sent=1" : `error=${encodeURIComponent("Не удалось отправить: возможно, специалист остановил бота")}`}`);
 }
 
+export async function askMasterFixPhone(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const m = await adminGetMaster(id);
+  if (!m) redirect("/admin");
+  const { askFixPhone } = await import("@/lib/bot");
+  const ok = await askFixPhone(m);
+  redirect(`/admin/masters/${id}?${ok ? "sent=1" : `error=${encodeURIComponent("Не удалось отправить: бот у специалиста не подключён")}`}`);
+}
+
 export async function deleteRequest(formData: FormData) {
   await requireAdmin();
   await adminDeleteRequest(String(formData.get("id")));

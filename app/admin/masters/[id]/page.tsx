@@ -7,7 +7,7 @@ import { botLink } from "@/lib/telegram";
 import { profileSteps } from "@/lib/profile";
 import { signedUrls } from "@/lib/documents";
 import { AdminDocs } from "@/components/AdminDocs";
-import { deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
+import { askMasterFixPhone, deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
 import { formatPhone, telegramLink } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +73,13 @@ export default async function EditMasterPage({ params, searchParams }: { params:
       </div>
       <div className="mt-3 rounded-2xl bg-white p-4 text-[14px]">
         <p className="font-semibold">Написать специалисту</p>
+        {m.tg_chat_id && (
+          <form action={askMasterFixPhone} className="mt-2">
+            <input type="hidden" name="id" value={m.id} />
+            <button className="btn-ghost h-9 px-4 text-[13px]">📱 Попросить исправить номер</button>
+            <span className="ml-2 text-[12px] text-muted">Бот попросит поправить номер самому, с кнопкой входа в кабинет</span>
+          </form>
+        )}
         {m.tg_chat_id ? (
           <form action={messageMaster} className="mt-2 space-y-2">
             <input type="hidden" name="id" value={m.id} />
@@ -81,7 +88,7 @@ export default async function EditMasterPage({ params, searchParams }: { params:
               required
               rows={4}
               className="field w-full py-2"
-              defaultValue={`Здравствуйте, ${m.name.split(" ")[0]}! Это NomerOk. В вашей анкете указан номер ${formatPhone(m.phone)} — похоже, он неполный или с ошибкой. Пришлите, пожалуйста, правильный номер ответом на это сообщение, мы исправим.`}
+              placeholder="Текст сообщения"
             />
             <button className="btn-primary h-9 px-4 text-[13px]">Отправить через бота</button>
             <p className="text-[12px] text-muted">Придёт от бота NomerOk. Ответ специалиста придёт вам в Telegram как «Сообщение боту».</p>

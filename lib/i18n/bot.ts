@@ -15,6 +15,7 @@ type BotDict = {
   alreadyVerified: string;
   mismatch: (tg: string, form: string) => string;
   whichPhone: string;
+  fixPhone: (phone: string) => string;
   btnKeepForm: (form: string) => string;
   btnUseTg: (tg: string) => string;
   keptForm: (form: string) => string;
@@ -114,6 +115,7 @@ const ru: BotDict = {
   mismatch: (tg, form) =>
     `Ваш Telegram зарегистрирован на номер <b>${tg}</b>, а в анкете указан <b>${form}</b>. Так бывает, если Telegram на старом номере — ничего страшного.`,
   whichPhone: "Какой номер показывать клиентам в профиле?",
+  fixPhone: (phone) => `📱 В вашем профиле на NomerOk указан номер <b>${phone}</b> — похоже, он неполный или с ошибкой, и клиенты не смогут до вас дозвониться.\n\nПожалуйста, исправьте его в личном кабинете: нажмите кнопку ниже → поле «Телефон» → «Сохранить».`,
   btnKeepForm: (form) => `Оставить ${form}`,
   btnUseTg: (tg) => `Показывать ${tg}`,
   keptForm: (form) => `✅ Telegram подключён! В профиле остаётся номер ${form}, заявки будут приходить сюда.`,
@@ -226,6 +228,7 @@ const en: BotDict = {
   mismatch: (tg, form) =>
     `Your Telegram is registered to <b>${tg}</b>, but your profile says <b>${form}</b>. That's fine — it happens when Telegram is on an old number.`,
   whichPhone: "Which number should clients see on your profile?",
+  fixPhone: (phone) => `📱 Your NomerOk profile shows the number <b>${phone}</b> — it looks incomplete or wrong, so clients may not reach you.\n\nPlease fix it in your account: tap the button below → “Phone” → “Save”.`,
   btnKeepForm: (form) => `Keep ${form}`,
   btnUseTg: (tg) => `Show ${tg}`,
   keptForm: (form) => `✅ Telegram connected! Your profile keeps ${form}, and requests will arrive here.`,
@@ -338,6 +341,7 @@ const ka: BotDict = {
   mismatch: (tg, form) =>
     `თქვენი Telegram რეგისტრირებულია ნომერზე <b>${tg}</b>, ანკეტაში კი მითითებულია <b>${form}</b>. ეს ნორმალურია, თუ Telegram ძველ ნომერზეა.`,
   whichPhone: "რომელი ნომერი ვაჩვენოთ კლიენტებს პროფილში?",
+  fixPhone: (phone) => `📱 თქვენს NomerOk პროფილში მითითებულია ნომერი <b>${phone}</b> — როგორც ჩანს, ის არასრულია ან შეცდომითაა, და კლიენტები ვერ დაგირეკავენ.\n\nგთხოვთ, შეასწოროთ ის პირად კაბინეტში: დააჭირეთ ღილაკს ქვემოთ → „ტელეფონი“ → „შენახვა“.`,
   btnKeepForm: (form) => `დავტოვოთ ${form}`,
   btnUseTg: (tg) => `ვაჩვენოთ ${tg}`,
   keptForm: (form) => `✅ Telegram დაკავშირებულია! პროფილში რჩება ნომერი ${form}, განაცხადები აქ მოვა.`,

@@ -94,6 +94,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         body: JSON.stringify({
           lang,
           name: f.get("name"),
+          phone: f.get("phone"),
           services: f.get("services"),
           about: f.get("about"),
           credentials: f.get("credentials"),
@@ -159,8 +160,8 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         <Field label={j.name} error={errors.name}>
           <input name="name" defaultValue={initial.name} className={fc(errors.name)} />
         </Field>
-        <Field label={t.phone} hint={t.phoneNote}>
-          <input value={phone} disabled className="field bg-cream text-muted" />
+        <Field label={t.phone} hint={t.phoneNote} error={errors.phone}>
+          <input name="phone" type="tel" inputMode="tel" defaultValue={phone} className={fc(errors.phone)} />
         </Field>
       </div>
       <Field label={j.services} hint={j.servicesHint} error={errors.services}>

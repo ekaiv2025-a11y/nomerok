@@ -360,7 +360,7 @@ const en: Dict = {
     photoSize: "The file is larger than 5 MB",
     photoError: "Couldn't upload the photo. Please try again.",
     phone: "Phone",
-    phoneNote: "To change your number, write to us.",
+    phoneNote: "Clients see this number. If you change it, confirm the new one via the bot.",
     notify: "Receive new requests in my category on Telegram",
     save: "Save",
     saved: "Saved ✓",

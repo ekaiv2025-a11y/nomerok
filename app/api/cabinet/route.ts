@@ -3,6 +3,7 @@ import { isCity } from "@/lib/cities";
 import { normalizeLinks } from "@/lib/links";
 import { pullLinks } from "@/lib/extract-links";
 import { adminGetMaster, adminUpdateMaster } from "@/lib/db";
+import { normalizePhone } from "@/lib/phone";
 import { cabinetSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { currentSpecialistId } from "@/lib/spec-auth";
 import { notifyAdmin, escapeHtml } from "@/lib/telegram";
@@ -47,6 +48,16 @@ export async function POST(req: Request) {
     };
   }
   if (extra.length > MAX_EXTRA_CATEGORIES) return NextResponse.json({ ok: false, fields: { extra_categories: getDict(lang).cabinet.extraMax } }, { status: 422 });
+  // Телефон: специалист может сам исправить. Новый номер — снимаем «Номер подтверждён»,
+  // но если Telegram уже подключён, заявки продолжают приходить (tg_verified_at).
+  let phonePatch: Record<string, unknown> = {};
+  if (typeof body.phone === "string" && body.phone.trim()) {
+    const np = normalizePhone(body.phone);
+    if (!np) return NextResponse.json({ ok: false, fields: { phone: getDict(lang).errors.phoneInvalid } }, { status: 422 });
+    if (np.replace(/\D/g, "") !== m.phone.replace(/\D/g, "")) {
+      phonePatch = { phone: np, phone_verified_at: null, ...(m.tg_chat_id && (m.phone_verified_at || m.tg_verified_at) ? { tg_verified_at: new Date().toISOString() } : {}) };
+    }
+  }
   const hasLinks = !!body.links && typeof body.links === "object";
   const links = pullLinks(d, d.telegram ?? null, hasLinks ? normalizeLinks(body.links) : {});
   await adminUpdateMaster(id, {
@@ -65,9 +76,11 @@ export async function POST(req: Request) {
     ...(isCity(body.city) ? { city: body.city } : {}),
     ...(hasLinks || Object.keys(links).length ? { links } : {}),
     lang,
+    ...phonePatch,
   });
   // Правки сразу видны на сайте, подтверждать не нужно. Сообщаем тихо и только если поменялся текст анкеты.
   const textChanged = (["name", "services", "about", "credentials"] as const).some((k) => (m[k] ?? "") !== (d[k] ?? ""));
+  if (phonePatch.phone) await notifyAdmin(`📱 <b>${escapeHtml(d.name)}</b> сменил(а) номер: ${escapeHtml(m.phone)} → ${escapeHtml(String(phonePatch.phone))}\n${SITE_URL}/admin/masters/${id}`, { silent: true });
   if (textChanged) await notifyAdmin(`✏️ <b>${escapeHtml(d.name)}</b> изменил(а) текст профиля\n${SITE_URL}/admin/masters/${id}`, { silent: true });
   return NextResponse.json({ ok: true });
 }
