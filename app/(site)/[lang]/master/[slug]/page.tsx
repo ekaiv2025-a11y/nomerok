@@ -8,6 +8,7 @@ import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { AvatarZoom } from "@/components/AvatarZoom";
+import { subcatLine } from "@/lib/subcats";
 import { SocialLinks } from "@/components/SocialLinks";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { cityIn, cityLabel } from "@/lib/cities";
@@ -82,7 +83,8 @@ export default async function MasterPage({ params }: Props) {
           {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
           {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
-            {cat} · {cityLabel(m.city, lang)}
+            {cat}
+            {subcatLine(m, lang, 4) ? ` (${subcatLine(m, lang, 4)!.toLowerCase()})` : ""} · {cityLabel(m.city, lang)}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
           {m.extra_categories.filter((c) => c !== "other").length > 0 && (

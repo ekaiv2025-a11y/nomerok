@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CardPhotos } from "./CardPhotos";
 import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
+import { subcatLine } from "@/lib/subcats";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
 
@@ -45,7 +46,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           )}
         </h3>
         <div className="mt-1 text-[13px] text-muted">
-          {categoryLabel(m.category, lang)}
+          {subcatLine(m, lang) ?? categoryLabel(m.category, lang)}
           {m.experience_years ? <span className="hidden sm:inline"> · {t.experience(m.experience_years)}</span> : null}
         </div>
         {m.rating != null && m.reviews > 0 && (

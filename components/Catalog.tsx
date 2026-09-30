@@ -11,6 +11,7 @@ import { MasterCard } from "./MasterCard";
 import { useRouter } from "next/navigation";
 import { CITIES, type CityId } from "@/lib/cities";
 import { MapPin } from "lucide-react";
+import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
 
 export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[]; lang: Locale; city: CityId }) {
   const t = getDict(lang).catalog;
@@ -32,6 +33,8 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
       document.getElementById("masters")?.scrollIntoView({ block: "start" });
     }
   }, []);
+  const [sub, setSub] = useState<string>("all");
+  useEffect(() => setSub("all"), [cat]);
   const [q, setQ] = useState("");
   const [view, setView] = useState<"list" | "map">("list");
 
@@ -47,13 +50,24 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     const query = q.trim().toLowerCase();
     return masters.filter((m) => {
       if (cat !== "all" && m.category !== cat && !(m.extra_categories ?? []).includes(cat)) return false;
+      if (cat !== "all" && sub !== "all" && !subcatsOf(m, cat).includes(sub)) return false;
       if (!query) return true;
       // Ищем по названию категории на всех трёх языках — человек может писать на любом
       const catNames = [m.category, ...(m.extra_categories ?? [])].flatMap((id) => ["ru", "ka", "en"].map((l) => categoryLabel(id, l as Locale))).join(" ");
-      const hay = `${m.name} ${m.services} ${m.about} ${catNames}`.toLowerCase();
+      const subNames = [m.category, ...(m.extra_categories ?? [])].flatMap((c) => subcatsOf(m, c).flatMap((id) => (["ru", "ka", "en"] as Locale[]).map((l) => subcatLabel(c, id, l)))).join(" ");
+      const hay = `${m.name} ${m.services} ${m.about} ${catNames} ${subNames}`.toLowerCase();
       return query.split(/\s+/).every((w) => hay.includes(w));
     });
-  }, [masters, cat, q]);
+  }, [masters, cat, sub, q]);
+
+  // Уточнения внутри направления (например, «Красота» → парикмахер, маникюр…)
+  const subCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    if (cat === "all" || !SUBCATS[cat]) return c;
+    for (const m of masters) for (const s of subcatsOf(m, cat)) c[s] = (c[s] ?? 0) + 1;
+    return c;
+  }, [masters, cat]);
+  const visibleSubs = cat !== "all" ? (SUBCATS[cat] ?? []).filter((s) => subCounts[s.id]) : [];
 
   const mapPoints: MapPoint[] = filtered
     .filter((m) => m.place_lat != null && m.place_lng != null && (m.work_mode === "at_place" || m.work_mode === "both"))
@@ -117,6 +131,19 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
         </div>
       )}
 
+      {visibleSubs.length > 1 && (
+        <div className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
+          <SubChip active={sub === "all"} onClick={() => setSub("all")}>
+            {t.all}
+          </SubChip>
+          {visibleSubs.map((s) => (
+            <SubChip key={s.id} active={sub === s.id} onClick={() => setSub(s.id)}>
+              {s.label[lang]} · {subCounts[s.id]}
+            </SubChip>
+          ))}
+        </div>
+      )}
+
       <div className="mt-4 flex items-center gap-1 rounded-full bg-cream p-1 text-[13px] font-medium sm:w-fit">
         {(["list", "map"] as const).map((v) => (
           <button
@@ -172,6 +199,19 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-4 text-[13px] font-medium transition-colors ${
         active ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SubChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px] font-medium transition-colors ${
+        active ? "bg-brand text-white" : "bg-brand-soft text-brand-dark hover:bg-[#d6eadf]"
       }`}
     >
       {children}
