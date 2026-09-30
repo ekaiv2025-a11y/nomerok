@@ -52,6 +52,8 @@ export type Master = {
   tg_link_token: string;
   /** Когда номер подтверждён через Telegram */
   phone_verified_at: string | null;
+  /** Telegram подтверждён, но в анкете другой номер (см. бот) */
+  tg_verified_at?: string | null;
   /** Получать ли новые заявки своей категории */
   notify_requests: boolean;
   /** Дополнительные направления (до 3), по ним тоже приходят заявки */

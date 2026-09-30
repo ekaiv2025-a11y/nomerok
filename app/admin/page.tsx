@@ -362,6 +362,8 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
           <div className="mt-1 text-[12px]">
             {m.phone_verified_at ? (
               <span className="rounded-full bg-brand-soft px-2 py-0.5 text-brand-dark">✓ номер подтверждён в Telegram</span>
+            ) : m.tg_verified_at ? (
+              <span className="rounded-full bg-brand-soft px-2 py-0.5 text-brand-dark">Telegram подключён (там другой номер), заявки получает</span>
             ) : m.tg_chat_id ? (
               <span className="rounded-full bg-[#fdf6e6] px-2 py-0.5 text-[#5a4a22]">Telegram подключён, номер не подтверждён</span>
             ) : (

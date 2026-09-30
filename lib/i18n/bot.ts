@@ -14,6 +14,10 @@ type BotDict = {
   verifiedPublished: string;
   alreadyVerified: string;
   mismatch: (tg: string, form: string) => string;
+  whichPhone: string;
+  btnKeepForm: (form: string) => string;
+  btnUseTg: (tg: string) => string;
+  keptForm: (form: string) => string;
   notOwnContact: string;
   noPendingProfile: string;
   joinAsk: string;
@@ -108,7 +112,11 @@ const ru: BotDict = {
   verifiedPublished: "Теперь вам будут приходить заявки клиентов вашей категории.",
   alreadyVerified: "✅ Ваш номер уже подтверждён.",
   mismatch: (tg, form) =>
-    `⚠️ Номер этого Telegram (<b>${tg}</b>) не совпадает с номером в анкете (<b>${form}</b>).\n\nОткройте ссылку из того Telegram, который зарегистрирован на ${form}, или напишите сюда, какой номер указать в анкете.`,
+    `Ваш Telegram зарегистрирован на номер <b>${tg}</b>, а в анкете указан <b>${form}</b>. Так бывает, если Telegram на старом номере — ничего страшного.`,
+  whichPhone: "Какой номер показывать клиентам в профиле?",
+  btnKeepForm: (form) => `Оставить ${form}`,
+  btnUseTg: (tg) => `Показывать ${tg}`,
+  keptForm: (form) => `✅ Telegram подключён! В профиле остаётся номер ${form}, заявки будут приходить сюда.`,
   notOwnContact: "Пожалуйста, отправьте свой номер кнопкой «📱 Поделиться номером», а не чужой контакт.",
   noPendingProfile: "Спасибо! Но к этому Telegram не привязана анкета, ожидающая подтверждения.",
   joinAsk: "📝 Заполним анкету быстрее: нажмите кнопку ниже и поделитесь номером. Мы подставим в анкету ваш номер, ник и фото из Telegram — номер сразу будет подтверждён.",
@@ -216,7 +224,11 @@ const en: BotDict = {
   verifiedPublished: "You'll now receive client requests in your category.",
   alreadyVerified: "✅ Your number is already verified.",
   mismatch: (tg, form) =>
-    `⚠️ This Telegram's number (<b>${tg}</b>) doesn't match the number in your profile (<b>${form}</b>).\n\nOpen the link from the Telegram account registered to ${form}, or write here which number to use.`,
+    `Your Telegram is registered to <b>${tg}</b>, but your profile says <b>${form}</b>. That's fine — it happens when Telegram is on an old number.`,
+  whichPhone: "Which number should clients see on your profile?",
+  btnKeepForm: (form) => `Keep ${form}`,
+  btnUseTg: (tg) => `Show ${tg}`,
+  keptForm: (form) => `✅ Telegram connected! Your profile keeps ${form}, and requests will arrive here.`,
   notOwnContact: "Please send your own number with the “📱 Share my number” button, not someone else's contact.",
   noPendingProfile: "Thanks! But no profile awaiting verification is linked to this Telegram.",
   joinAsk: "📝 Let's fill in your profile faster: tap the button below and share your number. We'll add your number, username and photo from Telegram — your number will be verified right away.",
@@ -324,7 +336,11 @@ const ka: BotDict = {
   verifiedPublished: "ახლა მიიღებთ თქვენი კატეგორიის კლიენტების განაცხადებს.",
   alreadyVerified: "✅ თქვენი ნომერი უკვე დადასტურებულია.",
   mismatch: (tg, form) =>
-    `⚠️ ამ Telegram-ის ნომერი (<b>${tg}</b>) არ ემთხვევა ანკეტაში მითითებულ ნომერს (<b>${form}</b>).\n\nგახსენით ბმული იმ Telegram-იდან, რომელიც ${form}-ზეა რეგისტრირებული, ან მოგვწერეთ აქ, რომელი ნომერი მივუთითოთ.`,
+    `თქვენი Telegram რეგისტრირებულია ნომერზე <b>${tg}</b>, ანკეტაში კი მითითებულია <b>${form}</b>. ეს ნორმალურია, თუ Telegram ძველ ნომერზეა.`,
+  whichPhone: "რომელი ნომერი ვაჩვენოთ კლიენტებს პროფილში?",
+  btnKeepForm: (form) => `დავტოვოთ ${form}`,
+  btnUseTg: (tg) => `ვაჩვენოთ ${tg}`,
+  keptForm: (form) => `✅ Telegram დაკავშირებულია! პროფილში რჩება ნომერი ${form}, განაცხადები აქ მოვა.`,
   notOwnContact: "გთხოვთ, გამოგზავნოთ თქვენი ნომერი ღილაკით „📱 ნომრის გაზიარება“ და არა სხვისი კონტაქტი.",
   noPendingProfile: "გმადლობთ! მაგრამ ამ Telegram-ზე დასადასტურებელი ანკეტა არ არის მიბმული.",
   joinAsk: "📝 ანკეტას უფრო სწრაფად შევავსებთ: დააჭირეთ ქვემოთ ღილაკს და გაგვიზიარეთ ნომერი. ანკეტაში ჩავსვამთ თქვენს ნომერს, ნიკს და ფოტოს Telegram-იდან — ნომერი მაშინვე დადასტურდება.",

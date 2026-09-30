@@ -10,7 +10,7 @@ export type Step = { id: StepId; done: boolean };
 /** Шаги заполнения профиля и готовность в процентах. */
 export function profileSteps(m: Master): { steps: Step[]; percent: number; missing: StepId[] } {
   const steps: Step[] = [
-    { id: "verified", done: !!m.phone_verified_at },
+    { id: "verified", done: !!(m.phone_verified_at || m.tg_verified_at) },
     { id: "photo", done: !!m.photo_url },
     { id: "about", done: (m.about ?? "").trim().length >= 40 },
     { id: "services", done: (m.services ?? "").split(/\n/).filter((s) => s.trim()).length >= 2 },

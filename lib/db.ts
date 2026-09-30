@@ -100,6 +100,7 @@ export async function healthCheck() {
           ["0009 города", "masters", "city"],
           ["0010 соцсети", "masters", "links"],
           ["0011 приглашения", "outreach", "tg_user_id"],
+          ["0012 другой номер в Telegram", "masters", "tg_verified_at"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -535,6 +536,11 @@ export async function getMastersByChatId(chatId: number): Promise<Master[]> {
 }
 
 /** Подтверждённые специалисты категории, которые принимают заявки. */
+/** Заявки получают те, кто подтвердил номер — или подключил Telegram с другим номером (tg_verified_at). */
+export function canGetRequests(m: Pick<Master, "phone_verified_at" | "tg_verified_at">): boolean {
+  return !!(m.phone_verified_at || m.tg_verified_at);
+}
+
 export async function listMastersForRequests(category: string, city = "batumi"): Promise<Master[]> {
   const sb = supabase();
   let list: Master[];
@@ -545,12 +551,12 @@ export async function listMastersForRequests(category: string, city = "batumi"):
         .select("*")
         .eq("status", "published")
         .eq("notify_requests", true)
-        .not("tg_chat_id", "is", null)
-        .not("phone_verified_at", "is", null),
+        .not("tg_chat_id", "is", null),
     ) as Master[];
+    list = list.filter(canGetRequests);
   } else {
     if (dbMode() === "none") throw new DbNotConfiguredError();
-    list = (await readLocal()).masters.filter((m) => m.status === "published" && m.notify_requests && m.tg_chat_id && m.phone_verified_at);
+    list = (await readLocal()).masters.filter((m) => m.status === "published" && m.notify_requests && m.tg_chat_id && canGetRequests(m));
   }
   // Основное или дополнительное направление; кто в отпуске — не получает
   return list.filter((m) => servesCategory(m, category) && (m.city ?? "batumi") === city && !isAwayNow(m) && !m.archived_at);

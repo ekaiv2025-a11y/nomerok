@@ -1,5 +1,6 @@
 import "server-only";
 import {
+  canGetRequests,
   addResponse,
   adminGetMaster,
   adminUpdateMaster,
@@ -45,7 +46,7 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
   let targets: Master[] = [];
   if (r.master_id) {
     const m = await adminGetMaster(r.master_id);
-    if (m && m.status === "published" && m.tg_chat_id && m.phone_verified_at) targets = [m];
+    if (m && m.status === "published" && m.tg_chat_id && canGetRequests(m)) targets = [m];
   } else {
     targets = await listMastersForRequests(r.category, r.city ?? "batumi");
   }
@@ -142,7 +143,7 @@ async function onStart(msg: TgMessage, payload: string) {
     const m = await getMasterByLinkToken(payload.slice(2));
     if (!m) return sendTo(chatId, botDict(guessLang(from)).linkInvalid);
     await adminUpdateMaster(m.id, { tg_chat_id: chatId, tg_username: from?.username ?? null });
-    if (m.phone_verified_at) {
+    if (canGetRequests(m)) {
       await sendTo(chatId, botDict(m.lang).alreadyVerified);
       return sendCabinetLink({ ...m, tg_chat_id: chatId });
     }
@@ -222,22 +223,26 @@ async function onContact(msg: TgMessage) {
   if (c.user_id && msg.from && c.user_id !== msg.from.id) return sendTo(chatId, botDict(lang).notOwnContact);
 
   const masters = await getMastersByChatId(chatId);
-  const m = masters.find((x) => !x.phone_verified_at) ?? masters[0];
+  const m = masters.find((x) => !canGetRequests(x)) ?? masters[0];
   if (!m) {
     const phone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
     if (!phone || (c.user_id && msg.from && c.user_id !== msg.from.id)) return sendTo(chatId, botDict(lang).noPendingProfile, undefined, removeKeyboard);
     return onJoinContact(msg, phone);
   }
   const b = botDict(m.lang);
-  if (m.phone_verified_at) return sendTo(chatId, b.alreadyVerified, undefined, removeKeyboard);
+  if (canGetRequests(m)) return sendTo(chatId, b.alreadyVerified, undefined, removeKeyboard);
 
   const tgPhone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
   const same = tgPhone && tgPhone.replace(/\D/g, "") === m.phone.replace(/\D/g, "");
   if (!same) {
-    await notifyAdmin(
-      `⚠️ <b>${esc(m.name)}</b>: номер Telegram ${esc(formatPhone(tgPhone ?? c.phone_number))} не совпадает с анкетой ${esc(formatPhone(m.phone))}\n${siteUrl()}/admin/masters/${m.id}`,
-    );
-    return sendTo(chatId, b.mismatch(formatPhone(tgPhone ?? c.phone_number), formatPhone(m.phone)), undefined, removeKeyboard);
+    // Частый случай: Telegram на старом (украинском, российском…) номере, а работает человек с грузинским.
+    // Не тупик: спрашиваем, какой номер показывать клиентам. Заявки будут приходить в любом случае.
+    const tgDigits = (tgPhone ?? "").replace(/\D/g, "");
+    await sendTo(chatId, b.mismatch(formatPhone(tgPhone ?? c.phone_number), formatPhone(m.phone)), undefined, removeKeyboard);
+    return sendTo(chatId, b.whichPhone, [
+      [{ text: b.btnKeepForm(formatPhone(m.phone)), callback_data: `ph:keep` }],
+      ...(tgDigits ? [[{ text: b.btnUseTg(formatPhone(tgPhone!)), callback_data: `ph:tg:${tgDigits}` }]] : []),
+    ]);
   }
 
   const patch: Partial<Master> = { phone_verified_at: new Date().toISOString() };
@@ -249,6 +254,37 @@ async function onContact(msg: TgMessage) {
   await notifyAdmin(`✅ <b>${esc(m.name)}</b> подтвердил(а) номер через Telegram\n${siteUrl()}/admin/masters/${m.id}`);
 }
 
+/** Ответ на вопрос «какой номер показывать клиентам», когда номер Telegram не совпал с анкетой. */
+async function onPhoneChoice(cb: TgCallback, data: string) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const chatId = cb.from.id;
+  const masters = await getMastersByChatId(chatId);
+  const m = masters.find((x) => !canGetRequests(x)) ?? masters[0];
+  if (!m) return;
+  const b = botDict(m.lang);
+  if (cb.message) await tg("editMessageReplyMarkup", { chat_id: chatId, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
+  if (canGetRequests(m)) return sendTo(chatId, b.alreadyVerified);
+  const now = new Date().toISOString();
+  const uname = normalizeTelegram(cb.from.username);
+  const base: Partial<Master> = !m.telegram && uname ? { telegram: uname } : {};
+  const next = m.status === "published" ? b.verifiedPublished : b.verifiedPending;
+  if (data.startsWith("ph:tg:")) {
+    const phone = normalizePhone("+" + data.slice(6));
+    if (!phone) return;
+    await adminUpdateMaster(m.id, { ...base, phone, phone_verified_at: now });
+    await notifyAdmin(`✅ <b>${esc(m.name)}</b> подтвердил(а) Telegram и заменил(а) номер в анкете на ${esc(formatPhone(phone))}\n${siteUrl()}/admin/masters/${m.id}`, { silent: true });
+    return sendTo(chatId, `${b.verified}\n${next}`);
+  }
+  try {
+    await adminUpdateMaster(m.id, { ...base, tg_verified_at: now });
+  } catch {
+    // таблица ещё без новой колонки — не оставляем человека без заявок
+    await adminUpdateMaster(m.id, { ...base, phone_verified_at: now });
+  }
+  await notifyAdmin(`ℹ️ <b>${esc(m.name)}</b> подключил(а) Telegram (номер в Telegram другой), в анкете оставил(а) ${esc(formatPhone(m.phone))}. Заявки получает, отметки «Номер подтверждён» нет.\n${siteUrl()}/admin/masters/${m.id}`, { silent: true });
+  return sendTo(chatId, `${b.keptForm(formatPhone(m.phone))}\n${next}`);
+}
+
 async function onTake(cb: TgCallback, requestId: string) {
   const chatId = cb.from.id;
   const answer = (text: string) => tg("answerCallbackQuery", { callback_query_id: cb.id, text, show_alert: true });
@@ -256,7 +292,7 @@ async function onTake(cb: TgCallback, requestId: string) {
   const r = await getRequest(requestId);
   const masters = await getMastersByChatId(chatId);
   const m =
-    masters.find((x) => x.status === "published" && x.phone_verified_at && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ??
+    masters.find((x) => x.status === "published" && canGetRequests(x) && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ??
     null;
   const b = botDict(m?.lang ?? guessLang(cb.from));
   if (!r || r.status === "spam" || r.status === "done") return answer(b.requestGone);
@@ -421,7 +457,7 @@ async function sendWeeklyStats(force = false): Promise<number> {
   const reviewsBy = await reviewStats().catch(() => new Map<string, { sum: number; n: number }>());
   let n = 0;
   for (const m of await adminListMasters()) {
-    if (m.status !== "published" || m.archived_at || !m.tg_chat_id || !m.phone_verified_at) continue;
+    if (m.status !== "published" || m.archived_at || !m.tg_chat_id || !canGetRequests(m)) continue;
     if (m.stats_sent_at && Date.now() - new Date(m.stats_sent_at).getTime() < 6 * DAY) continue;
     const st = await masterStats(m.id, 7).catch(() => null);
     if (!st) continue;
@@ -644,6 +680,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
     if (data === "alive") return void (await onAlive(u.callback_query));
+    if (data.startsWith("ph:")) return void (await onPhoneChoice(u.callback_query, data));
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));

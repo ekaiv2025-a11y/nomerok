@@ -40,7 +40,9 @@ export default async function EditMasterPage({ params, searchParams }: { params:
           <b>Telegram:</b>{" "}
           {m.phone_verified_at
             ? `✓ номер подтверждён ${new Date(m.phone_verified_at).toLocaleDateString("ru-RU")}`
-            : m.tg_chat_id
+            : m.tg_verified_at
+              ? "подключён, но в Telegram другой номер — заявки получает, отметки «Номер подтверждён» нет"
+              : m.tg_chat_id
               ? "подключён, номер ещё не подтверждён"
               : "не подключён"}
           {m.tg_username ? ` · @${m.tg_username}` : ""} · профиль заполнен на {percent}%
