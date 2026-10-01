@@ -21,6 +21,14 @@ export function Header({ lang }: { lang: Locale }) {
     hiddenRef.current = hidden;
   }, [hidden]);
   const pathname = usePathname();
+  // iPhone Safari (iOS 26): при прокрутке поверх страницы сверху «плавает» плашка с адресом сайта.
+  // Чтобы она не налезала на кнопки, в прокрученном состоянии опускаем содержимое шапки ниже неё.
+  const [iosSafari, setIosSafari] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    setIosSafari(/iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser/.test(ua));
+  }, []);
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -33,6 +41,7 @@ export function Header({ lang }: { lang: Locale }) {
       ticking = false;
       const y = window.scrollY;
       const max = document.documentElement.scrollHeight - window.innerHeight;
+      setScrolled(y > 56);
       if (window.innerWidth >= 768 || y <= 56) {
         if (hiddenRef.current) setHidden(false);
         last = Math.max(0, y);
@@ -74,8 +83,13 @@ export function Header({ lang }: { lang: Locale }) {
   return (
     <>
       <header
-        className="fixed inset-x-0 top-0 z-40 border-b border-line bg-white transition-transform duration-300 ease-out md:sticky"
-        style={{ transform: hidden && !open ? "translate3d(0,-100%,0)" : "translate3d(0,0,0)", willChange: "transform" }}
+        className="fixed inset-x-0 top-0 z-40 border-b border-line bg-white md:sticky"
+        style={{
+          transform: hidden && !open ? "translate3d(0,-100%,0)" : "translate3d(0,0,0)",
+          willChange: "transform",
+          paddingTop: iosSafari && scrolled ? 30 : 0,
+          transition: "transform .3s ease-out, padding-top .2s ease-out",
+        }}
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-16 sm:px-6">
           <Logo lang={lang} />
