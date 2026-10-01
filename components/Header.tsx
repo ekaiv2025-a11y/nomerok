@@ -16,7 +16,6 @@ export function Header({ lang }: { lang: Locale }) {
   const t = getDict(lang);
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
-  const lastY = useRef(0);
   const hiddenRef = useRef(false);
   useEffect(() => {
     hiddenRef.current = hidden;
@@ -26,31 +25,25 @@ export function Header({ lang }: { lang: Locale }) {
   useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
-    // Прячем/показываем только после заметного движения (60px в одну сторону) —
-    // чтобы шапка не дёргалась от мелких движений пальца и «пружины» на iPhone.
-    let anchor = window.scrollY;
+    // Простое правило: листаем вниз — шапки нет, листаем вверх — она на месте.
+    // Мелкие подрагивания пальца (меньше 8px) и «пружину» у краёв страницы не учитываем.
+    let last = window.scrollY;
     let ticking = false;
     const update = () => {
       ticking = false;
       const y = window.scrollY;
       const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (window.innerWidth >= 768 || y < 120) {
-        setHidden(false);
-        anchor = y;
+      if (window.innerWidth >= 768 || y <= 56) {
+        if (hiddenRef.current) setHidden(false);
+        last = Math.max(0, y);
         return;
       }
-      if (y < 0 || y > max) return; // «пружина» у краёв страницы
-      const diff = y - anchor;
-      if (diff > 60) {
-        setHidden(true);
-        anchor = y;
-      } else if (diff < -60) {
-        setHidden(false);
-        anchor = y;
-      } else if ((diff > 0 && hiddenRef.current) || (diff < 0 && !hiddenRef.current)) {
-        anchor = y; // продолжаем двигаться в ту же сторону — сдвигаем точку отсчёта
-      }
-      lastY.current = y;
+      if (y < 0 || y > max) return;
+      const diff = y - last;
+      if (Math.abs(diff) < 8) return;
+      const hide = diff > 0;
+      if (hide !== hiddenRef.current) setHidden(hide);
+      last = y;
     };
     const onScroll = () => {
       if (!ticking) {
@@ -81,7 +74,8 @@ export function Header({ lang }: { lang: Locale }) {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur transition-transform duration-200 ease-out will-change-transform ${hidden && !open ? "-translate-y-full" : ""}`}
+        className="fixed inset-x-0 top-0 z-40 border-b border-line bg-white transition-transform duration-300 ease-out md:sticky"
+        style={{ transform: hidden && !open ? "translate3d(0,-100%,0)" : "translate3d(0,0,0)", willChange: "transform" }}
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-16 sm:px-6">
           <Logo lang={lang} />
@@ -109,6 +103,8 @@ export function Header({ lang }: { lang: Locale }) {
           </nav>
         </div>
       </header>
+      {/* место под шапку на телефоне (там она «плавает» поверх страницы) */}
+      <div className="h-14 sm:h-16 md:hidden" aria-hidden />
 
       {open && (
         <div className="fixed inset-0 top-14 z-30 bg-black/30 md:hidden" onClick={() => setOpen(false)}>
