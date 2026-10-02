@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { SOCIAL } from "@/lib/social-text";
+import { MY } from "@/lib/my-text";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { getDict, href, type Locale } from "@/lib/i18n";
 
@@ -75,6 +76,7 @@ export function Header({ lang }: { lang: Locale }) {
   const links = [
     { href: href(lang), label: t.nav.allSpecialists },
     { href: href(lang, "/request"), label: t.nav.leaveRequest },
+    { href: href(lang, "/my"), label: "📋 " + MY[lang].nav },
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
     { href: href(lang, "/how"), label: t.nav.how },
@@ -104,7 +106,10 @@ export function Header({ lang }: { lang: Locale }) {
               {t.nav.iAmSpecialist}
             </Link>
             <Link href={href(lang, "/favorites")} className="hidden h-10 items-center rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink md:inline-flex" title={SOCIAL[lang].fav}>
-              ♡<span className="ml-1 hidden lg:inline">{SOCIAL[lang].fav}</span>
+              ♡
+            </Link>
+            <Link href={href(lang, "/my")} className="hidden h-10 items-center rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
+              {MY[lang].nav}
             </Link>
             <LanguageSwitcher lang={lang} label={t.nav.language} compact />
             <Link href={href(lang, "/request")} className="btn-primary h-10 whitespace-nowrap px-3 text-[13px] max-[359px]:px-2.5 sm:px-4 sm:text-[14px]">

@@ -20,6 +20,7 @@ import {
 import { daysFromToday, formatDay, isAwayNow, servesCategory, todayTbilisi } from "./availability";
 import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup } from "./reviews-db";
 import { reviewToken } from "./signed";
+import { clientLoginToken } from "./client-auth";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
 import { categoryLabel } from "./categories";
@@ -139,10 +140,24 @@ function guessLang(u?: TgUser): string {
 
 const removeKeyboard = { reply_markup: { remove_keyboard: true } };
 
+const MY_BTN: Record<string, string> = { ru: "📋 Мои заявки на сайте", en: "📋 My requests", ka: "📋 ჩემი განაცხადები" };
+const MY_TEXT: Record<string, string> = {
+  ru: "📋 Ваши заявки, отклики специалистов и избранное — по кнопке ниже. Ссылка действует 30 минут.",
+  en: "📋 Your requests, responses and saved specialists — tap the button below. The link works for 30 minutes.",
+  ka: "📋 თქვენი განაცხადები და შენახული სპეციალისტები — დააჭირეთ ღილაკს. ბმული 30 წუთი მოქმედებს.",
+};
+function myLoginUrl(chatId: number, lang: string) {
+  return `${siteUrl()}/api/my/login?t=${clientLoginToken(chatId)}&lang=${lang}`;
+}
+async function sendMyLink(chatId: number, lang: string) {
+  return sendTo(chatId, MY_TEXT[lang] ?? MY_TEXT.ru, [[{ text: MY_BTN[lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, lang) }]]);
+}
+
 async function welcome(chatId: number, lang: string) {
   const b = botDict(lang);
   await sendTo(chatId, b.welcome(SITE_NAME), [
     [{ text: b.btnFind, url: `${siteUrl()}/${lang}` }],
+    [{ text: MY_BTN[lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, lang) }],
     [{ text: b.btnJoin, url: `${siteUrl()}/${lang}/join` }],
   ]);
 }
@@ -179,7 +194,16 @@ async function onStart(msg: TgMessage, payload: string) {
     if (!r) return sendTo(chatId, botDict(guessLang(from)).linkInvalid);
     await updateRequest(r.id, { client_tg_chat_id: chatId });
     const b = botDict(r.lang);
-    return sendTo(chatId, b.clientLinked, r.status === "done" ? undefined : [[{ text: b.btnClose, callback_data: `close:${r.id}` }]]);
+    return sendTo(chatId, b.clientLinked, [
+      ...(r.status === "done" ? [] : [[{ text: b.btnClose, callback_data: `close:${r.id}` }]]),
+      [{ text: MY_BTN[r.lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, r.lang) }],
+    ]);
+  }
+
+  // «Мои заявки» на сайте: t.me/бот?start=my_ru → ссылка для входа
+  if (payload.startsWith("my")) {
+    const lang = ["ru", "en", "ka"].includes(payload.slice(3)) ? payload.slice(3) : guessLang(from);
+    return sendMyLink(chatId, lang);
   }
 
   // «Оставить отзыв» со страницы специалиста: t.me/бот?start=rv_ID
@@ -715,6 +739,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   if (msg.contact) return void (await onContact(msg));
   const text = msg.text ?? "";
   if (text.startsWith("/start")) return void (await onStart(msg, text.split(/\s+/)[1] ?? ""));
+  if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from)));
   if (text) return void (await onText(msg));
 }
 

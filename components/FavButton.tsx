@@ -13,7 +13,7 @@ export function readFavs(): string[] {
     return [];
   }
 }
-function writeFavs(list: string[]) {
+export function writeFavs(list: string[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch {}
@@ -38,7 +38,10 @@ export function FavButton({ slug, lang, variant = "overlay" }: { slug: string; l
     e.preventDefault();
     e.stopPropagation();
     const list = readFavs();
-    writeFavs(list.includes(slug) ? list.filter((s) => s !== slug) : [slug, ...list].slice(0, 100));
+    const removing = list.includes(slug);
+    writeFavs(removing ? list.filter((s) => s !== slug) : [slug, ...list].slice(0, 100));
+    // Если клиент вошёл в «Мои заявки» — сохраняем и в его аккаунте (иначе сервер просто ответит 401)
+    fetch("/api/my", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(removing ? { action: "favs", slugs: [], removed: [slug] } : { action: "favs", slugs: [slug] }) }).catch(() => {});
   };
   const heart = (
     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>

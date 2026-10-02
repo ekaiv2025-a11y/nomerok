@@ -101,6 +101,7 @@ export async function healthCheck() {
           ["0010 соцсети", "masters", "links"],
           ["0011 приглашения", "outreach", "tg_user_id"],
           ["0012 другой номер в Telegram", "masters", "tg_verified_at"],
+          ["0013 избранное клиентов", "client_favs", "slug"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -157,7 +158,7 @@ export async function readLocal(): Promise<LocalData> {
     return { masters: [], requests: [], contact_views: [], responses: [], login_tokens: [], reviews: [], complaints: [], profile_views: [] };
   }
 }
-export async function writeLocal(d: LocalData) {
+export async function writeLocal(d: LocalData & Record<string, unknown>) {
   await fs.mkdir(path.dirname(LOCAL_FILE), { recursive: true });
   await fs.writeFile(LOCAL_FILE, JSON.stringify(d, null, 2));
 }
