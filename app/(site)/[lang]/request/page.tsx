@@ -1,3 +1,4 @@
+import { clientContact } from "@/lib/client-auth";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -35,7 +36,7 @@ export default async function RequestPage({ params, searchParams }: Props) {
         ))}
       </ol>
       <div className="mt-6">
-        <RequestForm lang={lang} defaultCategory={sp.category} defaultCity={sp.city} />
+        <RequestForm lang={lang} defaultCategory={sp.category} defaultCity={sp.city} me={await clientContact()} />
       </div>
       <p className="mt-6 text-center text-[14px]">
         <Link href={href(lang) + "#masters"} className="font-semibold text-brand hover:underline">

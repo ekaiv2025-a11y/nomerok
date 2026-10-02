@@ -1,3 +1,4 @@
+import { clientContact } from "@/lib/client-auth";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -54,7 +55,7 @@ export default async function MessagePage({ params }: Props) {
         <>
           <p className="mt-2 text-[15px] leading-relaxed text-muted">{t.sub(m.name)}</p>
           <div className="mt-5">
-            <MessageForm lang={lang} master={{ slug: m.slug, name: m.name, category: m.category }} />
+            <MessageForm lang={lang} master={{ slug: m.slug, name: m.name, category: m.category }} me={await clientContact()} />
           </div>
           <p className="mt-6 rounded-xl bg-cream p-3.5 text-center text-[14px]">
             {t.orGeneral}{" "}

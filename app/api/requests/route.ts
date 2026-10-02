@@ -10,6 +10,8 @@ import { formatPhone } from "@/lib/phone";
 import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 import { cityLabel, cityOf } from "@/lib/cities";
+import { currentClient } from "@/lib/client-auth";
+import { updateRequest } from "@/lib/db";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -40,6 +42,13 @@ export async function POST(req: Request) {
       city: master ? (master.city ?? "batumi") : cityOf(body.city),
     });
 
+    // Клиент вошёл в «Мои заявки» — сразу привязываем заявку к его Telegram: отклики придут туда без лишних шагов
+    const me = await currentClient();
+    if (me) {
+      await updateRequest(saved.id, { client_tg_chat_id: me.chatId }).catch(() => null);
+      saved.client_tg_chat_id = me.chatId;
+    }
+
     // Рассылаем заявку подтверждённым специалистам в Telegram
     const sent = await distributeRequest(saved).catch((err) => {
       console.error("[distribute]", err);
@@ -60,7 +69,7 @@ export async function POST(req: Request) {
       `\n${SITE_URL}/admin`,
     ].filter(Boolean);
     await notifyAdmin(lines.join("\n"));
-    return NextResponse.json({ ok: true, tgLink: await botLink(`r_${saved.client_link_token}`) });
+    return NextResponse.json({ ok: true, linked: !!me, tgLink: me ? null : await botLink(`r_${saved.client_link_token}`) });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });

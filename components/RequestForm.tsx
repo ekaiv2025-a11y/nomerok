@@ -5,14 +5,14 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
-import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
+import { ContactFields, Field, Honeypot, LinkedNote, TelegramStep, fc, useSubmit } from "./form-kit";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
 
-type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string };
+type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; me?: { name: string; phone: string } | null };
 
 /** Общая заявка — для всех специалистов направления. */
-export function RequestForm({ lang, defaultCategory, defaultCity }: Props) {
+export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
   const d = getDict(lang);
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
@@ -24,6 +24,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity }: Props) {
         <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
         <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneGeneral}</p>
         <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
+        {result.linked ? <LinkedNote lang={lang} href={href(lang, "/my")} /> : null}
         <Link href={href(lang)} className="btn-ghost mt-5">
           {d.form.toHome}
         </Link>
@@ -69,14 +70,12 @@ export function RequestForm({ lang, defaultCategory, defaultCity }: Props) {
       <Field label={t.when} optional={d.form.optional} error={errors.when_text}>
         <input name="when_text" className={fc(errors.when_text)} placeholder={t.whenPlaceholder} />
       </Field>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label={t.name} optional={d.form.optional} error={errors.name}>
-          <input name="name" autoComplete="given-name" className={fc(errors.name)} />
-        </Field>
-        <Field label={t.phone} hint={t.phoneHint} error={errors.phone}>
-          <input name="phone" type="tel" inputMode="tel" autoComplete="tel" className={fc(errors.phone)} placeholder={d.form.phonePlaceholder} required />
-        </Field>
-      </div>
+      <ContactFields
+        lang={lang}
+        me={me}
+        errors={errors}
+        labels={{ name: t.name, phone: t.phone, phoneHint: t.phoneHint, optional: d.form.optional, placeholder: d.form.phonePlaceholder }}
+      />
       {message && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{message}</p>}
       <button type="submit" disabled={state === "sending"} className="btn-primary h-12 w-full">
         {state === "sending" && <Loader2 className="h-4 w-4 animate-spin" />} {t.submit}

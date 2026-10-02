@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { getDict, type Locale } from "@/lib/i18n";
+import { formatPhone } from "@/lib/phone";
 
 export type SubmitState = "idle" | "sending" | "done" | "error";
 
@@ -101,6 +102,65 @@ export function TelegramStep({ title, text, button, link }: { title: string; tex
           <path d="M9.04 15.47 8.9 19.6c.42 0 .6-.18.82-.4l1.97-1.88 4.08 2.99c.75.41 1.28.2 1.48-.69l2.68-12.57c.26-1.2-.44-1.67-1.17-1.39L3.2 11.05c-1.08.42-1.06 1.03-.19 1.3l4.04 1.26 9.39-5.92c.44-.29.84-.13.51.16"/>
         </svg>
         {button}
+      </a>
+    </div>
+  );
+}
+
+const ME_TEXT = {
+  ru: { from: "Заявка от", change: "изменить", linked: "Отклики придут вам в Telegram и в «Мои заявки» — ничего подключать не нужно.", my: "Мои заявки" },
+  en: { from: "From", change: "change", linked: "Responses will arrive in Telegram and in “My requests” — nothing else to connect.", my: "My requests" },
+  ka: { from: "განაცხადი", change: "შეცვლა", linked: "გამოხმაურებები მოვა Telegram-ში და „ჩემ განაცხადებში“.", my: "ჩემი განაცხადები" },
+} as const;
+
+/**
+ * Имя и телефон в заявке. Если клиент вошёл в «Мои заявки» и мы знаем его данные —
+ * показываем одной строкой «Заявка от: Ольга, +995…» с кнопкой «изменить».
+ */
+export function ContactFields({
+  lang,
+  me,
+  labels,
+  errors,
+}: {
+  lang: "ru" | "en" | "ka";
+  me?: { name: string; phone: string } | null;
+  labels: { name: string; phone: string; phoneHint: string; optional: string; placeholder: string };
+  errors: Record<string, string | undefined>;
+}) {
+  const [edit, setEdit] = useState(!me?.phone || !!errors.phone);
+  const t = ME_TEXT[lang];
+  if (!edit && me?.phone)
+    return (
+      <div className="flex flex-wrap items-center gap-2 rounded-xl bg-cream px-4 py-3 text-[15px]">
+        <input type="hidden" name="name" value={me.name} />
+        <input type="hidden" name="phone" value={me.phone} />
+        <span className="text-muted">{t.from}:</span>
+        <b>{[me.name, formatPhone(me.phone)].filter(Boolean).join(", ")}</b>
+        <button type="button" onClick={() => setEdit(true)} className="text-[13px] text-brand underline">
+          {t.change}
+        </button>
+      </div>
+    );
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <Field label={labels.name} optional={labels.optional} error={errors.name}>
+        <input name="name" autoComplete="given-name" defaultValue={me?.name ?? ""} className={fc(errors.name)} />
+      </Field>
+      <Field label={labels.phone} hint={labels.phoneHint} error={errors.phone}>
+        <input name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={me?.phone ?? ""} className={fc(errors.phone)} placeholder={labels.placeholder} required />
+      </Field>
+    </div>
+  );
+}
+
+export function LinkedNote({ lang, href: myHref }: { lang: "ru" | "en" | "ka"; href: string }) {
+  const t = ME_TEXT[lang];
+  return (
+    <div className="mt-5 rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-4 text-left text-[14px] text-[#2f5d74]">
+      ✅ {t.linked}{" "}
+      <a href={myHref} className="font-semibold text-[#0f5c82] underline">
+        {t.my} →
       </a>
     </div>
   );

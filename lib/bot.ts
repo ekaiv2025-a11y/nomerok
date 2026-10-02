@@ -146,11 +146,12 @@ const MY_TEXT: Record<string, string> = {
   en: "📋 Your requests, responses and saved specialists — tap the button below. The link works for 30 minutes.",
   ka: "📋 თქვენი განაცხადები და შენახული სპეციალისტები — დააჭირეთ ღილაკს. ბმული 30 წუთი მოქმედებს.",
 };
-function myLoginUrl(chatId: number, lang: string) {
-  return `${siteUrl()}/api/my/login?t=${clientLoginToken(chatId)}&lang=${lang}`;
+function myLoginUrl(chatId: number, lang: string, name = "") {
+  return `${siteUrl()}/api/my/login?t=${clientLoginToken(chatId, name)}&lang=${lang}`;
 }
-async function sendMyLink(chatId: number, lang: string) {
-  return sendTo(chatId, MY_TEXT[lang] ?? MY_TEXT.ru, [[{ text: MY_BTN[lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, lang) }]]);
+async function sendMyLink(chatId: number, lang: string, from?: TgUser) {
+  const name = [from?.first_name, from?.last_name].filter(Boolean).join(" ");
+  return sendTo(chatId, MY_TEXT[lang] ?? MY_TEXT.ru, [[{ text: MY_BTN[lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, lang, name) }]]);
 }
 
 async function welcome(chatId: number, lang: string) {
@@ -196,14 +197,14 @@ async function onStart(msg: TgMessage, payload: string) {
     const b = botDict(r.lang);
     return sendTo(chatId, b.clientLinked, [
       ...(r.status === "done" ? [] : [[{ text: b.btnClose, callback_data: `close:${r.id}` }]]),
-      [{ text: MY_BTN[r.lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, r.lang) }],
+      [{ text: MY_BTN[r.lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, r.lang, r.name || [from?.first_name, from?.last_name].filter(Boolean).join(" ")) }],
     ]);
   }
 
   // «Мои заявки» на сайте: t.me/бот?start=my_ru → ссылка для входа
   if (payload.startsWith("my")) {
     const lang = ["ru", "en", "ka"].includes(payload.slice(3)) ? payload.slice(3) : guessLang(from);
-    return sendMyLink(chatId, lang);
+    return sendMyLink(chatId, lang, from);
   }
 
   // «Оставить отзыв» со страницы специалиста: t.me/бот?start=rv_ID
@@ -739,7 +740,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   if (msg.contact) return void (await onContact(msg));
   const text = msg.text ?? "";
   if (text.startsWith("/start")) return void (await onStart(msg, text.split(/\s+/)[1] ?? ""));
-  if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from)));
+  if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from), msg.from));
   if (text) return void (await onText(msg));
 }
 

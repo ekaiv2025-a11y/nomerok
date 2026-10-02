@@ -5,10 +5,11 @@ import { CLIENT_COOKIE, clientCookieValue, readClientLoginToken } from "@/lib/cl
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const lang = ["ru", "en", "ka"].includes(url.searchParams.get("lang") ?? "") ? url.searchParams.get("lang")! : "ru";
-  const chatId = readClientLoginToken(url.searchParams.get("t"));
+  const tok = readClientLoginToken(url.searchParams.get("t"));
+  const chatId = tok?.c ?? null;
   const res = NextResponse.redirect(new URL(`/${lang}/my${chatId ? "" : "?expired=1"}`, url));
   if (chatId) {
-    const c = clientCookieValue(chatId);
+    const c = clientCookieValue(chatId, tok?.n ?? "");
     res.cookies.set(CLIENT_COOKIE, c.value, { httpOnly: true, secure: url.protocol === "https:", sameSite: "lax", path: "/", maxAge: c.maxAge });
   }
   return res;
