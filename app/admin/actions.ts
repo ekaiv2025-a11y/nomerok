@@ -129,8 +129,18 @@ export async function sendBroadcast(formData: FormData) {
   const { broadcastToMasters } = await import("@/lib/bot");
   // **жирный** → <b>жирный</b>
   const html = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
-  const r = await broadcastToMasters(html, { onlyPublished: formData.get("all") !== "on", cabinet: formData.get("cabinet") === "on" });
+  const r = await broadcastToMasters(html, { onlyPublished: formData.get("all") !== "on", cabinet: formData.get("cabinet") === "on", subscribe: formData.get("subscribe") === "on" });
   redirect(`/admin/broadcast?sent=${r.sent}&failed=${r.failed}`);
+}
+
+/** Разослать заявку специалистам вручную (если её задержала проверка на рекламу). */
+export async function distributeNow(formData: FormData) {
+  await requireAdmin();
+  const { getRequest } = await import("@/lib/db");
+  const { distributeRequest } = await import("@/lib/bot");
+  const r = await getRequest(String(formData.get("id")));
+  if (r) await distributeRequest(r).catch(() => 0);
+  revalidatePath("/admin");
 }
 
 export async function deleteRequest(formData: FormData) {

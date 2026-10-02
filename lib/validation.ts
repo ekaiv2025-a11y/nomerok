@@ -109,6 +109,6 @@ export function feedbackSchema(lang: Locale) {
 export function cabinetSchema(lang: Locale) {
   const base = masterApplicationSchema(lang);
   return base.omit({ phone: true, consent: true, website: true, startedAt: true, category: true }).extend({
-    notify_requests: z.boolean().default(true),
+    notify_requests: z.boolean().optional(),
   });
 }

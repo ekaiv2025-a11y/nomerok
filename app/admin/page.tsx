@@ -6,7 +6,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, deleteMaster, deleteRequest, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, deleteMaster, deleteRequest, distributeNow, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -254,6 +254,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       <button className="h-9 rounded-full border border-line px-3 text-[13px] hover:bg-cream">{REQ_LABEL[s]}</button>
                     </form>
                   ))}
+                  {r.status === "new" && !r.master_id && !r.sent_count && (
+                    <form action={distributeNow}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <button className="h-9 rounded-full bg-brand px-3 text-[13px] font-semibold text-white">📨 Разослать</button>
+                    </form>
+                  )}
                   <form action={deleteRequest}>
                     <input type="hidden" name="id" value={r.id} />
                     <ConfirmButton message="Удалить заявку навсегда?" className="h-9 rounded-full border border-line px-3 text-[13px] text-danger hover:bg-[#fdecea]">Удалить</ConfirmButton>

@@ -8,6 +8,7 @@ import { signedUrls } from "@/lib/documents";
 import { masterStats, viewsByDay } from "@/lib/stats";
 import { StatsCard } from "@/components/StatsCard";
 import { QrCards } from "@/components/QrCards";
+import { NotifyToggle } from "@/components/NotifyToggle";
 import { SITE_URL } from "@/lib/site";
 import { getDict, href } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
@@ -168,6 +169,10 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           <UnarchiveButton lang={lang} label={t.unarchiveBtn} />
         </div>
       )}
+
+      <div className="mt-4">
+        <NotifyToggle lang={lang} initial={!!m.notify_requests} hasBot={!!m.tg_chat_id} />
+      </div>
 
       <div className="mt-4">
         <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />

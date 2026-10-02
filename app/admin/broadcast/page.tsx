@@ -10,16 +10,15 @@ export const maxDuration = 60;
 
 const DEFAULT = `Здравствуйте! Это NomerOk 👋
 
-В личном кабинете появилась **картинка для сторис** с вашим профилем: фото, профессия и QR-код. Выложите её в Instagram или Telegram — клиенты наведут камеру и сразу откроют ваш профиль с контактами и отзывами.
+Мы поменяли рассылку заявок: теперь заявки клиентов приходят **только тем, кто сам на них подписался**. Так вам не будут приходить лишние сообщения.
 
-Как скачать: нажмите кнопку ниже → блок «Визитка с QR-кодом» → «Картинка для сторис».
+Хотите получать заявки своего направления? Нажмите «🔔 Получать заявки» ниже. Передумаете — команда /zayavki или переключатель в личном кабинете.
 
-Ещё новое:
-🟢 Отметка «На связи сегодня» — появляется, когда вы заходите в кабинет или пишете боту. Клиенты охотнее выбирают тех, кто на связи.
-❤️ Клиенты теперь могут сохранять специалистов в «Избранное» — заполненный профиль с фото работ сохраняют чаще.
+Личные сообщения от клиентов («Написать через сайт») приходят как раньше.
 
-Хороших заказов!
-Дмитрий, NomerOk`;
+Ещё новое: в кабинете появилась **картинка для сторис** с QR-кодом на ваш профиль — выложите её в Instagram или Telegram.
+
+Дмитрий, NomerOk`
 
 export default async function BroadcastPage({ searchParams }: { searchParams: Promise<{ sent?: string; failed?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
@@ -47,6 +46,9 @@ export default async function BroadcastPage({ searchParams }: { searchParams: Pr
         <p className="text-[12px] text-muted">**текст** — жирным. Не рассылайте чаще раза в неделю, иначе люди отключают бота.</p>
         <label className="flex items-center gap-2 text-[14px]">
           <input type="checkbox" name="cabinet" defaultChecked className="h-4 w-4 accent-[#1f6b4f]" /> Добавить кнопку «Личный кабинет» (у каждого своя ссылка для входа)
+        </label>
+        <label className="flex items-center gap-2 text-[14px]">
+          <input type="checkbox" name="subscribe" defaultChecked className="h-4 w-4 accent-[#1f6b4f]" /> Добавить кнопки «🔔 Получать заявки / 🔕 Не получать»
         </label>
         <label className="flex items-center gap-2 text-[14px]">
           <input type="checkbox" name="all" className="h-4 w-4 accent-[#1f6b4f]" /> Отправить и тем, чья анкета ещё не опубликована

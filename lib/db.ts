@@ -102,6 +102,7 @@ export async function healthCheck() {
           ["0011 приглашения", "outreach", "tg_user_id"],
           ["0012 другой номер в Telegram", "masters", "tg_verified_at"],
           ["0013 избранное клиентов", "client_favs", "slug"],
+          ["0014 заявки по подписке", "_nm_once", "key"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -371,7 +372,7 @@ export async function createMaster(input: NewMaster): Promise<Master> {
     tg_chat_id: null,
     tg_username: null,
     phone_verified_at: null,
-    notify_requests: true,
+    notify_requests: false,
     extra_categories: [],
     is_away: false,
     away_until: null,

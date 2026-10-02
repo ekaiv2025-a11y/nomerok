@@ -21,6 +21,7 @@ import { daysFromToday, formatDay, isAwayNow, servesCategory, todayTbilisi } fro
 import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup } from "./reviews-db";
 import { reviewToken } from "./signed";
 import { clientLoginToken } from "./client-auth";
+import { sub } from "./sub-text";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
 import { categoryLabel } from "./categories";
@@ -79,12 +80,32 @@ async function cabinetButton(m: Master) {
   return { text: botDict(m.lang).btnCabinet, url: `${siteUrl()}/api/cabinet/login?t=${token}&lang=${m.lang}` };
 }
 
+/** Спрашиваем специалиста, хочет ли он получать общие заявки (по умолчанию — нет). */
+export async function askSubscribe(m: Master) {
+  if (!m.tg_chat_id) return;
+  const s = sub(m.lang);
+  await sendTo(m.tg_chat_id, `${s.ask}\n\n${m.notify_requests ? s.isOn : s.isOff}`, [
+    [{ text: s.btnOn, callback_data: "sub:1" }, { text: s.btnOff, callback_data: "sub:0" }],
+  ]);
+}
+
+async function onSubscribe(cb: TgCallback, on: boolean) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const masters = await getMastersByChatId(cb.from.id);
+  if (!masters.length) return;
+  for (const m of masters) await adminUpdateMaster(m.id, { notify_requests: on });
+  if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.from.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
+  await notifyAdmin(`${on ? "🔔" : "🔕"} <b>${esc(masters[0].name)}</b> ${on ? "подписался(ась) на заявки" : "отписался(ась) от заявок"}`, { silent: true });
+  return sendTo(cb.from.id, on ? sub(masters[0].lang).on : sub(masters[0].lang).off);
+}
+
 export async function notifyMasterStatus(m: Master, status: MasterStatus): Promise<void> {
   if (!m.tg_chat_id) return;
   const b = botDict(m.lang);
   if (status === "published") {
     const url = `${siteUrl()}/${m.lang}/master/${m.slug}`;
     await sendTo(m.tg_chat_id, `${b.approved(url)}\n\n${stepsText(m)}`, [[await cabinetButton(m)]]);
+    if (!m.notify_requests) await askSubscribe(m);
   } else if (status === "rejected") {
     await sendTo(m.tg_chat_id, b.rejected);
   } else if (status === "hidden") {
@@ -93,14 +114,18 @@ export async function notifyMasterStatus(m: Master, status: MasterStatus): Promi
 }
 
 /** Админка → «Рассылка»: одно сообщение всем специалистам с подключённым ботом (с кнопкой входа в кабинет). */
-export async function broadcastToMasters(html: string, opts: { onlyPublished: boolean; cabinet: boolean }): Promise<{ sent: number; failed: number }> {
+export async function broadcastToMasters(html: string, opts: { onlyPublished: boolean; cabinet: boolean; subscribe?: boolean }): Promise<{ sent: number; failed: number }> {
   const all = await adminListMasters();
   let sent = 0;
   let failed = 0;
   for (const m of all) {
     if (!m.tg_chat_id || m.archived_at || (opts.onlyPublished && m.status !== "published")) continue;
     if (m.slug.startsWith("demo-")) continue;
-    const ok = await sendTo(m.tg_chat_id, html, opts.cabinet ? [[await cabinetButton(m)]] : undefined).catch(() => null);
+    const rows = [
+      ...(opts.subscribe ? [[{ text: sub(m.lang).btnOn, callback_data: "sub:1" }, { text: sub(m.lang).btnOff, callback_data: "sub:0" }]] : []),
+      ...(opts.cabinet ? [[await cabinetButton(m)]] : []),
+    ];
+    const ok = await sendTo(m.tg_chat_id, html, rows.length ? rows : undefined).catch(() => null);
     if (ok) sent++;
     else failed++;
     await new Promise((r) => setTimeout(r, 60)); // не больше ~15 сообщений в секунду
@@ -728,6 +753,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
     if (data === "alive") return void (await onAlive(u.callback_query));
+    if (data === "sub:1" || data === "sub:0") return void (await onSubscribe(u.callback_query, data === "sub:1"));
     if (data.startsWith("ph:")) return void (await onPhoneChoice(u.callback_query, data));
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
@@ -741,6 +767,10 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   const text = msg.text ?? "";
   if (text.startsWith("/start")) return void (await onStart(msg, text.split(/\s+/)[1] ?? ""));
   if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from), msg.from));
+  if (text === "/zayavki" || text === "/requests") {
+    const ms = await getMastersByChatId(msg.chat.id);
+    if (ms[0]) return void (await askSubscribe(ms[0]));
+  }
   if (text) return void (await onText(msg));
 }
 

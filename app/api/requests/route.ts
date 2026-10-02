@@ -11,6 +11,7 @@ import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 import { cityLabel, cityOf } from "@/lib/cities";
 import { currentClient } from "@/lib/client-auth";
+import { looksLikeAd } from "@/lib/request-check";
 import { updateRequest } from "@/lib/db";
 
 export async function POST(req: Request) {
@@ -49,11 +50,15 @@ export async function POST(req: Request) {
       saved.client_tg_chat_id = me.chatId;
     }
 
-    // Рассылаем заявку подтверждённым специалистам в Telegram
-    const sent = await distributeRequest(saved).catch((err) => {
-      console.error("[distribute]", err);
-      return 0;
-    });
+    // Похоже на рекламу (ссылки, «предлагаем», LLC…) — не рассылаем, ждём решения администратора.
+    // Сообщение конкретному специалисту рассылаем всегда (он сам решит).
+    const check = master ? { ad: false, reasons: [] as string[] } : looksLikeAd(saved);
+    const sent = check.ad
+      ? 0
+      : await distributeRequest(saved).catch((err) => {
+          console.error("[distribute]", err);
+          return 0;
+        });
 
     const lines = [
       master ? "✉️ <b>Сообщение специалисту</b>" : "🆕 <b>Новая заявка</b>",
@@ -63,9 +68,11 @@ export async function POST(req: Request) {
       saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
       `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
       `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
-      sent > 0
-        ? `📨 Отправлено специалистам в Telegram: ${sent}`
-        : "⚠️ Нет специалистов с подтверждённым Telegram для этой заявки — передайте вручную.",
+      check.ad
+        ? `🛑 <b>Похоже на рекламу, а не на заявку</b> (${check.reasons.join(", ")}) — специалистам НЕ разослана. Если всё нормально — нажмите «Разослать» в админке.`
+        : sent > 0
+          ? `📨 Отправлено специалистам в Telegram: ${sent}`
+          : "⚠️ Нет подписанных на заявки специалистов этого направления — передайте вручную.",
       `\n${SITE_URL}/admin`,
     ].filter(Boolean);
     await notifyAdmin(lines.join("\n"));
