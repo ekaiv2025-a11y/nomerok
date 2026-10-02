@@ -9,6 +9,8 @@ import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { AvatarZoom } from "@/components/AvatarZoom";
 import { subcatLine } from "@/lib/subcats";
+import { SOCIAL } from "@/lib/social-text";
+import { FavButton } from "@/components/FavButton";
 import { SocialLinks } from "@/components/SocialLinks";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { cityIn, cityLabel } from "@/lib/cities";
@@ -87,6 +89,12 @@ export default async function MasterPage({ params }: Props) {
             {subcatLine(m, lang, 4) ? ` (${subcatLine(m, lang, 4)!.toLowerCase()})` : ""} · {cityLabel(m.city, lang)}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
+          {m.active && (
+            <p className="mt-1 flex items-center gap-1.5 text-[13px] text-brand-dark">
+              <span className={`h-2 w-2 rounded-full ${m.active === "today" ? "bg-[#2fb36b]" : "bg-[#9fd3b6]"}`} />
+              {m.active === "today" ? SOCIAL[lang].activeToday : SOCIAL[lang].activeWeek}
+            </p>
+          )}
           {m.extra_categories.filter((c) => c !== "other").length > 0 && (
             <p className="mt-0.5 text-[14px] text-muted">
               {t.also} {m.extra_categories.filter((c) => c !== "other").map((c) => categoryLabel(c, lang)).join(", ")}
@@ -333,7 +341,8 @@ export default async function MasterPage({ params }: Props) {
           <section className="mt-8">
             <h2 className="text-[18px] font-bold">{t.share}</h2>
             <p className="mt-1 text-[14px] text-muted">{t.shareHint}</p>
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap items-start gap-2">
+              {!m.demo && <FavButton slug={m.slug} lang={lang} variant="inline" />}
               <ShareButtons url={url} text={t.shareText(m.name, cat)} lang={lang} />
             </div>
           </section>

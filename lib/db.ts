@@ -187,6 +187,13 @@ function withoutPersonalTg(links: Master["links"], personal: string | null | und
   return rest;
 }
 
+/** «На связи»: специалист заходил в кабинет или писал боту сегодня / на этой неделе. */
+function activeLevel(at: string | null | undefined): "today" | "week" | null {
+  if (!at) return null;
+  const h = (Date.now() - Date.parse(at)) / 3600000;
+  return h < 24 ? "today" : h < 24 * 7 ? "week" : null;
+}
+
 function toPublic(m: Master | PublicRow): PublicMaster {
   return {
     id: m.id,
@@ -215,6 +222,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     city: m.city ?? "batumi",
     links: withoutPersonalTg(m.links && typeof m.links === "object" ? m.links : {}, (m as { telegram?: string | null }).telegram),
     has_tg: !!(m as { telegram?: string | null }).telegram,
+    active: activeLevel((m as { last_active_at?: string | null }).last_active_at),
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -236,7 +244,7 @@ export function check<T>(res: { data: T | null; error: { message: string } | nul
 const BASE_COLUMNS =
   "id,slug,name,category,services,about,credentials,experience_years,languages,price_from,price_unit,photo_url,phone_verified_at,created_at,updated_at,telegram";
 const COLUMNS_0004 = BASE_COLUMNS + ",extra_categories,is_away,away_until";
-const COLUMNS_0005 = COLUMNS_0004 + ",archived_at";
+const COLUMNS_0005 = COLUMNS_0004 + ",archived_at,last_active_at";
 const COLUMNS_0006 = COLUMNS_0005 + ",portfolio,work_mode,place_address,place_lat,place_lng,service_area,work_hours";
 const COLUMNS_0007 = COLUMNS_0006 + ",documents";
 const COLUMNS_0009 = COLUMNS_0007 + ",city";

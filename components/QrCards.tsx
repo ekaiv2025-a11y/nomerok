@@ -4,6 +4,7 @@ import { useState } from "react";
 import QRCode from "qrcode";
 import { Download, Loader2 } from "lucide-react";
 import { getDict, type Locale } from "@/lib/i18n";
+import { SOCIAL } from "@/lib/social-text";
 
 type Props = {
   lang: Locale;
@@ -58,19 +59,30 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 /** Рисует карточку 1080×1350 (подходит и для печати, и для поста в соцсетях). */
-async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null> {
+async function drawCard(p: Props, kind: "card" | "review" | "story"): Promise<Blob | null> {
   const t = getDict(p.lang).cabinet;
   await document.fonts?.ready;
   const c = document.createElement("canvas");
+  const story = kind === "story";
+  const isCard = kind !== "review";
+  const HH = story ? 1920 : H; // сторис 9:16; сверху и снизу ~250px занимает интерфейс Instagram
+  const top = story ? 230 : 0;
   c.width = W;
-  c.height = H;
+  c.height = HH;
   const ctx = c.getContext("2d")!;
 
   // Фон и шапка
-  ctx.fillStyle = CREAM;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = story ? GREEN : CREAM;
+  ctx.fillRect(0, 0, W, HH);
+  if (story) {
+    ctx.fillStyle = CREAM;
+    roundRect(ctx, 50, top + 170, W - 100, HH - top - 170 - 200, 48);
+    ctx.fill();
+  }
   ctx.fillStyle = GREEN;
-  ctx.fillRect(0, 0, W, 150);
+  ctx.fillRect(0, top, W, 150);
+  ctx.save();
+  ctx.translate(0, top);
   ctx.fillStyle = "#fff";
   roundRect(ctx, 70, 45, 60, 60, 14);
   ctx.fill();
@@ -85,9 +97,23 @@ async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null>
   ctx.fillStyle = "#fff";
   ctx.font = `bold 46px ${FONT}`;
   ctx.fillText("NomerOk.ge", 150, 76);
+  ctx.restore();
 
-  let y = 200;
-  if (kind === "card") {
+  let y = 200 + top;
+  if (story) {
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = GREEN;
+    ctx.font = `bold 52px ${FONT}`;
+    for (const line of wrap(ctx, `${SOCIAL[p.lang].storyTitle} NomerOk.ge`, W - 220)) {
+      y += 64;
+      ctx.fillText(line, W / 2, y);
+    }
+    ctx.textAlign = "start";
+    ctx.textBaseline = "middle";
+    y += 50;
+  }
+  if (isCard) {
     // Фото или инициалы
     const size = 200;
     const x = (W - size) / 2;
@@ -128,16 +154,16 @@ async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null>
     y += 30;
   }
   ctx.fillStyle = "#1c1b18";
-  ctx.font = `bold ${kind === "card" ? 64 : 48}px ${FONT}`;
+  ctx.font = `bold ${isCard ? 64 : 48}px ${FONT}`;
   for (const line of wrap(ctx, p.name, W - 160)) {
-    y += kind === "card" ? 64 : 60;
+    y += isCard ? 64 : 60;
     ctx.fillText(line, W / 2, y);
   }
   ctx.font = `40px ${FONT}`;
   ctx.fillStyle = "#5c5a54";
   y += 56;
   ctx.fillText(p.category, W / 2, y);
-  if (kind === "card") {
+  if (isCard) {
     const bits: string[] = [];
     if (p.rating) bits.push(`★ ${p.rating.value.toFixed(1)} (${p.rating.count})`);
     if (p.verified) bits.push(`✓ ${t.cardVerified}`);
@@ -150,9 +176,10 @@ async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null>
   }
 
   // QR-код в белой рамке
-  const qrSize = kind === "card" ? 380 : 440;
-  const qrY = H - qrSize - 190;
-  const qr = await QRCode.toDataURL(kind === "card" ? p.profileUrl : p.reviewUrl!, { margin: 1, width: qrSize, color: { dark: "#1c1b18", light: "#ffffff" } });
+  const bottom = story ? 280 : 0;
+  const qrSize = kind === "review" ? 440 : 380;
+  const qrY = HH - bottom - qrSize - 190;
+  const qr = await QRCode.toDataURL(isCard ? p.profileUrl : p.reviewUrl!, { margin: 1, width: qrSize, color: { dark: "#1c1b18", light: "#ffffff" } });
   const qrImg = await loadImage(qr);
   ctx.fillStyle = "#fff";
   roundRect(ctx, (W - qrSize) / 2 - 30, qrY - 30, qrSize + 60, qrSize + 60, 36);
@@ -161,10 +188,10 @@ async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null>
 
   ctx.fillStyle = "#1c1b18";
   ctx.font = `bold 38px ${FONT}`;
-  ctx.fillText(`📷 ${t.cardScan}`, W / 2, H - 100);
+  ctx.fillText(`📷 ${t.cardScan}`, W / 2, HH - bottom - 100);
   ctx.fillStyle = "#5c5a54";
   ctx.font = `32px ${FONT}`;
-  ctx.fillText(kind === "card" ? t.cardContacts : "nomerok.ge", W / 2, H - 52);
+  ctx.fillText(isCard ? t.cardContacts : "nomerok.ge", W / 2, HH - bottom - 52);
 
   return new Promise((res) => c.toBlob((b) => res(b), "image/png"));
 }
@@ -172,16 +199,16 @@ async function drawCard(p: Props, kind: "card" | "review"): Promise<Blob | null>
 /** Кабинет: скачать визитку с QR-кодом и табличку «Оставьте отзыв». */
 export function QrCards(props: Props) {
   const t = getDict(props.lang).cabinet;
-  const [busy, setBusy] = useState<"" | "card" | "review">("");
+  const [busy, setBusy] = useState<"" | "card" | "review" | "story">("");
 
-  async function download(kind: "card" | "review") {
+  async function download(kind: "card" | "review" | "story") {
     setBusy(kind);
     try {
       const blob = await drawCard(props, kind);
       if (!blob) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = kind === "card" ? "nomerok-vizitka.png" : "nomerok-otzyv.png";
+      a.download = kind === "card" ? "nomerok-vizitka.png" : kind === "story" ? "nomerok-stories.png" : "nomerok-otzyv.png";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -199,12 +226,16 @@ export function QrCards(props: Props) {
         <button type="button" onClick={() => download("card")} disabled={!!busy} className="btn-primary h-12">
           {busy === "card" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {busy === "card" ? t.qrMaking : t.qrCard}
         </button>
+        <button type="button" onClick={() => download("story")} disabled={!!busy} className="btn-ghost h-12">
+          {busy === "story" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {busy === "story" ? t.qrMaking : SOCIAL[props.lang].story}
+        </button>
         {props.reviewUrl && (
           <button type="button" onClick={() => download("review")} disabled={!!busy} className="btn-ghost h-12">
             {busy === "review" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {busy === "review" ? t.qrMaking : t.qrReview}
           </button>
         )}
       </div>
+      <p className="mt-2 text-[13px] leading-snug text-muted">📱 {SOCIAL[props.lang].storyHint}</p>
       {props.reviewUrl && <p className="mt-2 text-[13px] leading-snug text-muted">{t.qrReviewHint}</p>}
     </section>
   );
