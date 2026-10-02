@@ -12,6 +12,16 @@ import { useRouter } from "next/navigation";
 import { CITIES, type CityId } from "@/lib/cities";
 import { MapPin } from "lucide-react";
 import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
+import { detectIntent } from "@/lib/search-intent";
+
+const F = {
+  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить" },
+  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset" },
+  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება" },
+} as const;
+const LANG_OPTS: [string, string][] = [["Грузинский", "ქართ. / KA"], ["Русский", "Рус. / RU"], ["Английский", "Eng / EN"], ["Украинский", "Укр. / UA"], ["Турецкий", "Türk / TR"]];
+
+const INTENT_HINT = { ru: "Похоже, вам нужен:", en: "Looks like you need:", ka: "როგორც ჩანს, გჭირდებათ:" } as const;
 
 export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[]; lang: Locale; city: CityId }) {
   const t = getDict(lang).catalog;
@@ -34,8 +44,15 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     }
   }, []);
   const [sub, setSub] = useState<string>("all");
-  useEffect(() => setSub("all"), [cat]);
+  const chooseCat = (c: string, sb = "all") => {
+    setCat(c);
+    setSub(sb);
+  };
   const [q, setQ] = useState("");
+  const [fMode, setFMode] = useState("");
+  const [fLang, setFLang] = useState("");
+  const [fPrice, setFPrice] = useState(false);
+  const [sort, setSort] = useState("");
   const [view, setView] = useState<"list" | "map">("list");
 
   const counts = useMemo(() => {
@@ -46,9 +63,18 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
 
   const visibleCats = CATEGORIES.filter((c) => counts[c.id]);
 
+  const intents = useMemo(() => detectIntent(q), [q]);
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    return masters.filter((m) => {
+    // Запрос понятен по смыслу («течёт кран» → сантехник) — показываем специалистов этого направления
+    const byIntent = (m: PublicMaster) =>
+      intents.some((it) => (m.category === it.cat || (m.extra_categories ?? []).includes(it.cat)) && (!it.sub || subcatsOf(m, it.cat).includes(it.sub)));
+    const list = masters.filter((m) => {
+      if (fMode === "at_client" && !(m.work_mode === "at_client" || m.work_mode === "both")) return false;
+      if (fMode === "at_place" && !(m.work_mode === "at_place" || m.work_mode === "both")) return false;
+      if (fMode === "online" && m.work_mode !== "online") return false;
+      if (fLang && !(m.languages ?? []).includes(fLang)) return false;
+      if (fPrice && m.price_from == null) return false;
       if (cat !== "all" && m.category !== cat && !(m.extra_categories ?? []).includes(cat)) return false;
       if (cat !== "all" && sub !== "all" && !subcatsOf(m, cat).includes(sub)) return false;
       if (!query) return true;
@@ -56,9 +82,14 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
       const catNames = [m.category, ...(m.extra_categories ?? [])].flatMap((id) => ["ru", "ka", "en"].map((l) => categoryLabel(id, l as Locale))).join(" ");
       const subNames = [m.category, ...(m.extra_categories ?? [])].flatMap((c) => subcatsOf(m, c).flatMap((id) => (["ru", "ka", "en"] as Locale[]).map((l) => subcatLabel(c, id, l)))).join(" ");
       const hay = `${m.name} ${m.services} ${m.about} ${catNames} ${subNames}`.toLowerCase();
-      return query.split(/\s+/).every((w) => hay.includes(w));
+      return byIntent(m) || query.split(/\s+/).every((w) => hay.includes(w));
     });
-  }, [masters, cat, sub, q]);
+    if (sort === "reviews") return [...list].sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.rating ?? 0) - (a.rating ?? 0));
+    if (sort === "cheap") return [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9));
+    return list;
+  }, [masters, cat, sub, q, intents, fMode, fLang, fPrice, sort]);
+  const ft = F[lang];
+  const anyFilter = !!(fMode || fLang || fPrice || sort);
 
   // Уточнения внутри направления (например, «Красота» → парикмахер, маникюр…)
   const subCounts = useMemo(() => {
@@ -99,6 +130,25 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
         )}
       </div>
 
+      {intents.length > 0 && (
+        <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
+          {INTENT_HINT[lang]}
+          {intents.map((it) => (
+            <button
+              key={it.cat + (it.sub ?? "")}
+              type="button"
+              onClick={() => {
+                setQ("");
+                chooseCat(it.cat, it.sub ?? "all");
+              }}
+              className="rounded-full bg-brand-soft px-2.5 py-0.5 font-semibold text-brand-dark hover:bg-[#d6eadf]"
+            >
+              {it.sub ? subcatLabel(it.cat, it.sub, lang) : categoryLabel(it.cat, lang)}
+            </button>
+          ))}
+        </p>
+      )}
+
       {cities.length > 1 && (
         <label className="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white pl-3.5 pr-2 text-[14px] font-semibold">
           <MapPin className="h-4 w-4 text-brand" aria-hidden />
@@ -120,11 +170,11 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
 
       {visibleCats.length > 1 && (
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
-          <Chip active={cat === "all"} onClick={() => setCat("all")}>
+          <Chip active={cat === "all"} onClick={() => chooseCat("all")}>
             {t.all} · {masters.length}
           </Chip>
           {visibleCats.map((c) => (
-            <Chip key={c.id} active={cat === c.id} onClick={() => setCat(c.id)}>
+            <Chip key={c.id} active={cat === c.id} onClick={() => chooseCat(c.id)}>
               {c.plural[lang]} · {counts[c.id]}
             </Chip>
           ))}
@@ -143,6 +193,36 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
           ))}
         </div>
       )}
+
+      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
+        <select value={fMode} onChange={(e) => setFMode(e.target.value)} className={`h-9 rounded-full border bg-white px-3 text-[13px] outline-none ${fMode ? "border-brand text-brand-dark" : "border-line"}`} aria-label={ft.where}>
+          <option value="">{ft.any}</option>
+          <option value="at_client">{ft.atClient}</option>
+          <option value="at_place">{ft.atPlace}</option>
+          <option value="online">{ft.online}</option>
+        </select>
+        <select value={fLang} onChange={(e) => setFLang(e.target.value)} className={`h-9 rounded-full border bg-white px-3 text-[13px] outline-none ${fLang ? "border-brand text-brand-dark" : "border-line"}`}>
+          <option value="">{ft.lang}</option>
+          {LANG_OPTS.map(([v, l]) => (
+            <option key={v} value={v}>
+              {l}
+            </option>
+          ))}
+        </select>
+        <button type="button" onClick={() => setFPrice((v) => !v)} className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] ${fPrice ? "border-brand bg-brand-soft text-brand-dark" : "border-line bg-white"}`}>
+          {fPrice ? "✓ " : ""}{ft.price}
+        </button>
+        <select value={sort} onChange={(e) => setSort(e.target.value)} className={`h-9 rounded-full border bg-white px-3 text-[13px] outline-none ${sort ? "border-brand text-brand-dark" : "border-line"}`}>
+          <option value="">↕ {ft.sort}</option>
+          <option value="reviews">⭐ {ft.reviews}</option>
+          <option value="cheap">₾ {ft.cheap}</option>
+        </select>
+        {anyFilter && (
+          <button type="button" onClick={() => { setFMode(""); setFLang(""); setFPrice(false); setSort(""); }} className="h-9 shrink-0 whitespace-nowrap px-2 text-[13px] text-muted underline">
+            {ft.reset}
+          </button>
+        )}
+      </div>
 
       <div className="mt-4 flex items-center gap-1 rounded-full bg-cream p-1 text-[13px] font-medium sm:w-fit">
         {(["list", "map"] as const).map((v) => (

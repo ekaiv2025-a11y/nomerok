@@ -1,3 +1,4 @@
+import { cleanSlots, type Slot } from "./slots";
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { promises as fs } from "fs";
@@ -103,6 +104,9 @@ export async function healthCheck() {
           ["0012 другой номер в Telegram", "masters", "tg_verified_at"],
           ["0013 избранное клиентов", "client_favs", "slug"],
           ["0014 заявки по подписке", "_nm_once", "key"],
+          ["0015 короткие ссылки", "masters", "short"],
+          ["0016 фото в заявке", "requests", "photos"],
+          ["0017 свободные окна", "masters", "slots"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -234,6 +238,8 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     has_tg: !!(m as { telegram?: string | null }).telegram,
     active: activeLevel((m as { last_active_at?: string | null }).last_active_at),
     seen_days: seenDays((m as { last_active_at?: string | null }).last_active_at),
+    slots: cleanSlots((m as { slots?: unknown }).slots),
+    short: (m as { short?: string | null }).short ?? null,
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -261,7 +267,8 @@ const COLUMNS_0007 = COLUMNS_0006 + ",documents";
 const COLUMNS_0009 = COLUMNS_0007 + ",city";
 const PUBLIC_COLUMNS = COLUMNS_0009 + ",links";
 /** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
-const COLUMN_SETS = [PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMNS_0017 = PUBLIC_COLUMNS + ",short,slots";
+const COLUMN_SETS = [COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {

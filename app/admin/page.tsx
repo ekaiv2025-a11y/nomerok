@@ -231,6 +231,16 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   <span className="rounded-full bg-cream px-2.5 py-0.5">{REQ_LABEL[r.status]}</span>
                 </div>
                 <p className="mt-2 whitespace-pre-line text-[15px]">{r.description}</p>
+                {(r.photos ?? []).length > 0 && (
+                  <div className="mt-2 flex gap-2">
+                    {(r.photos ?? []).map((u) => (
+                      <a key={u} href={u} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={u} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
                 {r.when_text && <p className="mt-1 text-[14px] text-muted">Когда: {r.when_text}</p>}
                 <p className="mt-2 text-[13px] text-muted">
                   📨 Разослано специалистам: {r.sent_count ?? 0}

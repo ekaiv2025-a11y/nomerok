@@ -22,6 +22,7 @@ import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup } fr
 import { reviewToken } from "./signed";
 import { clientLoginToken } from "./client-auth";
 import { sub } from "./sub-text";
+import { cleanSlots, slotLabel, todayTbilisiStr } from "./slots";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
 import { categoryLabel } from "./categories";
@@ -59,6 +60,11 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
     const text = r.master_id
       ? b.directRequest(esc(r.description), esc(r.when_text))
       : b.newRequest(esc(categoryLabel(r.category, m.lang)), esc(r.description), esc(r.when_text));
+    if (r.photos?.length) {
+      const media = r.photos.filter((u) => u.startsWith("https://")).map((u) => ({ type: "photo", media: u }));
+      if (media.length === 1) await tg("sendPhoto", { chat_id: m.tg_chat_id, photo: media[0].media }).catch(() => null);
+      else if (media.length > 1) await tg("sendMediaGroup", { chat_id: m.tg_chat_id, media }).catch(() => null);
+    }
     const ok = await sendTo(m.tg_chat_id!, text, [[{ text: b.btnTake, callback_data: `take:${r.id}` }]]);
     if (ok) sent++;
   }
@@ -97,6 +103,37 @@ async function onSubscribe(cb: TgCallback, on: boolean) {
   if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.from.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } });
   await notifyAdmin(`${on ? "🔔" : "🔕"} <b>${esc(masters[0].name)}</b> ${on ? "подписался(ась) на заявки" : "отписался(ась) от заявок"}`, { silent: true });
   return sendTo(cb.from.id, on ? sub(masters[0].lang).on : sub(masters[0].lang).off);
+}
+
+const OKNA: Record<string, { ask: string; today: string; tomorrow: string; clear: string; done: (l: string) => string; cleared: string }> = {
+  ru: { ask: "🗓 <b>Свободные окна</b>\nКлиенты увидят на вашей карточке «Есть окно сегодня». Точное время можно указать в кабинете.", today: "Свободен(на) сегодня", tomorrow: "Свободен(на) завтра", clear: "Очистить окна", done: (l) => `✅ Отмечено: ${l}. Клиенты увидят это на сайте.`, cleared: "🧹 Окна очищены." },
+  en: { ask: "🗓 <b>Free slots</b>\nClients will see “Free slot today” on your card. Exact times — in your account.", today: "Free today", tomorrow: "Free tomorrow", clear: "Clear slots", done: (l) => `✅ Marked: ${l}.`, cleared: "🧹 Slots cleared." },
+  ka: { ask: "🗓 <b>თავისუფალი დრო</b>", today: "დღეს თავისუფალი ვარ", tomorrow: "ხვალ თავისუფალი ვარ", clear: "გასუფთავება", done: (l) => `✅ მონიშნულია: ${l}.`, cleared: "🧹 გასუფთავდა." },
+};
+
+async function askSlots(m: Master) {
+  if (!m.tg_chat_id) return;
+  const o = OKNA[m.lang] ?? OKNA.ru;
+  await sendTo(m.tg_chat_id, o.ask, [
+    [{ text: o.today, callback_data: "slot:0" }, { text: o.tomorrow, callback_data: "slot:1" }],
+    [{ text: o.clear, callback_data: "slot:clear" }],
+    [await cabinetButton(m)],
+  ]);
+}
+
+async function onSlot(cb: TgCallback, arg: string) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const masters = await getMastersByChatId(cb.from.id);
+  const m = masters[0];
+  if (!m) return;
+  const o = OKNA[m.lang] ?? OKNA.ru;
+  if (arg === "clear") {
+    for (const x of masters) await adminUpdateMaster(x.id, { slots: [] });
+    return sendTo(cb.from.id, o.cleared);
+  }
+  const d = new Date(Date.parse(todayTbilisiStr()) + Number(arg) * 86400000).toISOString().slice(0, 10);
+  for (const x of masters) await adminUpdateMaster(x.id, { slots: cleanSlots([...(x.slots ?? []), { d, t: "" }]), last_active_at: new Date().toISOString() });
+  return sendTo(cb.from.id, o.done(slotLabel({ d, t: "" }, (["ru", "en", "ka"].includes(m.lang) ? m.lang : "ru") as "ru")));
 }
 
 export async function notifyMasterStatus(m: Master, status: MasterStatus): Promise<void> {
@@ -753,6 +790,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     const data = u.callback_query.data ?? "";
     if (data.startsWith("take:")) return void (await onTake(u.callback_query, data.slice(5)));
     if (data === "alive") return void (await onAlive(u.callback_query));
+    if (data.startsWith("slot:")) return void (await onSlot(u.callback_query, data.slice(5)));
     if (data === "sub:1" || data === "sub:0") return void (await onSubscribe(u.callback_query, data === "sub:1"));
     if (data.startsWith("ph:")) return void (await onPhoneChoice(u.callback_query, data));
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
@@ -767,6 +805,10 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   const text = msg.text ?? "";
   if (text.startsWith("/start")) return void (await onStart(msg, text.split(/\s+/)[1] ?? ""));
   if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from), msg.from));
+  if (text === "/okna" || text === "/slots") {
+    const ms = await getMastersByChatId(msg.chat.id);
+    if (ms[0]) return void (await askSlots(ms[0]));
+  }
   if (text === "/zayavki" || text === "/requests") {
     const ms = await getMastersByChatId(msg.chat.id);
     if (ms[0]) return void (await askSubscribe(ms[0]));

@@ -11,7 +11,7 @@ import { VerifiedBadge } from "@/components/MasterCard";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ lang: string; slug: string }> };
+type Props = { params: Promise<{ lang: string; slug: string }>; searchParams?: Promise<{ when?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /** «Написать специалисту» — сообщение получает только он (не путать с общей заявкой). */
-export default async function MessagePage({ params }: Props) {
+export default async function MessagePage({ params, searchParams }: Props) {
+  const when = String((await searchParams)?.when ?? "").slice(0, 60);
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
   const m = await getPublishedMasterBySlug(slug);
@@ -55,7 +56,7 @@ export default async function MessagePage({ params }: Props) {
         <>
           <p className="mt-2 text-[15px] leading-relaxed text-muted">{t.sub(m.name)}</p>
           <div className="mt-5">
-            <MessageForm lang={lang} master={{ slug: m.slug, name: m.name, category: m.category }} me={await clientContact()} />
+            <MessageForm lang={lang} master={{ slug: m.slug, name: m.name, category: m.category }} me={await clientContact()} defaultWhen={when} />
           </div>
           <p className="mt-6 rounded-xl bg-cream p-3.5 text-center text-[14px]">
             {t.orGeneral}{" "}

@@ -3,17 +3,22 @@
 import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { getDict, href, type Locale } from "@/lib/i18n";
-import { ContactFields, Field, Honeypot, LinkedNote, TelegramStep, fc, useSubmit } from "./form-kit";
+import { ContactFields, Field, Honeypot, LinkedNote, PHOTO_TEXT, TelegramStep, fc, uploadRequestPhotos, useSubmit } from "./form-kit";
+import { PhotoPicker } from "./PhotoPicker";
+import { useState } from "react";
 
-type Props = { lang: Locale; master: { slug: string; name: string; category: string }; me?: { name: string; phone: string } | null };
+type Props = { lang: Locale; master: { slug: string; name: string; category: string }; me?: { name: string; phone: string } | null; defaultWhen?: string };
 
 /** Сообщение конкретному специалисту: получает только он. */
-export function MessageForm({ lang, master, me }: Props) {
+export function MessageForm({ lang, master, me, defaultWhen }: Props) {
   const d = getDict(lang);
   const t = d.message;
   const r = d.request;
   const first = master.name.split(" ")[0];
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
+  const [files, setFiles] = useState<File[]>([]);
+  const [photoErr, setPhotoErr] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   if (state === "done") {
     return (
@@ -30,10 +35,19 @@ export function MessageForm({ lang, master, me }: Props) {
     );
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    setPhotoErr("");
+    setUploading(true);
+    const photos = await uploadRequestPhotos(files);
+    setUploading(false);
+    if (photos === null) {
+      setPhotoErr(PHOTO_TEXT[lang].upErr);
+      return;
+    }
     submit({
+      photos,
       category: master.category,
       master_slug: master.slug,
       description: f.get("description"),
@@ -51,8 +65,18 @@ export function MessageForm({ lang, master, me }: Props) {
         <textarea name="description" rows={5} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
       </Field>
       <Field label={r.when} optional={d.form.optional} error={errors.when_text}>
-        <input name="when_text" className={fc(errors.when_text)} placeholder={r.whenPlaceholder} />
+        <input name="when_text" defaultValue={defaultWhen} className={fc(errors.when_text)} placeholder={r.whenPlaceholder} />
       </Field>
+      <div>
+        <p className="text-[14px] font-semibold">
+          📷 {PHOTO_TEXT[lang].label} <span className="font-normal text-muted">{d.form.optional}</span>
+        </p>
+        <p className="mt-0.5 text-[13px] text-muted">{PHOTO_TEXT[lang].hint}</p>
+        <div className="mt-2">
+          <PhotoPicker files={files} onChange={setFiles} addLabel={PHOTO_TEXT[lang].add} onError={setPhotoErr} errorText={PHOTO_TEXT[lang].err} />
+        </div>
+        {photoErr && <p className="mt-1 text-[13px] text-danger">{photoErr}</p>}
+      </div>
       <ContactFields
         lang={lang}
         me={me}
@@ -61,8 +85,8 @@ export function MessageForm({ lang, master, me }: Props) {
       />
       {errors.category && <p className="text-[13px] text-danger">{errors.category}</p>}
       {message && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{message}</p>}
-      <button type="submit" disabled={state === "sending"} className="btn-primary h-12 w-full">
-        {state === "sending" && <Loader2 className="h-4 w-4 animate-spin" />} {t.submit}
+      <button type="submit" disabled={state === "sending" || uploading} className="btn-primary h-12 w-full">
+        {(state === "sending" || uploading) && <Loader2 className="h-4 w-4 animate-spin" />} {t.submit}
       </button>
       <p className="text-center text-[12.5px] text-muted">{t.privacy}</p>
     </form>

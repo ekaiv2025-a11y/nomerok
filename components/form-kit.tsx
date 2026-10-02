@@ -165,3 +165,20 @@ export function LinkedNote({ lang, href: myHref }: { lang: "ru" | "en" | "ka"; h
     </div>
   );
 }
+
+export const PHOTO_TEXT = {
+  ru: { label: "Фото", hint: "Покажите, что нужно сделать, — специалисту проще понять задачу и назвать цену.", add: "Добавить фото", err: "Можно до 3 фото JPG/PNG до 5 МБ", upErr: "Не удалось загрузить фото — попробуйте ещё раз или отправьте без фото" },
+  en: { label: "Photos", hint: "Show what needs doing — it helps the specialist understand and quote.", add: "Add photo", err: "Up to 3 JPG/PNG photos, max 5 MB", upErr: "Could not upload photos — try again or send without them" },
+  ka: { label: "ფოტო", hint: "აჩვენეთ, რა უნდა გაკეთდეს — სპეციალისტს გაუადვილდება ფასის დასახელება.", add: "ფოტოს დამატება", err: "მაქს. 3 ფოტო, 5 მბ-მდე", upErr: "ფოტო ვერ აიტვირთა" },
+} as const;
+
+/** Загружает фото к заявке и возвращает ссылки (или null при ошибке). */
+export async function uploadRequestPhotos(files: File[]): Promise<string[] | null> {
+  if (!files.length) return [];
+  const { resizeImage } = await import("@/lib/image-resize");
+  const fd = new FormData();
+  for (const f of files) fd.append("photos", await resizeImage(f, 1600, 0.85));
+  const r = await fetch("/api/requests/photos", { method: "POST", body: fd }).catch(() => null);
+  const d = await r?.json().catch(() => null);
+  return r?.ok && Array.isArray(d?.urls) ? d.urls : null;
+}

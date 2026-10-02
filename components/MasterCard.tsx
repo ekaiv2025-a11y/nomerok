@@ -5,6 +5,7 @@ import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { subcatLine } from "@/lib/subcats";
 import { cardSummary } from "@/lib/card-summary";
+import { SLOT_TEXT, slotDay } from "@/lib/slots";
 
 const MODE: Record<string, Record<Locale, string>> = {
   at_client: { ru: "🚗 Выезд к клиенту", en: "🚗 Comes to you", ka: "🚗 გამოძახებით" },
@@ -64,6 +65,14 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         {m.rating != null && m.reviews > 0 && (
           <div className="mt-1">
             <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
+          </div>
+        )}
+        {m.slots && m.slots.length > 0 && (
+          <div className="mt-1.5">
+            <span className="inline-flex items-center rounded-full bg-[#fdf3dc] px-2 py-0.5 text-[12px] font-semibold text-[#7a5a10]">
+              🗓 {SLOT_TEXT[lang].badge} {slotDay(m.slots[0].d, lang)}
+              {m.slots[0].t ? `, ${m.slots[0].t}` : ""}
+            </span>
           </div>
         )}
         {summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>}

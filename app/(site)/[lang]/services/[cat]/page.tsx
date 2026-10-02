@@ -8,10 +8,12 @@ import { pageMeta } from "@/lib/i18n/page";
 import { seoCategoryIds, seoText } from "@/lib/seo-categories";
 import { MasterCard, priceText } from "@/components/MasterCard";
 import { SITE_URL } from "@/lib/site";
+import { DISTRICTS } from "@/lib/districts";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ lang: string; cat: string }> };
+const DIST_LABEL = { ru: "По районам:", en: "By area:", ka: "უბნების მიხედვით:" } as const;
 
 const L: Record<
   Locale,
@@ -162,6 +164,15 @@ export default async function ServicePage({ params }: Props) {
           {l.empty}
         </p>
       )}
+
+      <div className="mt-6 flex flex-wrap items-center gap-2 text-[14px]">
+        <span className="text-muted">{DIST_LABEL[lang]}</span>
+        {DISTRICTS.map((d) => (
+          <Link key={d.id} href={href(lang, `/services/${cat}/${d.id}`)} className="rounded-full border border-line bg-white px-3 py-1 hover:border-ink">
+            {d.name[lang]}
+          </Link>
+        ))}
+      </div>
 
       {masters.length > 0 && (
         <div className="mt-6 rounded-2xl border border-dashed border-brand/40 bg-brand-soft p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">

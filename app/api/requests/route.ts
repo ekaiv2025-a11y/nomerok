@@ -44,6 +44,13 @@ export async function POST(req: Request) {
     });
 
     // Клиент вошёл в «Мои заявки» — сразу привязываем заявку к его Telegram: отклики придут туда без лишних шагов
+    const photos = (Array.isArray(body.photos) ? body.photos : [])
+      .filter((u: unknown): u is string => typeof u === "string" && (/^https:\/\/[a-z0-9-]+\.supabase\.co\//.test(u) || (u.startsWith("data:image/") && process.env.LOCAL_DB === "1")))
+      .slice(0, 3);
+    if (photos.length) {
+      await updateRequest(saved.id, { photos }).catch(() => null);
+      saved.photos = photos;
+    }
     const me = await currentClient();
     if (me) {
       await updateRequest(saved.id, { client_tg_chat_id: me.chatId }).catch(() => null);
@@ -66,6 +73,7 @@ export async function POST(req: Request) {
       master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
       `<b>Задача:</b> ${escapeHtml(saved.description)}`,
       saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
+      saved.photos?.length ? `📷 Фото: ${saved.photos.length}` : "",
       `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
       `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
       check.ad

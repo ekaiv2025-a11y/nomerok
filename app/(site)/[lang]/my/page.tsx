@@ -92,6 +92,16 @@ export default async function MyPage({ params, searchParams }: LangParams & { se
                 </span>
               </div>
               <p className="mt-2 whitespace-pre-line text-[15px]">{r.description}</p>
+                {(r.photos ?? []).length > 0 && (
+                  <div className="mt-2 flex gap-2">
+                    {(r.photos ?? []).map((u) => (
+                      <a key={u} href={u} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={u} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
               {r.when_text && (
                 <p className="mt-1 text-[13px] text-muted">
                   {t.when}: {r.when_text}

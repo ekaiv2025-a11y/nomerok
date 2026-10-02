@@ -5,7 +5,9 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
-import { ContactFields, Field, Honeypot, LinkedNote, TelegramStep, fc, useSubmit } from "./form-kit";
+import { ContactFields, Field, Honeypot, LinkedNote, PHOTO_TEXT, TelegramStep, fc, uploadRequestPhotos, useSubmit } from "./form-kit";
+import { PhotoPicker } from "./PhotoPicker";
+import { useState } from "react";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
 
@@ -16,6 +18,9 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
   const d = getDict(lang);
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
+  const [files, setFiles] = useState<File[]>([]);
+  const [photoErr, setPhotoErr] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   if (state === "done") {
     return (
@@ -32,10 +37,19 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
     );
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    setPhotoErr("");
+    setUploading(true);
+    const photos = await uploadRequestPhotos(files);
+    setUploading(false);
+    if (photos === null) {
+      setPhotoErr(PHOTO_TEXT[lang].upErr);
+      return;
+    }
     submit({
+      photos,
       category: f.get("category"),
       city: f.get("city"),
       description: f.get("description"),
@@ -70,6 +84,16 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
       <Field label={t.when} optional={d.form.optional} error={errors.when_text}>
         <input name="when_text" className={fc(errors.when_text)} placeholder={t.whenPlaceholder} />
       </Field>
+      <div>
+        <p className="text-[14px] font-semibold">
+          📷 {PHOTO_TEXT[lang].label} <span className="font-normal text-muted">{d.form.optional}</span>
+        </p>
+        <p className="mt-0.5 text-[13px] text-muted">{PHOTO_TEXT[lang].hint}</p>
+        <div className="mt-2">
+          <PhotoPicker files={files} onChange={setFiles} addLabel={PHOTO_TEXT[lang].add} onError={setPhotoErr} errorText={PHOTO_TEXT[lang].err} />
+        </div>
+        {photoErr && <p className="mt-1 text-[13px] text-danger">{photoErr}</p>}
+      </div>
       <ContactFields
         lang={lang}
         me={me}
@@ -77,8 +101,8 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
         labels={{ name: t.name, phone: t.phone, phoneHint: t.phoneHint, optional: d.form.optional, placeholder: d.form.phonePlaceholder }}
       />
       {message && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{message}</p>}
-      <button type="submit" disabled={state === "sending"} className="btn-primary h-12 w-full">
-        {state === "sending" && <Loader2 className="h-4 w-4 animate-spin" />} {t.submit}
+      <button type="submit" disabled={state === "sending" || uploading} className="btn-primary h-12 w-full">
+        {(state === "sending" || uploading) && <Loader2 className="h-4 w-4 animate-spin" />} {t.submit}
       </button>
       <p className="text-center text-[12px] text-muted">{t.consentA}</p>
     </form>

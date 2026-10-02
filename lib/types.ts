@@ -54,6 +54,9 @@ export type Master = {
   phone_verified_at: string | null;
   /** Telegram подтверждён, но в анкете другой номер (см. бот) */
   tg_verified_at?: string | null;
+  /** короткая ссылка nomerok.ge/<short> */
+  short?: string | null;
+  slots?: { d: string; t: string }[];
   /** Получать ли новые заявки своей категории */
   notify_requests: boolean;
   /** Дополнительные направления (до 3), по ним тоже приходят заявки */
@@ -119,7 +122,7 @@ export type PublicMaster = Pick<
   | "work_hours"
   | "city"
   | "links"
-> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
+> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number };
 
 export type MasterContacts = {
   phone: string;
@@ -150,6 +153,8 @@ export type ClientRequest = {
   outcome_at: string | null;
   review_invited_at: string | null;
   direct_checked_at: string | null;
+  /** фото от клиента (ссылки) */
+  photos?: string[];
   created_at: string;
 };
 
