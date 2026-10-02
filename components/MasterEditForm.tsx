@@ -40,7 +40,7 @@ export function MasterEditForm({ m }: { m?: Master }) {
         <L label="Цена от, ₾"><input name="price_from" type="number" min={0} defaultValue={m?.price_from ?? ""} className="field" /></L>
         <L label="За что">
           <select name="price_unit" defaultValue={m?.price_unit ?? "час"} className="field">
-            {PRICE_UNITS.map((u) => <option key={u} value={u}>за {u}</option>)}
+            {PRICE_UNITS.map((u) => <option key={u} value={u}>за {u === "услуга" ? "услугу" : u}</option>)}
           </select>
         </L>
       </div>

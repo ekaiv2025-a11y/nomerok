@@ -216,7 +216,7 @@ const ru = {
     experience: "Опыт, лет",
     priceFrom: "Цена от, ₾",
     per: "За что",
-    perUnit: (u: string) => `за ${u}`,
+    perUnit: (u: string) => `за ${u === "услуга" ? "услугу" : u}`,
     languages: "Языки",
     phone: "Телефон",
     phoneHint: "Его увидят клиенты",
