@@ -196,6 +196,14 @@ function activeLevel(at: string | null | undefined): "today" | "week" | null {
   return h < 24 ? "today" : h < 24 * 7 ? "week" : null;
 }
 
+/** Сколько дней назад специалист заходил (0 — сегодня по Тбилиси); дольше месяца — не показываем. */
+function seenDays(at: string | null | undefined): number | null {
+  if (!at) return null;
+  const day = (t: number) => Math.floor((t + 4 * 3600000) / 86400000);
+  const d = day(Date.now()) - day(Date.parse(at));
+  return d >= 0 && d <= 30 ? d : null;
+}
+
 function toPublic(m: Master | PublicRow): PublicMaster {
   return {
     id: m.id,
@@ -225,6 +233,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     links: withoutPersonalTg(m.links && typeof m.links === "object" ? m.links : {}, (m as { telegram?: string | null }).telegram),
     has_tg: !!(m as { telegram?: string | null }).telegram,
     active: activeLevel((m as { last_active_at?: string | null }).last_active_at),
+    seen_days: seenDays((m as { last_active_at?: string | null }).last_active_at),
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,

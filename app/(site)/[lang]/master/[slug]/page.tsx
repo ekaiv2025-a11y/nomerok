@@ -89,10 +89,10 @@ export default async function MasterPage({ params }: Props) {
             {subcatLine(m, lang, 4) ? ` (${subcatLine(m, lang, 4)!.toLowerCase()})` : ""} · {cityLabel(m.city, lang)}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
-          {m.active && (
-            <p className="mt-1 flex items-center gap-1.5 text-[13px] text-brand-dark">
-              <span className={`h-2 w-2 rounded-full ${m.active === "today" ? "bg-[#2fb36b]" : "bg-[#9fd3b6]"}`} />
-              {m.active === "today" ? SOCIAL[lang].activeToday : SOCIAL[lang].activeWeek}
+          {m.seen_days != null && (
+            <p className="mt-1 flex items-center gap-1.5 text-[13px] text-muted">
+              <span className={`h-2 w-2 rounded-full ${m.seen_days <= 1 ? "bg-[#2fb36b]" : m.seen_days <= 7 ? "bg-[#9fd3b6]" : "bg-[#d6d2c8]"}`} />
+              {SOCIAL[lang].seen(m.seen_days)}
             </p>
           )}
           {m.extra_categories.filter((c) => c !== "other").length > 0 && (

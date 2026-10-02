@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CardPhotos } from "./CardPhotos";
 import { FavButton } from "./FavButton";
-import { SOCIAL } from "@/lib/social-text";
 import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { subcatLine } from "@/lib/subcats";
@@ -65,12 +64,6 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         {m.rating != null && m.reviews > 0 && (
           <div className="mt-1">
             <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
-          </div>
-        )}
-        {m.active && (
-          <div className="mt-1 flex items-center gap-1.5 text-[12px] text-brand-dark">
-            <span className={`h-2 w-2 rounded-full ${m.active === "today" ? "bg-[#2fb36b]" : "bg-[#9fd3b6]"}`} />
-            {m.active === "today" ? SOCIAL[lang].activeToday : SOCIAL[lang].activeWeek}
           </div>
         )}
         {summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>}
