@@ -11,7 +11,6 @@ import { AvatarZoom } from "@/components/AvatarZoom";
 import { subcatLine } from "@/lib/subcats";
 import { SOCIAL } from "@/lib/social-text";
 import { TRANSLATE_TEXT, textLang, translateUrl } from "@/lib/translate-link";
-import { SLOT_TEXT, slotLabel } from "@/lib/slots";
 import { FavButton } from "@/components/FavButton";
 import { SocialLinks } from "@/components/SocialLinks";
 import { seoCategoryIds } from "@/lib/seo-categories";
@@ -173,22 +172,6 @@ export default async function MasterPage({ params }: Props) {
             </section>
           )}
 
-          {m.slots && m.slots.length > 0 && !m.demo && (
-            <section className="mt-8">
-              <h2 className="text-[18px] font-bold">🗓 {SLOT_TEXT[lang].title}</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {m.slots.map((s) => (
-                  <Link
-                    key={s.d + s.t}
-                    href={href(lang, `/master/${m.slug}/message?when=${encodeURIComponent(slotLabel(s, lang))}`)}
-                    className="rounded-full border border-[#e9d39c] bg-[#fdf3dc] px-3.5 py-1.5 text-[14px] font-semibold text-[#7a5a10] hover:border-[#c9a64a]"
-                  >
-                    {slotLabel(s, lang)} · {SLOT_TEXT[lang].book} →
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
           <SocialLinks links={m.links} lang={lang} tgMasterId={m.has_tg && !m.demo ? m.id : null} />
 
           <section className="mt-8">

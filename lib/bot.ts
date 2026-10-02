@@ -111,6 +111,8 @@ const OKNA: Record<string, { ask: string; today: string; tomorrow: string; clear
   ka: { ask: "🗓 <b>თავისუფალი დრო</b>", today: "დღეს თავისუფალი ვარ", tomorrow: "ხვალ თავისუფალი ვარ", clear: "გასუფთავება", done: (l) => `✅ მონიშნულია: ${l}.`, cleared: "🧹 გასუფთავდა." },
 };
 
+// Свободные окна пока отключены (функция преждевременна) — код оставлен на будущее.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function askSlots(m: Master) {
   if (!m.tg_chat_id) return;
   const o = OKNA[m.lang] ?? OKNA.ru;
@@ -805,10 +807,6 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   const text = msg.text ?? "";
   if (text.startsWith("/start")) return void (await onStart(msg, text.split(/\s+/)[1] ?? ""));
   if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from), msg.from));
-  if (text === "/okna" || text === "/slots") {
-    const ms = await getMastersByChatId(msg.chat.id);
-    if (ms[0]) return void (await askSlots(ms[0]));
-  }
   if (text === "/zayavki" || text === "/requests") {
     const ms = await getMastersByChatId(msg.chat.id);
     if (ms[0]) return void (await askSubscribe(ms[0]));

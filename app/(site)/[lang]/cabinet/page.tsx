@@ -10,8 +10,6 @@ import { StatsCard } from "@/components/StatsCard";
 import { QrCards } from "@/components/QrCards";
 import { NotifyToggle } from "@/components/NotifyToggle";
 import { ShortLinkCard } from "@/components/ShortLinkCard";
-import { SlotsEditor } from "@/components/SlotsEditor";
-import { cleanSlots } from "@/lib/slots";
 import { transliterate } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
 import { getDict, href } from "@/lib/i18n";
@@ -174,8 +172,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
         </div>
       )}
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <SlotsEditor lang={lang} initial={cleanSlots(m.slots)} />
+      <div className="mt-4">
         <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
       </div>
 
