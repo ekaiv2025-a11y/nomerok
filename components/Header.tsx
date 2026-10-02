@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, Users, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { SOCIAL } from "@/lib/social-text";
 import { MY } from "@/lib/my-text";
@@ -99,10 +99,19 @@ export function Header({ lang }: { lang: Locale }) {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-16 sm:px-6">
           <Logo lang={lang} />
           <nav className="flex items-center gap-1 min-[400px]:gap-1.5 sm:gap-2">
-            <Link href={href(lang, "/how")} className="hidden h-10 items-center px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
+            <Link
+              href={href(lang) + "#masters"}
+              className="flex h-10 w-9 shrink-0 items-center max-[359px]:hidden justify-center gap-1.5 rounded-full text-[14px] font-semibold text-ink hover:bg-cream lg:w-auto lg:px-3"
+              aria-label={t.nav.allSpecialists}
+              title={t.nav.allSpecialists}
+            >
+              <Users className="h-5 w-5 text-brand" />
+              <span className="hidden whitespace-nowrap lg:inline">{t.nav.allSpecialists}</span>
+            </Link>
+            <Link href={href(lang, "/how")} className="hidden h-10 items-center px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">
               {t.nav.how}
             </Link>
-            <Link href={href(lang, "/join")} className="hidden h-10 items-center rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
+            <Link href={href(lang, "/join")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
               {t.nav.iAmSpecialist}
             </Link>
             <Link href={href(lang, "/favorites")} className="hidden h-10 items-center rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink md:inline-flex" title={SOCIAL[lang].fav}>
