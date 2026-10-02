@@ -121,6 +121,18 @@ export async function askMasterFixPhone(formData: FormData) {
   redirect(`/admin/masters/${id}?${ok ? "sent=1" : `error=${encodeURIComponent("Не удалось отправить: бот у специалиста не подключён")}`}`);
 }
 
+export async function sendBroadcast(formData: FormData) {
+  await requireAdmin();
+  const text = String(formData.get("text") ?? "").trim().slice(0, 3800);
+  if (!text) redirect("/admin/broadcast");
+  const { escapeHtml } = await import("@/lib/telegram");
+  const { broadcastToMasters } = await import("@/lib/bot");
+  // **жирный** → <b>жирный</b>
+  const html = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  const r = await broadcastToMasters(html, { onlyPublished: formData.get("all") !== "on", cabinet: formData.get("cabinet") === "on" });
+  redirect(`/admin/broadcast?sent=${r.sent}&failed=${r.failed}`);
+}
+
 export async function deleteRequest(formData: FormData) {
   await requireAdmin();
   await adminDeleteRequest(String(formData.get("id")));

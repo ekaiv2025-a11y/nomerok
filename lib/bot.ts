@@ -91,6 +91,22 @@ export async function notifyMasterStatus(m: Master, status: MasterStatus): Promi
   }
 }
 
+/** Админка → «Рассылка»: одно сообщение всем специалистам с подключённым ботом (с кнопкой входа в кабинет). */
+export async function broadcastToMasters(html: string, opts: { onlyPublished: boolean; cabinet: boolean }): Promise<{ sent: number; failed: number }> {
+  const all = await adminListMasters();
+  let sent = 0;
+  let failed = 0;
+  for (const m of all) {
+    if (!m.tg_chat_id || m.archived_at || (opts.onlyPublished && m.status !== "published")) continue;
+    if (m.slug.startsWith("demo-")) continue;
+    const ok = await sendTo(m.tg_chat_id, html, opts.cabinet ? [[await cabinetButton(m)]] : undefined).catch(() => null);
+    if (ok) sent++;
+    else failed++;
+    await new Promise((r) => setTimeout(r, 60)); // не больше ~15 сообщений в секунду
+  }
+  return { sent, failed };
+}
+
 /** Админка → «Попросить исправить номер»: сообщение с кнопкой входа в кабинет. */
 export async function askFixPhone(m: Master): Promise<boolean> {
   if (!m.tg_chat_id) return false;
