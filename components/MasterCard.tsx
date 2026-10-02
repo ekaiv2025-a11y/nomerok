@@ -3,6 +3,13 @@ import { CardPhotos } from "./CardPhotos";
 import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { subcatLine } from "@/lib/subcats";
+import { cardSummary } from "@/lib/card-summary";
+
+const MODE: Record<string, Record<Locale, string>> = {
+  at_client: { ru: "🚗 Выезд к клиенту", en: "🚗 Comes to you", ka: "🚗 გამოძახებით" },
+  online: { ru: "💻 Онлайн", en: "💻 Online", ka: "💻 ონლაინ" },
+};
+const LANG_SHORT: Record<string, string> = { Русский: "RU", Грузинский: "KA", Английский: "EN", Украинский: "UA", Турецкий: "TR" };
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
 
@@ -16,6 +23,9 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
   const link = href(lang, `/master/${m.slug}`);
   const atPlace = m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both");
+  const summary = cardSummary(m.services, m.about);
+  const mode = !atPlace ? MODE[m.work_mode === "both" ? "at_client" : m.work_mode]?.[lang] : null;
+  const langs = (m.languages ?? []).map((l) => LANG_SHORT[l]).filter(Boolean);
   // Вертикальная карточка: фото сверху, ниже — кто это, чем занимается и цена. Вся карточка ведёт в профиль.
   return (
     <div
@@ -54,12 +64,15 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
           </div>
         )}
-        {atPlace && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
+        {summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>}
+        {(atPlace || mode || langs.length > 0) && (
+          <div className="mt-2 flex max-h-[22px] flex-wrap gap-1 overflow-hidden sm:max-h-none">
             {atPlace && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {m.place_address?.trim() || t.atPlace}</span>}
+            {mode && <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">{mode}</span>}
+            {langs.length > 0 && <span className="hidden rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted sm:inline">🗣 {langs.join(" · ")}</span>}
           </div>
         )}
-        <div className="mt-auto pt-2.5 text-[14px] font-semibold sm:pt-3">{priceText(m, lang)}</div>
+        <div className={`mt-auto pt-2.5 sm:pt-3 ${m.price_from == null ? "text-[13px] text-muted" : "text-[14px] font-semibold"}`}>{priceText(m, lang)}</div>
       </Link>
     </div>
   );
