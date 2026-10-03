@@ -361,3 +361,20 @@ export async function applyLinks(formData: FormData) {
   revalidatePath("/", "layout");
   redirect(`/admin/links?done=${n}`);
 }
+
+/** Перенести специалиста в другой раздел (или сразу нескольких: ids через запятую + cats через запятую). */
+export async function moveMasterCategory(formData: FormData) {
+  await requireAdmin();
+  const ids = String(formData.get("ids") ?? "").split(",").filter(Boolean);
+  const cats = String(formData.get("cats") ?? "").split(",");
+  const one = String(formData.get("category") ?? "");
+  let n = 0;
+  for (let i = 0; i < ids.length; i++) {
+    const cat = one || cats[i];
+    if (!(CATEGORY_IDS as readonly string[]).includes(cat) || cat === "other") continue;
+    await adminUpdateMaster(ids[i], { category: cat }).catch(() => {});
+    n++;
+  }
+  revalidatePath("/", "layout");
+  redirect(`/admin?tab=masters&moved=${n}`);
+}

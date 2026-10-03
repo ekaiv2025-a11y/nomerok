@@ -7,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, messageClient, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -16,6 +16,7 @@ import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 import { isAwayNow } from "@/lib/availability";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { looksLikeSelf } from "@/lib/request-check";
+import { guessCategory } from "@/lib/search-intent";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -27,12 +28,12 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string; msg?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string; msg?: string; moved?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   if (dbMode() === "none") {
     return <p className="rounded-2xl bg-white p-6">База не подключена. Добавьте SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в Vercel.</p>;
   }
-  const { tab = "requests", bot: botResult, fu, msg } = await searchParams;
+  const { tab = "requests", bot: botResult, fu, msg, moved } = await searchParams;
   const [masters, requests, views, responses] = await Promise.all([
     adminListMasters(),
     adminListRequests(),
@@ -382,6 +383,43 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               <form action={removeDemo} className="mt-2"><button className="btn-ghost h-9 px-4 text-[13px] text-danger">Удалить старые примеры из базы</button></form>
             )}
           </div>
+          {moved && <p className="rounded-xl bg-white p-3 text-[14px] font-semibold">✓ Перенесено в правильные разделы: {moved}</p>}
+          {(() => {
+            const inOther = masters.filter((x) => x.category === "other" && x.status !== "rejected");
+            if (!inOther.length) return null;
+            const rows = inOther.map((x) => ({ m: x, guess: guessCategory(`${x.services}\n${x.about}\n${x.credentials ?? ""}`) }));
+            const sure = rows.filter((r) => r.guess);
+            return (
+              <div className="rounded-2xl bg-white p-4 text-[14px]">
+                <b>📂 В разделе «Другое»: {inOther.length}</b>
+                <p className="mt-1 text-[13px] text-muted">Подсказка раздела — по тексту анкеты. Проверьте и перенесите. Специалисту ничего не приходит.</p>
+                {sure.length > 0 && (
+                  <form action={moveMasterCategory} className="mt-2">
+                    <input type="hidden" name="ids" value={sure.map((r) => r.m.id).join(",")} />
+                    <input type="hidden" name="cats" value={sure.map((r) => r.guess).join(",")} />
+                    <button className="btn-primary h-9 px-4 text-[13px]">Перенести все по подсказкам ({sure.length})</button>
+                  </form>
+                )}
+                <div className="mt-3 divide-y divide-line">
+                  {rows.map(({ m: x, guess }) => (
+                    <form key={x.id} action={moveMasterCategory} className="flex flex-wrap items-center gap-2 py-2">
+                      <input type="hidden" name="ids" value={x.id} />
+                      <div className="min-w-0 grow basis-60">
+                        <Link href={`/admin/masters/${x.id}`} className="font-semibold underline">{x.name}</Link>
+                        <p className="line-clamp-2 text-[12px] text-muted">{x.services || x.about}</p>
+                      </div>
+                      <select name="category" defaultValue={guess ?? "other"} className="h-9 rounded-full border border-line bg-white px-2 text-[12px]">
+                        {CATEGORIES.map((c) => (
+                          <option key={c.id} value={c.id}>{c.label.ru}</option>
+                        ))}
+                      </select>
+                      <button className="h-9 rounded-full border border-line px-3 text-[12px] hover:bg-cream">↪ Перенести</button>
+                    </form>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <Link href="/admin/links" className="block rounded-2xl bg-white p-4 text-[14px] font-semibold text-brand hover:bg-brand-soft">
             🔗 Перенести ссылки из текстов анкет в «Соцсети и сайт» →
           </Link>

@@ -50,3 +50,14 @@ export function detectIntent(query: string): { cat: string; sub?: string }[] {
   for (const r of INTENTS) if (r.re.test(q) && !out.some((o) => o.cat === r.cat && o.sub === r.sub)) out.push({ cat: r.cat, sub: r.sub });
   return out.slice(0, 3);
 }
+
+/** Для анкеты: какой раздел подходит лучше всего по тексту (больше всего совпадений). null — непонятно. */
+export function guessCategory(text: string): string | null {
+  const score = new Map<string, number>();
+  for (const r of INTENTS) {
+    const hits = (text.match(new RegExp(r.re.source, r.re.flags.includes("g") ? r.re.flags : r.re.flags + "g")) ?? []).length;
+    if (hits) score.set(r.cat, (score.get(r.cat) ?? 0) + hits);
+  }
+  const best = [...score.entries()].sort((a, b) => b[1] - a[1])[0];
+  return best ? best[0] : null;
+}
