@@ -77,7 +77,7 @@ export function Header({ lang }: { lang: Locale }) {
   const links = [
     { href: href(lang), label: t.nav.allSpecialists },
     { href: href(lang, "/request"), label: t.nav.leaveRequest },
-    { href: href(lang, "/orders"), label: "🔥 " + ORD[lang].title },
+    { href: href(lang, "/orders"), label: "🔥 " + ORD[lang].nav },
     { href: href(lang, "/my"), label: "📋 " + MY[lang].nav },
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
@@ -112,9 +112,6 @@ export function Header({ lang }: { lang: Locale }) {
             </Link>
             <Link href={href(lang, "/orders")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
               {ORD[lang].nav}
-            </Link>
-            <Link href={href(lang, "/how")} className="hidden h-10 items-center px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">
-              {t.nav.how}
             </Link>
             <Link href={href(lang, "/join")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
               {t.nav.iAmSpecialist}
