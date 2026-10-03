@@ -8,6 +8,7 @@ import { Logo } from "./Logo";
 import { SOCIAL } from "@/lib/social-text";
 import { MY } from "@/lib/my-text";
 import { ORD } from "@/lib/orders-text";
+import { PH } from "@/lib/phones";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { getDict, href, type Locale } from "@/lib/i18n";
 
@@ -81,6 +82,7 @@ export function Header({ lang }: { lang: Locale }) {
     { href: href(lang, "/my"), label: "📋 " + MY[lang].nav },
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
+    { href: href(lang, "/phones"), label: "📞 " + PH[lang].nav },
     { href: href(lang, "/how"), label: t.nav.how },
     { href: href(lang, "/join"), label: t.footer.placeProfile },
     { href: href(lang, "/cabinet"), label: t.nav.cabinet },
