@@ -12,6 +12,13 @@ import { detectIntent } from "@/lib/search-intent";
 import { categoryLabel } from "@/lib/categories";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
+import { looksLikeSelf } from "@/lib/request-check";
+
+const SELF = {
+  ru: { title: "Похоже, вы рассказываете о себе как о специалисте", text: "Эта форма — для тех, кто ищет мастера. Если вы специалист и хотите получать заказы, разместите анкету — так вы сможете получать заявки клиентов в Telegram.", join: "Я специалист — разместить анкету", no: "Нет, я ищу мастера" },
+  en: { title: "Looks like you're describing yourself as a specialist", text: "This form is for people looking for a specialist. If you are a specialist and want orders, create a profile — then you can get client requests in Telegram.", join: "I'm a specialist — create a profile", no: "No, I'm looking for a specialist" },
+  ka: { title: "როგორც ჩანს, საკუთარ თავზე წერთ როგორც სპეციალისტი", text: "ეს ფორმა მათთვისაა, ვინც ეძებს ხელოსანს. თუ სპეციალისტი ხართ და გინდათ შეკვეთები, განათავსეთ პროფილი — მოთხოვნებს Telegram-ში მიიღებთ.", join: "სპეციალისტი ვარ — პროფილის განთავსება", no: "არა, ხელოსანს ვეძებ" },
+} as const;
 
 const SUGGEST = { ru: "Похоже, подойдёт раздел:", en: "Looks like:", ka: "როგორც ჩანს:" } as const;
 
@@ -27,6 +34,8 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
   const [desc, setDesc] = useState("");
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [selfOk, setSelfOk] = useState(false);
+  const selfWarn = !selfOk && looksLikeSelf(desc);
 
   if (state === "done") {
     return (
@@ -45,6 +54,10 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (selfWarn) {
+      document.getElementById("self-warn")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const f = new FormData(e.currentTarget);
     setPhotoErr("");
     setUploading(true);
@@ -81,6 +94,20 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
       </Field>
       <Field label={t.what} hint={t.whatHint} error={errors.description}>
         <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
+        {selfWarn && (
+          <div id="self-warn" className="mt-2 rounded-xl border border-[#f0d58a] bg-[#fff8e6] p-3 text-[13px] leading-snug">
+            <p className="font-semibold">🙋 {SELF[lang].title}</p>
+            <p className="mt-1 text-muted">{SELF[lang].text}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Link href={href(lang, "/join")} className="btn-primary h-9 px-3 text-[13px]">
+                {SELF[lang].join}
+              </Link>
+              <button type="button" onClick={() => setSelfOk(true)} className="btn-ghost h-9 px-3 text-[13px]">
+                {SELF[lang].no}
+              </button>
+            </div>
+          </div>
+        )}
         {(() => {
           const cur = catSel || initialCat || "";
           const sug = detectIntent(desc).map((x) => x.cat).filter((c, i, a) => a.indexOf(c) === i && c !== cur);
