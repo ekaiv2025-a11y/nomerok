@@ -115,10 +115,6 @@ export const SECTIONS: PhoneSection[] = [
         numbers: [n("+995 32 240 10 10", { ru: "единый колл-центр", en: "call centre", ka: "ცხელი ხაზი" })],
       },
     ],
-    help: [
-      { cat: "lawyer", text: { ru: "Нужна помощь с документами или ВНЖ — юристы", en: "Help with documents or residence — lawyers", ka: "დოკუმენტები ან ბინადრობა — იურისტები" } },
-      { cat: "translator", text: { ru: "Перевод документов с нотариальным заверением", en: "Certified document translation", ka: "დოკუმენტების ნოტარიული თარგმანი" } },
-    ],
   },
   {
     id: "health",
@@ -150,11 +146,6 @@ export const SECTIONS: PhoneSection[] = [
         numbers: [n("116 001")],
       },
     ],
-    help: [
-      { cat: "doctor", text: { ru: "Не срочно? Врачи частной практики, в том числе на дом", en: "Not urgent? Private doctors, including home visits", ka: "არ არის სასწრაფო? კერძო ექიმები, მათ შორის ბინაზე" } },
-      { cat: "dentist", text: { ru: "Болит зуб — стоматологи", en: "Toothache — dentists", ka: "კბილი გტკივათ — სტომატოლოგები" } },
-      { cat: "vet", text: { ru: "Заболел питомец — ветеринары", en: "Sick pet — vets", ka: "ცხოველი ავად არის — ვეტერინარები" } },
-    ],
   },
   {
     id: "transport",
@@ -167,7 +158,6 @@ export const SECTIONS: PhoneSection[] = [
         numbers: [n("+995 422 235 100")],
       },
     ],
-    help: [{ cat: "moving", text: { ru: "Переезд, грузчики, перевозка вещей", en: "Moving, movers, transport of things", ka: "გადაზიდვა, მტვირთავები" } }],
   },
 ];
 
@@ -179,7 +169,7 @@ export const PH: Record<Locale, { nav: string; title: string; h1: string; lead: 
     lead: "Экстренные службы, коммуналка, госучреждения и больницы — всё в одном месте. Нажмите на номер, чтобы позвонить.",
     quick: "Самое нужное",
     call: "Позвонить",
-    helpTitle: "Нужен специалист? Найдите на NomerOk:",
+    helpTitle: "Проблема в квартире?",
     wrong: "Номер не отвечает или изменился?",
     wrongLink: "Напишите нам — исправим",
   },
@@ -190,7 +180,7 @@ export const PH: Record<Locale, { nav: string; title: string; h1: string; lead: 
     lead: "Emergency services, utilities, public offices and hospitals in one place. Tap a number to call.",
     quick: "Most needed",
     call: "Call",
-    helpTitle: "Need a specialist? Find one on NomerOk:",
+    helpTitle: "Problem in your flat?",
     wrong: "Number not answering or changed?",
     wrongLink: "Let us know — we'll fix it",
   },
@@ -201,7 +191,7 @@ export const PH: Record<Locale, { nav: string; title: string; h1: string; lead: 
     lead: "გადაუდებელი სამსახურები, კომუნალური, სახელმწიფო უწყებები და საავადმყოფოები ერთ ადგილას. დააჭირეთ ნომერს დასარეკად.",
     quick: "ყველაზე საჭირო",
     call: "დარეკვა",
-    helpTitle: "გჭირდებათ სპეციალისტი? იპოვეთ NomerOk-ზე:",
+    helpTitle: "პრობლემა ბინაში?",
     wrong: "ნომერი არ პასუხობს ან შეიცვალა?",
     wrongLink: "მოგვწერეთ — გავასწორებთ",
   },

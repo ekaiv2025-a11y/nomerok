@@ -69,18 +69,14 @@ export default async function PhonesPage({ params }: LangParams) {
               ))}
             </div>
             {s.help && (
-              <div className="mt-3 rounded-2xl bg-cream p-4">
-                <p className="text-[13px] font-semibold">{t.helpTitle}</p>
-                <ul className="mt-2 space-y-1.5">
-                  {s.help.map((h) => (
-                    <li key={h.cat} className="text-[13px]">
-                      <Link href={href(lang, `/services/${h.cat}`)} className="hover:underline">
-                        {h.text[lang]} → <span className="font-semibold text-brand">{categoryPlural(h.cat, lang)}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <p className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-muted">
+                {t.helpTitle}
+                {s.help.map((h) => (
+                  <Link key={h.cat} href={href(lang, `/services/${h.cat}`)} title={h.text[lang]} className="rounded-full bg-cream px-3 py-1 font-medium text-brand hover:underline">
+                    {categoryPlural(h.cat, lang)}
+                  </Link>
+                ))}
+              </p>
             )}
           </section>
         ))}
