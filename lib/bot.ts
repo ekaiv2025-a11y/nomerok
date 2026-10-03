@@ -397,25 +397,51 @@ async function onPhoneChoice(cb: TgCallback, data: string) {
   return sendTo(chatId, `${b.keptForm(formatPhone(m.phone))}\n${next}`);
 }
 
+/** Отклик специалиста на заявку (из бота или с сайта). Возвращает ошибку или null. */
+export async function takeRequest(m: Master, r: ClientRequest, opts: { notifyInTelegram: boolean }): Promise<"gone" | "notAllowed" | "already" | "full" | null> {
+  if (r.status === "spam" || r.status === "done") return "gone";
+  const ok = m.status === "published" && canGetRequests(m) && (r.master_id ? m.id === r.master_id : servesCategory(m, r.category));
+  if (!ok) return "notAllowed";
+  if (await hasResponse(r.id, m.id)) return "already";
+  if (!r.master_id && (await countResponses(r.id)) >= MAX_RESPONSES) return "full";
+  const res = await addResponse(r.id, m.id);
+  if (!res.created) return "already";
+  const b = botDict(m.lang);
+  if (opts.notifyInTelegram && m.tg_chat_id) {
+    await sendTo(m.tg_chat_id, b.takenMaster(esc(r.name || "—"), formatPhone(r.phone), esc(r.description)), [
+      [{ text: b.btnTelegram, url: telegramLink(null, r.phone) }],
+    ]).catch(() => null);
+  }
+  await updateRequest(r.id, { status: "taken" });
+  if (m.missed_direct) await adminUpdateMaster(m.id, { missed_direct: 0 });
+  // Клиенту — контакты откликнувшегося специалиста
+  if (r.client_tg_chat_id) {
+    const cb2 = botDict(r.lang);
+    const tgText = m.telegram ? `@${m.telegram}` : "";
+    const buttons = [[{ text: cb2.btnProfile, url: `${siteUrl()}/${r.lang}/master/${m.slug}` }]];
+    buttons.push([{ text: cb2.btnTelegram, url: telegramLink(m.telegram, m.phone) }]);
+    await sendTo(r.client_tg_chat_id, cb2.clientResponse(esc(m.name), esc(categoryLabel(m.category, r.lang)), formatPhone(m.phone), tgText), buttons).catch(() => null);
+  }
+  await notifyAdmin(
+    `✋ <b>${esc(m.name)}</b> откликнулся(ась) на заявку «${esc(r.description.slice(0, 80))}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))})${
+      r.client_tg_chat_id ? "\nКлиент получил уведомление в Telegram." : ""
+    }${opts.notifyInTelegram ? "" : "\n(отклик с сайта)"}`,
+  );
+  return null;
+}
+
 async function onTake(cb: TgCallback, requestId: string) {
   const chatId = cb.from.id;
   const answer = (text: string) => tg("answerCallbackQuery", { callback_query_id: cb.id, text, show_alert: true });
-
   const r = await getRequest(requestId);
   const masters = await getMastersByChatId(chatId);
   const m =
-    masters.find((x) => x.status === "published" && canGetRequests(x) && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ??
-    null;
+    masters.find((x) => x.status === "published" && canGetRequests(x) && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ?? masters[0] ?? null;
   const b = botDict(m?.lang ?? guessLang(cb.from));
-  if (!r || r.status === "spam" || r.status === "done") return answer(b.requestGone);
+  if (!r) return answer(b.requestGone);
   if (!m) return answer(b.notAllowed);
-
-  if (await hasResponse(r.id, m.id)) return answer(b.alreadyYours);
-  if (!r.master_id && (await countResponses(r.id)) >= MAX_RESPONSES) return answer(b.requestFull);
-
-  const res = await addResponse(r.id, m.id);
-  if (!res.created) return answer(b.alreadyYours);
-
+  const err = await takeRequest(m, r, { notifyInTelegram: true });
+  if (err) return answer({ gone: b.requestGone, notAllowed: b.notAllowed, already: b.alreadyYours, full: b.requestFull }[err]);
   await tg("answerCallbackQuery", { callback_query_id: cb.id });
   if (cb.message) {
     await tg("editMessageReplyMarkup", {
@@ -424,25 +450,6 @@ async function onTake(cb: TgCallback, requestId: string) {
       reply_markup: { inline_keyboard: [[{ text: b.takenButtonDone, callback_data: "noop" }]] },
     });
   }
-  await sendTo(chatId, b.takenMaster(esc(r.name || "—"), formatPhone(r.phone), esc(r.description)), [
-    [{ text: b.btnTelegram, url: telegramLink(null, r.phone) }],
-  ]);
-  await updateRequest(r.id, { status: "taken" });
-  if (m.missed_direct) await adminUpdateMaster(m.id, { missed_direct: 0 });
-
-  // Клиенту — контакты откликнувшегося специалиста
-  if (r.client_tg_chat_id) {
-    const cb2 = botDict(r.lang);
-    const tgText = m.telegram ? `@${m.telegram}` : "";
-    const buttons = [[{ text: cb2.btnProfile, url: `${siteUrl()}/${r.lang}/master/${m.slug}` }]];
-    buttons.push([{ text: cb2.btnTelegram, url: telegramLink(m.telegram, m.phone) }]);
-    await sendTo(r.client_tg_chat_id, cb2.clientResponse(esc(m.name), esc(categoryLabel(m.category, r.lang)), formatPhone(m.phone), tgText), buttons);
-  }
-  await notifyAdmin(
-    `✋ <b>${esc(m.name)}</b> откликнулся(ась) на заявку «${esc(r.description.slice(0, 80))}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))})${
-      r.client_tg_chat_id ? "\nКлиент получил уведомление в Telegram." : ""
-    }`,
-  );
 }
 
 /* ---------- ответы клиента: закрыть заявку, «удалось договориться?» ---------- */

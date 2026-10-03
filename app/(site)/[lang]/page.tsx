@@ -1,3 +1,4 @@
+import { LatestOrders } from "@/components/LatestOrders";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClipboardList, Search } from "lucide-react";
@@ -60,6 +61,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
         </Link>
       </section>
       {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} />}
+      {!broken && <LatestOrders lang={lang} />}
     </>
   );
 }

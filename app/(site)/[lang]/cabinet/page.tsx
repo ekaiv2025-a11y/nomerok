@@ -9,6 +9,7 @@ import { masterStats, viewsByDay } from "@/lib/stats";
 import { StatsCard } from "@/components/StatsCard";
 import { QrCards } from "@/components/QrCards";
 import { NotifyToggle } from "@/components/NotifyToggle";
+import { CabinetOrders } from "@/components/CabinetOrders";
 import { ShortLinkCard } from "@/components/ShortLinkCard";
 import { transliterate } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
@@ -172,12 +173,15 @@ export default async function CabinetPage({ params, searchParams }: Props) {
         </div>
       )}
 
-      <div className="mt-4">
-        <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
-      </div>
 
       <div className="mt-4">
         <NotifyToggle lang={lang} initial={!!m.notify_requests} hasBot={!!m.tg_chat_id} />
+      </div>
+
+      {m.status === "published" && <CabinetOrders m={m} lang={lang} />}
+
+      <div className="mt-4">
+        <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
       </div>
 
       <div className="mt-4">
