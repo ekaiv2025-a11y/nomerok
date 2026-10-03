@@ -1,7 +1,7 @@
 import type { Locale } from "./i18n/config";
 
 /*
- * Уточнения внутри широких направлений (пока — «Красота»).
+ * Уточнения внутри широких направлений («Красота», «Спорт и тренеры»).
  * Определяются автоматически по тексту анкеты: услуги, «о себе», имя.
  * Так клиент сразу видит «Парикмахер» или «Маникюр», не заходя в профиль.
  */
@@ -17,6 +17,14 @@ export const SUBCATS: Record<string, Sub[]> = {
     { id: "makeup", label: { ru: "Визажист", en: "Makeup", ka: "ვიზაჟისტი" }, re: /визаж|макияж|make-?up|ვიზაჟ/i },
     { id: "epilation", label: { ru: "Депиляция", en: "Hair removal", ka: "დეპილაცია" }, re: /депиляц|эпиляц|шугаринг|восков|waxing|epilat|დეპილაც|ეპილაც/i },
     { id: "barber", label: { ru: "Барбер", en: "Barber", ka: "ბარბერი" }, re: /барбер|бород|barber|ბარბერ/i },
+  ],
+  fitness: [
+    { id: "gym", label: { ru: "Фитнес", en: "Fitness", ka: "ფიტნესი" }, re: /фитнес|тренаж?[её]рн|персональн\w* тренир|похуд|набор\w* масс|кроссфит|функционал|fitness|gym|workout|crossfit|ფიტნეს/i },
+    { id: "yoga", label: { ru: "Йога и пилатес", en: "Yoga & pilates", ka: "იოგა და პილატესი" }, re: /йог|пилатес|стретчинг|растяжк|yoga|pilates|stretch|იოგ/i },
+    { id: "martial", label: { ru: "Единоборства", en: "Martial arts", ka: "ორთაბრძოლა" }, re: /айкидо|карате|бокс|кикбокс|дзюдо|самбо|джиу|борьб|тхэквондо|ушу|мма\b|единоборств|самооборон|aikido|karate|boxing|judo|mma|martial|კარატე|კრივ|ჭიდაობ/i },
+    { id: "swim", label: { ru: "Плавание", en: "Swimming", ka: "ცურვა" }, re: /плаван|бассейн|swim|ცურვ/i },
+    { id: "dance", label: { ru: "Танцы", en: "Dance", ka: "ცეკვა" }, re: /танц|хореограф|dance|ცეკვ/i },
+    { id: "games", label: { ru: "Теннис, футбол и др.", en: "Tennis, football etc.", ka: "ჩოგბურთი, ფეხბურთი" }, re: /теннис|футбол|баскетбол|волейбол|шахмат|сёрф|серф|сап\b|tennis|football|soccer|basketball|volleyball|chess|surf|ჩოგბურთ|ფეხბურთ/i },
   ],
 };
 
