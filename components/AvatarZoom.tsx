@@ -23,7 +23,8 @@ export function AvatarZoom({ name, photo, size }: { name: string; photo: string 
   if (!photo) return <Avatar name={name} photo={null} size={size} />;
 
   // У фото-примеров с Unsplash просим версию побольше
-  const big = photo.includes("images.unsplash.com") ? photo.replace(/w=\d+&h=\d+/, "w=1000&h=1000") : photo;
+  const clean = photo.split("#")[0];
+  const big = clean.includes("images.unsplash.com") ? clean.replace(/w=\d+&h=\d+/, "w=1000&h=1000") : clean;
 
   return (
     <>

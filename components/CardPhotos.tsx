@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { Img } from "./Img";
+import { splitPhoto } from "@/lib/photo-pos";
 
 /**
  * Фото в карточке каталога: первое — фото специалиста, дальше — фото работ.
@@ -12,7 +13,8 @@ import { Img } from "./Img";
  */
 export function CardPhotos({ name, photo, works, href, labels }: { name: string; photo: string | null; works: string[]; href: string; labels: { prev: string; next: string } }) {
   const [broken, setBroken] = useState<Set<string>>(new Set());
-  const all = [...(photo ? [photo] : []), ...works].filter((u) => !broken.has(u)).slice(0, 10);
+  const ph = splitPhoto(photo);
+  const all = [...(ph.src ? [ph.src] : []), ...works].filter((u) => !broken.has(u)).slice(0, 10);
   const ref = useRef<HTMLDivElement>(null);
   const [i, setI] = useState(0);
 
@@ -49,6 +51,7 @@ export function CardPhotos({ name, photo, works, href, labels }: { name: string;
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
               draggable={false}
               onError={() => setBroken((s) => new Set(s).add(u))}
+              style={k === 0 && u === ph.src ? { objectPosition: `50% ${ph.y}%` } : undefined}
               className="select-none object-cover"
             />
           </Link>

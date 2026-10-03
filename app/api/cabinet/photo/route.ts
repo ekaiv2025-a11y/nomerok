@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminGetMaster, adminUpdateMaster, uploadPhoto } from "@/lib/db";
 import { currentSpecialistId } from "@/lib/spec-auth";
 import { getDict, isLocale } from "@/lib/i18n";
+import { withY } from "@/lib/photo-pos";
 
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 const MAX = 5 * 1024 * 1024;
@@ -25,4 +26,18 @@ export async function POST(req: Request) {
     console.error("[photo]", e);
     return NextResponse.json({ ok: false, error: t.photoError }, { status: 500 });
   }
+}
+
+/** «Подвинуть фото»: сохраняем положение фото в рамке. */
+export async function PATCH(req: Request) {
+  const id = await currentSpecialistId();
+  if (!id) return NextResponse.json({ ok: false }, { status: 401 });
+  const body = await req.json().catch(() => ({}));
+  const y = Number(body?.y);
+  if (!Number.isFinite(y)) return NextResponse.json({ ok: false }, { status: 400 });
+  const m = await adminGetMaster(id);
+  if (!m?.photo_url) return NextResponse.json({ ok: false }, { status: 404 });
+  const url = withY(m.photo_url, y);
+  await adminUpdateMaster(id, { photo_url: url });
+  return NextResponse.json({ ok: true, url });
 }

@@ -1,6 +1,8 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
+import { PhotoPositioner } from "./PhotoPositioner";
+import { posStyle } from "@/lib/photo-pos";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2 } from "lucide-react";
@@ -133,7 +135,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
       <div className="flex items-center gap-4">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-cream">
           {photo ? (
-            <img src={photo} alt="" className="h-full w-full object-cover" />
+            <img src={photo.split("#")[0]} alt="" className="h-full w-full object-cover" style={posStyle(photo)} />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-muted">
               <Camera className="h-8 w-8" />
@@ -153,6 +155,22 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
             {photo ? t.photoChange : t.photoUpload}
           </button>
           {photoError && <p className="mt-1 text-[13px] text-danger">{photoError}</p>}
+          {photo && photoState === "idle" && (
+            <PhotoPositioner
+              key={photo.split("#")[0]}
+              url={photo}
+              lang={lang}
+              onSave={async (y) => {
+                const res = await fetch("/api/cabinet/photo", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ y }) }).catch(() => null);
+                const data = res ? await res.json().catch(() => ({})) : {};
+                if (data.ok) {
+                  setPhoto(data.url);
+                  router.refresh();
+                }
+                return !!data.ok;
+              }}
+            />
+          )}
         </div>
       </div>
 

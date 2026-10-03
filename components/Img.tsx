@@ -14,6 +14,7 @@ export function Img({
   priority,
   onError,
   draggable,
+  style,
 }: {
   src: string;
   alt: string;
@@ -22,6 +23,7 @@ export function Img({
   priority?: boolean;
   onError?: () => void;
   draggable?: boolean;
+  style?: React.CSSProperties;
 }) {
   return (
     <Image
@@ -33,6 +35,7 @@ export function Img({
       priority={priority}
       onError={onError}
       draggable={draggable}
+      style={style}
       unoptimized={!OPTIMIZABLE.test(src)}
     />
   );

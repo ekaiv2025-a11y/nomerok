@@ -1,4 +1,5 @@
 import { LANGUAGES, PRICE_UNITS } from "@/lib/categories";
+import { AdminPhotoPos } from "./AdminPhotoPos";
 import { formatPhone } from "@/lib/phone";
 import type { Master } from "@/lib/types";
 import { CategoryOptions } from "./CategoryOptions";
@@ -64,6 +65,7 @@ export function MasterEditForm({ m }: { m?: Master }) {
       <L label="Ссылка на фото" hint="Необязательно. Прямая ссылка https://… на картинку (например, из Supabase Storage)">
         <input name="photo_url" defaultValue={m?.photo_url ?? ""} className="field" />
       </L>
+      {m?.photo_url && <AdminPhotoPos url={m.photo_url} />}
       <L label="Заметка для себя" hint="Клиенты её не видят"><textarea name="admin_note" rows={2} defaultValue={m?.admin_note} className="field" /></L>
       {!m && (
         <div className="space-y-2 rounded-xl bg-cream p-3 text-[14px]">

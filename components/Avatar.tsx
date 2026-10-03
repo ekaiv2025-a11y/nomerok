@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { splitPhoto } from "@/lib/photo-pos";
 function hue(s: string) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
@@ -14,16 +15,17 @@ function initials(name: string) {
 export function Avatar({ name, photo, size = 56, className = "", alt }: { name: string; photo?: string | null; size?: number; className?: string; alt?: string }) {
   const style = { width: size, height: size };
   const [broken, setBroken] = useState(false);
-  if (photo && !broken) {
+  const p = splitPhoto(photo);
+  if (p.src && !broken) {
     return (
       <Image
-        src={photo}
+        src={p.src}
         alt={alt ?? name}
         width={size}
         height={size}
-        style={style}
+        style={{ ...style, objectPosition: `50% ${p.y}%` }}
         onError={() => setBroken(true)}
-        unoptimized={!/^https:\/\/([a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/)/.test(photo)}
+        unoptimized={!/^https:\/\/([a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/)/.test(p.src)}
         className={`shrink-0 rounded-2xl object-cover bg-cream ${className}`}
       />
     );

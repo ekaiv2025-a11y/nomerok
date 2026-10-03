@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     ...base,
     ...(m.demo || m.away ? { robots: { index: false } } : {}),
-    openGraph: { ...base.openGraph, images: m.photo_url ? [m.photo_url] : undefined },
+    openGraph: { ...base.openGraph, images: m.photo_url ? [m.photo_url.split("#")[0]] : undefined },
   };
 }
 
