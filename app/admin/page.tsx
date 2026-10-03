@@ -7,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, messageClient, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -15,6 +15,8 @@ import { AdminDocs } from "@/components/AdminDocs";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 import { isAwayNow } from "@/lib/availability";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { looksLikeSelf } from "@/lib/request-check";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +27,12 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string; msg?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   if (dbMode() === "none") {
     return <p className="rounded-2xl bg-white p-6">База не подключена. Добавьте SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в Vercel.</p>;
   }
-  const { tab = "requests", bot: botResult, fu } = await searchParams;
+  const { tab = "requests", bot: botResult, fu, msg } = await searchParams;
   const [masters, requests, views, responses] = await Promise.all([
     adminListMasters(),
     adminListRequests(),
@@ -222,6 +224,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       {tab === "requests" && (
         <div className="mt-5 space-y-3">
+          {msg && <p className="rounded-xl bg-white p-3 text-[14px] font-semibold">{msg}</p>}
           {requests.length === 0 && <Empty text="Заявок пока нет. Как только клиент отправит форму, она появится здесь и придёт вам в Telegram." />}
           {requests.map((r) => {
             const m = r.master_id ? byId.get(r.master_id) : null;
@@ -253,6 +256,26 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   {r.outcome === "none" && <b className="text-danger"> · 😕 клиенту никто не помог</b>}
                   {r.outcome === "closed" && " · 🔒 клиент закрыл заявку"}
                 </p>
+                {r.client_tg_chat_id && (
+                  <details className="mt-2 rounded-xl bg-cream p-3 text-[13px]" open={looksLikeSelf(r.description) && r.status !== "done" && r.status !== "spam"}>
+                    <summary className="cursor-pointer font-semibold">💬 Написать {r.name || "клиенту"} через бота{looksLikeSelf(r.description) ? " — похоже, это анкета специалиста" : ""}</summary>
+                    <form action={messageClient} className="mt-2 space-y-2">
+                      <input type="hidden" name="id" value={r.id} />
+                      <textarea
+                        name="text"
+                        rows={5}
+                        className="field w-full py-2 text-[13px]"
+                        defaultValue={
+                          looksLikeSelf(r.description)
+                            ? `Здравствуйте${r.name ? `, ${r.name}` : ""}! Вы отправили на NomerOk заявку, но, похоже, вы специалист и хотели разместить свою анкету 🙂\n\nЗаявки — это для тех, кто ищет мастера. Анкету специалиста можно разместить здесь: ${SITE_URL}/ru/join\nПосле этого вы сможете получать заявки клиентов прямо в Telegram.\n\nДмитрий, NomerOk`
+                            : ""
+                        }
+                        placeholder="Текст сообщения"
+                      />
+                      <button className="btn-primary h-9 px-4 text-[13px]">Отправить в Telegram</button>
+                    </form>
+                  </details>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="text-[14px] font-semibold">{r.name || "Без имени"}</span>
                   <a className="btn-ghost h-9 px-3 text-[13px]" href={`tel:${r.phone}`}>{formatPhone(r.phone)}</a>

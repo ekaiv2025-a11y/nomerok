@@ -111,6 +111,21 @@ export async function messageMaster(formData: FormData) {
   redirect(`/admin/masters/${id}?${ok ? "sent=1" : `error=${encodeURIComponent("Не удалось отправить: возможно, специалист остановил бота")}`}`);
 }
 
+/** Написать клиенту (автору заявки) через бота — если он подключил Telegram. */
+export async function messageClient(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const text = String(formData.get("text") ?? "").trim().slice(0, 3500);
+  const { adminListRequests } = await import("@/lib/db");
+  const r = (await adminListRequests()).find((x) => x.id === id);
+  if (!r || !text) redirect("/admin?tab=requests");
+  if (!r.client_tg_chat_id) redirect(`/admin?tab=requests&msg=${encodeURIComponent("❌ Клиент не подключил Telegram-бот")}`);
+  const { sendTo, escapeHtml } = await import("@/lib/telegram");
+  const html = escapeHtml(text).replace(/(https?:\/\/\S+)/g, '<a href="$1">$1</a>');
+  const ok = await sendTo(r.client_tg_chat_id, `💬 <b>Сообщение от NomerOk</b>\n\n${html}\n\n<i>Ответьте сюда — мы увидим.</i>`).catch(() => null);
+  redirect(`/admin?tab=requests&msg=${encodeURIComponent(ok ? `✓ Сообщение отправлено: ${r.name || "клиенту"}` : "❌ Не удалось отправить: возможно, человек остановил бота")}`);
+}
+
 export async function askMasterFixPhone(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id"));
