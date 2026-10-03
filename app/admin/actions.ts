@@ -143,6 +143,20 @@ export async function distributeNow(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** Сменить раздел заявки (клиент выбрал «Другое» или ошибся) и разослать специалистам нового раздела. */
+export async function changeRequestCategory(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const category = String(formData.get("category"));
+  if (!(CATEGORY_IDS as readonly string[]).includes(category)) return;
+  const { getRequest, updateRequest } = await import("@/lib/db");
+  const { distributeRequest } = await import("@/lib/bot");
+  await updateRequest(id, { category });
+  const r = await getRequest(id);
+  if (r && formData.get("send") === "on" && r.status !== "done") await distributeRequest(r).catch(() => 0);
+  revalidatePath("/admin");
+}
+
 export async function deleteRequest(formData: FormData) {
   await requireAdmin();
   await adminDeleteRequest(String(formData.get("id")));

@@ -28,7 +28,7 @@ export const CATEGORIES = [
   { id: "moving", group: "home", label: { ru: "Переезд и грузчики", ka: "გადაზიდვა და მტვირთავები", en: "Moving & movers" }, plural: { ru: "Переезд", ka: "გადაზიდვა", en: "Moving" } },
   { id: "nanny", group: "kids", label: { ru: "Няня", ka: "ძიძა", en: "Nanny" }, plural: { ru: "Няни", ka: "ძიძები", en: "Nannies" } },
   { id: "tutor", group: "kids", label: { ru: "Репетитор", ka: "რეპეტიტორი", en: "Tutor" }, plural: { ru: "Репетиторы", ka: "რეპეტიტორები", en: "Tutors" } },
-  { id: "speech", group: "kids", label: { ru: "Логопед / дефектолог", ka: "ლოგოპედი / დეფექტოლოგი", en: "Speech therapist" }, plural: { ru: "Логопеды", ka: "ლოგოპედები", en: "Speech therapists" } },
+  { id: "speech", group: "kids", label: { ru: "Логопед, дефектолог, тьютор", ka: "ლოგოპედი, დეფექტოლოგი, ტიუტორი", en: "Speech therapist & tutor-assistant" }, plural: { ru: "Логопеды и тьюторы", ka: "ლოგოპედები და ტიუტორები", en: "Speech & special needs" } },
   { id: "languages", group: "kids", label: { ru: "Языковые курсы", ka: "ენის კურსები", en: "Language courses" }, plural: { ru: "Языки", ka: "ენები", en: "Languages" } },
   { id: "music", group: "kids", label: { ru: "Музыка и творчество", ka: "მუსიკა და შემოქმედება", en: "Music & arts" }, plural: { ru: "Музыка и творчество", ka: "მუსიკა და შემოქმედება", en: "Music & arts" } },
   { id: "doctor", group: "health", label: { ru: "Врач", ka: "ექიმი", en: "Doctor" }, plural: { ru: "Врачи", ka: "ექიმები", en: "Doctors" } },

@@ -8,8 +8,12 @@ import { CategoryOptions } from "./CategoryOptions";
 import { ContactFields, Field, Honeypot, LinkedNote, PHOTO_TEXT, TelegramStep, fc, uploadRequestPhotos, useSubmit } from "./form-kit";
 import { PhotoPicker } from "./PhotoPicker";
 import { useState } from "react";
+import { detectIntent } from "@/lib/search-intent";
+import { categoryLabel } from "@/lib/categories";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
+
+const SUGGEST = { ru: "Похоже, подойдёт раздел:", en: "Looks like:", ka: "როგორც ჩანს:" } as const;
 
 type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; me?: { name: string; phone: string } | null };
 
@@ -19,6 +23,8 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
   const [files, setFiles] = useState<File[]>([]);
+  const [catSel, setCatSel] = useState<string>("");
+  const [desc, setDesc] = useState("");
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -66,7 +72,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
       <Field label={t.who} error={errors.category}>
-        <select name="category" defaultValue={initialCat} className={fc(errors.category)} required>
+        <select name="category" value={catSel || initialCat || ""} onChange={(e) => setCatSel(e.target.value)} className={fc(errors.category)} required>
           <option value="" disabled>
             {d.form.choose}
           </option>
@@ -74,7 +80,22 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
         </select>
       </Field>
       <Field label={t.what} hint={t.whatHint} error={errors.description}>
-        <textarea name="description" rows={4} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
+        <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
+        {(() => {
+          const cur = catSel || initialCat || "";
+          const sug = detectIntent(desc).map((x) => x.cat).filter((c, i, a) => a.indexOf(c) === i && c !== cur);
+          if (!sug.length || (cur && cur !== "other" && detectIntent(desc).some((x) => x.cat === cur))) return null;
+          return (
+            <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
+              {SUGGEST[lang]}
+              {sug.slice(0, 2).map((c) => (
+                <button key={c} type="button" onClick={() => setCatSel(c)} className="rounded-full bg-brand-soft px-2.5 py-0.5 font-semibold text-brand-dark hover:bg-[#d6eadf]">
+                  {categoryLabel(c, lang)}
+                </button>
+              ))}
+            </p>
+          );
+        })()}
       </Field>
       <Field label={CITY_LABEL[lang]}>
         <select name="city" defaultValue={isCity(defaultCity) ? defaultCity : "batumi"} className={fc()}>

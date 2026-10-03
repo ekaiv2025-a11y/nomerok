@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CATEGORIES } from "@/lib/categories";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { adminContactViewsThisMonth, adminListMasters, adminListRequests, adminListResponses, dbMode } from "@/lib/db";
@@ -6,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, deleteMaster, deleteRequest, distributeNow, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -264,6 +265,22 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       <button className="h-9 rounded-full border border-line px-3 text-[13px] hover:bg-cream">{REQ_LABEL[s]}</button>
                     </form>
                   ))}
+                  {!r.master_id && r.status !== "done" && (
+                    <form action={changeRequestCategory} className="flex items-center gap-1">
+                      <input type="hidden" name="id" value={r.id} />
+                      <input type="hidden" name="send" value="on" />
+                      <select name="category" defaultValue={r.category} className="h-9 rounded-full border border-line bg-white px-2 text-[12px]">
+                        {CATEGORIES.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label.ru}
+                          </option>
+                        ))}
+                      </select>
+                      <button className="h-9 rounded-full border border-line px-3 text-[12px] hover:bg-cream" title="Сменить раздел и разослать специалистам нового раздела">
+                        ↪ Раздел
+                      </button>
+                    </form>
+                  )}
                   {r.status === "new" && !r.master_id && !r.sent_count && (
                     <form action={distributeNow}>
                       <input type="hidden" name="id" value={r.id} />
