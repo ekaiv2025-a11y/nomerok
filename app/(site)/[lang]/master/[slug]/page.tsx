@@ -8,7 +8,7 @@ import { getDict, href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { AvatarZoom } from "@/components/AvatarZoom";
-import { subcatLine } from "@/lib/subcats";
+import { subcatLabel, subcatsOf } from "@/lib/subcats";
 import { SOCIAL } from "@/lib/social-text";
 import { TRANSLATE_TEXT, textLang, translateUrl } from "@/lib/translate-link";
 import { FavButton } from "@/components/FavButton";
@@ -87,7 +87,7 @@ export default async function MasterPage({ params }: Props) {
           {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
             {cat}
-            {subcatLine(m, lang, 4) ? ` (${subcatLine(m, lang, 4)!.toLowerCase()})` : ""} · {cityLabel(m.city, lang)}
+            {subcatsOf(m).length ? ` (${subcatsOf(m).map((id) => subcatLabel(m.category, id, lang)).join(", ").toLowerCase()})` : ""} · {cityLabel(m.city, lang)}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
           {m.seen_days != null && (

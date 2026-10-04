@@ -13,6 +13,7 @@ import { categoryLabel } from "@/lib/categories";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
 import { looksLikeSelf } from "@/lib/request-check";
+import { EMPTY_REALTY, RealtyFields, realtySummary, realtyText, type Realty } from "./RealtyFields";
 
 const SELF = {
   ru: { title: "Похоже, вы рассказываете о себе как о специалисте", text: "Эта форма — для тех, кто ищет мастера. Если вы специалист и хотите получать заказы, разместите анкету — так вы сможете получать заявки клиентов в Telegram.", join: "Я специалист — разместить анкету", no: "Нет, я ищу мастера" },
@@ -35,6 +36,8 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
   const [selfOk, setSelfOk] = useState(false);
+  const [realty, setRealty] = useState<Realty>(EMPTY_REALTY);
+  const [realtyErr, setRealtyErr] = useState("");
   const selfWarn = !selfOk && looksLikeSelf(desc);
 
   if (state === "done") {
@@ -59,6 +62,13 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
       return;
     }
     const f = new FormData(e.currentTarget);
+    const isRealty = f.get("category") === "realtor";
+    if (isRealty && !realty.deal) {
+      setRealtyErr(realtyText(lang).needDeal);
+      document.getElementById("realty")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const description = isRealty ? [realtySummary(realty, lang), String(f.get("description") ?? "").trim()].filter(Boolean).join("\n") : f.get("description");
     setPhotoErr("");
     setUploading(true);
     const photos = await uploadRequestPhotos(files);
@@ -71,7 +81,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
       photos,
       category: f.get("category"),
       city: f.get("city"),
-      description: f.get("description"),
+      description,
       when_text: f.get("when_text"),
       name: f.get("name"),
       phone: f.get("phone"),
@@ -92,8 +102,26 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
           <CategoryOptions lang={lang} />
         </select>
       </Field>
-      <Field label={t.what} hint={t.whatHint} error={errors.description}>
-        <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
+      {(catSel || initialCat) === "realtor" && (
+        <div id="realty">
+          <RealtyFields
+            lang={lang}
+            value={realty}
+            onChange={(r) => {
+              setRealty(r);
+              setRealtyErr("");
+            }}
+            error={realtyErr}
+          />
+        </div>
+      )}
+      <Field
+        label={(catSel || initialCat) === "realtor" ? realtyText(lang).notesLabel : t.what}
+        hint={(catSel || initialCat) === "realtor" ? undefined : t.whatHint}
+        optional={(catSel || initialCat) === "realtor" ? d.form.optional : undefined}
+        error={errors.description}
+      >
+        <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={(catSel || initialCat) === "realtor" ? realtyText(lang).notesPh : t.whatPlaceholder} required={(catSel || initialCat) !== "realtor"} />
         {selfWarn && (
           <div id="self-warn" className="mt-2 rounded-xl border border-[#f0d58a] bg-[#fff8e6] p-3 text-[13px] leading-snug">
             <p className="font-semibold">🙋 {SELF[lang].title}</p>
