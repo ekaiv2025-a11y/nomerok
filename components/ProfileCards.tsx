@@ -45,6 +45,7 @@ const T = {
     ],
     verified: "Номер подтверждён",
     reviews: (n: number) => `${n} отзыв${n % 10 === 1 && n % 100 !== 11 ? "" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "а" : "ов"}`,
+    find: "Меня можно найти на NomerOk.ge",
     cta: "Контакты, цены и отзывы — по ссылке",
     ctaPost: "Контакты, цены и отзывы:",
   },
@@ -67,6 +68,7 @@ const T = {
     ],
     verified: "Verified number",
     reviews: (n: number) => `${n} review${n === 1 ? "" : "s"}`,
+    find: "Find me on NomerOk.ge",
     cta: "Contacts, prices and reviews — via the link",
     ctaPost: "Contacts, prices and reviews:",
   },
@@ -89,6 +91,7 @@ const T = {
     ],
     verified: "ნომერი დადასტურებულია",
     reviews: (n: number) => `${n} შეფასება`,
+    find: "მიპოვეთ NomerOk.ge-ზე",
     cta: "კონტაქტები, ფასები და შეფასებები — ბმულით",
     ctaPost: "კონტაქტები, ფასები და შეფასებები:",
   },
@@ -204,7 +207,7 @@ async function draw(d: CardData, kind: "story" | "post"): Promise<HTMLCanvasElem
   ctx.fillRect(0, 0, W, H);
 
   // 1) Фото во всю ширину (или зелёный фон с инициалами)
-  const photoH = kind === "story" ? 1000 : 700;
+  const photoH = kind === "story" ? 900 : 700;
   const { src, y: posY } = splitPhoto(d.photo);
   const img = src ? await loadImage(src) : null;
   if (img) {
@@ -253,11 +256,10 @@ async function draw(d: CardData, kind: "story" | "post"): Promise<HTMLCanvasElem
   ctx.fillStyle = AMBER;
   ctx.fillText(lines(ctx, d.role, W - pad * 2, 1)[0] ?? "", pad, y - lh + 62);
 
-  // 3) Плашки: номер подтверждён, оценка, цена
+  // 3) Плашки: оценка и цена (если есть)
   y = photoH + 44;
   let x = pad;
   const chips: [string, string, string][] = [];
-  if (d.verified) chips.push([`✓ ${t.verified}`, "#e7f2ec", GREEN_D]);
   if (d.rating) chips.push([`★ ${d.rating.value.toFixed(1)} · ${t.reviews(d.rating.count)}`, "#fdf3dc", "#7a5a12"]);
   if (d.price) chips.push([d.price, "#fff", INK]);
   const chipSize = kind === "story" ? 34 : 30;
@@ -270,51 +272,66 @@ async function draw(d: CardData, kind: "story" | "post"): Promise<HTMLCanvasElem
     }
     x += pill(ctx, txt, x, y, bg, fg, chipSize) + 14;
   }
-  if (chips.length) y += chipSize * 1.9 + (kind === "story" ? 44 : 30);
+  if (chips.length) y += chipSize * 1.9 + (kind === "story" ? 28 : 18);
+  else y += kind === "story" ? 10 : 0;
 
-  // 4) Услуги (до 3, в посте — до 2)
-  const maxServ = 3;
+  // 4) Услуги: каждая — до 2 строк, без обрезки на полуслове; сколько влезает до плашки со ссылкой
+  const bandH = kind === "story" ? 280 : 230;
+  const bandY = kind === "story" ? H - 250 - bandH - 10 : H - bandH;
+  const limit = bandY - (kind === "story" ? 40 : 30);
+  const fs = kind === "story" ? 40 : 34;
+  const lh2 = Math.round(fs * 1.32);
   ctx.textBaseline = "alphabetic";
-  ctx.font = `${kind === "story" ? 42 : 36}px ${FONT}`;
-  const sh = kind === "story" ? 64 : 54;
-  for (const s of d.services.slice(0, maxServ)) {
-    const l = lines(ctx, s, W - pad * 2 - 50, 1)[0];
-    y += sh * 0.8;
-    ctx.fillStyle = GREEN;
-    ctx.beginPath();
-    ctx.arc(pad + 12, y - 14, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = INK;
-    ctx.fillText(l, pad + 44, y);
-    y += sh * 0.2;
+  ctx.textAlign = "left";
+  ctx.font = `${fs}px ${FONT}`;
+  const clean = d.services
+    .map((s) => s.replace(/^[\p{Extended_Pictographic}\p{So}\uFE0F\s•·*\-–—]+/u, "").trim())
+    .filter((s) => s && !/:$/.test(s));
+  for (const s of clean.slice(0, 4)) {
+    const ls = lines(ctx, s, W - pad * 2 - 46, 2);
+    if (y + 16 + ls.length * lh2 > limit) break;
+    y += 16;
+    for (let i = 0; i < ls.length; i++) {
+      y += lh2;
+      if (i === 0) {
+        ctx.fillStyle = GREEN;
+        ctx.beginPath();
+        ctx.arc(pad + 11, y - fs * 0.34, fs * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = INK;
+      ctx.fillText(ls[i], pad + 46, y);
+    }
   }
 
-  // 5) Ссылка внизу
-  if (kind === "story") {
-    // зона под стикер «Ссылка»: выше нижних 250px интерфейса Instagram
-    const bandY = H - 250 - 230;
-    ctx.fillStyle = GREEN;
-    rr(ctx, pad - 12, bandY, W - (pad - 12) * 2, 210, 40);
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.font = `600 36px ${FONT}`;
-    ctx.fillText(t.cta, W / 2, bandY + 70);
-    ctx.font = `bold 58px ${FONT}`;
-    ctx.fillStyle = AMBER;
-    ctx.fillText(`👇 ${d.linkText}`, W / 2, bandY + 150);
-  } else {
-    const bandY = H - 170;
-    ctx.fillStyle = GREEN;
-    ctx.fillRect(0, bandY, W, 170);
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#cfe6da";
-    ctx.font = `600 32px ${FONT}`;
-    ctx.fillText(t.ctaPost, pad, bandY + 64);
-    ctx.fillStyle = "#fff";
-    ctx.font = `bold 52px ${FONT}`;
-    ctx.fillText(d.linkText, pad, bandY + 128);
+  // 5) «Меня можно найти на NomerOk.ge» + ссылка
+  const fit = (text: string, size: number, weight: string, maxW: number) => {
+    let f = size;
+    ctx.font = `${weight} ${f}px ${FONT}`;
+    while (ctx.measureText(text).width > maxW && f > 24) {
+      f -= 2;
+      ctx.font = `${weight} ${f}px ${FONT}`;
+    }
+  };
+  ctx.fillStyle = GREEN;
+  if (kind === "story") rr(ctx, pad - 12, bandY, W - (pad - 12) * 2, bandH, 40);
+  else {
+    ctx.beginPath();
+    ctx.rect(0, bandY, W, bandH);
   }
+  ctx.fill();
+  ctx.textAlign = "center";
+  const inner = W - pad * 2 - 40;
+  ctx.fillStyle = "#fff";
+  fit(t.find, kind === "story" ? 46 : 42, "bold", inner);
+  ctx.fillText(t.find, W / 2, bandY + (kind === "story" ? 76 : 66));
+  ctx.fillStyle = "#cfe6da";
+  fit(t.cta, kind === "story" ? 32 : 28, "600", inner);
+  ctx.fillText(t.cta, W / 2, bandY + (kind === "story" ? 130 : 112));
+  ctx.fillStyle = AMBER;
+  const link = kind === "story" ? `👇 ${d.linkText}` : d.linkText;
+  fit(link, kind === "story" ? 58 : 52, "bold", inner);
+  ctx.fillText(link, W / 2, bandY + (kind === "story" ? 220 : 186));
   return c;
 }
 
