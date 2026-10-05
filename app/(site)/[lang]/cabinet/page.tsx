@@ -14,6 +14,9 @@ import { ShortLinkCard } from "@/components/ShortLinkCard";
 import { ReferralEditor } from "@/components/ReferralEditor";
 import { CabinetLogin } from "@/components/CabinetLogin";
 import { SpecMark } from "@/components/SpecMark";
+import { ProfileCards } from "@/components/ProfileCards";
+import { subcatLine } from "@/lib/subcats";
+import { priceText } from "@/components/MasterCard";
 import { posStyle } from "@/lib/photo-pos";
 
 const CAB_TABS = {
@@ -298,6 +301,18 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       {tab === "promo" && (
         <div className="mt-4 space-y-4">
+          <ProfileCards
+            lang={lang}
+            name={m.name}
+            role={subcatLine(m, lang) ?? categoryLabel(m.category, lang)}
+            photo={m.photo_url}
+            verified={!!m.phone_verified_at}
+            rating={rating}
+            price={m.price_from != null ? priceText(m, lang) : null}
+            services={m.services.split(/\n/).map((x) => x.trim().replace(/^[-•·*]\s*/, "")).filter(Boolean)}
+            linkText={m.short ? `nomerok.ge/${m.short}` : `nomerok.ge/${lang}/master/${m.slug}`}
+            url={m.short ? `${SITE_URL}/${m.short}` : `${SITE_URL}/${lang}/master/${m.slug}`}
+          />
           <ReferralEditor
             lang={lang}
             initial={refStatus?.offer ?? null}

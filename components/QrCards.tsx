@@ -226,16 +226,12 @@ export function QrCards(props: Props) {
         <button type="button" onClick={() => download("card")} disabled={!!busy} className="btn-primary h-12">
           {busy === "card" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {busy === "card" ? t.qrMaking : t.qrCard}
         </button>
-        <button type="button" onClick={() => download("story")} disabled={!!busy} className="btn-ghost h-12">
-          {busy === "story" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {busy === "story" ? t.qrMaking : SOCIAL[props.lang].story}
-        </button>
         {props.reviewUrl && (
           <button type="button" onClick={() => download("review")} disabled={!!busy} className="btn-ghost h-12">
             {busy === "review" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {busy === "review" ? t.qrMaking : t.qrReview}
           </button>
         )}
       </div>
-      <p className="mt-2 text-[13px] leading-snug text-muted">📱 {SOCIAL[props.lang].storyHint}</p>
       {props.reviewUrl && <p className="mt-2 text-[13px] leading-snug text-muted">{t.qrReviewHint}</p>}
     </section>
   );
