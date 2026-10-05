@@ -100,7 +100,6 @@ export function ReferralBox({ lang, slug, master, friend, reward, left, defaultN
           </div>
         </div>
       )}
-      <p className="mt-4 text-[12px] text-muted">{t.disclaimer}</p>
     </section>
   );
 }
@@ -137,7 +136,6 @@ export function RefBanner({ lang, slug }: { lang: Locale; slug: string }) {
       <p className="mt-1 text-[14px]">
         {t.bannerText(info.code, info.friend)}
       </p>
-      <p className="mt-1 text-[12px] text-muted">{t.disclaimer}</p>
     </div>
   );
 }

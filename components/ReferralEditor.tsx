@@ -121,7 +121,6 @@ export function ReferralEditor({ lang, initial, suggestion, issued: issued0, cod
           )}
         </div>
       )}
-      <p className="mt-4 text-[12px] text-muted">{t.disclaimer}</p>
     </section>
   );
 }
