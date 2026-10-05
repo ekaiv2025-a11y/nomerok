@@ -256,12 +256,11 @@ async function draw(d: CardData, kind: "story" | "post"): Promise<HTMLCanvasElem
   ctx.fillStyle = AMBER;
   ctx.fillText(lines(ctx, d.role, W - pad * 2, 1)[0] ?? "", pad, y - lh + 62);
 
-  // 3) Плашки: оценка и цена (если есть)
+  // 3) Плашка: оценка (если есть отзывы)
   y = photoH + 44;
   let x = pad;
   const chips: [string, string, string][] = [];
   if (d.rating) chips.push([`★ ${d.rating.value.toFixed(1)} · ${t.reviews(d.rating.count)}`, "#fdf3dc", "#7a5a12"]);
-  if (d.price) chips.push([d.price, "#fff", INK]);
   const chipSize = kind === "story" ? 34 : 30;
   for (const [txt, bg, fg] of chips) {
     ctx.font = `bold ${chipSize}px ${FONT}`;
