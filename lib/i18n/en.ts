@@ -325,7 +325,7 @@ const en: Dict = {
     pausedUntil: (d) => `Paused until ${d}`,
     pausedNoEnd: "Paused, no end date",
     title: "Specialist dashboard",
-    loginText: "No passwords or sign-up — sign in with Telegram, just like an SMS code.",
+    loginText: "No passwords: enter your phone number — a login code will come to Telegram.",
     loginBtn: "Sign in with Telegram",
     loginSteps: ["Tap the button — Telegram opens", "Tap “Start” in the NomerOk chat", "The bot sends a link — tap it and you’re in"],
     loginStepsTitle: "How it works",

@@ -16,10 +16,19 @@ import { getDict, href, type Locale } from "@/lib/i18n";
  * Шапка. На телефоне прячется, когда листаешь вниз, и появляется, когда листаешь вверх.
  * На телефоне — меню-«бургер» со всеми разделами.
  */
+const MYCAB = { ru: "Мой кабинет", en: "My dashboard", ka: "ჩემი კაბინეტი" } as const;
+
 export function Header({ lang }: { lang: Locale }) {
   const t = getDict(lang);
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
+  // Специалист уже входил — вместо «Я специалист» ведём сразу в кабинет
+  const [isSpec, setIsSpec] = useState(false);
+  useEffect(() => {
+    try {
+      setIsSpec(/(?:^|; )nm_is_spec=1/.test(document.cookie));
+    } catch {}
+  }, []);
   const hiddenRef = useRef(false);
   useEffect(() => {
     hiddenRef.current = hidden;
@@ -85,7 +94,7 @@ export function Header({ lang }: { lang: Locale }) {
     { href: href(lang, "/phones"), label: "📞 " + PH[lang].nav },
     { href: href(lang, "/how"), label: t.nav.how },
     { href: href(lang, "/join"), label: t.footer.placeProfile },
-    { href: href(lang, "/cabinet"), label: t.nav.cabinet },
+    { href: href(lang, "/cabinet"), label: isSpec ? "👤 " + MYCAB[lang] : t.nav.cabinet },
     { href: href(lang, "/contacts"), label: t.footer.contacts },
   ];
 
@@ -115,8 +124,8 @@ export function Header({ lang }: { lang: Locale }) {
             <Link href={href(lang, "/orders")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
               {ORD[lang].nav}
             </Link>
-            <Link href={href(lang, "/join")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
-              {t.nav.iAmSpecialist}
+            <Link href={href(lang, isSpec ? "/cabinet" : "/join")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
+              {isSpec ? MYCAB[lang] : t.nav.iAmSpecialist}
             </Link>
             <Link href={href(lang, "/favorites")} className="hidden h-10 items-center rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink md:inline-flex" title={SOCIAL[lang].fav}>
               ♡

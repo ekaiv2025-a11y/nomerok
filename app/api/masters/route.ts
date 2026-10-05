@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { masterApplicationSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { adminUpdateMaster, createMaster, uploadPhoto } from "@/lib/db";
 import { readJoinToken } from "@/lib/join-token";
-import { SPEC_COOKIE, specCookieValue } from "@/lib/spec-auth";
+import { setSpecCookies } from "@/lib/spec-auth";
 import { botDict } from "@/lib/i18n/bot";
 import { botLink, downloadTelegramFile, notifyAdmin, escapeHtml, sendTo } from "@/lib/telegram";
 import { rateLimit } from "@/lib/rate-limit";
@@ -104,8 +104,7 @@ export async function POST(req: Request) {
     );
     // Сразу «входим» в кабинет новой анкеты — чтобы можно было загрузить фото
     const res = NextResponse.json({ ok: true, verified: !!pre, tgLink: pre ? null : await botLink(`m_${m.tg_link_token}`) });
-    const c = specCookieValue(m.id);
-    res.cookies.set(SPEC_COOKIE, c.value, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: c.maxAge });
+    setSpecCookies(res, m.id);
     return res;
   } catch (err) {
     console.error(err);

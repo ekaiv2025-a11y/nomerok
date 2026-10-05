@@ -9,5 +9,6 @@ export async function GET(req: NextRequest) {
   url.pathname = `/${isLocale(l) ? l : "ru"}`;
   const res = NextResponse.redirect(url);
   res.cookies.delete(SPEC_COOKIE);
+  res.cookies.delete("nm_is_spec");
   return res;
 }

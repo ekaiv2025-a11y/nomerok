@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveLoginToken } from "@/lib/db";
-import { SPEC_COOKIE, specCookieValue } from "@/lib/spec-auth";
+import { setSpecCookies } from "@/lib/spec-auth";
 import { isLocale } from "@/lib/i18n/config";
 
 /** Ссылка из бота: /api/cabinet/login?t=КОД&lang=ru → вход в кабинет. */
@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(url);
   }
   const res = NextResponse.redirect(url);
-  const c = specCookieValue(id);
-  res.cookies.set(SPEC_COOKIE, c.value, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: c.maxAge });
+  setSpecCookies(res, id);
   return res;
 }

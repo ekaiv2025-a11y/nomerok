@@ -4,10 +4,10 @@ import { createHash, createHmac, timingSafeEqual } from "crypto";
 
 /*
  * Вход специалиста в кабинет. Пароля нет: бот присылает одноразовую ссылку,
- * после неё в браузере сохраняется подписанная cookie на 30 дней.
+ * или код из бота; после этого в браузере сохраняется подписанная cookie на год.
  */
 export const SPEC_COOKIE = "nm_spec";
-const DAYS = 30;
+const DAYS = 365; // год: заходить заново почти не придётся
 
 function secret(): string {
   const base = process.env.SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_PASSWORD || "nomerok-dev";
@@ -32,4 +32,12 @@ export async function currentSpecialistId(): Promise<string | null> {
   const good = sign(id, exp);
   if (good.length !== sig.length || !timingSafeEqual(Buffer.from(good), Buffer.from(sig))) return null;
   return id;
+}
+
+/** Ставит вход в кабинет + открытую метку nm_is_spec (по ней шапка показывает «Мой кабинет»). */
+export function setSpecCookies(res: { cookies: { set: (name: string, value: string, opts: Record<string, unknown>) => unknown } }, masterId: string) {
+  const c = specCookieValue(masterId);
+  const secure = process.env.NODE_ENV === "production";
+  res.cookies.set(SPEC_COOKIE, c.value, { httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: c.maxAge });
+  res.cookies.set("nm_is_spec", "1", { httpOnly: false, secure, sameSite: "lax", path: "/", maxAge: c.maxAge });
 }

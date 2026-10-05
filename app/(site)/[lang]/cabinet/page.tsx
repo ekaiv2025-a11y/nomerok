@@ -12,6 +12,17 @@ import { NotifyToggle } from "@/components/NotifyToggle";
 import { CabinetOrders } from "@/components/CabinetOrders";
 import { ShortLinkCard } from "@/components/ShortLinkCard";
 import { ReferralEditor } from "@/components/ReferralEditor";
+import { CabinetLogin } from "@/components/CabinetLogin";
+import { SpecMark } from "@/components/SpecMark";
+import { posStyle } from "@/lib/photo-pos";
+
+const CAB_TABS = {
+  ru: [["home", "🏠 Главная"], ["orders", "📩 Заявки"], ["profile", "✏️ Анкета"], ["reviews", "⭐ Отзывы"], ["promo", "🚀 Продвижение"]],
+  en: [["home", "🏠 Home"], ["orders", "📩 Requests"], ["profile", "✏️ Profile"], ["reviews", "⭐ Reviews"], ["promo", "🚀 Promotion"]],
+  ka: [["home", "🏠 მთავარი"], ["orders", "📩 მოთხოვნები"], ["profile", "✏️ ანკეტა"], ["reviews", "⭐ შეფასებები"], ["promo", "🚀 პოპულარიზაცია"]],
+} as const;
+
+const OR = { ru: "или войти по ссылке из бота", en: "or log in with a link from the bot", ka: "ან შედით ბოტის ბმულით" } as const;
 import { offerStatus, recentCodes } from "@/lib/referral-db";
 import { transliterate } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
@@ -36,7 +47,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return { title: getDict(lang).cabinet.title, robots: { index: false } };
 }
 
-type Props = LangParams & { searchParams: Promise<{ expired?: string }> };
+type Props = LangParams & { searchParams: Promise<{ expired?: string; tab?: string }> };
 
 export default async function CabinetPage({ params, searchParams }: Props) {
   const lang = await langOf(params);
@@ -59,12 +70,14 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           <h1 className="mt-4 text-center text-[24px] font-bold">{t.title}</h1>
           <p className="mt-2 text-center text-[15px] leading-relaxed text-muted">{t.loginText}</p>
           {sp.expired && <p className="mt-4 rounded-xl bg-[#fdf6e6] p-3 text-[14px] text-[#5a4a22]">{t.expired}</p>}
+          <CabinetLogin lang={lang} />
+          <p className="mt-5 flex items-center gap-3 text-[13px] text-muted before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">{OR[lang]}</p>
           {bot && (
             <a
               href={`https://t.me/${bot}?start=login`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn mt-6 w-full gap-2.5 rounded-2xl bg-[#229ED9] py-3.5 text-[16px] text-white hover:bg-[#1c89bd]"
+              className="btn mt-4 w-full gap-2.5 rounded-2xl bg-[#229ED9] py-3.5 text-[16px] text-white hover:bg-[#1c89bd]"
             >
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden>
                 <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
@@ -72,15 +85,6 @@ export default async function CabinetPage({ params, searchParams }: Props) {
               {t.loginBtn}
             </a>
           )}
-          <p className="mt-7 text-[13px] font-semibold uppercase tracking-wide text-muted">{t.loginStepsTitle}</p>
-          <ol className="mt-3 space-y-3">
-            {t.loginSteps.map((s, i) => (
-              <li key={i} className="flex items-start gap-3 text-[15px]">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[13px] font-bold text-brand-dark">{i + 1}</span>
-                <span className="pt-0.5">{s}</span>
-              </li>
-            ))}
-          </ol>
           <div className="mt-6 flex gap-2.5 rounded-2xl bg-cream p-4 text-[13px] leading-relaxed text-muted">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0 text-brand" aria-hidden>
               <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />
@@ -121,168 +125,199 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const statusColor =
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
 
+  const tab = (["home", "orders", "profile", "reviews", "promo"] as const).find((x) => x === sp.tab) ?? "home";
+  const tabHref = (k: string) => `/${lang}/cabinet${k === "home" ? "" : `?tab=${k}`}`;
+  const TABS = CAB_TABS[lang];
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[26px] font-bold leading-tight">{t.title}</h1>
-          <p className="mt-1 text-[15px] text-muted">
-            {m.name} · {categoryLabel(m.category, lang)}
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+      <SpecMark />
+      <div className="flex items-center gap-3">
+        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-cream">
+          {m.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={m.photo_url.split("#")[0]} alt="" className="h-full w-full object-cover" style={posStyle(m.photo_url)} />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[20px] font-bold text-brand">{m.name.slice(0, 1)}</div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[22px] font-bold leading-tight sm:text-[26px]">{m.name}</h1>
+          <p className="mt-0.5 flex flex-wrap items-center gap-2 text-[14px] text-muted">
+            {categoryLabel(m.category, lang)}
+            <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusColor}`}>{t.statuses[m.status]}</span>
           </p>
         </div>
-        <a href={`/api/cabinet/logout?lang=${lang}`} className="btn-ghost h-9 px-4 text-[13px]">
+        <a href={`/api/cabinet/logout?lang=${lang}`} className="btn-ghost h-9 shrink-0 px-3 text-[13px]">
           {t.logout}
         </a>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-line p-5">
-          <p className="text-[13px] text-muted">{t.status}</p>
-          <span className={`mt-2 inline-block rounded-full px-3 py-1 text-[14px] font-semibold ${statusColor}`}>{t.statuses[m.status]}</span>
-          {m.status === "published" && (
-            <a href={`/${lang}/master/${m.slug}`} target="_blank" className="mt-3 block text-[14px] font-semibold text-brand hover:underline">
-              {t.viewPublic}
-            </a>
-          )}
-        </div>
-        <div className="rounded-2xl border border-line p-5">
-          <p className="text-[15px] font-semibold">{t.readiness(percent)}</p>
-          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-cream">
-            <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${percent}%` }} />
-          </div>
-          <p className="mt-4 text-[13px] font-semibold text-muted">{t.stepsTitle}</p>
-          <ul className="mt-2 space-y-1.5 text-[14px]">
-            {steps.map((s) => (
-              <li key={s.id} className={`flex items-center gap-2 ${s.done ? "text-muted line-through" : ""}`}>
-                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] ${s.done ? "bg-brand text-white" : "border border-line"}`}>
-                  {s.done ? "✓" : ""}
-                </span>
-                {t.steps[s.id]}
-              </li>
-            ))}
-          </ul>
-          {verifyLink && (
-            <a href={verifyLink} target="_blank" rel="noopener noreferrer" className="btn mt-4 h-10 w-full bg-[#229ED9] text-[14px] text-white hover:bg-[#1c89bd]">
-              {t.verifyBtn}
-            </a>
-          )}
-        </div>
-      </div>
+      {/* Разделы кабинета */}
+      <nav className="no-scrollbar sticky top-14 z-30 -mx-4 mt-5 flex gap-1.5 overflow-x-auto bg-white/95 px-4 py-2 backdrop-blur md:top-16">
+        {TABS.map(([k, label]) => (
+          <Link
+            key={k}
+            href={tabHref(k)}
+            scroll={false}
+            className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold transition ${tab === k ? "bg-brand text-white" : "bg-cream text-ink hover:bg-brand-soft"}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
 
-      {m.archived_at && (
-        <div className="mt-4 rounded-2xl border border-danger/40 bg-[#fdecea] p-5">
-          <p className="text-[16px] font-semibold">📦 {t.archivedTitle}</p>
-          <p className="mt-1 text-[14px] leading-relaxed">{m.archived_reason === "missed" ? t.archivedMissed : t.archivedInactive}</p>
-          <UnarchiveButton lang={lang} label={t.unarchiveBtn} />
+      {tab === "home" && (
+        <div className="mt-4 space-y-4">
+          {m.archived_at && (
+            <div className="rounded-2xl border border-danger/40 bg-[#fdecea] p-5">
+              <p className="text-[16px] font-semibold">📦 {t.archivedTitle}</p>
+              <p className="mt-1 text-[14px] leading-relaxed">{m.archived_reason === "missed" ? t.archivedMissed : t.archivedInactive}</p>
+              <UnarchiveButton lang={lang} label={t.unarchiveBtn} />
+            </div>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-line p-5">
+              <p className="text-[13px] text-muted">{t.status}</p>
+              <span className={`mt-2 inline-block rounded-full px-3 py-1 text-[14px] font-semibold ${statusColor}`}>{t.statuses[m.status]}</span>
+              {m.status === "published" && (
+                <a href={`/${lang}/master/${m.slug}`} target="_blank" className="mt-3 block text-[14px] font-semibold text-brand hover:underline">
+                  {t.viewPublic}
+                </a>
+              )}
+            </div>
+            <div className="rounded-2xl border border-line p-5">
+              <p className="text-[15px] font-semibold">{t.readiness(percent)}</p>
+              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-cream">
+                <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${percent}%` }} />
+              </div>
+              {percent < 100 && (
+                <>
+                  <p className="mt-4 text-[13px] font-semibold text-muted">{t.stepsTitle}</p>
+                  <ul className="mt-2 space-y-1.5 text-[14px]">
+                    {steps.filter((s) => !s.done).map((s) => (
+                      <li key={s.id} className="flex items-center gap-2">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-line text-[11px]" />
+                        <Link href={tabHref("profile")} className="hover:text-brand hover:underline">{t.steps[s.id]}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {verifyLink && (
+                <a href={verifyLink} target="_blank" rel="noopener noreferrer" className="btn mt-4 h-10 w-full bg-[#229ED9] text-[14px] text-white hover:bg-[#1c89bd]">
+                  {t.verifyBtn}
+                </a>
+              )}
+            </div>
+          </div>
+          <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
+          <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
         </div>
       )}
 
+      {tab === "orders" && (
+        <div className="mt-4">
+          <NotifyToggle lang={lang} initial={!!m.notify_requests} hasBot={!!m.tg_chat_id} />
+          {m.status === "published" ? <CabinetOrders m={m} lang={lang} /> : <p className="mt-4 text-[14px] text-muted">{t.statuses[m.status]}</p>}
+        </div>
+      )}
 
-      <div className="mt-4">
-        <NotifyToggle lang={lang} initial={!!m.notify_requests} hasBot={!!m.tg_chat_id} />
-      </div>
+      {tab === "profile" && (
+        <div className="mt-4">
+          <CabinetForm
+            lang={lang}
+            phone={formatPhone(m.phone)}
+            initial={{
+              name: m.name,
+              services: m.services,
+              about: m.about,
+              credentials: m.credentials,
+              experience_years: m.experience_years,
+              price_from: m.price_from,
+              price_unit: m.price_unit,
+              languages: m.languages,
+              telegram: m.telegram,
+              whatsapp: m.whatsapp,
+              notify_requests: m.notify_requests,
+              photo_url: m.photo_url,
+              category: m.category,
+              city: m.city ?? "batumi",
+              links: m.links ?? {},
+              extra_categories: m.extra_categories ?? [],
+              where: {
+                work_mode: m.work_mode ?? "at_client",
+                service_area: m.service_area ?? "",
+                work_hours: m.work_hours ?? "",
+                place_address: m.place_address ?? "",
+                place_lat: m.place_lat ?? null,
+                place_lng: m.place_lng ?? null,
+              },
+            }}
+          />
+          <div className="mt-8">
+            <PortfolioEditor lang={lang} initial={Array.isArray(m.portfolio) ? m.portfolio : []} />
+          </div>
+          <div className="mt-8">
+            <DocumentsEditor lang={lang} initial={myDocs} />
+          </div>
+        </div>
+      )}
 
-      {m.status === "published" && <CabinetOrders m={m} lang={lang} />}
-
-      <div className="mt-4">
-        <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
-        <ReferralEditor
-          lang={lang}
-          initial={refStatus?.offer ?? null}
-          issued={refStatus?.issued ?? 0}
-          codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at }))}
-          suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12) || "NOMEROK"}
-        />
-      </div>
-
-      <div className="mt-4">
-        <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
-        <QrCards
-          lang={lang}
-          name={m.name}
-          category={categoryLabel(m.category, lang)}
-          photo={m.photo_url}
-          verified={!!m.phone_verified_at}
-          rating={rating}
-          profileUrl={`${SITE_URL}/${lang}/master/${m.slug}`}
-          reviewUrl={bot ? `https://t.me/${bot}?start=rv_${m.id}` : null}
-        />
-      </div>
-
-      <div className="mt-6">
-        <CabinetForm
-          lang={lang}
-          phone={formatPhone(m.phone)}
-          initial={{
-            name: m.name,
-            services: m.services,
-            about: m.about,
-            credentials: m.credentials,
-            experience_years: m.experience_years,
-            price_from: m.price_from,
-            price_unit: m.price_unit,
-            languages: m.languages,
-            telegram: m.telegram,
-            whatsapp: m.whatsapp,
-            notify_requests: m.notify_requests,
-            photo_url: m.photo_url,
-            category: m.category,
-            city: m.city ?? "batumi",
-            links: m.links ?? {},
-            extra_categories: m.extra_categories ?? [],
-            where: {
-              work_mode: m.work_mode ?? "at_client",
-              service_area: m.service_area ?? "",
-              work_hours: m.work_hours ?? "",
-              place_address: m.place_address ?? "",
-              place_lat: m.place_lat ?? null,
-              place_lng: m.place_lng ?? null,
-            },
-          }}
-        />
-      </div>
-
-      <div className="mt-8">
-        <DocumentsEditor lang={lang} initial={myDocs} />
-      </div>
-
-      <div className="mt-8">
-        <PortfolioEditor lang={lang} initial={Array.isArray(m.portfolio) ? m.portfolio : []} />
-      </div>
-
-      <section className="mt-8 rounded-2xl border border-line p-5">
-        <h2 className="text-[18px] font-bold">{rv.cabinetTitle}</h2>
-        {reviews.length === 0 ? (
-          <p className="mt-2 text-[14px] leading-relaxed text-muted">{rv.cabinetNone}</p>
-        ) : (
-          <ul className="mt-4 space-y-5">
-            {reviews.map((r) => (
-              <li key={r.id} className="border-t border-line pt-4 first:border-0 first:pt-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <b>{r.author_name}</b>
-                  <Stars value={r.rating} size={14} />
-                </div>
-                <p className="mt-1 whitespace-pre-line text-[15px] text-[#3a3935]">{r.text}</p>
-                {r.photos.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {r.photos.map((p) => (
-                      <a key={p} href={p} target="_blank" rel="noopener noreferrer">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p} alt="" className="h-16 w-16 rounded-lg object-cover" />
-                      </a>
-                    ))}
+      {tab === "reviews" && (
+        <section className="mt-4 rounded-2xl border border-line p-5">
+          <h2 className="text-[18px] font-bold">{rv.cabinetTitle}</h2>
+          {reviews.length === 0 ? (
+            <p className="mt-2 text-[14px] leading-relaxed text-muted">{rv.cabinetNone}</p>
+          ) : (
+            <ul className="mt-4 space-y-5">
+              {reviews.map((r) => (
+                <li key={r.id} className="border-t border-line pt-4 first:border-0 first:pt-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <b>{r.author_name}</b>
+                    <Stars value={r.rating} size={14} />
                   </div>
-                )}
-                <ReviewReply lang={lang} reviewId={r.id} initial={r.reply} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                  <p className="mt-1 whitespace-pre-line text-[15px] text-[#3a3935]">{r.text}</p>
+                  {r.photos.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {r.photos.map((p) => (
+                        <a key={p} href={p} target="_blank" rel="noopener noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={p} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  <ReviewReply lang={lang} reviewId={r.id} initial={r.reply} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {tab === "promo" && (
+        <div className="mt-4 space-y-4">
+          <ReferralEditor
+            lang={lang}
+            initial={refStatus?.offer ?? null}
+            issued={refStatus?.issued ?? 0}
+            codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at }))}
+            suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12) || "NOMEROK"}
+          />
+          <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
+          <QrCards
+            lang={lang}
+            name={m.name}
+            category={categoryLabel(m.category, lang)}
+            photo={m.photo_url}
+            verified={!!m.phone_verified_at}
+            rating={rating}
+            profileUrl={`${SITE_URL}/${lang}/master/${m.slug}`}
+            reviewUrl={bot ? `https://t.me/${bot}?start=rv_${m.id}` : null}
+          />
+        </div>
+      )}
     </div>
   );
 }
