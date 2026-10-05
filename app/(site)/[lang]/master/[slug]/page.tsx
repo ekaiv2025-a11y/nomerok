@@ -26,6 +26,9 @@ import { Gallery } from "@/components/Gallery";
 import { Map } from "@/components/map/Map";
 import { listPublishedReviews } from "@/lib/reviews-db";
 import { botUsername } from "@/lib/telegram";
+import { liveOffer } from "@/lib/referral-db";
+import { ReferralBox, RefBanner } from "@/components/ReferralBox";
+import { currentClient } from "@/lib/client-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +64,9 @@ export default async function MasterPage({ params }: Props) {
   const bot = m.demo ? null : await botUsername();
   const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
+  // 🎁 бонус за рекомендацию (если специалист включил и бонусы не закончились)
+  const bonus = m.demo ? null : await liveOffer(m.id);
+  const me = bonus ? await currentClient().catch(() => null) : null;
 
   const services = m.services.split(/\n/).map((s) => s.trim()).filter(Boolean);
   const url = `${SITE_URL}/${lang}/master/${m.slug}`;
@@ -145,6 +151,7 @@ export default async function MasterPage({ params }: Props) {
         </aside>
 
         <div className="order-1">
+          {!m.demo && <RefBanner lang={lang} slug={m.slug} />}
           {services.length > 0 && (
             <section>
               <h2 className="text-[18px] font-bold">{t.services}</h2>
@@ -348,6 +355,9 @@ export default async function MasterPage({ params }: Props) {
       </div>
 
       <div className="lg:max-w-[calc(100%-380px)]">
+          {bonus && !m.away && (
+            <ReferralBox lang={lang} slug={m.slug} master={`${m.name} — ${cat}`} friend={bonus.offer.friend} reward={bonus.offer.reward} left={bonus.left} defaultName={me?.tgName} />
+          )}
           <section className="mt-8">
             <h2 className="text-[18px] font-bold">{t.share}</h2>
             <p className="mt-1 text-[14px] text-muted">{t.shareHint}</p>

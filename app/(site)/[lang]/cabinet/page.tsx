@@ -11,6 +11,8 @@ import { QrCards } from "@/components/QrCards";
 import { NotifyToggle } from "@/components/NotifyToggle";
 import { CabinetOrders } from "@/components/CabinetOrders";
 import { ShortLinkCard } from "@/components/ShortLinkCard";
+import { ReferralEditor } from "@/components/ReferralEditor";
+import { offerStatus, recentCodes } from "@/lib/referral-db";
 import { transliterate } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
 import { getDict, href } from "@/lib/i18n";
@@ -102,6 +104,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const { steps, percent } = profileSteps(m);
   const rv = getDict(lang).reviews;
   const reviews = await listMasterReviews(m.id).catch(() => []);
+  const refStatus = await offerStatus(m.id).catch(() => null);
+  const refCodes = refStatus ? await recentCodes(m.id).catch(() => []) : [];
   const zero = { views: 0, contacts: 0, taken: 0 };
   const [week, month, byDay] = await Promise.all([
     masterStats(m.id, 7).catch(() => zero),
@@ -182,6 +186,13 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       <div className="mt-4">
         <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
+        <ReferralEditor
+          lang={lang}
+          initial={refStatus?.offer ?? null}
+          issued={refStatus?.issued ?? 0}
+          codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at }))}
+          suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12) || "NOMEROK"}
+        />
       </div>
 
       <div className="mt-4">

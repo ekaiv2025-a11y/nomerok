@@ -6,6 +6,8 @@ import { getDict, href, type Locale } from "@/lib/i18n";
 import { ContactFields, Field, Honeypot, LinkedNote, PHOTO_TEXT, TelegramStep, fc, uploadRequestPhotos, useSubmit } from "./form-kit";
 import { PhotoPicker } from "./PhotoPicker";
 import { useState } from "react";
+import { useSavedRef } from "./ReferralBox";
+import { REF_TEXT } from "@/lib/referral-text";
 
 type Props = { lang: Locale; master: { slug: string; name: string; category: string }; me?: { name: string; phone: string } | null; defaultWhen?: string };
 
@@ -19,6 +21,7 @@ export function MessageForm({ lang, master, me, defaultWhen }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
+  const savedRef = useSavedRef(master.slug);
 
   if (state === "done") {
     return (
@@ -50,7 +53,7 @@ export function MessageForm({ lang, master, me, defaultWhen }: Props) {
       photos,
       category: master.category,
       master_slug: master.slug,
-      description: f.get("description"),
+      description: savedRef ? `${String(f.get("description") ?? "").trim()}\n\n${REF_TEXT[lang].msgLine(savedRef.code, savedRef.name)}` : f.get("description"),
       when_text: f.get("when_text"),
       name: f.get("name"),
       phone: f.get("phone"),
@@ -63,6 +66,7 @@ export function MessageForm({ lang, master, me, defaultWhen }: Props) {
       <Honeypot label={d.form.honeypot} />
       <Field label={t.what} hint={r.whatHint} error={errors.description}>
         <textarea name="description" rows={5} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />
+        {savedRef && <p className="mt-1.5 rounded-lg bg-[#fff8e6] px-3 py-2 text-[13px]">🎁 {REF_TEXT[lang].msgNote(savedRef.code)}</p>}
       </Field>
       <Field label={r.when} optional={d.form.optional} error={errors.when_text}>
         <input name="when_text" defaultValue={defaultWhen} className={fc(errors.when_text)} placeholder={r.whenPlaceholder} />

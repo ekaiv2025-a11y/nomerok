@@ -107,6 +107,7 @@ export async function healthCheck() {
           ["0015 короткие ссылки", "masters", "short"],
           ["0016 фото в заявке", "requests", "photos"],
           ["0017 свободные окна", "masters", "slots"],
+          ["0018 бонусы за рекомендацию", "referrals", "code"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -152,6 +153,8 @@ type LocalData = {
   complaints: Complaint[];
   profile_views: { master_id: string; visitor: string; day: string; created_at: string }[];
   outreach?: { tg_user_id: string; name: string; category: string; status: string; created_at: string }[];
+  referral_offers?: { master_id: string; active: boolean; friend: string; reward: string; max_uses: number; prefix: string; since: string; updated_at: string }[];
+  referrals?: { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null }[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 
@@ -312,9 +315,13 @@ export async function getPublishedMasterBySlug(slug: string): Promise<PublicMast
 async function withRatings(list: PublicMaster[]): Promise<PublicMaster[]> {
   const { reviewStats } = await import("./reviews-db");
   const stats = await reviewStats().catch(() => new Map<string, { sum: number; n: number }>());
+  // 🎁 бонус за рекомендацию — значок в карточке
+  const { mastersWithBonus } = await import("./referral-db");
+  const bonus = await mastersWithBonus().catch(() => new Set<string>());
   return list.map((m) => {
     const st = stats.get(m.id);
-    return st ? { ...m, rating: Math.round((st.sum / st.n) * 10) / 10, reviews: st.n } : m;
+    const b = bonus.has(m.id) ? { bonus: true } : {};
+    return st ? { ...m, ...b, rating: Math.round((st.sum / st.n) * 10) / 10, reviews: st.n } : { ...m, ...b };
   });
 }
 

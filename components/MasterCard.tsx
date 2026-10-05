@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { REF_TEXT } from "@/lib/referral-text";
 import { CardPhotos } from "./CardPhotos";
 import { FavButton } from "./FavButton";
 import { RatingLine } from "./Stars";
@@ -44,6 +45,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         <div className="pointer-events-none absolute left-2 top-2 flex flex-wrap gap-1">
           {m.demo && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-[#8a6a1f] shadow-sm">{t.demo}</span>}
           {m.away && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-muted shadow-sm">⏸ {t.away}</span>}
+          {m.bonus && !m.away && <span className="rounded-full bg-[#fdf3dc] px-2 py-0.5 text-[11px] font-semibold text-[#8a6a1f] shadow-sm">🎁 {REF_TEXT[lang].badge}</span>}
         </div>
       </div>
       <Link href={link} className="flex flex-1 flex-col p-3 sm:p-4">
