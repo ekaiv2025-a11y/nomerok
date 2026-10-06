@@ -136,6 +136,15 @@ export const SECTIONS: PhoneSection[] = [
         numbers: [n("+995 422 22 00 08"), n("+995 577 22 00 08")],
       },
       {
+        name: { ru: "Министерство здравоохранения и социальной защиты Аджарии", en: "Adjara Ministry of Health and Social Affairs", ka: "აჭარის ჯანმრთელობისა და სოციალური დაცვის სამინისტრო" },
+        note: { ru: "Медицинские госпрограммы, социальная помощь и пособия.", en: "Health programmes, social assistance and benefits.", ka: "ჯანდაცვის პროგრამები, სოციალური დახმარება." },
+        numbers: [
+          n("+995 574 42 22 22", { ru: "горячая линия", en: "hotline", ka: "ცხელი ხაზი" }),
+          n("+995 591 40 23 46", { ru: "департамент здравоохранения", en: "health department", ka: "ჯანდაცვის დეპარტამენტი" }),
+          n("+995 577 30 27 67", { ru: "департамент социальной защиты", en: "social protection department", ka: "სოციალური დაცვის დეპარტამენტი" }),
+        ],
+      },
+      {
         name: { ru: "Горячая линия Минздрава", en: "Ministry of Health hotline", ka: "ჯანდაცვის სამინისტროს ცხელი ხაზი" },
         note: { ru: "Госпрограммы, страховка, права пациента.", en: "State programmes, insurance, patient rights.", ka: "სახელმწიფო პროგრამები, დაზღვევა, პაციენტის უფლებები." },
         numbers: [n("15 05")],
