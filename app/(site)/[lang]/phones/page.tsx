@@ -4,6 +4,56 @@ import { href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { PH, QUICK, SECTIONS } from "@/lib/phones";
 import { categoryPlural } from "@/lib/categories";
+import { Fragment } from "react";
+import { NOTARIES, NOTARY_TEXT, notaryHours } from "@/lib/notaries";
+import type { Locale } from "@/lib/i18n/config";
+
+const fmtDial = (p: string) => p.replace(/[^\d+]/g, "");
+
+function NotaryCard({ n, lang }: { n: (typeof NOTARIES)[number]; lang: Locale }) {
+  const t = NOTARY_TEXT[lang];
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4">
+      <h3 className="text-[15px] font-semibold">{lang === "ru" ? n.ru : n.en}</h3>
+      <p className="mt-1 text-[13px] text-muted">📍 {lang === "ru" ? n.addrRu : n.addrEn}</p>
+      <p className="mt-0.5 text-[13px] text-muted">🕘 {notaryHours(n, lang)}</p>
+      {n.access && <p className="mt-0.5 text-[12px] text-muted">{t.access}</p>}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {n.phones.map((p) => (
+          <a key={p} href={`tel:${fmtDial(p)}`} className="btn-dark h-10 whitespace-nowrap px-4 text-[14px]">
+            📞 {p}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Нотариусы: первые 6 сразу, остальные — по кнопке. */
+function Notaries({ lang }: { lang: Locale }) {
+  const t = NOTARY_TEXT[lang];
+  const first = NOTARIES.slice(0, 6);
+  const rest = NOTARIES.slice(6);
+  return (
+    <section id="notary" className="scroll-mt-24">
+      <h2 className="text-[20px] font-bold">⚖️ {t.title}</h2>
+      <p className="mt-1 text-[13px] text-muted">{t.hint}</p>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        {first.map((n) => <NotaryCard key={n.en} n={n} lang={lang} />)}
+      </div>
+      {rest.length > 0 && (
+        <details className="group mt-3">
+          <summary className="cursor-pointer list-none rounded-full border border-line bg-white px-4 py-2 text-center text-[14px] font-semibold text-brand hover:border-brand group-open:hidden">
+            {lang === "ru" ? `Показать всех нотариусов (${NOTARIES.length})` : lang === "ka" ? `ყველა ნოტარიუსი (${NOTARIES.length})` : `Show all notaries (${NOTARIES.length})`}
+          </summary>
+          <div className="grid gap-3 md:grid-cols-2">
+            {rest.map((n) => <NotaryCard key={n.en} n={n} lang={lang} />)}
+          </div>
+        </details>
+      )}
+    </section>
+  );
+}
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = await langOf(params);
@@ -38,15 +88,23 @@ export default async function PhonesPage({ params }: LangParams) {
       {/* Навигация по разделам */}
       <nav className="mt-6 flex flex-wrap gap-2">
         {SECTIONS.map((s) => (
-          <a key={s.id} href={`#${s.id}`} className="rounded-full border border-line bg-white px-3 py-1.5 text-[13px] hover:border-brand">
-            {s.icon} {s.title[lang]}
-          </a>
+          <Fragment key={s.id}>
+            <a href={`#${s.id}`} className="rounded-full border border-line bg-white px-3 py-1.5 text-[13px] hover:border-brand">
+              {s.icon} {s.title[lang]}
+            </a>
+            {s.id === "city" && (
+              <a href="#notary" className="rounded-full border border-line bg-white px-3 py-1.5 text-[13px] hover:border-brand">
+                ⚖️ {NOTARY_TEXT[lang].title}
+              </a>
+            )}
+          </Fragment>
         ))}
       </nav>
 
       <div className="mt-6 space-y-8">
         {SECTIONS.map((s) => (
-          <section key={s.id} id={s.id} className="scroll-mt-24">
+          <Fragment key={s.id}>
+          <section id={s.id} className="scroll-mt-24">
             <h2 className="text-[20px] font-bold">
               {s.icon} {s.title[lang]}
             </h2>
@@ -79,6 +137,8 @@ export default async function PhonesPage({ params }: LangParams) {
               </p>
             )}
           </section>
+          {s.id === "city" && <Notaries lang={lang} />}
+          </Fragment>
         ))}
       </div>
 
