@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { notFound, redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { adminGetMaster } from "@/lib/db";
@@ -122,7 +123,19 @@ export default async function EditMasterPage({ params, searchParams }: { params:
       {sp.error && <p className="mt-3 rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{sp.error}</p>}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {m.status !== "published" && <StatusBtn id={m.id} status="published" label="Опубликовать" primary back={back} />}
+        {m.status !== "published" && m.tg_chat_id && <StatusBtn id={m.id} status="published" label="Опубликовать" primary back={back} />}
+        {m.status !== "published" && !m.tg_chat_id && (
+          <form action={setMasterStatus} className="flex flex-wrap items-center gap-2">
+            <input type="hidden" name="id" value={m.id} />
+            <input type="hidden" name="status" value="published" />
+            <input type="hidden" name="force" value="1" />
+            <input type="hidden" name="back" value={back} />
+            <span className="rounded-full bg-[#fdf6e6] px-3 py-2 text-[13px] font-semibold text-[#5a4a22]">⏳ Ждём подключения Telegram — отправьте ему ссылку ниже</span>
+            <ConfirmButton message={`Опубликовать «${m.name}» без Telegram? Номер не подтверждён, заявки через бота он не получит.`} className="text-[12px] text-muted underline">
+              опубликовать без Telegram
+            </ConfirmButton>
+          </form>
+        )}
         {m.status === "published" && <StatusBtn id={m.id} status="hidden" label="Скрыть с сайта" back={back} />}
         {m.status === "pending" && <StatusBtn id={m.id} status="rejected" label="Отклонить" back={back} />}
         {m.status === "published" && <Link href={`/ru/master/${m.slug}`} target="_blank" className="btn-ghost h-10 text-[14px]">Открыть на сайте ↗</Link>}

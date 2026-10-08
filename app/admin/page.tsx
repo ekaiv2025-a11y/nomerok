@@ -28,12 +28,12 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string; msg?: string; moved?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; bot?: string; demo?: string; fu?: string; msg?: string; moved?: string; notg?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   if (dbMode() === "none") {
     return <p className="rounded-2xl bg-white p-6">База не подключена. Добавьте SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в Vercel.</p>;
   }
-  const { tab = "requests", bot: botResult, fu, msg, moved } = await searchParams;
+  const { tab = "requests", bot: botResult, fu, msg, moved, notg } = await searchParams;
   const [masters, requests, views, responses] = await Promise.all([
     adminListMasters(),
     adminListRequests(),
@@ -324,6 +324,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       {tab === "pending" && (
         <div className="mt-5 space-y-3">
+          {notg && <p className="rounded-xl bg-[#fdf6e6] p-3 text-[14px] text-[#5a4a22]">⏳ Этот специалист ещё не подключил Telegram — анкета не опубликована. Откройте «Редактировать» → там готовое сообщение со ссылкой для него.</p>}
+          {pending.some((x) => !x.tg_chat_id) && (
+            <p className="rounded-xl bg-white p-3 text-[13px] text-muted">
+              Ждут подключения Telegram: <b className="text-ink">{pending.filter((x) => !x.tg_chat_id).length}</b>. Пока специалист не подключит бота, кнопки «Опубликовать» нет — так у всех на сайте подтверждённый номер и заявки доходят.
+            </p>
+          )}
           {pending.length === 0 && <Empty text="Новых анкет нет." />}
           {pending.map((m) => (
             <MasterRow key={m.id} m={m} views={views[m.id] ?? 0} back="/admin?tab=pending" />
@@ -384,6 +390,21 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             )}
           </div>
           {moved && <p className="rounded-xl bg-white p-3 text-[14px] font-semibold">✓ Перенесено в правильные разделы: {moved}</p>}
+          {(() => {
+            const noTg = masters.filter((x) => x.status === "published" && !x.tg_chat_id && !isDemoSlug(x.slug));
+            if (!noTg.length) return null;
+            return (
+              <div className="rounded-2xl border border-[#f0d58a] bg-[#fff8e6] p-4 text-[14px]">
+                <b>⚠️ Опубликованы без Telegram: {noTg.length}</b>
+                <p className="mt-1 text-[13px] text-muted">Они не получают заявки и не могут войти в кабинет. Откройте каждого и отправьте готовое сообщение со ссылкой на бота.</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {noTg.map((x) => (
+                    <Link key={x.id} href={`/admin/masters/${x.id}`} className="rounded-full bg-white px-3 py-1 text-[13px] hover:underline">{x.name}</Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {(() => {
             const inOther = masters.filter((x) => x.category === "other" && x.status !== "rejected");
             if (!inOther.length) return null;
@@ -476,14 +497,27 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
       </div>
       <p className="mt-2 line-clamp-3 whitespace-pre-line text-[14px] text-[#3a3935]">{m.services}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        {actions.map((a) => (
-          <form key={a.status} action={setMasterStatus}>
-            <input type="hidden" name="id" value={m.id} />
-            <input type="hidden" name="status" value={a.status} />
-            <input type="hidden" name="back" value={back} />
-            <button className={a.primary ? "btn-primary h-9 px-4 text-[13px]" : "btn-ghost h-9 px-4 text-[13px]"}>{a.label}</button>
-          </form>
-        ))}
+        {actions.map((a) =>
+          a.status === "published" && !m.tg_chat_id ? (
+            <form key={a.status} action={setMasterStatus} className="flex flex-wrap items-center gap-2">
+              <input type="hidden" name="id" value={m.id} />
+              <input type="hidden" name="status" value="published" />
+              <input type="hidden" name="force" value="1" />
+              <input type="hidden" name="back" value={back} />
+              <span className="rounded-full bg-[#fdf6e6] px-3 py-1.5 text-[13px] font-semibold text-[#5a4a22]">⏳ Ждём подключения Telegram</span>
+              <ConfirmButton message={`Опубликовать «${m.name}» без Telegram? Номер не подтверждён, заявки через бота он не получит.`} className="h-9 rounded-full px-3 text-[12px] text-muted underline">
+                опубликовать без Telegram
+              </ConfirmButton>
+            </form>
+          ) : (
+            <form key={a.status} action={setMasterStatus}>
+              <input type="hidden" name="id" value={m.id} />
+              <input type="hidden" name="status" value={a.status} />
+              <input type="hidden" name="back" value={back} />
+              <button className={a.primary ? "btn-primary h-9 px-4 text-[13px]" : "btn-ghost h-9 px-4 text-[13px]"}>{a.label}</button>
+            </form>
+          ),
+        )}
         {m.status !== "published" && (
           <form action={deleteMaster}>
             <input type="hidden" name="id" value={m.id} />

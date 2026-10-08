@@ -60,6 +60,11 @@ export async function setMasterStatus(formData: FormData) {
   const status = String(formData.get("status")) as MasterStatus;
   if (!MASTER_STATUSES.includes(status)) return;
   const before = await adminGetMaster(id);
+  // Без подключённого Telegram не публикуем (номер не подтверждён, заявки не дойдут) — только если админ явно нажал «всё равно»
+  if (status === "published" && before && !before.tg_chat_id && formData.get("force") !== "1") {
+    const back = String(formData.get("back") || "");
+    redirect(`${back.startsWith("/admin") ? back : "/admin?tab=pending"}${back.includes("?") ? "&" : "?"}notg=1`);
+  }
   await adminSetMasterStatus(id, status);
   // Сообщаем специалисту в Telegram об изменении статуса
   if (before && before.status !== status) await notifyMasterStatus({ ...before, status }, status).catch((e) => console.error("[notify]", e));

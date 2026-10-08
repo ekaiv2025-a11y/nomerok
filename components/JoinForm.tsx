@@ -67,15 +67,15 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
     return (
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
-        <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
-        <p className="mt-2 text-[15px] text-[#3d5a4c]">{result.verified ? t.doneVerified : t.doneText}</p>
+        <h2 className="mt-3 text-xl font-bold">{result.verified ? t.doneTitle : t.doneAlmost}</h2>
+        <p className="mt-2 text-[15px] text-[#3d5a4c]">{result.verified ? t.doneVerified : t.doneWaitTg}</p>
+        <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
         {upload === "uploading" && (
           <p className="mt-3 inline-flex items-center gap-2 text-[14px] text-muted">
             <Loader2 className="h-4 w-4 animate-spin" /> {t.photoUploading}
           </p>
         )}
         {upload === "failed" && <p className="mt-3 text-[14px] text-danger">{t.photoFailed}</p>}
-        <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
         <Link href={href(lang)} className="btn-ghost mt-5">
           {d.form.toHome}
         </Link>
