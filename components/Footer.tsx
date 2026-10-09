@@ -38,6 +38,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/favorites">{SOCIAL[lang].fav}</L>
             <L to="/recommend">{SOCIAL[lang].recLink}</L>
             <L to="/phones">{PH[lang].nav}</L>
+            {lang === "ru" && <L to="/guide">Полезные советы</L>}
           </ul>
         </div>
         <div>

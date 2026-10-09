@@ -4,6 +4,7 @@ import { listPublishedMasters } from "@/lib/db";
 import { LOCALES } from "@/lib/i18n/config";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { DISTRICTS, servesDistrict } from "@/lib/districts";
+import { ARTICLES } from "@/lib/articles";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const masters = await listPublishedMasters().catch(() => []);
   return [
     ...PAGES.flatMap((p) => entry(p.path, p.priority)),
+    // Статьи — пока только на русском
+    { url: `${SITE_URL}/ru/guide`, priority: 0.6 },
+    ...ARTICLES.map((a) => ({ url: `${SITE_URL}/ru/guide/${a.slug}`, priority: 0.7, lastModified: a.date })),
     ...seoCategoryIds().flatMap((c) => entry(`/services/${c}`, 0.9)),
     // «услуга + район» — только там, где реально есть специалисты в этом районе
     ...seoCategoryIds().flatMap((c) =>

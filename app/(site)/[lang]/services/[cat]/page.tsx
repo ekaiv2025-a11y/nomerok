@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { articlesForCat } from "@/lib/articles";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { listPublishedMasters } from "@/lib/db";
@@ -229,6 +230,19 @@ export default async function ServicePage({ params }: Props) {
           ))}
         </div>
       </section>
+
+      {lang === "ru" && articlesForCat(cat).length > 0 && (
+        <section className="mt-12 max-w-3xl">
+          <h2 className="text-[20px] font-bold">💡 Полезно знать</h2>
+          <div className="mt-3 grid gap-2">
+            {articlesForCat(cat).map((x) => (
+              <Link key={x.slug} href={`/ru/guide/${x.slug}`} className="rounded-xl border border-line bg-white px-4 py-3 text-[15px] hover:border-brand">
+                {x.emoji} {x.h1}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="mt-12">
