@@ -24,6 +24,7 @@ export const CATEGORIES = [
   { id: "handyman", group: "home", label: { ru: "Мастер на час", ka: "ხელოსანი საათობრივად", en: "Handyman" }, plural: { ru: "Мастер на час", ka: "ხელოსნები", en: "Handymen" } },
   { id: "aircon", group: "home", label: { ru: "Кондиционеры", ka: "კონდიციონერები", en: "Air conditioning" }, plural: { ru: "Кондиционеры", ka: "კონდიციონერები", en: "Air conditioning" } },
   { id: "appliances", group: "home", label: { ru: "Ремонт техники", ka: "ტექნიკის შეკეთება", en: "Appliance repair" }, plural: { ru: "Ремонт техники", ka: "ტექნიკის შეკეთება", en: "Appliance repair" } },
+  { id: "furniture", group: "home", label: { ru: "Мебель: на заказ и перетяжка", ka: "ავეჯი: შეკვეთით და გადაკვრა", en: "Furniture: custom & upholstery" }, plural: { ru: "Мебель", ka: "ავეჯი", en: "Furniture" } },
   { id: "cleaning", group: "home", label: { ru: "Уборка", ka: "დალაგება", en: "Cleaning" }, plural: { ru: "Уборка", ka: "დალაგება", en: "Cleaning" } },
   { id: "moving", group: "home", label: { ru: "Переезд и грузчики", ka: "გადაზიდვა და მტვირთავები", en: "Moving & movers" }, plural: { ru: "Переезд", ka: "გადაზიდვა", en: "Moving" } },
   { id: "nanny", group: "kids", label: { ru: "Няня", ka: "ძიძა", en: "Nanny" }, plural: { ru: "Няни", ka: "ძიძები", en: "Nannies" } },

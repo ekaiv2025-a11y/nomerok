@@ -154,15 +154,23 @@ export async function sendBroadcast(formData: FormData) {
 }
 
 /** Разослать заявку специалистам вручную (если её задержала проверка на рекламу). */
+/** Метка в заметке заявки: неподписанным уже предлагали — чтобы не слать дважды. */
+const OFFERED = " [разослано всем]";
+
 export async function distributeNow(formData: FormData) {
   await requireAdmin();
   const { getRequest } = await import("@/lib/db");
   const { distributeRequest } = await import("@/lib/bot");
   const r = await getRequest(String(formData.get("id")));
   if (!r) redirect("/admin?tab=requests");
+  // Одна кнопка: подписанным — как обычно, неподписанным (с Telegram) — один раз с предложением подписаться
+  const { offerToUnsubscribed } = await import("@/lib/bot");
   const sent = await distributeRequest(r).catch(() => 0);
+  const offered = await offerToUnsubscribed(r).catch(() => 0);
+  const { updateRequest } = await import("@/lib/db");
+  await updateRequest(r.id, { admin_note: `${(r.admin_note ?? "").replace(OFFERED, "")}${OFFERED}`.trim() }).catch(() => {});
   revalidatePath("/admin");
-  if (sent) redirect(`/admin?tab=requests&msg=${encodeURIComponent(`✓ Разослано специалистам: ${sent}`)}`);
+  if (sent || offered) redirect(`/admin?tab=requests&msg=${encodeURIComponent(`✓ Заявка отправлена: ${sent} подписанным${offered ? ` + ${offered} неподписанным (разово)` : ""}`)}`);
   // Никому не ушло — объясняем почему
   const { adminListMasters } = await import("@/lib/db");
   const { servesCategory, isAwayNow } = await import("@/lib/availability");
@@ -173,7 +181,7 @@ export async function distributeNow(formData: FormData) {
   const why = inCat.length === 0
     ? "в этом разделе (и городе) пока нет опубликованных специалистов"
     : [notSub && `${notSub} не подписаны на заявки`, noTg && `${noTg} без Telegram`, away && `${away} на паузе или в архиве`].filter(Boolean).join(", ") || "никто не подходит";
-  redirect(`/admin?tab=requests&msg=${encodeURIComponent(`⚠️ Заявка никому не ушла: ${why}.${notSub ? " Можно нажать «Предложить неподписанным» — они получат её один раз." : ""}`)}`);
+  redirect(`/admin?tab=requests&msg=${encodeURIComponent(`⚠️ Заявка никому не ушла: ${why}.`)}`);
 }
 
 /** Предложить заявку специалистам раздела, которые не подписаны на рассылку (один раз). */
@@ -184,6 +192,8 @@ export async function offerUnsubscribed(formData: FormData) {
   const r = await getRequest(String(formData.get("id")));
   if (!r) redirect("/admin?tab=requests");
   const sent = await offerToUnsubscribed(r).catch(() => 0);
+  const { updateRequest } = await import("@/lib/db");
+  await updateRequest(r.id, { admin_note: `${(r.admin_note ?? "").replace(OFFERED, "")}${OFFERED}`.trim() }).catch(() => {});
   revalidatePath("/admin");
   redirect(`/admin?tab=requests&msg=${encodeURIComponent(sent ? `✓ Предложено специалистам: ${sent}` : "⚠️ Некому предложить: в разделе нет специалистов с подключённым Telegram")}`);
 }
@@ -198,7 +208,15 @@ export async function changeRequestCategory(formData: FormData) {
   const { distributeRequest } = await import("@/lib/bot");
   await updateRequest(id, { category });
   const r = await getRequest(id);
-  if (r && formData.get("send") === "on" && r.status !== "done") await distributeRequest(r).catch(() => 0);
+  if (r && formData.get("send") === "on" && r.status !== "done") {
+    // Новый раздел — новые люди: подписанным как обычно + неподписанным разово
+    const { offerToUnsubscribed } = await import("@/lib/bot");
+    const sent = await distributeRequest(r).catch(() => 0);
+    const offered = await offerToUnsubscribed(r).catch(() => 0);
+    await updateRequest(id, { admin_note: `${(r.admin_note ?? "").replace(OFFERED, "")}${OFFERED}`.trim() }).catch(() => {});
+    revalidatePath("/admin");
+    redirect(`/admin?tab=requests&msg=${encodeURIComponent(sent || offered ? `✓ Раздел изменён, заявка отправлена: ${sent} подписанным${offered ? ` + ${offered} неподписанным (разово)` : ""}` : "⚠️ Раздел изменён, но в нём некому отправить заявку")}`);
+  }
   revalidatePath("/admin");
 }
 

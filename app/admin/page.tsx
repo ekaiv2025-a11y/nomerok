@@ -56,6 +56,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const byId = new Map(masters.map((m) => [m.id, m]));
   const pending = masters.filter((m) => m.status === "pending");
   const others = masters.filter((m) => m.status !== "pending");
+  // Кто в разделе заявки: подписаны / не подписаны (Telegram есть) / без Telegram
+  const groupsFor = (r: { category: string; city?: string | null }) => {
+    const inCat = masters.filter(
+      (m) => m.status === "published" && !m.archived_at && !isAwayNow(m) && (m.category === r.category || (m.extra_categories ?? []).includes(r.category)) && (m.city ?? "batumi") === (r.city ?? "batumi"),
+    );
+    const ok = (m: Master) => !!m.tg_chat_id && (!!m.phone_verified_at || !!m.tg_verified_at);
+    return { sub: inCat.filter((m) => ok(m) && m.notify_requests), unsub: inCat.filter((m) => ok(m) && !m.notify_requests), noTg: inCat.filter((m) => !ok(m)) };
+  };
   const newReq = requests.filter((r) => r.status === "new").length;
   const webhook = tab === "bot" && telegramToken() ? await tg<{ url: string; last_error_message?: string; pending_update_count: number }>("getWebhookInfo") : null;
 
@@ -257,6 +265,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   {r.outcome === "none" && <b className="text-danger"> · 😕 клиенту никто не помог</b>}
                   {r.outcome === "closed" && " · 🔒 клиент закрыл заявку"}
                 </p>
+                {!r.master_id && r.status !== "done" && r.status !== "spam" && (() => {
+                  const g = groupsFor(r);
+                  const offered = (r.admin_note ?? "").includes("[разослано всем]");
+                  const names = (list: Master[]) => list.map((m) => m.name.split(" ")[0]).join(", ");
+                  return (
+                    <div className="mt-2 rounded-xl border border-line p-3 text-[13px] leading-relaxed">
+                      <p className="font-semibold">Кому уходит заявка в разделе «{categoryLabel(r.category)}»:</p>
+                      {g.sub.length + g.unsub.length + g.noTg.length === 0 && <p className="text-danger">В этом разделе нет опубликованных специалистов — смените раздел кнопкой «↪ Раздел».</p>}
+                      {g.sub.length > 0 && <p>✅ <b>Подписаны на заявки:</b> {names(g.sub)} <span className="text-muted">— {r.sent_count ? "уже отправлено" : "получат"}</span></p>}
+                      {g.unsub.length > 0 && <p>🔕 <b>Не подписаны:</b> {names(g.unsub)} <span className="text-muted">— {offered ? "уже отправлено разово" : "получат разово, с предложением подписаться"}</span></p>}
+                      {g.noTg.length > 0 && <p className="text-muted">⛔ Без Telegram — не получат: {names(g.noTg)}</p>}
+                    </div>
+                  );
+                })()}
                 {r.client_tg_chat_id && (
                   <details className="mt-2 rounded-xl bg-cream p-3 text-[13px]" open={looksLikeSelf(r.description) && r.status !== "done" && r.status !== "spam"}>
                     <summary className="cursor-pointer font-semibold">💬 Написать {r.name || "клиенту"} через бота{looksLikeSelf(r.description) ? " — похоже, это анкета специалиста" : ""}</summary>
@@ -305,22 +327,24 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       </button>
                     </form>
                   )}
-                  {r.status === "new" && !r.master_id && !r.sent_count && (
-                    <form action={distributeNow}>
-                      <input type="hidden" name="id" value={r.id} />
-                      <button className="h-9 rounded-full bg-brand px-3 text-[13px] font-semibold text-white">📨 Разослать</button>
-                    </form>
-                  )}
                   {!r.master_id && r.status !== "done" && r.status !== "spam" && (() => {
-                    const n = masters.filter((m) => m.status === "published" && m.tg_chat_id && !m.notify_requests && (m.category === r.category || (m.extra_categories ?? []).includes(r.category)) && (m.city ?? "batumi") === (r.city ?? "batumi")).length;
-                    return n > 0 ? (
-                      <form action={offerUnsubscribed}>
-                        <input type="hidden" name="id" value={r.id} />
-                        <button className="h-9 rounded-full border border-brand px-3 text-[13px] font-semibold text-brand hover:bg-brand-soft" title="Специалисты раздела, которые не подписаны на рассылку, получат эту заявку один раз">
-                          📨 Предложить неподписанным ({n})
-                        </button>
-                      </form>
-                    ) : null;
+                    const g = groupsFor(r);
+                    const offered = (r.admin_note ?? "").includes("[разослано всем]");
+                    if (!r.sent_count && (g.sub.length || g.unsub.length))
+                      return (
+                        <form action={distributeNow}>
+                          <input type="hidden" name="id" value={r.id} />
+                          <button className="h-9 rounded-full bg-brand px-3 text-[13px] font-semibold text-white">📨 Разослать ({g.sub.length + g.unsub.length})</button>
+                        </form>
+                      );
+                    if (r.sent_count && !offered && g.unsub.length)
+                      return (
+                        <form action={offerUnsubscribed}>
+                          <input type="hidden" name="id" value={r.id} />
+                          <button className="h-9 rounded-full bg-brand px-3 text-[13px] font-semibold text-white">📨 Отправить и неподписанным ({g.unsub.length})</button>
+                        </form>
+                      );
+                    return null;
                   })()}
                   <form action={deleteRequest}>
                     <input type="hidden" name="id" value={r.id} />
