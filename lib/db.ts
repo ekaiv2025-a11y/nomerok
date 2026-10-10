@@ -227,7 +227,8 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     photo_url: m.photo_url,
     created_at: m.created_at,
     updated_at: m.updated_at,
-    extra_categories: m.extra_categories ?? [],
+    // «Другое» как дополнительный раздел не имеет смысла — не показываем там специалиста
+    extra_categories: (m.extra_categories ?? []).filter((c) => c !== "other"),
     away_until: m.away_until ?? null,
     portfolio: Array.isArray(m.portfolio) ? m.portfolio : [],
     work_mode: m.work_mode ?? "at_client",

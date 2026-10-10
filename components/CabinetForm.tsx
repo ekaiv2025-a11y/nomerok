@@ -238,7 +238,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           {categoryLabel(initial.category, lang)} · <b>{extra.length}/{MAX_EXTRA_CATEGORIES}</b>
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {CATEGORIES.filter((c) => c.id !== initial.category).map((c) => {
+          {CATEGORIES.filter((c) => c.id !== initial.category && c.id !== "other").map((c) => {
             const on = extra.includes(c.id);
             const disabled = !on && extra.length >= MAX_EXTRA_CATEGORIES;
             return (

@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   const d = parsed.data;
   // Дополнительные направления: только существующие, не основное, не больше 3
   const extra = Array.isArray(body.extra_categories)
-    ? [...new Set((body.extra_categories as unknown[]).map(String))].filter((c) => (CATEGORY_IDS as readonly string[]).includes(c) && c !== m.category)
+    ? [...new Set((body.extra_categories as unknown[]).map(String))].filter((c) => (CATEGORY_IDS as readonly string[]).includes(c) && c !== m.category && c !== "other")
     : [];
   // Где работает: режим, районы, часы, точка на карте (только в пределах Грузии)
   let where: Record<string, unknown> | null = null;

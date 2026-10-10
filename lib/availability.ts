@@ -12,7 +12,7 @@ export function isAwayNow(m: { is_away?: boolean | null; away_until?: string | n
 
 /** Работает ли специалист в этом направлении (основном или дополнительном). */
 export function servesCategory(m: { category: string; extra_categories?: string[] | null }, cat: string): boolean {
-  return m.category === cat || (m.extra_categories ?? []).includes(cat);
+  return m.category === cat || (cat !== "other" && (m.extra_categories ?? []).includes(cat));
 }
 
 export const MAX_EXTRA_CATEGORIES = 3;
