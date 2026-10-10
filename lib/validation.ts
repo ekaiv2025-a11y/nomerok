@@ -49,6 +49,9 @@ export function requestSchema(lang: Locale) {
     phone: phone(lang),
     master_slug: z.string().trim().max(80).optional().or(z.literal("")),
     ...antiSpam,
+  }).superRefine((v, ctx) => {
+    // Общая заявка (не личное сообщение): просим описать задачу хотя бы парой фраз
+    if (!v.master_slug && v.category !== "realtor" && v.description.length < 25) ctx.addIssue({ code: "custom", path: ["description"], message: e.describeMore });
   });
 }
 

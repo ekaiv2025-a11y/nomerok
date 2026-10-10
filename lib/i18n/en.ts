@@ -229,7 +229,7 @@ const en: Dict = {
     message: "Please write a message (5+ characters)",
     contact: "Enter a phone, Telegram or email so we can reply",
     category: "Choose who you need",
-    describeMore: "Please describe the task in a bit more detail (10+ characters)",
+    describeMore: "Please describe the task in more detail: what needs doing, where and how much — so the specialist can quote a price",
     phoneRequired: "Enter a phone number",
     phoneInvalid: "Check the number, e.g. 555 12 34 56",
     name: "Enter your name",

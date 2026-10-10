@@ -13,6 +13,7 @@ import { categoryLabel } from "@/lib/categories";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
 import { looksLikeSelf } from "@/lib/request-check";
+import { HINT_TITLE, requestHints } from "@/lib/request-hints";
 import { EMPTY_REALTY, RealtyFields, realtySummary, realtyText, type Realty } from "./RealtyFields";
 
 const SELF = {
@@ -122,6 +123,16 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
         error={errors.description}
       >
         <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={(catSel || initialCat) === "realtor" ? realtyText(lang).notesPh : t.whatPlaceholder} required={(catSel || initialCat) !== "realtor"} />
+        {(catSel || initialCat) && (catSel || initialCat) !== "realtor" && desc.trim().length < 80 && (
+          <div className="mt-2 rounded-xl bg-cream px-3 py-2.5 text-[13px] leading-snug">
+            <p className="font-semibold">{HINT_TITLE[lang]}</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
+              {requestHints(catSel || initialCat || "", lang).map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         {selfWarn && (
           <div id="self-warn" className="mt-2 rounded-xl border border-[#f0d58a] bg-[#fff8e6] p-3 text-[13px] leading-snug">
             <p className="font-semibold">🙋 {SELF[lang].title}</p>
