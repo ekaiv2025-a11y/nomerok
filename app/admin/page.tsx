@@ -7,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -311,6 +311,17 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       <button className="h-9 rounded-full bg-brand px-3 text-[13px] font-semibold text-white">📨 Разослать</button>
                     </form>
                   )}
+                  {!r.master_id && r.status !== "done" && r.status !== "spam" && (() => {
+                    const n = masters.filter((m) => m.status === "published" && m.tg_chat_id && !m.notify_requests && (m.category === r.category || (m.extra_categories ?? []).includes(r.category)) && (m.city ?? "batumi") === (r.city ?? "batumi")).length;
+                    return n > 0 ? (
+                      <form action={offerUnsubscribed}>
+                        <input type="hidden" name="id" value={r.id} />
+                        <button className="h-9 rounded-full border border-brand px-3 text-[13px] font-semibold text-brand hover:bg-brand-soft" title="Специалисты раздела, которые не подписаны на рассылку, получат эту заявку один раз">
+                          📨 Предложить неподписанным ({n})
+                        </button>
+                      </form>
+                    ) : null;
+                  })()}
                   <form action={deleteRequest}>
                     <input type="hidden" name="id" value={r.id} />
                     <ConfirmButton message="Удалить заявку навсегда?" className="h-9 rounded-full border border-line px-3 text-[13px] text-danger hover:bg-[#fdecea]">Удалить</ConfirmButton>

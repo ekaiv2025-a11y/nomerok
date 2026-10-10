@@ -159,8 +159,33 @@ export async function distributeNow(formData: FormData) {
   const { getRequest } = await import("@/lib/db");
   const { distributeRequest } = await import("@/lib/bot");
   const r = await getRequest(String(formData.get("id")));
-  if (r) await distributeRequest(r).catch(() => 0);
+  if (!r) redirect("/admin?tab=requests");
+  const sent = await distributeRequest(r).catch(() => 0);
   revalidatePath("/admin");
+  if (sent) redirect(`/admin?tab=requests&msg=${encodeURIComponent(`✓ Разослано специалистам: ${sent}`)}`);
+  // Никому не ушло — объясняем почему
+  const { adminListMasters } = await import("@/lib/db");
+  const { servesCategory, isAwayNow } = await import("@/lib/availability");
+  const inCat = (await adminListMasters()).filter((m) => m.status === "published" && servesCategory(m, r.category) && (m.city ?? "batumi") === (r.city ?? "batumi"));
+  const noTg = inCat.filter((m) => !m.tg_chat_id).length;
+  const notSub = inCat.filter((m) => m.tg_chat_id && !m.notify_requests).length;
+  const away = inCat.filter((m) => isAwayNow(m) || m.archived_at).length;
+  const why = inCat.length === 0
+    ? "в этом разделе (и городе) пока нет опубликованных специалистов"
+    : [notSub && `${notSub} не подписаны на заявки`, noTg && `${noTg} без Telegram`, away && `${away} на паузе или в архиве`].filter(Boolean).join(", ") || "никто не подходит";
+  redirect(`/admin?tab=requests&msg=${encodeURIComponent(`⚠️ Заявка никому не ушла: ${why}.${notSub ? " Можно нажать «Предложить неподписанным» — они получат её один раз." : ""}`)}`);
+}
+
+/** Предложить заявку специалистам раздела, которые не подписаны на рассылку (один раз). */
+export async function offerUnsubscribed(formData: FormData) {
+  await requireAdmin();
+  const { getRequest } = await import("@/lib/db");
+  const { offerToUnsubscribed } = await import("@/lib/bot");
+  const r = await getRequest(String(formData.get("id")));
+  if (!r) redirect("/admin?tab=requests");
+  const sent = await offerToUnsubscribed(r).catch(() => 0);
+  revalidatePath("/admin");
+  redirect(`/admin?tab=requests&msg=${encodeURIComponent(sent ? `✓ Предложено специалистам: ${sent}` : "⚠️ Некому предложить: в разделе нет специалистов с подключённым Telegram")}`);
 }
 
 /** Сменить раздел заявки (клиент выбрал «Другое» или ошибся) и разослать специалистам нового раздела. */

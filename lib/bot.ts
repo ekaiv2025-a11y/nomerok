@@ -87,6 +87,35 @@ async function cabinetButton(m: Master) {
 }
 
 /** Спрашиваем специалиста, хочет ли он получать общие заявки (по умолчанию — нет). */
+/** Кто мог бы взять заявку, но не подписан на рассылку (Telegram подключён, номер подтверждён). */
+export async function unsubscribedFor(r: ClientRequest): Promise<Master[]> {
+  const all = await adminListMasters();
+  return all.filter(
+    (m) => m.status === "published" && m.tg_chat_id && !m.notify_requests && canGetRequests(m) && servesCategory(m, r.category) && (m.city ?? "batumi") === (r.city ?? "batumi") && !isAwayNow(m) && !m.archived_at,
+  );
+}
+
+const OFFER: Record<string, (cat: string, desc: string) => string> = {
+  ru: (c, d) => `📩 <b>Есть заявка по вашему направлению</b> (${c})\n\n${d}\n\nВы не подписаны на заявки, поэтому присылаем один раз. Нажмите «Взять заявку», чтобы получить контакты клиента. Чтобы получать такие заявки сразу — включите подписку.`,
+  en: (c, d) => `📩 <b>A request in your field</b> (${c})\n\n${d}\n\nYou're not subscribed to requests, so we're sending this once. Tap “Take request” to get the client's contacts, or subscribe to get such requests right away.`,
+  ka: (c, d) => `📩 <b>განაცხადი თქვენი მიმართულებით</b> (${c})\n\n${d}\n\nგამოწერილი არ გაქვთ, ამიტომ ერთხელ გიგზავნით.`,
+};
+
+/** Админка: предложить заявку тем, кто подходит, но не подписан (один раз, с кнопками «Взять» и «Получать заявки»). */
+export async function offerToUnsubscribed(r: ClientRequest): Promise<number> {
+  let sent = 0;
+  for (const m of await unsubscribedFor(r)) {
+    const b = botDict(m.lang);
+    const ok = await sendTo(m.tg_chat_id!, (OFFER[m.lang] ?? OFFER.ru)(esc(categoryLabel(r.category, m.lang)), esc(r.description)), [
+      [{ text: b.btnTake, callback_data: `take:${r.id}` }],
+      [{ text: sub(m.lang).btnOn, callback_data: "sub:1" }],
+    ]).catch(() => null);
+    if (ok) sent++;
+  }
+  if (sent) await updateRequest(r.id, { sent_count: (r.sent_count ?? 0) + sent }).catch(() => {});
+  return sent;
+}
+
 export async function askSubscribe(m: Master) {
   if (!m.tg_chat_id) return;
   const s = sub(m.lang);
