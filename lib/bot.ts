@@ -29,7 +29,7 @@ import { categoryLabel } from "./categories";
 import { formatPhone, normalizePhone, normalizeTelegram, telegramLink } from "./phone";
 import { profileSteps } from "./profile";
 import { SITE_NAME, SITE_URL } from "./site";
-import { escapeHtml, notifyAdmin, sendTo, tg } from "./telegram";
+import { escapeHtml, notifyAdmin, sendTo, telegramChatId, tg } from "./telegram";
 import { makeJoinToken } from "./join-token";
 import type { ClientRequest, Master, MasterStatus } from "./types";
 
@@ -222,6 +222,7 @@ type TgMessage = {
   from?: TgUser;
   text?: string;
   contact?: { phone_number: string; user_id?: number };
+  reply_to_message?: { text?: string };
 };
 type TgCallback = { id: string; from: TgUser; data?: string; message?: TgMessage };
 export type TgUpdate = { update_id: number; message?: TgMessage; callback_query?: TgCallback };
@@ -761,6 +762,13 @@ export async function notifyReviewPublished(rv: Review) {
 async function onText(msg: TgMessage) {
   const chatId = msg.chat.id;
   const text = (msg.text ?? "").trim();
+
+  // Админ ответил (Reply) на «Сообщение боту» — пересылаем ответ этому человеку
+  const replyTo = msg.reply_to_message?.text?.match(/#u(-?\d+)/);
+  if (replyTo && text && String(chatId) === telegramChatId()) {
+    const ok = await sendTo(Number(replyTo[1]), `💬 <b>Ответ от NomerOk</b>\n\n${esc(text)}`).catch(() => null);
+    return void (await sendTo(chatId, ok ? "✓ Ответ отправлен" : "⚠️ Не удалось отправить: возможно, человек остановил бота"));
+  }
   const masters = await getMastersByChatId(chatId);
   const lang = masters[0]?.lang ?? guessLang(msg.from);
   const b = botDict(lang);
@@ -813,7 +821,7 @@ async function onText(msg: TgMessage) {
   const who = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
   const tag = msg.from?.username ? ` @${msg.from.username}` : "";
   const spec = masters[0] ? ` (специалист: ${masters[0].name})` : "";
-  await notifyAdmin(`💬 <b>Сообщение боту</b> от ${esc(who || "—")}${esc(tag)}${esc(spec)}:\n\n${esc(text)}`);
+  await notifyAdmin(`💬 <b>Сообщение боту</b> от ${esc(who || "—")}${esc(tag)}${esc(spec)}:\n\n${esc(text)}\n\n<i>↩️ Чтобы ответить — смахните это сообщение влево (или «Ответить») и напишите текст: бот перешлёт его человеку. #u${chatId}</i>`);
   await sendTo(chatId, b.forwarded);
 }
 
