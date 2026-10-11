@@ -15,6 +15,8 @@ import { AdminDocs } from "@/components/AdminDocs";
 import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 import { isAwayNow } from "@/lib/availability";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { AdminForward } from "@/components/AdminForward";
+import { botUsername } from "@/lib/telegram";
 import { looksLikeSelf } from "@/lib/request-check";
 import { guessCategory } from "@/lib/search-intent";
 import { SITE_URL } from "@/lib/site";
@@ -56,6 +58,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const byId = new Map(masters.map((m) => [m.id, m]));
   const pending = masters.filter((m) => m.status === "pending");
   const others = masters.filter((m) => m.status !== "pending");
+  const bot = tab === "requests" ? await botUsername().catch(() => null) : null;
   // Кто в разделе заявки: подписаны / не подписаны (Telegram есть) / без Telegram
   const groupsFor = (r: { category: string; city?: string | null }) => {
     const inCat = masters.filter(
@@ -275,7 +278,27 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       {g.sub.length + g.unsub.length + g.noTg.length === 0 && <p className="text-danger">В этом разделе нет опубликованных специалистов — смените раздел кнопкой «↪ Раздел».</p>}
                       {g.sub.length > 0 && <p>✅ <b>Подписаны на заявки:</b> {names(g.sub)} <span className="text-muted">— {r.sent_count ? "уже отправлено" : "получат"}</span></p>}
                       {g.unsub.length > 0 && <p>🔕 <b>Не подписаны:</b> {names(g.unsub)} <span className="text-muted">— {offered ? "уже отправлено разово" : "получат разово, с предложением подписаться"}</span></p>}
-                      {g.noTg.length > 0 && <p className="text-muted">⛔ Без Telegram — не получат: {names(g.noTg)}</p>}
+                      {g.noTg.length > 0 && (
+                        <>
+                          <p className="text-muted">⛔ Без Telegram — автоматически не получат: {names(g.noTg)}. Можно переслать вручную:</p>
+                          <AdminForward
+                            targets={g.noTg
+                              .filter((m) => m.telegram || m.phone)
+                              .map((m) => ({
+                                name: m.name.split(" ")[0],
+                                via: m.telegram ? `@${m.telegram}` : "Telegram по номеру",
+                                href: m.telegram ? `https://t.me/${m.telegram}` : telegramLink(null, m.phone),
+                                text: `Здравствуйте, ${m.name.split(" ")[0]}! Это NomerOk.ge — у нас есть заявка по вашему направлению (${categoryLabel(r.category)}):\n\n«${r.description}»${r.when_text ? `\nКогда: ${r.when_text}` : ""}\n\nКлиент: ${r.name || "—"}, ${formatPhone(r.phone)}\nЕсли возьмётесь — свяжитесь с клиентом напрямую.${bot ? `\n\nЧтобы такие заявки приходили вам сами, подключите нашего бота: https://t.me/${bot}?start=m_${m.tg_link_token}` : ""}\n\nДмитрий, NomerOk`,
+                              }))}
+                          />
+                        </>
+                      )}
+                      {g.sub.length + g.unsub.length === 0 && (
+                        <p className="mt-1.5 text-[12px] text-muted">
+                          Ещё можно: <Link href="/admin/leads" className="text-brand underline">🔎 найти специалиста в чатах</Link>
+                          {r.client_tg_chat_id ? " · написать клиенту, что ищем специалиста (ниже)" : " · сообщить клиенту по телефону или в Telegram, что ищем специалиста"}
+                        </p>
+                      )}
                     </div>
                   );
                 })()}
@@ -289,7 +312,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                         rows={5}
                         className="field w-full py-2 text-[13px]"
                         defaultValue={
-                          looksLikeSelf(r.description)
+                          !looksLikeSelf(r.description) && groupsFor(r).sub.length + groupsFor(r).unsub.length === 0
+                            ? `Здравствуйте${r.name ? `, ${r.name}` : ""}! Мы получили вашу заявку на NomerOk: «${r.description.slice(0, 120)}».\n\nСейчас подбираем подходящего специалиста — как только найдём, он свяжется с вами напрямую.\n\nДмитрий, NomerOk`
+                            : looksLikeSelf(r.description)
                             ? `Здравствуйте${r.name ? `, ${r.name}` : ""}! Вы отправили на NomerOk заявку, но, похоже, вы специалист и хотели разместить свою анкету 🙂\n\nЗаявки — это для тех, кто ищет мастера. Анкету специалиста можно разместить здесь: ${SITE_URL}/ru/join\nПосле этого вы сможете получать заявки клиентов прямо в Telegram.\n\nДмитрий, NomerOk`
                             : ""
                         }
