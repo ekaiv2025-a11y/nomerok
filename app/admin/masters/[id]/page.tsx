@@ -8,16 +8,17 @@ import { botLink } from "@/lib/telegram";
 import { profileSteps } from "@/lib/profile";
 import { signedUrls } from "@/lib/documents";
 import { AdminDocs } from "@/components/AdminDocs";
-import { askMasterFixPhone, deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
+import { adminLoginLink, askMasterFixPhone, deleteMaster, messageMaster, setMasterStatus, verifyPhoneManually } from "../../actions";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import { isFakePhone } from "@/lib/validation";
 import { AdminQuickMessage } from "@/components/AdminQuickMessage";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 const LABEL = { pending: "На проверке", published: "Опубликован", hidden: "Скрыт", rejected: "Отклонён" } as const;
 
-export default async function EditMasterPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; sent?: string }> }) {
+export default async function EditMasterPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; sent?: string; login?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   const { id } = await params;
   const sp = await searchParams;
@@ -75,6 +76,22 @@ export default async function EditMasterPage({ params, searchParams }: { params:
             <br />
             <span className="select-all break-all font-mono text-[13px] text-ink">{tgLink}</span>
           </p>
+        )}
+      </div>
+      <div className="mt-3 rounded-2xl bg-white p-4 text-[14px]">
+        <p className="font-semibold">🔑 Не может войти в кабинет?</p>
+        {sp.login && /^[\w-]+$/.test(sp.login) ? (
+          <p className="mt-2 text-muted">
+            Ссылка для входа (действует 24 часа, отправьте специалисту):
+            <br />
+            <span className="select-all break-all font-mono text-[13px] text-ink">{`${SITE_URL}/api/cabinet/login?t=${sp.login}&lang=${m.lang}`}</span>
+          </p>
+        ) : (
+          <form action={adminLoginLink} className="mt-2">
+            <input type="hidden" name="id" value={m.id} />
+            <button className="btn-ghost h-9 px-4 text-[13px]">Создать ссылку для входа</button>
+            <span className="ml-2 text-[12px] text-muted">Откроет кабинет без кода. Ещё проще: пусть нажмёт в боте /cabinet и «Поделиться номером»</span>
+          </form>
         )}
       </div>
       <div className="mt-3 rounded-2xl bg-white p-4 text-[14px]">

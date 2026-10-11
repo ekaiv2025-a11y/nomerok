@@ -8,6 +8,7 @@ import {
   createLoginToken,
   getMasterByLinkToken,
   getMastersByChatId,
+  findMasterByPhone,
   getRequest,
   getRequestByLinkToken,
   hasResponse,
@@ -318,7 +319,20 @@ async function onStart(msg: TgMessage, payload: string) {
 
   const masters = await getMastersByChatId(chatId);
   if (masters[0]) return sendCabinetLink(masters[0]);
+  // «Войти через Telegram» с сайта: анкета к этому Telegram не привязана — найдём её по номеру
+  if (payload === "login") return askLoginContact(chatId, guessLang(from));
   return welcome(chatId, guessLang(from));
+}
+
+/** Просим поделиться номером, чтобы найти анкету и впустить в кабинет. */
+async function askLoginContact(chatId: number, lang: string) {
+  const b = botDict(lang);
+  return tg("sendMessage", {
+    chat_id: chatId,
+    text: b.loginAsk,
+    parse_mode: "HTML",
+    reply_markup: { keyboard: [[{ text: b.btnShareContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true },
+  });
 }
 
 /** Присылает ссылку на форму отзыва (человек подтверждён своим Telegram). */
@@ -369,6 +383,17 @@ async function onContact(msg: TgMessage) {
   if (!m) {
     const phone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
     if (!phone || (c.user_id && msg.from && c.user_id !== msg.from.id)) return sendTo(chatId, botDict(lang).noPendingProfile, undefined, removeKeyboard);
+    // Анкета с этим номером уже есть (новый Telegram-аккаунт, переустановили, привязка слетела) — привязываем и впускаем
+    const found = await findMasterByPhone(phone).catch(() => null);
+    if (found) {
+      const patch: Partial<Master> = { tg_chat_id: chatId, tg_username: msg.from?.username ?? null };
+      if (!found.phone_verified_at) patch.phone_verified_at = new Date().toISOString();
+      await adminUpdateMaster(found.id, patch);
+      await sendTo(chatId, botDict(found.lang).loginFound(esc(found.name)), undefined, removeKeyboard);
+      await sendCabinetLink({ ...found, ...patch } as Master);
+      await notifyAdmin(`🔑 <b>${esc(found.name)}</b> восстановил(а) вход: Telegram заново привязан по номеру ${esc(formatPhone(phone))}\n${siteUrl()}/admin/masters/${found.id}`, { silent: true });
+      return;
+    }
     return onJoinContact(msg, phone);
   }
   const b = botDict(m.lang);
@@ -775,7 +800,7 @@ async function onText(msg: TgMessage) {
 
   if (text === "/cabinet" || text.startsWith("/cabinet@")) {
     if (masters[0]) return sendCabinetLink(masters[0]);
-    return sendTo(chatId, b.notSpecialist, [[{ text: b.btnJoin, url: `${siteUrl()}/${lang}/join` }]]);
+    return askLoginContact(chatId, lang);
   }
   if (text === "/help" || text.startsWith("/help@")) return sendTo(chatId, b.help);
   if (text === "/pause" || text.startsWith("/pause@")) {

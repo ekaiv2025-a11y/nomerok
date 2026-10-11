@@ -103,6 +103,17 @@ export async function verifyPhoneManually(formData: FormData) {
   redirect(`/admin/masters/${id}?saved=1`);
 }
 
+/** Ссылка для входа в кабинет специалиста (24 ч) — чтобы отправить вручную, если он не может войти. */
+export async function adminLoginLink(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const { adminGetMaster: get, createLoginToken } = await import("@/lib/db");
+  const m = await get(id);
+  if (!m) redirect("/admin?tab=masters");
+  const token = await createLoginToken(m.id);
+  redirect(`/admin/masters/${id}?login=${token}`);
+}
+
 /** Написать специалисту от имени бота (ответ придёт вам как «Сообщение боту»). */
 export async function messageMaster(formData: FormData) {
   await requireAdmin();

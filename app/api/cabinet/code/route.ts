@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { adminListMasters } from "@/lib/db";
+import { findMasterByPhone } from "@/lib/db";
 import { normalizePhone } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
@@ -31,8 +31,7 @@ export async function POST(req: Request) {
   if (!rateLimit(`code-ip:${ip}`, 10, 60 * 60 * 1000) || !rateLimit(`code-ph:${phone}`, 5, 60 * 60 * 1000)) {
     return NextResponse.json({ ok: false, error: "limit" }, { status: 429 });
   }
-  const all = await adminListMasters().catch(() => []);
-  const m = all.find((x) => normalizePhone(x.phone) === phone && x.status !== "rejected");
+  const m = await findMasterByPhone(phone).catch(() => null);
   if (!m) return NextResponse.json({ ok: false, error: "notfound" });
   if (!m.tg_chat_id) return NextResponse.json({ ok: false, error: "nobot" });
   const code = String(randomInt(100000, 1000000));

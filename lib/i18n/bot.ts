@@ -33,6 +33,8 @@ type BotDict = {
   hidden: string;
   cabinetLink: string;
   notSpecialist: string;
+  loginAsk: string;
+  loginFound: (name: string) => string;
   help: string;
   forwarded: string;
   typedPhone: string;
@@ -179,6 +181,8 @@ const ru: BotDict = {
   rejected: "К сожалению, мы не можем опубликовать анкету в таком виде. Напишите сюда, если есть вопросы, — подскажем, что поправить.",
   hidden: "Ваш профиль временно скрыт с сайта. Напишите сюда, если есть вопросы.",
   cabinetLink: "👤 Ваш кабинет — здесь можно менять фото, услуги и цены.\nСсылка действует 24 часа.",
+  loginAsk: "🔑 Чтобы войти в кабинет, нажмите кнопку <b>«Поделиться номером»</b> внизу — найдём вашу анкету по номеру телефона.\n\nЕсли анкеты ещё нет — бот предложит её заполнить.",
+  loginFound: (name) => `✅ Нашли вашу анкету: <b>${name}</b>. Telegram привязан — заявки и вход будут работать через этот аккаунт.`,
   notSpecialist: "Этот Telegram не привязан к анкете специалиста. Заполните анкету на сайте, и после отправки нажмите «Подтвердить номер в Telegram».",
   help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/pause — пауза (отпуск, не принимаю заявки)\n/resume — снова принимаю заявки\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
   forwarded: "Спасибо! Передали сообщение команде, ответим в ближайшее время.",
@@ -292,6 +296,8 @@ const en: BotDict = {
   rejected: "Unfortunately we can't publish the profile as it is. Write here if you have questions — we'll tell you what to fix.",
   hidden: "Your profile is temporarily hidden. Write here if you have questions.",
   cabinetLink: "👤 Your dashboard — change your photo, services and prices.\nThe link is valid for 24 hours.",
+  loginAsk: "🔑 To log in, tap <b>“Share phone number”</b> below — we'll find your profile by phone number.\n\nNo profile yet? The bot will offer to create one.",
+  loginFound: (name) => `✅ Found your profile: <b>${name}</b>. Telegram is linked — requests and login will work through this account.`,
   notSpecialist: "This Telegram isn't linked to a specialist profile. Fill in the form on the website and then tap “Verify number in Telegram”.",
   help: "Commands:\n/cabinet — link to your dashboard\n/pause — pause (vacation, not taking requests)\n/resume — accept requests again\n/help — help\n\nAny other message will be passed to our team.",
   forwarded: "Thanks! We've passed your message to the team and will reply soon.",
@@ -405,6 +411,8 @@ const ka: BotDict = {
   rejected: "სამწუხაროდ, ანკეტას ამ სახით ვერ გამოვაქვეყნებთ. მოგვწერეთ აქ, თუ კითხვები გაქვთ — გეტყვით, რა გავასწოროთ.",
   hidden: "თქვენი პროფილი დროებით დამალულია. მოგვწერეთ აქ, თუ კითხვები გაქვთ.",
   cabinetLink: "👤 თქვენი კაბინეტი — აქ შეგიძლიათ შეცვალოთ ფოტო, მომსახურება და ფასები.\nბმული მოქმედებს 24 საათი.",
+  loginAsk: "🔑 კაბინეტში შესასვლელად დააჭირეთ ქვემოთ <b>«ნომრის გაზიარებას»</b> — ანკეტას ნომრით მოვძებნით.\n\nთუ ანკეტა ჯერ არ გაქვთ — ბოტი შემოგთავაზებთ შევსებას.",
+  loginFound: (name) => `✅ თქვენი ანკეტა ვიპოვეთ: <b>${name}</b>. Telegram მიბმულია — განაცხადები და შესვლა ამ ანგარიშით იმუშავებს.`,
   notSpecialist: "ეს Telegram არ არის მიბმული სპეციალისტის ანკეტაზე. შეავსეთ ანკეტა საიტზე და გაგზავნის შემდეგ დააჭირეთ „ნომრის დადასტურება Telegram-ში“.",
   help: "ბრძანებები:\n/cabinet — ბმული თქვენს კაბინეტზე\n/pause — პაუზა (შვებულება, არ ვიღებ განაცხადებს)\n/resume — ისევ ვიღებ განაცხადებს\n/help — დახმარება\n\nნებისმიერ სხვა შეტყობინებას გადავცემთ გუნდს.",
   forwarded: "გმადლობთ! შეტყობინება გადავეცით გუნდს, მალე გიპასუხებთ.",

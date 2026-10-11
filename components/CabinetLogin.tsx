@@ -15,8 +15,8 @@ const T = {
     again: "Другой номер",
     errors: {
       phone: "Проверьте номер",
-      notfound: "Анкеты с таким номером нет. Проверьте номер или зарегистрируйтесь.",
-      nobot: "К этой анкете не подключён Telegram-бот. Войдите через кнопку Telegram ниже.",
+      notfound: "Анкеты с таким номером не нашли. Если номер в анкете другой — нажмите синюю кнопку «Telegram» ниже и поделитесь номером: бот найдёт анкету.",
+      nobot: "К анкете не подключён Telegram. Нажмите синюю кнопку «Telegram» ниже и поделитесь номером — бот найдёт анкету и пришлёт вход.",
       limit: "Слишком много попыток — подождите немного.",
       wrong: "Неверный код — проверьте и попробуйте ещё раз.",
       expired: "Код устарел — запросите новый.",
@@ -32,8 +32,8 @@ const T = {
     again: "Another number",
     errors: {
       phone: "Check the number",
-      notfound: "No profile with this number. Check it or sign up.",
-      nobot: "This profile isn't connected to the Telegram bot. Log in with the Telegram button below.",
+      notfound: "No profile found with this number. If your profile has another number, tap the blue Telegram button below and share your number — the bot will find it.",
+      nobot: "Telegram isn't connected to this profile. Tap the blue Telegram button below and share your number — the bot will find your profile.",
       limit: "Too many attempts — please wait a bit.",
       wrong: "Wrong code — check it and try again.",
       expired: "The code has expired — request a new one.",

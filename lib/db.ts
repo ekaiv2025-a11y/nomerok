@@ -573,6 +573,16 @@ export async function getMasterByLinkToken(token: string): Promise<Master | null
   return (await readLocal()).masters.find((m) => m.tg_link_token === token) ?? null;
 }
 
+/** Анкета по номеру телефона (сравниваем последние 9 цифр — так не мешают пробелы, «+», код страны). */
+export async function findMasterByPhone(phone: string): Promise<Master | null> {
+  const tail = phone.replace(/\D/g, "").slice(-9);
+  if (tail.length < 9) return null;
+  const all = await adminListMasters();
+  const hits = all.filter((m) => (m.phone ?? "").replace(/\D/g, "").slice(-9) === tail);
+  const rank = (m: Master) => (m.status === "published" ? 0 : m.status === "pending" ? 1 : 2) + (m.archived_at ? 3 : 0);
+  return hits.sort((a, b) => rank(a) - rank(b))[0] ?? null;
+}
+
 export async function getMastersByChatId(chatId: number): Promise<Master[]> {
   const sb = supabase();
   if (sb) return check(await sb.from("masters").select("*").eq("tg_chat_id", chatId).order("created_at", { ascending: false })) as Master[];
