@@ -583,6 +583,14 @@ export async function findMasterByPhone(phone: string): Promise<Master | null> {
   return hits.sort((a, b) => rank(a) - rank(b))[0] ?? null;
 }
 
+/** Анкета по Telegram-нику (если номер в Telegram не совпал с анкетой). */
+export async function findMasterByUsername(username: string | null | undefined): Promise<Master | null> {
+  const u = (username ?? "").replace(/^@/, "").toLowerCase();
+  if (u.length < 4) return null;
+  const hits = (await adminListMasters()).filter((m) => [m.telegram, m.tg_username].some((x) => (x ?? "").replace(/^@/, "").toLowerCase() === u));
+  return hits.find((m) => m.status === "published") ?? hits[0] ?? null;
+}
+
 export async function getMastersByChatId(chatId: number): Promise<Master[]> {
   const sb = supabase();
   if (sb) return check(await sb.from("masters").select("*").eq("tg_chat_id", chatId).order("created_at", { ascending: false })) as Master[];

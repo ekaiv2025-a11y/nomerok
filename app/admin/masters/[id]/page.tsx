@@ -90,8 +90,15 @@ export default async function EditMasterPage({ params, searchParams }: { params:
           <form action={adminLoginLink} className="mt-2">
             <input type="hidden" name="id" value={m.id} />
             <button className="btn-ghost h-9 px-4 text-[13px]">Создать ссылку для входа</button>
-            <span className="ml-2 text-[12px] text-muted">Откроет кабинет без кода. Ещё проще: пусть нажмёт в боте /cabinet и «Поделиться номером»</span>
+            <span className="ml-2 text-[12px] text-muted">Откроет кабинет без кода, действует 24 часа</span>
           </form>
+        )}
+        {tgLink && (
+          <p className="mt-3 text-muted">
+            Сменил Telegram или бот его «не узнаёт»? Отправьте эту ссылку — она заново привяжет его Telegram к этой анкете (заявки и вход):
+            <br />
+            <span className="select-all break-all font-mono text-[13px] text-ink">{tgLink}</span>
+          </p>
         )}
       </div>
       <div className="mt-3 rounded-2xl bg-white p-4 text-[14px]">

@@ -9,6 +9,7 @@ import {
   getMasterByLinkToken,
   getMastersByChatId,
   findMasterByPhone,
+  findMasterByUsername,
   getRequest,
   getRequestByLinkToken,
   hasResponse,
@@ -403,7 +404,7 @@ async function onContact(msg: TgMessage) {
     const phone = normalizePhone("+" + c.phone_number.replace(/^\+/, ""));
     if (!phone || (c.user_id && msg.from && c.user_id !== msg.from.id)) return sendTo(chatId, botDict(lang).noPendingProfile, undefined, removeKeyboard);
     // Анкета с этим номером уже есть (новый Telegram-аккаунт, переустановили, привязка слетела) — привязываем и впускаем
-    const found = await findMasterByPhone(phone).catch(() => null);
+    const found = (await findMasterByPhone(phone).catch(() => null)) ?? (await findMasterByUsername(msg.from?.username).catch(() => null));
     if (found) {
       const patch: Partial<Master> = { tg_chat_id: chatId, tg_username: msg.from?.username ?? null };
       if (!found.phone_verified_at) patch.phone_verified_at = new Date().toISOString();
@@ -413,7 +414,15 @@ async function onContact(msg: TgMessage) {
       await notifyAdmin(`🔑 <b>${esc(found.name)}</b> восстановил(а) вход: Telegram заново привязан по номеру ${esc(formatPhone(phone))}\n${siteUrl()}/admin/masters/${found.id}`, { silent: true });
       return;
     }
-    return onJoinContact(msg, phone);
+    await onJoinContact(msg, phone);
+    // Вдруг анкета уже есть, но с другим номером — не даём заводить дубль молча
+    await sendTo(chatId, botDict(lang).maybeHasProfile);
+    const who = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
+    await notifyAdmin(
+      `📱 ${esc(who || "—")}${msg.from?.username ? ` @${esc(msg.from.username)}` : ""} поделился номером ${esc(formatPhone(phone))} — анкеты с таким номером нет. Бот предложил новую анкету.\nЕсли это специалист, который не может войти, — откройте его анкету в админке → «Создать ссылку для входа» и ответьте ему здесь (смахните влево). #u${chatId}`,
+      { silent: true },
+    );
+    return;
   }
   const b = botDict(m.lang);
   if (m.phone_verified_at) return sendTo(chatId, b.alreadyVerified, undefined, removeKeyboard);

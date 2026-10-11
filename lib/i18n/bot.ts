@@ -23,6 +23,7 @@ type BotDict = {
   noPendingProfile: string;
   joinAsk: string;
   joinReady: string;
+  maybeHasProfile: string;
   btnJoinContinue: string;
   joinSubmitted: string;
   linkInvalid: string;
@@ -124,6 +125,7 @@ const ru: BotDict = {
   notOwnContact: "Пожалуйста, отправьте свой номер кнопкой «📱 Поделиться номером», а не чужой контакт.",
   noPendingProfile: "Спасибо! Но к этому Telegram не привязана анкета, ожидающая подтверждения.",
   joinAsk: "📝 Заполним анкету быстрее: нажмите кнопку ниже и поделитесь номером. Мы подставим в анкету ваш номер, ник и фото из Telegram — номер сразу будет подтверждён.",
+  maybeHasProfile: "❗️ Уже есть анкета на NomerOk, но с другим номером? Не заполняйте новую — просто напишите сюда своё имя и номер из анкеты, мы поможем войти.",
   joinReady: "Нажмите кнопку, чтобы продолжить анкету на сайте — телефон, ник и фото уже подставлены. Ссылка действует 24 часа.",
   btnJoinContinue: "📝 Продолжить анкету",
   joinSubmitted: "📝 Анкета получена! Мы проверим её и напишем сюда — обычно в течение дня.",
@@ -239,6 +241,7 @@ const en: BotDict = {
   notOwnContact: "Please send your own number with the “📱 Share my number” button, not someone else's contact.",
   noPendingProfile: "Thanks! But no profile awaiting verification is linked to this Telegram.",
   joinAsk: "📝 Let's fill in your profile faster: tap the button below and share your number. We'll add your number, username and photo from Telegram — your number will be verified right away.",
+  maybeHasProfile: "❗️ Already have a NomerOk profile with a different number? Don't create a new one — just write your name and the number from your profile here, and we'll help you log in.",
   joinReady: "Tap the button to continue your profile on the website — phone, username and photo are already filled in. The link is valid for 24 hours.",
   btnJoinContinue: "📝 Continue profile",
   joinSubmitted: "📝 Profile received! We'll review it and message you here, usually within a day.",
@@ -354,6 +357,7 @@ const ka: BotDict = {
   notOwnContact: "გთხოვთ, გამოგზავნოთ თქვენი ნომერი ღილაკით „📱 ნომრის გაზიარება“ და არა სხვისი კონტაქტი.",
   noPendingProfile: "გმადლობთ! მაგრამ ამ Telegram-ზე დასადასტურებელი ანკეტა არ არის მიბმული.",
   joinAsk: "📝 ანკეტას უფრო სწრაფად შევავსებთ: დააჭირეთ ქვემოთ ღილაკს და გაგვიზიარეთ ნომერი. ანკეტაში ჩავსვამთ თქვენს ნომერს, ნიკს და ფოტოს Telegram-იდან — ნომერი მაშინვე დადასტურდება.",
+  maybeHasProfile: "❗️ უკვე გაქვთ ანკეტა NomerOk-ზე, მაგრამ სხვა ნომრით? ახალს ნუ შეავსებთ — უბრალოდ მოგვწერეთ აქ სახელი და ანკეტის ნომერი, დაგეხმარებით შესვლაში.",
   joinReady: "დააჭირეთ ღილაკს, რომ საიტზე ანკეტა გააგრძელოთ — ტელეფონი, ნიკი და ფოტო უკვე ჩასმულია. ბმული მოქმედებს 24 საათი.",
   btnJoinContinue: "📝 ანკეტის გაგრძელება",
   joinSubmitted: "📝 ანკეტა მიღებულია! შევამოწმებთ და აქ მოგწერთ — ჩვეულებრივ დღის განმავლობაში.",
