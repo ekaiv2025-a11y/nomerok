@@ -63,6 +63,31 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
       .catch(() => setUpload("failed"));
   }, [state, file, upload, lang]);
 
+  // Регистрация только через Telegram: без него специалист не получит заявки и не сможет войти
+  if (!prefill && tgFastLink) {
+    return (
+      <div className="rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5 sm:p-6">
+        <p className="text-[18px] font-bold text-[#0f5c82]">{t.gateTitle}</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-[#2f5d74]">{t.gateText}</p>
+        <ol className="mt-4 space-y-2 text-[15px] text-[#2f5d74]">
+          {t.gateSteps.map((x: string, i: number) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#229ED9] text-[13px] font-bold text-white">{i + 1}</span>
+              <span>{x}</span>
+            </li>
+          ))}
+        </ol>
+        <a href={tgFastLink} target="_blank" rel="noopener noreferrer" className="btn mt-5 h-12 w-full gap-2 bg-[#229ED9] text-white hover:bg-[#1c89bd]">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+            <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
+          </svg>
+          {t.gateBtn}
+        </a>
+        <p className="mt-3 text-center text-[13px] text-muted">{t.gateNoTg}</p>
+      </div>
+    );
+  }
+
   if (state === "done") {
     return (
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
@@ -229,16 +254,15 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
         </div>
       </fieldset>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label={t.phone} hint={prefill ? `✓ ${t.phoneLocked}` : t.phoneHint} error={errors.phone}>
+        <Field label={t.phone} hint={prefill ? t.phoneLocked : t.phoneHint} error={errors.phone}>
           <input
             name="phone"
             type="tel"
             inputMode="tel"
             autoComplete="tel"
-            className={`${fc(errors.phone)} ${prefill ? "bg-cream" : ""}`}
+            className={fc(errors.phone)}
             placeholder={d.form.phonePlaceholder}
             defaultValue={prefill?.phone}
-            readOnly={!!prefill}
             required
           />
         </Field>

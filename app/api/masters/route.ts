@@ -4,16 +4,27 @@ import { adminUpdateMaster, createMaster, uploadPhoto } from "@/lib/db";
 import { readJoinToken } from "@/lib/join-token";
 import { setSpecCookies } from "@/lib/spec-auth";
 import { botDict } from "@/lib/i18n/bot";
-import { botLink, downloadTelegramFile, notifyAdmin, escapeHtml, sendTo } from "@/lib/telegram";
+import { botLink, downloadTelegramFile, notifyAdmin, escapeHtml, sendTo, telegramToken } from "@/lib/telegram";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
-import { formatPhone } from "@/lib/phone";
+import { formatPhone, normalizePhone } from "@/lib/phone";
 import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 import { cityLabel, cityOf } from "@/lib/cities";
 import { normalizeLinks } from "@/lib/links";
 import { pullLinks } from "@/lib/extract-links";
+
+const TG_REQUIRED = {
+  ru: "Анкету можно создать только через Telegram — откройте страницу заново и нажмите «Зарегистрироваться через Telegram».",
+  en: "Profiles can only be created via Telegram — reload the page and tap “Sign up with Telegram”.",
+  ka: "ანკეტის შექმნა მხოლოდ Telegram-ით შეიძლება — გახსენით გვერდი თავიდან და დააჭირეთ «რეგისტრაცია Telegram-ით».",
+} as const;
+const TG_EXPIRED = {
+  ru: "Ссылка из бота устарела (действует 24 часа). Откройте бота NomerOk, нажмите «📱 Поделиться номером» ещё раз и получите новую ссылку.",
+  en: "The bot link has expired (valid 24 hours). Open the NomerOk bot, tap “📱 Share phone number” again and get a new link.",
+  ka: "ბოტის ბმულს ვადა გაუვიდა (24 საათი). გახსენით NomerOk ბოტი, კვლავ დააჭირეთ «📱 ნომრის გაზიარებას» და მიიღეთ ახალი ბმული.",
+} as const;
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -23,8 +34,15 @@ export async function POST(req: Request) {
 
   // Анкета «через Telegram»: номер берём из подписанного токена бота
   const pre = readJoinToken(body.tg);
+  // Без Telegram регистрации нет: иначе специалист не получает заявки и не может войти в кабинет
+  if (!pre && telegramToken()) {
+    const msg = body.tg ? TG_EXPIRED[lang] : TG_REQUIRED[lang];
+    return NextResponse.json({ ok: false, error: msg }, { status: 422 });
+  }
+  // Номер: из Telegram, но специалист может указать другой рабочий
+  const tgPhone = pre?.phone ?? null;
   if (pre) {
-    body.phone = pre.phone;
+    if (!normalizePhone(String(body.phone ?? ""))) body.phone = pre.phone;
     if (!body.telegram && pre.username) body.telegram = pre.username;
   }
 
@@ -77,7 +95,9 @@ export async function POST(req: Request) {
     if (Object.keys(links).length) await adminUpdateMaster(m.id, { links }).catch(() => {});
 
     if (pre) {
-      await adminUpdateMaster(m.id, { tg_chat_id: pre.chatId, tg_username: pre.username, phone_verified_at: new Date().toISOString() });
+      const now = new Date().toISOString();
+      const samePhone = normalizePhone(m.phone) === tgPhone;
+      await adminUpdateMaster(m.id, { tg_chat_id: pre.chatId, tg_username: pre.username, ...(samePhone ? { phone_verified_at: now } : { tg_verified_at: now }) });
       if (pre.photoFileId && body.tgPhoto === true) {
         const f = await downloadTelegramFile(pre.photoFileId).catch(() => null);
         if (f) {
@@ -96,7 +116,7 @@ export async function POST(req: Request) {
         `<b>Телефон:</b> ${escapeHtml(formatPhone(m.phone))}${m.telegram ? ` · @${escapeHtml(m.telegram)}` : ""}`,
         `<b>Город:</b> ${cityLabel(cityOf(body.city), "ru")}`,
         `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
-        pre ? "✅ Номер подтверждён через Telegram" : "",
+        pre ? (normalizePhone(m.phone) === tgPhone ? "✅ Номер подтверждён через Telegram" : `✅ Telegram подключён (в Telegram другой номер: ${escapeHtml(formatPhone(tgPhone ?? ""))})`) : "",
         `\nПроверить и опубликовать: ${SITE_URL}/admin/masters/${m.id}`,
       ]
         .filter(Boolean)
