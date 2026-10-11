@@ -7,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, sendToChosen, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, sendToChosen, remindVerifyAll, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -16,6 +16,7 @@ import { DEMO_UNTIL, isDemoSlug } from "@/lib/demo";
 import { isAwayNow } from "@/lib/availability";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { AdminPickMasters } from "@/components/AdminPickMasters";
+import { AdminCopyList } from "@/components/AdminCopyList";
 import { botUsername } from "@/lib/telegram";
 import { looksLikeSelf } from "@/lib/request-check";
 import { guessCategory } from "@/lib/search-intent";
@@ -59,6 +60,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const pending = masters.filter((m) => m.status === "pending");
   const others = masters.filter((m) => m.status !== "pending");
   const bot = tab === "requests" ? await botUsername().catch(() => null) : null;
+  const botLinkUser = tab === "masters" ? await botUsername().catch(() => null) : null;
   const pickable = tab === "requests" ? masters.filter((m) => m.status !== "rejected" && !m.archived_at) : [];
   // Кто в разделе заявки: подписаны / не подписаны (Telegram есть) / без Telegram
   const groupsFor = (r: { category: string; city?: string | null }) => {
@@ -447,18 +449,46 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             )}
           </div>
           {moved && <p className="rounded-xl bg-white p-3 text-[14px] font-semibold">✓ Перенесено в правильные разделы: {moved}</p>}
+          {msg && <p className="rounded-xl bg-white p-3 text-[14px] font-semibold">{msg}</p>}
           {(() => {
-            const noTg = masters.filter((x) => x.status === "published" && !x.tg_chat_id && !isDemoSlug(x.slug));
-            if (!noTg.length) return null;
+            const live = masters.filter((x) => x.status !== "rejected" && !x.archived_at && !isDemoSlug(x.slug));
+            const noTg = live.filter((x) => !x.tg_chat_id);
+            const noVerify = live.filter((x) => x.tg_chat_id && !x.phone_verified_at && !x.tg_verified_at);
+            if (!noTg.length && !noVerify.length) return null;
+            const reachable = noTg.filter((x) => x.telegram || x.phone);
             return (
               <div className="rounded-2xl border border-[#f0d58a] bg-[#fff8e6] p-4 text-[14px]">
-                <b>⚠️ Опубликованы без Telegram: {noTg.length}</b>
-                <p className="mt-1 text-[13px] text-muted">Они не получают заявки и не могут войти в кабинет. Откройте каждого и отправьте готовое сообщение со ссылкой на бота.</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {noTg.map((x) => (
-                    <Link key={x.id} href={`/admin/masters/${x.id}`} className="rounded-full bg-white px-3 py-1 text-[13px] hover:underline">{x.name}</Link>
-                  ))}
-                </div>
+                <b>⚠️ Не подтвердили Telegram: {noTg.length + noVerify.length}</b>
+                <p className="mt-1 text-[13px] text-muted">Без этого они не получают заявки и не могут войти в кабинет.</p>
+                {noVerify.length > 0 && (
+                  <form action={remindVerifyAll} className="mt-3 rounded-xl bg-white p-3">
+                    <p className="text-[13px]">
+                      <b>Бот подключён, номер не подтверждён: {noVerify.length}</b> — {noVerify.map((x) => x.name.split(" ")[0]).join(", ")}
+                    </p>
+                    <button className="btn-primary mt-2 h-9 px-4 text-[13px]">🔔 Напомнить всем через бота ({noVerify.length})</button>
+                  </form>
+                )}
+                {noTg.length > 0 && (
+                  <div className="mt-3 rounded-xl bg-white p-3">
+                    <p className="text-[13px]">
+                      <b>Бот не подключён: {noTg.length}</b> — бот им написать не может. Нажимайте по очереди: текст с личной ссылкой скопируется, откроется их Telegram — вставьте и отправьте.
+                    </p>
+                    <AdminCopyList
+                      storeKey="nm-remind-tg"
+                      items={reachable.map((x) => {
+                        const link = botLinkUser ? `https://t.me/${botLinkUser}?start=m_${x.tg_link_token}` : "";
+                        return {
+                          key: x.id,
+                          label: x.name,
+                          sub: `${categoryLabel(x.category)}${x.telegram ? ` · @${x.telegram}` : ` · ${formatPhone(x.phone)}`}${x.status === "pending" ? " · анкета на проверке" : ""}`,
+                          href: x.telegram ? `https://t.me/${x.telegram}` : telegramLink(null, x.phone),
+                          text: `Здравствуйте, ${x.name.split(" ")[0]}! Это NomerOk.ge — ваша анкета «${categoryLabel(x.category)}» на нашем сайте.\n\nЧтобы получать заявки клиентов и входить в личный кабинет, подключите, пожалуйста, нашего Telegram-бота — это 1 минута:\n\n1. Откройте ссылку: ${link}\n2. Нажмите «Начать»\n3. Нажмите «📱 Поделиться номером»\n\nГотово — заявки будут приходить вам прямо в Telegram.\n\nДмитрий, NomerOk.ge`,
+                        };
+                      })}
+                    />
+                    {noTg.length > reachable.length && <p className="mt-2 text-[12px] text-muted">Без телефона и Telegram: {noTg.filter((x) => !x.telegram && !x.phone).map((x) => x.name).join(", ")}</p>}
+                  </div>
+                )}
               </div>
             );
           })()}

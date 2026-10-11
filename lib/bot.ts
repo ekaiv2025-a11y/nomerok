@@ -278,9 +278,16 @@ async function welcome(chatId: number, lang: string) {
   ]);
 }
 
+/** Напомнить специалисту подтвердить номер (Telegram подключён, но «Поделиться номером» не нажал). */
+export async function remindVerify(m: Master): Promise<boolean> {
+  if (!m.tg_chat_id) return false;
+  const r = await askContact(m, m.tg_chat_id).catch(() => null);
+  return !!r;
+}
+
 async function askContact(m: Master, chatId: number) {
   const b = botDict(m.lang);
-  await tg("sendMessage", {
+  return tg("sendMessage", {
     chat_id: chatId,
     text: b.askContact(esc(m.name), formatPhone(m.phone)),
     parse_mode: "HTML",

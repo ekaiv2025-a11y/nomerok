@@ -211,6 +211,17 @@ export async function sendToChosen(formData: FormData) {
   redirect(`/admin?tab=requests&msg=${encodeURIComponent(done.length ? `✓ Заявка отправлена: ${done.join(", ")}. Они получат её в Telegram с кнопкой «Беру».` : "⚠️ Не удалось отправить: возможно, специалисты остановили бота")}`);
 }
 
+/** Всем, кто подключил бота, но не подтвердил номер, — напоминание с кнопкой «Поделиться номером». */
+export async function remindVerifyAll() {
+  await requireAdmin();
+  const { adminListMasters } = await import("@/lib/db");
+  const { remindVerify } = await import("@/lib/bot");
+  const list = (await adminListMasters()).filter((m) => m.tg_chat_id && !m.phone_verified_at && !m.tg_verified_at && m.status !== "rejected" && !m.archived_at);
+  let ok = 0;
+  for (const m of list) if (await remindVerify(m).catch(() => false)) ok++;
+  redirect(`/admin?tab=masters&msg=${encodeURIComponent(`✓ Напоминание отправлено через бота: ${ok} из ${list.length}`)}`);
+}
+
 /** Предложить заявку специалистам раздела, которые не подписаны на рассылку (один раз). */
 export async function offerUnsubscribed(formData: FormData) {
   await requireAdmin();
