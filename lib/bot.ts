@@ -73,6 +73,25 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
   return sent;
 }
 
+/** Админ выбрал конкретных специалистов: отправляем им заявку (любой раздел). Возвращает имена, кому ушло. */
+export async function sendRequestToChosen(r: ClientRequest, ms: Master[]): Promise<string[]> {
+  const done: string[] = [];
+  for (const m of ms) {
+    if (!m.tg_chat_id) continue;
+    const b = botDict(m.lang);
+    if (r.photos?.length) {
+      const media = r.photos.filter((u) => u.startsWith("https://")).map((u) => ({ type: "photo", media: u }));
+      if (media.length === 1) await tg("sendPhoto", { chat_id: m.tg_chat_id, photo: media[0].media }).catch(() => null);
+      else if (media.length > 1) await tg("sendMediaGroup", { chat_id: m.tg_chat_id, media }).catch(() => null);
+    }
+    const text = b.newRequest(esc(categoryLabel(r.category, m.lang)), esc(r.description), esc(r.when_text));
+    const ok = await sendTo(m.tg_chat_id, text, [[{ text: b.btnTake, callback_data: `take:${r.id}:a` }]]).catch(() => null);
+    if (ok) done.push(m.name.split(" ")[0]);
+  }
+  if (done.length) await updateRequest(r.id, { sent_count: (r.sent_count ?? 0) + done.length, ...(r.status === "new" ? { status: "sent" as const } : {}) });
+  return done;
+}
+
 /* ---------- уведомления специалисту о модерации ---------- */
 
 function stepsText(m: Master): string {
@@ -453,12 +472,15 @@ async function onPhoneChoice(cb: TgCallback, data: string) {
 }
 
 /** Отклик специалиста на заявку (из бота или с сайта). Возвращает ошибку или null. */
-export async function takeRequest(m: Master, r: ClientRequest, opts: { notifyInTelegram: boolean }): Promise<"gone" | "notAllowed" | "already" | "full" | null> {
+export async function takeRequest(m: Master, r: ClientRequest, opts: { notifyInTelegram: boolean; adminPick?: boolean }): Promise<"gone" | "notAllowed" | "already" | "full" | null> {
   if (r.status === "spam" || r.status === "done") return "gone";
-  const ok = m.status === "published" && canGetRequests(m) && (r.master_id ? m.id === r.master_id : servesCategory(m, r.category));
+  // adminPick: заявку прислал лично админ — раздел и лимит откликов не проверяем
+  const ok = opts.adminPick
+    ? m.status !== "rejected"
+    : m.status === "published" && canGetRequests(m) && (r.master_id ? m.id === r.master_id : servesCategory(m, r.category));
   if (!ok) return "notAllowed";
   if (await hasResponse(r.id, m.id)) return "already";
-  if (!r.master_id && (await countResponses(r.id)) >= MAX_RESPONSES) return "full";
+  if (!opts.adminPick && !r.master_id && (await countResponses(r.id)) >= MAX_RESPONSES) return "full";
   const res = await addResponse(r.id, m.id);
   if (!res.created) return "already";
   const b = botDict(m.lang);
@@ -485,17 +507,20 @@ export async function takeRequest(m: Master, r: ClientRequest, opts: { notifyInT
   return null;
 }
 
-async function onTake(cb: TgCallback, requestId: string) {
+async function onTake(cb: TgCallback, data: string) {
+  const [requestId, flag] = data.split(":");
+  const adminPick = flag === "a";
   const chatId = cb.from.id;
   const answer = (text: string) => tg("answerCallbackQuery", { callback_query_id: cb.id, text, show_alert: true });
   const r = await getRequest(requestId);
   const masters = await getMastersByChatId(chatId);
   const m =
+    (adminPick ? masters.find((x) => x.status !== "rejected") : null) ??
     masters.find((x) => x.status === "published" && canGetRequests(x) && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ?? masters[0] ?? null;
   const b = botDict(m?.lang ?? guessLang(cb.from));
   if (!r) return answer(b.requestGone);
   if (!m) return answer(b.notAllowed);
-  const err = await takeRequest(m, r, { notifyInTelegram: true });
+  const err = await takeRequest(m, r, { notifyInTelegram: true, adminPick });
   if (err) return answer({ gone: b.requestGone, notAllowed: b.notAllowed, already: b.alreadyYours, full: b.requestFull }[err]);
   await tg("answerCallbackQuery", { callback_query_id: cb.id });
   if (cb.message) {

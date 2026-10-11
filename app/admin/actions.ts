@@ -195,6 +195,22 @@ export async function distributeNow(formData: FormData) {
   redirect(`/admin?tab=requests&msg=${encodeURIComponent(`⚠️ Заявка никому не ушла: ${why}.`)}`);
 }
 
+/** Отправить заявку выбранным специалистам (любого раздела) через бота. */
+export async function sendToChosen(formData: FormData) {
+  await requireAdmin();
+  const { getRequest, adminListMasters, updateRequest } = await import("@/lib/db");
+  const { sendRequestToChosen } = await import("@/lib/bot");
+  const r = await getRequest(String(formData.get("id")));
+  if (!r) redirect("/admin?tab=requests");
+  const ids = new Set(formData.getAll("mid").map(String));
+  if (!ids.size) redirect(`/admin?tab=requests&msg=${encodeURIComponent("⚠️ Отметьте хотя бы одного специалиста")}`);
+  const ms = (await adminListMasters()).filter((m) => ids.has(m.id));
+  const done = await sendRequestToChosen(r, ms).catch(() => [] as string[]);
+  if (done.length) await updateRequest(r.id, { admin_note: `${r.admin_note ?? ""} [вручную: ${done.join(", ")}]`.trim() }).catch(() => {});
+  revalidatePath("/admin");
+  redirect(`/admin?tab=requests&msg=${encodeURIComponent(done.length ? `✓ Заявка отправлена: ${done.join(", ")}. Они получат её в Telegram с кнопкой «Беру».` : "⚠️ Не удалось отправить: возможно, специалисты остановили бота")}`);
+}
+
 /** Предложить заявку специалистам раздела, которые не подписаны на рассылку (один раз). */
 export async function offerUnsubscribed(formData: FormData) {
   await requireAdmin();
