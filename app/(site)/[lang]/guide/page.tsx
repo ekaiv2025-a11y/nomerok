@@ -3,7 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
-import { ARTICLES, RUBRICS, formatArticleDate, readingMinutes, type Article, type Rubric } from "@/lib/articles";
+import { RUBRICS, formatArticleDate, readingMinutes, type Article, type Rubric } from "@/lib/articles";
+
+import { journalArticles } from "@/lib/journal";
+
+export const dynamic = "force-dynamic";
 
 const TITLE = "Журнал NomerOk: дом, ремонт и жизнь в Грузии";
 const DESC = "Практичные советы для жизни в Батуми и Грузии: что делать, если пропал свет или вода, как выбрать мастера, снять квартиру, найти няню или репетитора. И советы для специалистов.";
@@ -21,9 +25,14 @@ function Cover({ a, big }: { a: Article; big?: boolean }) {
   const rub = RUBRICS[a.rubric ?? "home"];
   return (
     <span className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${rub.bg} ${big ? "h-48 sm:h-full sm:min-h-64" : "h-36"}`}>
-      <span className={big ? "text-[84px]" : "text-[56px]"} aria-hidden>
-        {a.emoji}
-      </span>
+      {a.cover ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={a.cover} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      ) : (
+        <span className={big ? "text-[84px]" : "text-[56px]"} aria-hidden>
+          {a.emoji}
+        </span>
+      )}
       <span className="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[12px] font-semibold text-ink backdrop-blur">
         {rub.emoji} {rub.label}
       </span>
@@ -44,6 +53,7 @@ export default async function GuideList({ params, searchParams }: LangParams & {
   if (lang !== "ru") notFound();
   const r = (await searchParams).r;
   const active = r && r in RUBRICS ? (r as Rubric) : null;
+  const ARTICLES = await journalArticles();
   const list = active ? ARTICLES.filter((a) => a.rubric === active) : ARTICLES;
   const first: Article | null = active ? null : list[0] ?? null;
   const rest = active ? list : list.slice(1);

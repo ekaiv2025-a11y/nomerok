@@ -108,6 +108,7 @@ export async function healthCheck() {
           ["0016 фото в заявке", "requests", "photos"],
           ["0017 свободные окна", "masters", "slots"],
           ["0018 бонусы за рекомендацию", "referrals", "code"],
+          ["0019 журнал (новости)", "posts", "slug"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -154,6 +155,7 @@ type LocalData = {
   profile_views: { master_id: string; visitor: string; day: string; created_at: string }[];
   outreach?: { tg_user_id: string; name: string; category: string; status: string; created_at: string }[];
   referral_offers?: { master_id: string; active: boolean; friend: string; reward: string; max_uses: number; prefix: string; since: string; updated_at: string }[];
+  posts?: import("./posts-db").Post[];
   referrals?: { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null }[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");

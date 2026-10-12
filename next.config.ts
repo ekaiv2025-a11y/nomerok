@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Фото-обложки журнала загружаются через server action (Vercel принимает до 4,5 МБ)
+  experimental: { serverActions: { bodySizeLimit: "4mb" } },
   images: {
     // Фото специалистов (Supabase) и примеров (Unsplash) сжимаются под размер экрана и кэшируются
     remotePatterns: [

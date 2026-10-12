@@ -16,6 +16,7 @@ export type Block =
 
 /** Рубрики журнала. */
 export const RUBRICS = {
+  news: { label: "Новости", emoji: "📰", bg: "from-[#eef0f3] to-[#d9dee6]" },
   home: { label: "Дом и ремонт", emoji: "🏠", bg: "from-[#e7f3ec] to-[#cfe8da]" },
   life: { label: "Жизнь в Грузии", emoji: "🌴", bg: "from-[#e6f2fb] to-[#cde4f5]" },
   family: { label: "Дети, семья, питомцы", emoji: "🧸", bg: "from-[#fdf1e4] to-[#f8dfc2]" },
@@ -35,6 +36,8 @@ export type Article = {
   rubric?: Rubric;
   cats: string[]; // связанные разделы каталога
   body: Block[];
+  cover?: string | null; // фото-обложка (записи из админки)
+  source?: { name: string; url: string } | null; // источник новости
   faq?: { q: string; a: string }[];
 };
 

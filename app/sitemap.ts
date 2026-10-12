@@ -4,7 +4,7 @@ import { listPublishedMasters } from "@/lib/db";
 import { LOCALES } from "@/lib/i18n/config";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { DISTRICTS, servesDistrict } from "@/lib/districts";
-import { ARTICLES } from "@/lib/articles";
+import { journalArticles } from "@/lib/journal";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +26,7 @@ function entry(path: string, priority: number, lastModified?: string): MetadataR
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const masters = await listPublishedMasters().catch(() => []);
+  const ARTICLES = await journalArticles();
   return [
     ...PAGES.flatMap((p) => entry(p.path, p.priority)),
     // Статьи — пока только на русском

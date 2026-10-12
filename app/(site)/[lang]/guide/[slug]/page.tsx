@@ -3,20 +3,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { ARTICLES, RUBRICS, articleBySlug, formatArticleDate, readingMinutes } from "@/lib/articles";
+import { RUBRICS, formatArticleDate, readingMinutes } from "@/lib/articles";
+import { journalArticle, journalArticles } from "@/lib/journal";
 import { QUICK } from "@/lib/phones";
 import { SITE_URL } from "@/lib/site";
 
 type Props = { params: Promise<{ lang: string; slug: string }> };
 
-export function generateStaticParams() {
-  return ARTICLES.map((a) => ({ lang: "ru", slug: a.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
-  const a = articleBySlug(slug);
-  if (!a || lang !== "ru") return { robots: { index: false } };
+  const a = lang === "ru" ? await journalArticle(slug) : null;
+  if (!a) return { robots: { index: false } };
   const base = pageMeta("ru", `/guide/${a.slug}`, a.title, a.description);
   return { ...base, alternates: { canonical: `/ru/guide/${a.slug}` }, openGraph: { ...base.openGraph, type: "article" } };
 }
@@ -24,8 +23,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ArticlePage({ params }: Props) {
   const { lang, slug } = await params;
   if (!isLocale(lang) || lang !== "ru") notFound();
-  const a = articleBySlug(slug);
+  const a = await journalArticle(slug);
   if (!a) notFound();
+  const ARTICLES = await journalArticles();
   const same = ARTICLES.filter((x) => x.slug !== a.slug && x.rubric === a.rubric);
   const others = [...same, ...ARTICLES.filter((x) => x.slug !== a.slug && x.rubric !== a.rubric)].slice(0, 4);
   const rub = RUBRICS[a.rubric ?? "home"];
@@ -51,7 +51,11 @@ export default async function ArticlePage({ params }: Props) {
       <p className="mt-2 text-[13px] text-muted">
         Редакция NomerOk · {formatArticleDate(a.date)} · {readingMinutes(a)} мин чтения
       </p>
-      <p className="mt-3 text-[17px] leading-relaxed text-[#3a3935]">{a.lead}</p>
+      {a.cover && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={a.cover} alt="" className="mt-5 max-h-[420px] w-full rounded-2xl object-cover" />
+      )}
+      {a.lead && <p className="mt-4 text-[17px] leading-relaxed text-[#3a3935]">{a.lead}</p>}
 
       <article className="mt-6 space-y-4 text-[16px] leading-relaxed text-[#2a2925]">
         {a.body.map((b, i) => {
@@ -96,6 +100,15 @@ export default async function ArticlePage({ params }: Props) {
           );
         })}
       </article>
+
+      {a.source && (
+        <p className="mt-6 text-[14px] text-muted">
+          Источник:{" "}
+          <a href={a.source.url} target="_blank" rel="noopener noreferrer nofollow" className="text-brand underline">
+            {a.source.name}
+          </a>
+        </p>
+      )}
 
       {a.faq && a.faq.length > 0 && (
         <section className="mt-10">
