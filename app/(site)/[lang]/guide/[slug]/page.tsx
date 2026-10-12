@@ -3,9 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { ARTICLES, articleBySlug } from "@/lib/articles";
+import { ARTICLES, RUBRICS, articleBySlug, formatArticleDate, readingMinutes } from "@/lib/articles";
 import { QUICK } from "@/lib/phones";
-import { categoryPlural } from "@/lib/categories";
 import { SITE_URL } from "@/lib/site";
 
 type Props = { params: Promise<{ lang: string; slug: string }> };
@@ -27,20 +26,31 @@ export default async function ArticlePage({ params }: Props) {
   if (!isLocale(lang) || lang !== "ru") notFound();
   const a = articleBySlug(slug);
   if (!a) notFound();
-  const others = ARTICLES.filter((x) => x.slug !== a.slug).slice(0, 3);
+  const same = ARTICLES.filter((x) => x.slug !== a.slug && x.rubric === a.rubric);
+  const others = [...same, ...ARTICLES.filter((x) => x.slug !== a.slug && x.rubric !== a.rubric)].slice(0, 4);
+  const rub = RUBRICS[a.rubric ?? "home"];
   const ld = [
-    { "@context": "https://schema.org", "@type": "Article", headline: a.h1, description: a.description, datePublished: a.date, inLanguage: "ru", mainEntityOfPage: `${SITE_URL}/ru/guide/${a.slug}`, publisher: { "@type": "Organization", name: "NomerOk.ge" } },
+    { "@context": "https://schema.org", "@type": "Article", headline: a.h1, description: a.description, datePublished: a.date, inLanguage: "ru", mainEntityOfPage: `${SITE_URL}/ru/guide/${a.slug}`, dateModified: a.date, author: { "@type": "Organization", name: "Редакция NomerOk" }, publisher: { "@type": "Organization", name: "NomerOk.ge" } },
     ...(a.faq?.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: a.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
   ];
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
-      <Link href={href(lang, "/guide")} className="text-[14px] text-muted hover:text-brand">
-        ← Полезные советы
-      </Link>
+      <nav className="flex flex-wrap items-center gap-2 text-[14px] text-muted">
+        <Link href={href(lang, "/guide")} className="hover:text-brand">
+          ← Журнал
+        </Link>
+        <span>·</span>
+        <Link href={href(lang, `/guide?r=${a.rubric}`)} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[13px] font-medium text-brand-dark hover:underline">
+          {rub.emoji} {rub.label}
+        </Link>
+      </nav>
       <h1 className="mt-3 text-[26px] font-bold leading-tight sm:text-[34px]">
         {a.emoji} {a.h1}
       </h1>
+      <p className="mt-2 text-[13px] text-muted">
+        Редакция NomerOk · {formatArticleDate(a.date)} · {readingMinutes(a)} мин чтения
+      </p>
       <p className="mt-3 text-[17px] leading-relaxed text-[#3a3935]">{a.lead}</p>
 
       <article className="mt-6 space-y-4 text-[16px] leading-relaxed text-[#2a2925]">
@@ -73,6 +83,12 @@ export default async function ArticlePage({ params }: Props) {
                 </Link>
               </div>
             );
+          if ("link" in b)
+            return (
+              <Link key={i} href={href(lang, b.href)} className="flex items-center justify-between gap-3 rounded-2xl bg-brand px-5 py-4 text-[16px] font-semibold text-white hover:bg-brand-dark">
+                {b.link} <span aria-hidden>→</span>
+              </Link>
+            );
           return (
             <Link key={i} href={href(lang, `/services/${b.cat}`)} className="flex items-center justify-between gap-3 rounded-2xl bg-brand px-5 py-4 text-[16px] font-semibold text-white hover:bg-brand-dark">
               {b.cta} <span aria-hidden>→</span>
@@ -95,18 +111,12 @@ export default async function ArticlePage({ params }: Props) {
         </section>
       )}
 
-      <section className="mt-10 rounded-2xl border border-line bg-white p-5">
-        <p className="text-[17px] font-bold">Нужен специалист прямо сейчас?</p>
-        <p className="mt-1 text-[14px] text-muted">Опишите задачу — заявку получат {a.cats.map((c) => categoryPlural(c, "ru").toLowerCase()).join(", ")}, и свободные напишут вам сами.</p>
-        <Link href={href(lang, `/request?category=${a.cats[0]}`)} className="btn-primary mt-3 h-11 px-5">
-          Разместить заявку
-        </Link>
-      </section>
+
 
       {others.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-[18px] font-bold">Ещё полезное</h2>
-          <div className="mt-3 grid gap-2">
+          <h2 className="text-[18px] font-bold">Читайте также</h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {others.map((o) => (
               <Link key={o.slug} href={href(lang, `/guide/${o.slug}`)} className="rounded-xl border border-line bg-white px-4 py-3 text-[15px] hover:border-brand">
                 {o.emoji} {o.h1}

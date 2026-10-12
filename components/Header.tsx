@@ -92,6 +92,7 @@ export function Header({ lang }: { lang: Locale }) {
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
     { href: href(lang, "/phones"), label: "📞 " + PH[lang].nav },
+    ...(lang === "ru" ? [{ href: href(lang, "/guide"), label: "📰 Журнал" }] : []),
     { href: href(lang, "/how"), label: t.nav.how },
     { href: href(lang, "/join"), label: t.footer.placeProfile },
     { href: href(lang, "/cabinet"), label: isSpec ? "👤 " + MYCAB[lang] : t.nav.cabinet },
@@ -124,6 +125,11 @@ export function Header({ lang }: { lang: Locale }) {
             <Link href={href(lang, "/orders")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
               {ORD[lang].nav}
             </Link>
+            {lang === "ru" && (
+              <Link href={href(lang, "/guide")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">
+                Журнал
+              </Link>
+            )}
             <Link href={href(lang, isSpec ? "/cabinet" : "/join")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
               {isSpec ? MYCAB[lang] : t.nav.iAmSpecialist}
             </Link>

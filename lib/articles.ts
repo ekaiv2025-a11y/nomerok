@@ -3,13 +3,26 @@
  * Пока только на русском. Цифры и цены не выдумываем — только то, что можно проверить.
  */
 
+import { MORE_ARTICLES } from "./articles-more";
+
 export type Block =
   | { h2: string }
   | { p: string }
   | { list: string[]; ordered?: boolean }
   | { tip: string }
   | { cta: string; cat: string }
+  | { link: string; href: string }
   | { phones: true };
+
+/** Рубрики журнала. */
+export const RUBRICS = {
+  home: { label: "Дом и ремонт", emoji: "🏠", bg: "from-[#e7f3ec] to-[#cfe8da]" },
+  life: { label: "Жизнь в Грузии", emoji: "🌴", bg: "from-[#e6f2fb] to-[#cde4f5]" },
+  family: { label: "Дети, семья, питомцы", emoji: "🧸", bg: "from-[#fdf1e4] to-[#f8dfc2]" },
+  health: { label: "Здоровье и красота", emoji: "🌿", bg: "from-[#f3ecfb] to-[#e2d4f5]" },
+  pros: { label: "Специалистам", emoji: "🧑‍🔧", bg: "from-[#fff6dc] to-[#fbe6a6]" },
+} as const;
+export type Rubric = keyof typeof RUBRICS;
 
 export type Article = {
   slug: string;
@@ -19,12 +32,13 @@ export type Article = {
   lead: string;
   emoji: string;
   date: string; // YYYY-MM-DD
+  rubric?: Rubric;
   cats: string[]; // связанные разделы каталога
   body: Block[];
   faq?: { q: string; a: string }[];
 };
 
-export const ARTICLES: Article[] = [
+const FIRST: Article[] = [
   {
     slug: "propal-svet-batumi",
     emoji: "⚡",
@@ -155,6 +169,23 @@ export const ARTICLES: Article[] = [
     ],
   },
 ];
+
+const RUBRIC_BY_SLUG: Record<string, Rubric> = { "kak-nayti-nyanyu-batumi": "family" };
+
+/** Все статьи журнала, новые сверху. */
+export const ARTICLES: Article[] = [...MORE_ARTICLES, ...FIRST]
+  .map((a) => ({ ...a, rubric: a.rubric ?? RUBRIC_BY_SLUG[a.slug] ?? "home" }))
+  .sort((a, b) => b.date.localeCompare(a.date));
+
+/** Время чтения в минутах (~150 слов в минуту). */
+export function readingMinutes(a: Article): number {
+  const text = [a.lead, ...a.body.map((b) => ("p" in b ? b.p : "list" in b ? b.list.join(" ") : "tip" in b ? b.tip : "h2" in b ? b.h2 : "")), ...(a.faq ?? []).map((f) => f.q + " " + f.a)].join(" ");
+  return Math.max(2, Math.round(text.split(/\s+/).length / 150));
+}
+
+export function formatArticleDate(d: string): string {
+  return new Date(d + "T12:00:00Z").toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+}
 
 export function articleBySlug(slug: string) {
   return ARTICLES.find((a) => a.slug === slug) ?? null;
