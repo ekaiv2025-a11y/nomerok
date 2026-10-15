@@ -109,6 +109,7 @@ export async function healthCheck() {
           ["0017 свободные окна", "masters", "slots"],
           ["0018 бонусы за рекомендацию", "referrals", "code"],
           ["0019 журнал (новости)", "posts", "slug"],
+          ["0020 фото в журнале", "posts", "photos"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -734,7 +735,24 @@ export async function resolveLoginToken(token: string): Promise<string | null> {
 }
 
 /** Загрузка фото специалиста. Возвращает публичную ссылку. */
-export async function uploadPhoto(masterId: string, file: Blob, ext: string): Promise<string> {
+/** Уменьшаем фото на сервере (до 1600px, JPEG): страницы грузятся быстро даже без сжатия хостинга. */
+async function shrinkPhoto(file: Blob, ext: string): Promise<{ file: Blob; ext: string }> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 250 * 1024) return { file, ext };
+  try {
+    const sharp = (await import("sharp")).default;
+    const buf = await sharp(Buffer.from(await file.arrayBuffer()))
+      .rotate()
+      .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toBuffer();
+    return buf.length < file.size ? { file: new Blob([new Uint8Array(buf)], { type: "image/jpeg" }), ext: "jpg" } : { file, ext };
+  } catch {
+    return { file, ext };
+  }
+}
+
+export async function uploadPhoto(masterId: string, original: Blob, origExt: string): Promise<string> {
+  const { file, ext } = await shrinkPhoto(original, origExt);
   const sb = supabase();
   if (sb) {
     const key = `${masterId}/${Date.now()}.${ext}`;

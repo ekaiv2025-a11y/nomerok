@@ -17,6 +17,7 @@ export type Post = {
   rubric: string;
   emoji: string;
   cover_url: string | null;
+  photos?: string[];
   source_name: string | null;
   source_url: string | null;
   cats: string[];
@@ -101,6 +102,7 @@ export function postToArticle(p: Post): Article {
     cats: p.cats ?? [],
     body: [...parsePostBody(p.body), ...(p.cats?.[0] ? [{ cta: `${categoryPlural(p.cats[0], "ru")} на NomerOk — фото работ, цены, отзывы`, cat: p.cats[0] } as Block] : [])],
     cover: p.cover_url,
+    photos: p.photos ?? [],
     source: p.source_url ? { name: p.source_name || new URL(p.source_url).hostname, url: p.source_url } : null,
   };
 }
@@ -149,7 +151,12 @@ export async function savePost(input: Omit<Post, "id" | "created_at" | "updated_
   };
   const sb = supabase();
   if (sb) {
-    const r = await sb.from("posts").upsert(row).select("*").single();
+    let r = await sb.from("posts").upsert(row).select("*").single();
+    // колонки «photos» ещё нет (миграция 0020 не выполнена) — сохраняем без галереи
+    if (r.error && /photos/i.test(r.error.message)) {
+      const { photos: _skip, ...rest } = row; // eslint-disable-line @typescript-eslint/no-unused-vars
+      r = await sb.from("posts").upsert(rest).select("*").single();
+    }
     if (r.error) throw new Error(/does not exist|schema cache/i.test(r.error.message) ? "Таблица журнала ещё не создана — откройте админку → Telegram-бот → проверка базы (миграция 0019)" : r.error.message);
     return r.data as Post;
   }

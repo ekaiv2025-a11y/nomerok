@@ -5,6 +5,7 @@ import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { RUBRICS, formatArticleDate, readingMinutes } from "@/lib/articles";
 import { journalArticle, journalArticles } from "@/lib/journal";
+import { ArticleGallery } from "@/components/ArticleGallery";
 import { QUICK } from "@/lib/phones";
 import { SITE_URL } from "@/lib/site";
 
@@ -100,6 +101,8 @@ export default async function ArticlePage({ params }: Props) {
           );
         })}
       </article>
+
+      {a.photos && a.photos.length > 0 && <ArticleGallery photos={a.photos} />}
 
       {a.source && (
         <p className="mt-6 text-[14px] text-muted">

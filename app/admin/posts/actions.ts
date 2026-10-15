@@ -29,6 +29,12 @@ export async function savePostAction(fd: FormData) {
     cover = await uploadPhoto("journal", file, ext);
   }
 
+  let photos: string[] = [];
+  try {
+    const raw = JSON.parse(String(fd.get("photos") ?? "[]"));
+    if (Array.isArray(raw)) photos = raw.filter((u) => typeof u === "string" && /^(https:\/\/|data:image\/)/.test(u)).slice(0, 30);
+  } catch {}
+
   let saved;
   try {
     saved = await savePost({
@@ -40,6 +46,7 @@ export async function savePostAction(fd: FormData) {
       rubric: rubric in RUBRICS ? rubric : "news",
       emoji: String(fd.get("emoji") ?? "").trim().slice(0, 8) || "📰",
       cover_url: cover,
+      photos,
       source_name: String(fd.get("source_name") ?? "").trim().slice(0, 80) || null,
       source_url: /^https?:\/\//i.test(srcUrl) ? srcUrl.slice(0, 500) : null,
       cats: (CATEGORY_IDS as readonly string[]).includes(cat) ? [cat] : [],

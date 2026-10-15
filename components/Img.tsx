@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 
 /**
@@ -25,18 +28,22 @@ export function Img({
   draggable?: boolean;
   style?: React.CSSProperties;
 }) {
+  // Если сжатие картинок на хостинге недоступно (лимит, сбой) — показываем оригинал, а не пустоту
+  const [raw, setRaw] = useState(false);
+  const canOptimize = OPTIMIZABLE.test(src) && !raw;
   return (
     <Image
+      key={canOptimize ? "o" : "r"}
       src={src}
       alt={alt}
       fill
       sizes={sizes}
       className={className}
       priority={priority}
-      onError={onError}
+      onError={() => (canOptimize ? setRaw(true) : onError?.())}
       draggable={draggable}
       style={style}
-      unoptimized={!OPTIMIZABLE.test(src)}
+      unoptimized={!canOptimize}
     />
   );
 }

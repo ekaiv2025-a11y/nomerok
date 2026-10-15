@@ -6,6 +6,7 @@ import { RUBRICS, type Rubric } from "@/lib/articles";
 import { CATEGORIES } from "@/lib/categories";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { deletePostAction, savePostAction } from "../actions";
+import { AdminPostPhotos } from "@/components/AdminPostPhotos";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +103,10 @@ export default async function EditPost({ params, searchParams }: { params: Promi
             </div>
           )}
           <input type="file" name="cover" accept="image/jpeg,image/png,image/webp" className="mt-1 block text-[13px]" />
+        </div>
+        <div>
+          <span className={label}>Галерея — ещё фото (необязательно)</span>
+          <AdminPostPhotos initial={p?.photos ?? []} />
         </div>
         <div className="flex flex-wrap gap-2 border-t border-line pt-4">
           {p?.status === "published" ? (

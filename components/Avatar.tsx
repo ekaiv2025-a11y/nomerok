@@ -15,17 +15,20 @@ function initials(name: string) {
 export function Avatar({ name, photo, size = 56, className = "", alt }: { name: string; photo?: string | null; size?: number; className?: string; alt?: string }) {
   const style = { width: size, height: size };
   const [broken, setBroken] = useState(false);
+  const [raw, setRaw] = useState(false); // сжатие на хостинге не сработало — берём оригинал
   const p = splitPhoto(photo);
   if (p.src && !broken) {
+    const canOptimize = !raw && /^https:\/\/([a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/)/.test(p.src);
     return (
       <Image
+        key={canOptimize ? "o" : "r"}
         src={p.src}
         alt={alt ?? name}
         width={size}
         height={size}
         style={{ ...style, objectPosition: `50% ${p.y}%` }}
-        onError={() => setBroken(true)}
-        unoptimized={!/^https:\/\/([a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/)/.test(p.src)}
+        onError={() => (canOptimize ? setRaw(true) : setBroken(true))}
+        unoptimized={!canOptimize}
         className={`shrink-0 rounded-2xl object-cover bg-cream ${className}`}
       />
     );

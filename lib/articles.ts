@@ -37,6 +37,7 @@ export type Article = {
   cats: string[]; // связанные разделы каталога
   body: Block[];
   cover?: string | null; // фото-обложка (записи из админки)
+  photos?: string[]; // галерея
   source?: { name: string; url: string } | null; // источник новости
   faq?: { q: string; a: string }[];
 };
