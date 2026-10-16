@@ -323,6 +323,9 @@ async function onStart(msg: TgMessage, payload: string) {
     ]);
   }
 
+  // «Это моё заведение» со страницы места: t.me/бот?start=pl_ID
+  if (payload.startsWith("pl_")) return onPlaceClaim(chatId, from, payload.slice(3));
+
   // «Мои заявки» на сайте: t.me/бот?start=my_ru → ссылка для входа
   if (payload.startsWith("my")) {
     const lang = ["ru", "en", "ka"].includes(payload.slice(3)) ? payload.slice(3) : guessLang(from);
@@ -399,11 +402,64 @@ async function onJoinContact(msg: TgMessage, phone: string) {
   await sendTo(chatId, b.joinReady, [[{ text: b.btnJoinContinue, url: `${siteUrl()}/${lang}/join?t=${token}` }]]);
 }
 
+/* ---------- «Это моё заведение»: подтверждение владельца места ---------- */
+
+const PLACE_TXT = {
+  ask: (name: string) =>
+    `🏢 Подтверждение владельца: <b>${name}</b>\n\nНажмите кнопку <b>«📱 Поделиться номером»</b> внизу. Если номер совпадёт с телефоном заведения на сайте — подтвердим сразу.`,
+  ok: (name: string) =>
+    `✅ Готово! Вы подтвердили, что «${name}» — ваше заведение.\n\nЧтобы добавить фото, меню, часы работы или исправить данные — просто напишите сюда сообщением или пришлите фото, мы обновим карточку.`,
+  manual: (name: string) =>
+    `Спасибо! Номер не совпал с телефоном «${name}» на сайте, поэтому проверим вручную — обычно в течение дня.\n\nМожете сразу написать сюда, кто вы (владелец, управляющий) и как с вами связаться.`,
+  already: "✅ Это заведение уже подтверждено. Если хотите что-то изменить — напишите сюда.",
+  gone: "Не нашли это место. Возможно, ссылка устарела — откройте карточку на сайте ещё раз.",
+};
+
+async function onPlaceClaim(chatId: number, from: TgUser | undefined, placeId: string) {
+  const { getPlace, updatePlace } = await import("./places-db");
+  const p = await getPlace(placeId).catch(() => null);
+  if (!p) return sendTo(chatId, PLACE_TXT.gone);
+  if (p.owner_verified_at && p.owner_chat_id === chatId) return sendTo(chatId, PLACE_TXT.already);
+  await updatePlace(p.id, { claim_chat_id: chatId, claim_at: new Date().toISOString() });
+  return tg("sendMessage", {
+    chat_id: chatId,
+    text: PLACE_TXT.ask(esc(p.name)),
+    parse_mode: "HTML",
+    reply_markup: { keyboard: [[{ text: botDict(guessLang(from)).btnShareContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true },
+  });
+}
+
+/** Номер, которым поделились, — для подтверждения места. true, если обработали. */
+async function onPlaceContact(msg: TgMessage): Promise<boolean> {
+  const chatId = msg.chat.id;
+  const { placeClaimedBy, updatePlace } = await import("./places-db");
+  const p = await placeClaimedBy(chatId).catch(() => null);
+  if (!p) return false;
+  const c = msg.contact!;
+  const tail = (x: string) => x.replace(/\D/g, "").slice(-9);
+  const phone = normalizePhone("+" + c.phone_number.replace(/^\+/, "")) ?? c.phone_number;
+  const who = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ") + (msg.from?.username ? ` @${msg.from.username}` : "");
+  const same = (p.phones ?? []).some((x) => tail(x) === tail(phone));
+  const admin = `${siteUrl()}/admin/places/${encodeURIComponent(p.id)}`;
+  if (same) {
+    await updatePlace(p.id, { owner_chat_id: chatId, owner_name: who.slice(0, 80), owner_verified_at: new Date().toISOString() });
+    await sendTo(chatId, PLACE_TXT.ok(esc(p.name)), undefined, removeKeyboard);
+    await notifyAdmin(`🏢 <b>${esc(p.name)}</b>: владелец подтверждён автоматически — номер ${esc(formatPhone(phone))} совпал с номером места.\n${esc(who)}\n${admin}`);
+  } else {
+    await sendTo(chatId, PLACE_TXT.manual(esc(p.name)), undefined, removeKeyboard);
+    await notifyAdmin(
+      `🏢 <b>${esc(p.name)}</b>: заявка владельца, но номер ${esc(formatPhone(phone))} не совпал с номером места (${esc((p.phones ?? []).map(formatPhone).join(", ") || "нет номера")}).\n${esc(who)}\nПроверьте вручную: ${admin}\n<i>↩️ Ответить человеку — смахните это сообщение влево. #u${chatId}</i>`,
+    );
+  }
+  return true;
+}
+
 async function onContact(msg: TgMessage) {
   const chatId = msg.chat.id;
   const lang = guessLang(msg.from);
   const c = msg.contact!;
   if (c.user_id && msg.from && c.user_id !== msg.from.id) return sendTo(chatId, botDict(lang).notOwnContact);
+  if (await onPlaceContact(msg)) return;
 
   const masters = await getMastersByChatId(chatId);
   const m = masters.find((x) => !x.phone_verified_at) ?? masters[0];

@@ -1,3 +1,4 @@
+import { PT } from "@/lib/places";
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { SOCIAL } from "@/lib/social-text";
@@ -38,6 +39,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/favorites">{SOCIAL[lang].fav}</L>
             <L to="/recommend">{SOCIAL[lang].recLink}</L>
             <L to="/phones">{PH[lang].nav}</L>
+            <L to="/places">📍 {PT[lang].nav}</L>
             {lang === "ru" && <L to="/guide">Журнал</L>}
           </ul>
         </div>

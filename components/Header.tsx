@@ -9,6 +9,7 @@ import { SOCIAL } from "@/lib/social-text";
 import { MY } from "@/lib/my-text";
 import { ORD } from "@/lib/orders-text";
 import { PH } from "@/lib/phones";
+import { PT } from "@/lib/places";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { getDict, href, type Locale } from "@/lib/i18n";
 
@@ -91,6 +92,7 @@ export function Header({ lang }: { lang: Locale }) {
     { href: href(lang, "/my"), label: "📋 " + MY[lang].nav },
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
+    { href: href(lang, "/places"), label: "📍 " + PT[lang].nav },
     { href: href(lang, "/phones"), label: "📞 " + PH[lang].nav },
     ...(lang === "ru" ? [{ href: href(lang, "/guide"), label: "📰 Журнал" }] : []),
     { href: href(lang, "/how"), label: t.nav.how },
@@ -124,6 +126,9 @@ export function Header({ lang }: { lang: Locale }) {
             </Link>
             <Link href={href(lang, "/orders")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
               {ORD[lang].nav}
+            </Link>
+            <Link href={href(lang, "/places")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
+              {PT[lang].nav}
             </Link>
             {lang === "ru" && (
               <Link href={href(lang, "/guide")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">

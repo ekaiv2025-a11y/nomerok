@@ -14,7 +14,8 @@ const HELP = `Как оформлять текст:
 • пустая строка — новый абзац
 • ## Заголовок — подзаголовок
 • - пункт — список (или 1. пункт — нумерованный)
-• ! текст — важная подсказка (жёлтая плашка)`;
+• ! текст — важная подсказка (жёлтая плашка)
+• @места: адрес1, адрес2 — карточки мест для подборки (адрес — конец ссылки nomerok.ge/ru/places/…)`;
 
 export default async function EditPost({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; err?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
@@ -131,6 +132,7 @@ export default async function EditPost({ params, searchParams }: { params: Promi
               "h2" in b ? <h2 key={i} className="text-[19px] font-bold">{b.h2}</h2>
               : "p" in b ? <p key={i}>{b.p}</p>
               : "tip" in b ? <p key={i} className="rounded-xl bg-[#fff8e6] p-3">💡 {b.tip}</p>
+              : "places" in b ? <p key={i} className="rounded-xl bg-cream p-3 text-[13px]">📍 Места: {b.places.join(", ")}</p>
               : "list" in b ? (b.ordered ? <ol key={i} className="list-decimal pl-6">{b.list.map((x, j) => <li key={j}>{x}</li>)}</ol> : <ul key={i} className="list-disc pl-6">{b.list.map((x, j) => <li key={j}>{x}</li>)}</ul>)
               : null,
             )}

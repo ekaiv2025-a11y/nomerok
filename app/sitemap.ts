@@ -5,6 +5,7 @@ import { LOCALES } from "@/lib/i18n/config";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { DISTRICTS, servesDistrict } from "@/lib/districts";
 import { journalArticles } from "@/lib/journal";
+import { indexablePlaces, placeCounts } from "@/lib/places-db";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +28,17 @@ function entry(path: string, priority: number, lastModified?: string): MetadataR
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const masters = await listPublishedMasters().catch(() => []);
   const ARTICLES = await journalArticles();
+  const [pc, pl] = await Promise.all([placeCounts().catch(() => ({}) as Record<string, number>), indexablePlaces().catch(() => [])]);
   return [
     ...PAGES.flatMap((p) => entry(p.path, p.priority)),
     // Статьи — пока только на русском
     { url: `${SITE_URL}/ru/guide`, priority: 0.6 },
     ...ARTICLES.map((a) => ({ url: `${SITE_URL}/ru/guide/${a.slug}`, priority: 0.7, lastModified: a.date })),
     ...seoCategoryIds().flatMap((c) => entry(`/services/${c}`, 0.9)),
+    // Места города: раздел, категории, карточки с описанием
+    ...entry("/places", 0.7),
+    ...Object.keys(pc).filter((c) => pc[c] > 0).flatMap((c) => entry(`/places/c/${c}`, 0.6)),
+    ...pl.flatMap((x) => entry(`/places/${x.slug}`, 0.5, x.updated_at)),
     // «услуга + район» — только там, где реально есть специалисты в этом районе
     ...seoCategoryIds().flatMap((c) =>
       DISTRICTS.filter((d) => masters.some((m) => !m.demo && m.city === "batumi" && (m.category === c || m.extra_categories.includes(c)) && servesDistrict(m, d) === "exact")).flatMap((d) =>

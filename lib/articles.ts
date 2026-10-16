@@ -12,11 +12,13 @@ export type Block =
   | { tip: string }
   | { cta: string; cat: string }
   | { link: string; href: string }
+  | { places: string[] } // карточки мест (id или адрес-slug) — для подборок
   | { phones: true };
 
 /** Рубрики журнала. */
 export const RUBRICS = {
   news: { label: "Новости", emoji: "📰", bg: "from-[#eef0f3] to-[#d9dee6]" },
+  picks: { label: "Подборки", emoji: "📍", bg: "from-[#fde9e4] to-[#f7cfc4]" },
   home: { label: "Дом и ремонт", emoji: "🏠", bg: "from-[#e7f3ec] to-[#cfe8da]" },
   life: { label: "Жизнь в Грузии", emoji: "🌴", bg: "from-[#e6f2fb] to-[#cde4f5]" },
   family: { label: "Дети, семья, питомцы", emoji: "🧸", bg: "from-[#fdf1e4] to-[#f8dfc2]" },
@@ -183,7 +185,7 @@ export const ARTICLES: Article[] = [...MORE_ARTICLES, ...FIRST]
 
 /** Время чтения в минутах (~150 слов в минуту). */
 export function readingMinutes(a: Article): number {
-  const text = [a.lead, ...a.body.map((b) => ("p" in b ? b.p : "list" in b ? b.list.join(" ") : "tip" in b ? b.tip : "h2" in b ? b.h2 : "")), ...(a.faq ?? []).map((f) => f.q + " " + f.a)].join(" ");
+  const text = [a.lead, ...a.body.map((b) => ("places" in b ? b.places.map(() => "место ".repeat(40)).join(" ") : "p" in b ? b.p : "list" in b ? b.list.join(" ") : "tip" in b ? b.tip : "h2" in b ? b.h2 : "")), ...(a.faq ?? []).map((f) => f.q + " " + f.a)].join(" ");
   return Math.max(2, Math.round(text.split(/\s+/).length / 150));
 }
 

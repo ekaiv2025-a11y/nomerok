@@ -6,6 +6,8 @@ import { pageMeta } from "@/lib/i18n/page";
 import { RUBRICS, formatArticleDate, readingMinutes } from "@/lib/articles";
 import { journalArticle, journalArticles } from "@/lib/journal";
 import { ArticleGallery } from "@/components/ArticleGallery";
+import { PlaceCard } from "@/components/PlaceCard";
+import { placesByRefs } from "@/lib/places-db";
 import { QUICK } from "@/lib/phones";
 import { SITE_URL } from "@/lib/site";
 
@@ -27,6 +29,9 @@ export default async function ArticlePage({ params }: Props) {
   const a = await journalArticle(slug);
   if (!a) notFound();
   const ARTICLES = await journalArticles();
+  const refs = a.body.flatMap((b) => ("places" in b ? b.places : []));
+  const placeList = refs.length ? await placesByRefs(refs) : [];
+  let placeN = 0;
   const same = ARTICLES.filter((x) => x.slug !== a.slug && x.rubric === a.rubric);
   const others = [...same, ...ARTICLES.filter((x) => x.slug !== a.slug && x.rubric !== a.rubric)].slice(0, 4);
   const rub = RUBRICS[a.rubric ?? "home"];
@@ -88,6 +93,16 @@ export default async function ArticlePage({ params }: Props) {
                 </Link>
               </div>
             );
+          if ("places" in b) {
+            const ps = b.places.map((r) => placeList.find((x) => x.id === r || x.slug === r)).filter((x): x is NonNullable<typeof x> => !!x);
+            return (
+              <div key={i} className="space-y-3">
+                {ps.map((x) => (
+                  <PlaceCard key={x.id} p={x} lang={lang} n={++placeN} wide />
+                ))}
+              </div>
+            );
+          }
           if ("link" in b)
             return (
               <Link key={i} href={href(lang, b.href)} className="flex items-center justify-between gap-3 rounded-2xl bg-brand px-5 py-4 text-[16px] font-semibold text-white hover:bg-brand-dark">

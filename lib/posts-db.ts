@@ -47,6 +47,7 @@ export function slugify(title: string): string {
  *   ## Заголовок
  *   - пункт списка   (или 1. пункт — нумерованный)
  *   ! важная подсказка (жёлтая плашка)
+ *   @места: id-или-адрес, id2, … — карточки мест (для подборок)
  */
 export function parsePostBody(text: string): Block[] {
   const out: Block[] = [];
@@ -64,7 +65,10 @@ export function parsePostBody(text: string): Block[] {
       list = [];
     };
     for (const l of lines) {
-      if (/^#{2,3}\s+/.test(l)) {
+      if (/^@(места|places)\s*:/i.test(l)) {
+        flush();
+        out.push({ places: l.replace(/^@(места|places)\s*:/i, "").split(/[,\s]+/).map((x) => x.trim().replace(/^.*\/places\//, "")).filter(Boolean) });
+      } else if (/^#{2,3}\s+/.test(l)) {
         flush();
         out.push({ h2: l.replace(/^#{2,3}\s+/, "") });
       } else if (/^!\s*/.test(l)) {
