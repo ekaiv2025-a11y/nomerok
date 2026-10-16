@@ -1,5 +1,6 @@
 /* «Места» — общие типы, категории и подписи (можно и на сервере, и в браузере). */
 import type { Locale } from "./i18n/config";
+import { georgianToRussian, toRussianAddress } from "./place-addr";
 
 export type Place = {
   id: string;
@@ -77,6 +78,8 @@ export const placeCat = (id: string) => PLACE_CATS.find((c) => c.id === id) ?? P
 export function placeName(p: Pick<Place, "name" | "name_en" | "name_ka">, lang: Locale): string {
   if (lang === "en") return p.name_en || p.name;
   if (lang === "ka") return p.name_ka || p.name;
+  // грузинское название без латиницы — русскими буквами
+  if (/[\u10A0-\u10FF]/.test(p.name) && !/[A-Za-zА-Яа-яЁё]/.test(p.name)) return p.name_en || georgianToRussian(p.name);
   return p.name;
 }
 export function placeDesc(p: Pick<Place, "desc_ru" | "desc_en">, lang: Locale): string | null {
@@ -84,7 +87,8 @@ export function placeDesc(p: Pick<Place, "desc_ru" | "desc_en">, lang: Locale): 
 }
 /** Адрес на языке страницы: для русской версии — русский вариант, если есть. */
 export function placeAddr(p: Pick<Place, "addr" | "addr_ru">, lang: Locale): string | null {
-  return (lang === "ru" ? p.addr_ru || p.addr : p.addr || p.addr_ru) || null;
+  if (lang === "ru") return p.addr_ru || toRussianAddress(p.addr) || p.addr || null;
+  return p.addr || p.addr_ru || null;
 }
 
 /** Виды заведений в разделе «Рестораны и кафе» (по подкатегории из карт). */
@@ -133,6 +137,14 @@ export function prettyHours(h: string, lang: Locale): string {
 export const PT: Record<Locale, Record<string, string>> = {
   ru: {
     nav: "Места",
+    share: "Поделиться",
+    copied: "✓ Ссылка скопирована",
+    onMaps: "Открыть на карте",
+    reviews: "Отзывы",
+    leaveReview: "Оставить отзыв",
+    noReviews: "Отзывов пока нет. Были здесь? Расскажите, как всё прошло — это поможет другим.",
+    reviewHow: "Отзыв оставляется через Telegram — так мы защищаемся от накруток. Публикуем после проверки.",
+    noLinks: "Сайта и соцсетей у нас пока нет. Знаете их? Подскажите — добавим.",
     title: "Места Батуми: кафе, сервисы, магазины",
     h1: "Места Батуми",
     lead: "Адреса, телефоны, сайты и соцсети заведений и организаций города. Ищите по названию или выбирайте раздел.",
@@ -164,6 +176,14 @@ export const PT: Record<Locale, Record<string, string>> = {
   },
   en: {
     nav: "Places",
+    share: "Share",
+    copied: "✓ Link copied",
+    onMaps: "Open in maps",
+    reviews: "Reviews",
+    leaveReview: "Leave a review",
+    noReviews: "No reviews yet. Been here? Tell others how it went.",
+    reviewHow: "Reviews are left via Telegram to prevent fakes, and published after a check.",
+    noLinks: "We don't have a website or social links yet. Know them? Tell us.",
     title: "Places in Batumi: cafés, services, shops",
     h1: "Places in Batumi",
     lead: "Addresses, phones, websites and social links of the city's venues and businesses. Search by name or pick a category.",
@@ -195,6 +215,14 @@ export const PT: Record<Locale, Record<string, string>> = {
   },
   ka: {
     nav: "ადგილები",
+    share: "გაზიარება",
+    copied: "✓ ბმული დაკოპირდა",
+    onMaps: "რუკაზე გახსნა",
+    reviews: "შეფასებები",
+    leaveReview: "შეფასების დატოვება",
+    noReviews: "შეფასებები ჯერ არ არის. ყოფილხართ აქ? გაგვიზიარეთ.",
+    reviewHow: "შეფასება Telegram-ით ტოვდება — ასე ვიცავთ ყალბი შეფასებებისგან.",
+    noLinks: "საიტი და სოციალური ქსელები ჯერ არ გვაქვს. იცით? მოგვწერეთ.",
     title: "ბათუმის ადგილები: კაფეები, სერვისები, მაღაზიები",
     h1: "ბათუმის ადგილები",
     lead: "ქალაქის დაწესებულებების მისამართები, ტელეფონები, საიტები და სოციალური ქსელები.",

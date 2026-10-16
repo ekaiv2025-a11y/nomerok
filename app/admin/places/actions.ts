@@ -98,3 +98,17 @@ export async function enrichPlacesAction(fd: FormData) {
   revalidatePath("/admin/places");
   redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);
 }
+
+export async function placeReviewStatusAction(fd: FormData) {
+  await requireAdmin();
+  const { setPlaceReviewStatus } = await import("@/lib/place-reviews-db");
+  const status = fd.get("status") === "published" ? "published" : "rejected";
+  const r = await setPlaceReviewStatus(String(fd.get("id")), status);
+  if (r && status === "published") {
+    const p = await getPlace(r.place_id);
+    const { sendTo } = await import("@/lib/telegram");
+    if (p) await sendTo(r.author_chat_id, `⭐ Ваш отзыв о «${p.name}» опубликован. Спасибо!`).catch(() => null);
+    if (p) revalidatePath(`/ru/places/${p.slug}`);
+  }
+  redirect(`/admin/places?msg=${encodeURIComponent(status === "published" ? "✓ Отзыв опубликован" : "Отзыв отклонён")}`);
+}

@@ -8,10 +8,10 @@ import { Field, Honeypot, fc } from "./form-kit";
 import { PhotoPicker } from "./PhotoPicker";
 import { useMultipart } from "./useMultipart";
 
-export function ReviewForm({ lang, token, defaultName, masterSlug }: { lang: Locale; token: string; defaultName: string; masterSlug: string }) {
+export function ReviewForm({ lang, token, defaultName, masterSlug, endpoint = "/api/reviews", backHref, backLabel }: { lang: Locale; token: string; defaultName: string; masterSlug?: string; endpoint?: string; backHref?: string; backLabel?: string }) {
   const d = getDict(lang);
   const t = d.reviews;
-  const { state, errors, message, send, setMessage } = useMultipart("/api/reviews", lang);
+  const { state, errors, message, send, setMessage } = useMultipart(endpoint, lang);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
@@ -22,8 +22,8 @@ export function ReviewForm({ lang, token, defaultName, masterSlug }: { lang: Loc
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
         <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
         <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneText}</p>
-        <Link href={href(lang, `/master/${masterSlug}`)} className="btn-ghost mt-5">
-          {d.master.back.replace("←", "").trim()}
+        <Link href={backHref ?? href(lang, `/master/${masterSlug}`)} className="btn-ghost mt-5">
+          {backLabel ?? d.master.back.replace("←", "").trim()}
         </Link>
       </div>
     );

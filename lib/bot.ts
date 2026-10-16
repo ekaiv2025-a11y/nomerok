@@ -323,6 +323,20 @@ async function onStart(msg: TgMessage, payload: string) {
     ]);
   }
 
+  // «Оставить отзыв» со страницы места: t.me/бот?start=prv_ID
+  if (payload.startsWith("prv_")) {
+    const lang = guessLang(from);
+    const { getPlace } = await import("./places-db");
+    const p = await getPlace(payload.slice(4)).catch(() => null);
+    if (!p || p.status !== "published") return sendTo(chatId, botDict(lang).reviewNotFound);
+    if (p.owner_chat_id === chatId) return sendTo(chatId, botDict(lang).ownReview);
+    const { placeReviewToken } = await import("./signed");
+    const token = placeReviewToken({ p: p.id, c: chatId, n: [from?.first_name, from?.last_name].filter(Boolean).join(" ").slice(0, 60) });
+    return sendTo(chatId, `⭐ Отзыв о месте «${esc(p.name)}»\n\nНажмите кнопку — откроется короткая форма: оценка и пара слов о том, как всё прошло.`, [
+      [{ text: botDict(lang).btnReview, url: `${siteUrl()}/${lang}/places/review?t=${token}` }],
+    ]);
+  }
+
   // «Это моё заведение» со страницы места: t.me/бот?start=pl_ID
   if (payload.startsWith("pl_")) return onPlaceClaim(chatId, from, payload.slice(3));
 

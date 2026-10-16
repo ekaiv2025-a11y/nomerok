@@ -4,7 +4,9 @@ import { isAdmin } from "@/lib/admin-auth";
 import { PLACE_CATS, placeCat } from "@/lib/places";
 import { PLACES_PAGE, adminPlaceStats, listPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
-import { enrichPlacesAction, importPlacesAction, togglePlaceAction } from "./actions";
+import { enrichPlacesAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
+import { pendingPlaceReviews } from "@/lib/place-reviews-db";
+import { getPlace } from "@/lib/places-db";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,8 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
   const status = sp.status === "hidden" ? "hidden" : sp.status === "all" ? "" : "published";
   const [stats, res] = await Promise.all([adminPlaceStats(), listPlaces({ q: sp.q, cat: sp.cat || undefined, page, admin: { status } })]);
   const pages = Math.ceil(res.total / PLACES_PAGE);
+  const pend = await pendingPlaceReviews().catch(() => []);
+  const pendPlaces = await Promise.all(pend.map((r) => getPlace(r.place_id).catch(() => null)));
   const qs = (p: number) => `/admin/places?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(sp.cat ? { cat: sp.cat } : {}), ...(sp.status ? { status: sp.status } : {}), page: String(p) })}`;
   return (
     <div>
@@ -26,6 +30,32 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
         Всего {stats.total} · на сайте {stats.published} · с описанием {stats.withDesc} · подтверждены владельцем {stats.owners}
       </p>
       {sp.msg && <p className="mt-3 rounded-xl bg-white p-3 text-[14px] font-semibold">{sp.msg}</p>}
+
+      {pend.length > 0 && (
+        <div className="mt-3 rounded-2xl border border-[#f0d58a] bg-[#fff8e6] p-4 text-[14px]">
+          <b>⭐ Отзывы о местах на проверке: {pend.length}</b>
+          <div className="mt-2 space-y-2">
+            {pend.map((r, i) => (
+              <div key={r.id} className="rounded-xl bg-white p-3">
+                <p className="text-[13px] text-muted">
+                  {pendPlaces[i]?.name ?? r.place_id} · {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)} · {r.author_name}
+                </p>
+                <p className="mt-1 whitespace-pre-line">{r.text}</p>
+                {r.photos.length > 0 && <p className="mt-1 text-[12px] text-muted">📷 {r.photos.length} фото</p>}
+                <div className="mt-2 flex gap-2">
+                  {(["published", "rejected"] as const).map((st) => (
+                    <form key={st} action={placeReviewStatusAction}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <input type="hidden" name="status" value={st} />
+                      <button className={st === "published" ? "btn-primary h-8 px-3 text-[12px]" : "h-8 rounded-full border border-line px-3 text-[12px]"}>{st === "published" ? "Опубликовать" : "Отклонить"}</button>
+                    </form>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <form action={importPlacesAction} className="mt-3 rounded-2xl bg-white p-4 text-[13px]">
         <b>Импорт базы Батуми</b> — из файла data/places-batumi.json (OpenStreetMap, Overture, ручная сверка). Новые места добавятся, старые обновятся. Места, которые вы правили вручную, не трогаются; статус «скрыто/на сайте» не меняется.

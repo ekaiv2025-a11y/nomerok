@@ -11,6 +11,8 @@ import { PlaceCard } from "@/components/PlaceCard";
 import { Map } from "@/components/map/Map";
 import { ArticleGallery } from "@/components/ArticleGallery";
 import { SITE_URL } from "@/lib/site";
+import { ShareButton } from "@/components/ShareButton";
+import { publishedPlaceReviews } from "@/lib/place-reviews-db";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +52,11 @@ export default async function PlacePage({ params }: Props) {
   const desc = placeDesc(p, lang);
   const addr = placeAddr(p, lang);
   const summary = desc ? "" : placeSummary(p, lang, c.label[lang]);
-  const [near, bot] = await Promise.all([nearbyPlaces(p), botUsername().catch(() => null)]);
+  const [near, bot, reviews] = await Promise.all([nearbyPlaces(p), botUsername().catch(() => null), publishedPlaceReviews(p.id).catch(() => [])]);
+  const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
+  const mapQuery = encodeURIComponent([name, addr ?? "", "Batumi"].filter(Boolean).join(", "));
+  const gmaps = p.lat != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+  const ymaps = p.lat != null ? `https://yandex.ru/maps/?pt=${p.lng},${p.lat}&z=17&l=map&text=${encodeURIComponent(name)}` : `https://yandex.ru/maps/?text=${mapQuery}`;
   const socials = [...(p.ig ? [p.ig] : []), ...(p.socials ?? []).filter((u) => u !== p.ig)];
   const altNames = [p.name, p.name_en, p.name_ka].filter((x, i, a) => x && x !== name && a.indexOf(x) === i);
   const ld = {
@@ -63,6 +69,7 @@ export default async function PlacePage({ params }: Props) {
     ...(addr ? { address: { "@type": "PostalAddress", streetAddress: addr, addressLocality: "Batumi", addressCountry: "GE" } } : {}),
     ...(p.lat != null ? { geo: { "@type": "GeoCoordinates", latitude: p.lat, longitude: p.lng } } : {}),
     ...(socials.length || p.site ? { sameAs: [...(p.site ? [p.site] : []), ...socials] } : {}),
+    ...(reviews.length ? { aggregateRating: { "@type": "AggregateRating", ratingValue: avg.toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } } : {}),
   };
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
@@ -81,17 +88,20 @@ export default async function PlacePage({ params }: Props) {
         {p.sub || c.label[lang]}
         {altNames.length > 0 && ` · ${altNames.join(" · ")}`}
       </p>
+      {reviews.length > 0 && (
+        <a href="#reviews" className="mt-2 inline-flex items-center gap-1.5 text-[15px] font-semibold">
+          <span className="text-[#e5a50a]">★</span> {avg.toFixed(1)} <span className="font-normal text-muted">· {reviews.length} {lang === "ru" ? "отз." : ""}</span>
+        </a>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         {p.phones?.[0] && (
           <a href={`tel:${p.phones[0]}`} className="btn-primary h-11 px-5 text-[15px]">
             📞 {t.call}
           </a>
         )}
-        {p.lat != null && p.lng != null && (
-          <a href={`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer" className="btn-ghost h-11 px-4 text-[15px]">
-            🧭 {t.route}
-          </a>
-        )}
+        <a href={p.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}` : gmaps} target="_blank" rel="noopener noreferrer" className="btn-ghost h-11 px-4 text-[15px]">
+          🧭 {t.route}
+        </a>
         {p.ig && (
           <a href={p.ig} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-11 px-4 text-[15px]">
             Instagram
@@ -102,6 +112,7 @@ export default async function PlacePage({ params }: Props) {
             🌐 {t.site}
           </a>
         )}
+        <ShareButton title={name} label={`↗ ${t.share}`} done={t.copied} className="btn-ghost h-11 px-4 text-[15px]" />
       </div>
       {p.owner_verified_at && <p className="mt-2 inline-block rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand-dark">{t.ownerOk}</p>}
 
@@ -156,6 +167,22 @@ export default async function PlacePage({ params }: Props) {
             <span className="text-muted">{t.hours}:</span> {prettyHours(p.hours, lang)}
           </p>
         )}
+        <div className="flex flex-wrap gap-2">
+          <a href={gmaps} target="_blank" rel="noopener noreferrer" className="btn-ghost h-10 px-4 text-[14px]">
+            📍 Google Maps
+          </a>
+          <a href={ymaps} target="_blank" rel="noopener noreferrer" className="btn-ghost h-10 px-4 text-[14px]">
+            📍 {lang === "ru" ? "Яндекс Карты" : "Yandex Maps"}
+          </a>
+        </div>
+        {!p.site && socials.length === 0 && (
+          <p className="text-[13px] text-muted">
+            {t.noLinks}{" "}
+            <Link href={href(lang, "/contacts")} className="text-brand underline">
+              {t.wrongLink}
+            </Link>
+          </p>
+        )}
         {(p.site || socials.length > 0 || p.email) && (
           <div className="flex flex-wrap gap-2 pt-1">
             {p.site && (
@@ -182,6 +209,48 @@ export default async function PlacePage({ params }: Props) {
           <Map height={260} points={[{ lat: p.lat, lng: p.lng, title: name }]} />
         </section>
       )}
+
+      <section id="reviews" className="mt-8 scroll-mt-24">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-[18px] font-bold">
+            {t.reviews}
+            {reviews.length > 0 && <span className="ml-2 text-[15px] font-semibold text-muted">★ {avg.toFixed(1)} · {reviews.length}</span>}
+          </h2>
+          {bot && (
+            <a href={`https://t.me/${bot}?start=prv_${p.id}`} target="_blank" rel="noopener noreferrer" className="btn-primary h-10 px-4 text-[14px]">
+              ⭐ {t.leaveReview}
+            </a>
+          )}
+        </div>
+        {reviews.length === 0 ? (
+          <p className="mt-2 text-[14px] text-muted">{t.noReviews}</p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {reviews.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-line bg-white p-4">
+                <p className="flex items-center justify-between gap-2 text-[14px]">
+                  <b>{r.author_name}</b>
+                  <span className="text-[#e5a50a]">
+                    {"★".repeat(r.rating)}
+                    <span className="text-[#dcd8cc]">{"★".repeat(5 - r.rating)}</span>
+                  </span>
+                </p>
+                <p className="mt-1.5 whitespace-pre-line text-[15px] leading-relaxed">{r.text}</p>
+                {r.photos.length > 0 && (
+                  <div className="mt-2 flex gap-2">
+                    {r.photos.map((u) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <a key={u} href={u} target="_blank" rel="noopener noreferrer"><img src={u} alt="" className="h-20 w-20 rounded-lg object-cover" loading="lazy" /></a>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-1.5 text-[12px] text-muted">{new Date(r.created_at).toLocaleDateString(lang === "ru" ? "ru-RU" : lang === "ka" ? "ka-GE" : "en-GB")}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="mt-2 text-[12px] text-muted">{t.reviewHow}</p>
+      </section>
 
       {!p.owner_verified_at && bot && (
         <section className="mt-6 rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5">

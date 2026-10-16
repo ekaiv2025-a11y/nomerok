@@ -36,3 +36,8 @@ export type ReviewTicket = { m: string; c: number; n: string; r: string | null }
 export const REVIEW_KIND = "review";
 export const reviewToken = (t: ReviewTicket) => signData(REVIEW_KIND, t, 24 * 7);
 export const readReviewToken = (t: string | null | undefined) => readSigned<ReviewTicket>(REVIEW_KIND, t);
+
+/** Ссылка на отзыв о месте: кто пишет (Telegram) и о каком месте. */
+export type PlaceReviewTicket = { p: string; c: number; n: string };
+export const placeReviewToken = (t: PlaceReviewTicket) => signData("place-review", t, 24 * 7);
+export const readPlaceReviewToken = (t: string | null | undefined) => readSigned<PlaceReviewTicket>("place-review", t);

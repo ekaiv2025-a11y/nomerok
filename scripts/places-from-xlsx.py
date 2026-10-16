@@ -81,6 +81,9 @@ for r in it:
     p={'id':r[0],'slug':addslug(translit(name),r[0]),'name':name,'cat':'repair','sub':'Ремонт телефонов','addr':('Батуми, '+addr) if addr else None,
        'addr_ru':('Батуми, '+addr) if addr else None,'tags':['ремонт телефонов'],'phones':phones(contact),'desc_ru':REPD.get(r[0]) or g('Описание RU'),'desc_en':g('Description EN'),'src':'Сверка публичных источников','status':'published',
        'whatsapp':bool(re.search('whatsapp',contact,re.I)),'checked':str(r[ix['Дата сверки']])[:10] if r[ix['Дата сверки']] else None,'links':[u for u in split(g('Доказательства')) if re.match(r'https?://',u)][:4]}
+    p['socials']=[u for u in p['links'] if re.search(r't\.me/|instagram\.com|facebook\.com|tiktok\.com',u)]
+    st=[u for u in p['links'] if not re.search(r't\.me/|instagram|facebook|tiktok|yandex|google|2gis|madloba|08\.ge|cybo|goo\.gl|batumibazar|fastbase|bizkontakte|tripadvisor',u)]
+    if st: p['site']=st[0]
     out.append({k:v for k,v in p.items() if v not in (None,[],'',False)})
 json.dump(out,open(OUT,'w'),ensure_ascii=False,separators=(',',':'))
 subs=collections.defaultdict(collections.Counter)
