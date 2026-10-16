@@ -55,7 +55,11 @@ export default async function EditPlace({ params, searchParams }: { params: Prom
           </label>
           <label><span className={L}>Вид (ресторан, автосервис…)</span><input name="sub" defaultValue={p.sub ?? ""} className={F} /></label>
         </div>
-        <label className="block"><span className={L}>Адрес</span><input name="addr" defaultValue={p.addr ?? ""} className={F} /></label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label><span className={L}>Адрес по-русски (для RU-версии)</span><input name="addr_ru" defaultValue={p.addr_ru ?? ""} className={F} placeholder="Батуми, ул. Горгасали, 79" /></label>
+          <label><span className={L}>Адрес из источника</span><input name="addr" defaultValue={p.addr ?? ""} className={F} /></label>
+        </div>
+        <label className="block"><span className={L}>Признаки для подборок (через запятую)</span><input name="tags" defaultValue={(p.tags ?? []).join(", ")} className={F} placeholder="грузинская кухня, терраса, вид на море" /></label>
         <div className="grid gap-3 sm:grid-cols-2">
           <label><span className={L}>Широта</span><input name="lat" defaultValue={p.lat ?? ""} className={F} /></label>
           <label><span className={L}>Долгота</span><input name="lng" defaultValue={p.lng ?? ""} className={F} /></label>

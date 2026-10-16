@@ -3,14 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { PLACE_CATS, PT } from "@/lib/places";
+import { FOOD_KINDS, FOOD_TAGS, PLACE_CATS, PT } from "@/lib/places";
+import SUBS from "@/data/place-subs.json";
 import { PLACES_PAGE, listPlaces } from "@/lib/places-db";
 import { PlaceCard } from "@/components/PlaceCard";
 import { PlaceSearch } from "@/components/PlaceSearch";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ lang: string; cat: string }>; searchParams: Promise<{ q?: string; page?: string }> };
+type Props = { params: Promise<{ lang: string; cat: string }>; searchParams: Promise<{ q?: string; page?: string; kind?: string; sub?: string; tag?: string }> };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang, cat } = await params;
@@ -19,7 +20,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const sp = await searchParams;
   const title = `${c.label[lang]} — ${PT[lang].h1}`;
   const base = pageMeta(lang, `/places/c/${cat}`, title, `${c.label[lang]}: ${PT[lang].lead}`);
-  return sp.q || Number(sp.page) > 1 ? { ...base, robots: { index: false, follow: true } } : base;
+  return sp.q || sp.kind || sp.sub || sp.tag || Number(sp.page) > 1 ? { ...base, robots: { index: false, follow: true } } : base;
 }
 
 export default async function PlaceCatPage({ params, searchParams }: Props) {
@@ -30,9 +31,25 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
   const t = PT[lang];
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  const { items, total } = await listPlaces({ cat, q: sp.q, page });
+  const isFood = cat === "food";
+  const kind = isFood ? FOOD_KINDS.find((k) => k.id === sp.kind) : undefined;
+  const subs = kind ? kind.subs : sp.sub ? [sp.sub] : undefined;
+  const tag = sp.tag && (FOOD_TAGS.includes(sp.tag) || /^[\p{L} -]{2,40}$/u.test(sp.tag)) ? sp.tag : undefined;
+  const { items, total } = await listPlaces({ cat, q: sp.q, page, subs, tag });
   const pages = Math.ceil(total / PLACES_PAGE);
-  const link = (p: number) => href(lang, `/places/c/${cat}?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), page: String(p) })}`);
+  const params0 = { ...(sp.q ? { q: sp.q } : {}), ...(sp.kind ? { kind: sp.kind } : {}), ...(sp.sub ? { sub: sp.sub } : {}), ...(tag ? { tag } : {}) };
+  const link = (p: number) => href(lang, `/places/c/${cat}?${new URLSearchParams({ ...params0, page: String(p) })}`);
+  const chipLink = (patch: Record<string, string | undefined>) => {
+    const o: Record<string, string> = { ...params0 };
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) o[k] = v;
+      else delete o[k];
+    }
+    const qs = new URLSearchParams(o).toString();
+    return href(lang, `/places/c/${cat}${qs ? `?${qs}` : ""}`);
+  };
+  const chip = (on: boolean) => `whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${on ? "border-brand bg-brand text-white" : "border-line bg-white hover:border-brand"}`;
+  const genericSubs = !isFood && lang === "ru" ? ((SUBS as Record<string, string[]>)[cat] ?? []) : [];
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <Link href={href(lang, "/places")} className="text-[14px] text-muted hover:text-brand">
@@ -47,6 +64,31 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
       <div className="mt-4 max-w-2xl">
         <PlaceSearch lang={lang} q={sp.q} cat={cat} />
       </div>
+      {isFood && (
+        <div className="mt-4 space-y-2">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+            <a href={chipLink({ kind: undefined })} className={chip(!kind)}>{lang === "ru" ? "Все" : lang === "ka" ? "ყველა" : "All"}</a>
+            {FOOD_KINDS.map((k) => (
+              <a key={k.id} href={chipLink({ kind: k.id })} className={chip(kind?.id === k.id)}>{k.label[lang]}</a>
+            ))}
+          </div>
+          {lang === "ru" && (
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+              {FOOD_TAGS.map((x) => (
+                <a key={x} href={chipLink({ tag: tag === x ? undefined : x })} className={`${chip(tag === x)} !text-[12px]`}>{x}</a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {genericSubs.length > 1 && (
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          <a href={chipLink({ sub: undefined })} className={chip(!sp.sub)}>Все</a>
+          {genericSubs.map((x) => (
+            <a key={x} href={chipLink({ sub: x })} className={chip(sp.sub === x)}>{x}</a>
+          ))}
+        </div>
+      )}
       {items.length === 0 && <p className="mt-4 rounded-2xl bg-white p-4">{t.nothing}</p>}
       <div className="mt-5 grid gap-3 md:grid-cols-2">
         {items.map((p) => (

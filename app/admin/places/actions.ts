@@ -47,6 +47,8 @@ export async function savePlaceAction(fd: FormData) {
     cat: PLACE_CATS.some((c) => c.id === cat) ? cat : prev.cat,
     sub: txt(fd.get("sub"), 80),
     addr: txt(fd.get("addr"), 200),
+    addr_ru: txt(fd.get("addr_ru"), 200),
+    tags: list(fd.get("tags")).map((t) => t.toLowerCase()).slice(0, 20),
     lat: fd.get("lat") && Number.isFinite(lat) ? lat : null,
     lng: fd.get("lng") && Number.isFinite(lng) ? lng : null,
     phones: list(fd.get("phones")).map((p) => normalizePhone(p) ?? p).slice(0, 5),

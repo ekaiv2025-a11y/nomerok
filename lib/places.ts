@@ -10,6 +10,7 @@ export type Place = {
   cat: string;
   sub?: string | null;
   addr?: string | null;
+  addr_ru?: string | null;
   lat?: number | null;
   lng?: number | null;
   phones?: string[];
@@ -81,6 +82,38 @@ export function placeName(p: Pick<Place, "name" | "name_en" | "name_ka">, lang: 
 export function placeDesc(p: Pick<Place, "desc_ru" | "desc_en">, lang: Locale): string | null {
   return lang === "ru" ? p.desc_ru || null : p.desc_en || p.desc_ru || null;
 }
+/** Адрес на языке страницы: для русской версии — русский вариант, если есть. */
+export function placeAddr(p: Pick<Place, "addr" | "addr_ru">, lang: Locale): string | null {
+  return (lang === "ru" ? p.addr_ru || p.addr : p.addr || p.addr_ru) || null;
+}
+
+/** Виды заведений в разделе «Рестораны и кафе» (по подкатегории из карт). */
+export const FOOD_KINDS: { id: string; label: L3; subs: string[] }[] = [
+  { id: "restaurants", label: { ru: "Рестораны", en: "Restaurants", ka: "რესტორნები" }, subs: ["Ресторан", "Заведение питания"] },
+  { id: "cafes", label: { ru: "Кафе", en: "Cafés", ka: "კაფეები" }, subs: ["Кафе"] },
+  { id: "coffee", label: { ru: "Кофейни", en: "Coffee shops", ka: "ყავის სახლები" }, subs: ["Кофейня"] },
+  { id: "bars", label: { ru: "Бары и пабы", en: "Bars & pubs", ka: "ბარები" }, subs: ["Бар", "Паб", "Лаунж-бар"] },
+  { id: "fastfood", label: { ru: "Фастфуд", en: "Fast food", ka: "სწრაფი კვება" }, subs: ["Быстрое питание"] },
+  { id: "sweets", label: { ru: "Десерты и мороженое", en: "Desserts", ka: "დესერტები" }, subs: ["Мороженое", "Кондитерская", "Выпечка и кондитерская"] },
+];
+/** Кухни и признаки для фильтра (совпадают с тегами мест). */
+export const FOOD_TAGS = ["грузинская кухня", "шашлык", "азиатская кухня", "суши", "пицца", "бургеры", "шаурма и донер", "турецкая кухня", "узбекская кухня", "итальянская кухня", "индийская кухня", "морепродукты", "кофе", "десерты", "завтраки", "вино", "пиво", "кальян", "вид на море", "терраса", "банкетный зал", "живая музыка", "детская комната", "доставка", "халяль", "вегетарианское"];
+
+/** Короткая справка из известных фактов — для карточек без описания. */
+export function placeSummary(p: Place, lang: Locale, catLabel: string): string {
+  if (lang !== "ru") return "";
+  const parts: string[] = [];
+  const kind = (p.sub || catLabel).toLowerCase();
+  const addr = placeAddr(p, lang);
+  parts.push(`${kind[0].toUpperCase()}${kind.slice(1)} в Батуми${addr ? ` по адресу: ${addr.replace(/^Батуми,\s*/, "")}` : ""}.`);
+  const cuisine = (p.tags ?? []).filter((t) => /кухня|шашлык|суши|пицца|бургеры|шаурма|морепродукты/.test(t));
+  if (cuisine.length) parts.push(`Кухня: ${cuisine.join(", ")}.`);
+  if (p.hours) parts.push(`Часы работы: ${prettyHours(p.hours, lang)}.`);
+  const ch = [p.phones?.length ? "телефон" : "", p.site ? "сайт" : "", p.ig ? "Instagram" : "", p.socials?.some((u) => /facebook/.test(u)) ? "Facebook" : ""].filter(Boolean);
+  if (ch.length) parts.push(`Есть ${ch.join(", ")} — контакты ниже.`);
+  return parts.join(" ");
+}
+
 /** Карточка достаточно полная, чтобы показывать её поисковикам. */
 export const placeIndexable = (p: Place) => !!(p.desc_ru || p.desc_en);
 

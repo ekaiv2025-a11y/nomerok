@@ -109,7 +109,7 @@ export async function applyEnrichment(csv: string): Promise<{ updated: number; c
       else if (!p.name_en && /^[\x20-\x7E]+$/.test(p.name)) patch.name_en = p.name;
       patch.name = nameRu.slice(0, 160);
     }
-    set("addr", get(r, "addr_ru").slice(0, 200) || null);
+    set("addr_ru", get(r, "addr_ru").slice(0, 200) || null);
     const phones = split(get(r, "phones")).map((x) => normalizePhone(x)).filter((x): x is string => !!x);
     set("phones", phones.length ? [...new Set(phones)].slice(0, 5) : null);
     const site = get(r, "site");

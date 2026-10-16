@@ -1,4 +1,6 @@
-import openpyxl, json, re, sys, collections
+import openpyxl, json, re, sys, collections, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from place_addr import addr_ru, guess_tags, ka_plain
 SRC=sys.argv[1]; OUT=sys.argv[2]
 wb=openpyxl.load_workbook(SRC,read_only=True)
 CAT={'Еда и заведения':'food','Проживание':'stay','Продукты и напитки':'groceries','Красота и уход':'beauty','Медицина и аптеки':'health','Образование':'education','Одежда и обувь':'clothes','Розница':'shops','Дом и строительство':'home','Авто и транспорт':'auto','Культура и развлечения':'culture','Профессиональные услуги':'business','Недвижимость':'realty','Финансы':'finance','Спорт и фитнес':'sport','Электроника и связь':'electronics','Туризм и экскурсии':'tourism','События и услуги':'events','Животные':'pets','Цветы и подарки':'flowers','Мастерские и ремонт':'repair','Доставка и логистика':'delivery','Детские товары':'kids','Книги и хобби':'hobby','Коворкинги и офисы':'coworking','Медиа и творчество':'media','Производство и мастерские':'production','Аренда и прокат':'rent','Бытовые услуги':'services'}
@@ -53,6 +55,8 @@ for r in it:
     src=g('Название источника'); ru=g('Название RU'); en=g('Название EN'); ka=g('Название KA')
     name=nm(ru or en or src)
     if not name: continue
+    if re.search('[\u10A0-\u10FF]',name) and not re.search('[A-Za-zА-Яа-я]',name):
+        ka=ka or name; name=ka_plain(name)
     en=nm(en) if en else en; ka=nm(ka) if ka else ka
     ig=[u for u in split(g('Instagram')) if 'instagram' in u]
     ph=phones(g('Телефоны источников')) or phones(g('Телефон с сайта'))
@@ -63,6 +67,8 @@ for r in it:
        'lat':float(lat) if lat else None,'lng':float(lng) if lng else None,'phones':ph,'site':st[0] if st else None,'ig':ig[0] if ig else None,'socials':so[:3],
        'email':g('Деловой email'),'hours':g('Часы источника'),'desc_ru':g('Описание RU'),'desc_en':g('Описание EN'),
        'src':g('Источники') or 'OSM','area':'outskirts' if 'Окрестности' in (g('Территория') or '') else 'batumi'}
+    p['addr_ru']=addr_ru(p.get('addr'))
+    if p['cat'] in ('food','groceries'): p['tags']=guess_tags(' '.join(x for x in [src,ru,en,ka,g('Подкатегория источника')] if x), p.get('sub'))
     p['status']='published' if (ph or st or ig or so) else 'hidden'
     out.append({k:v for k,v in p.items() if v not in (None,[],'')})
 # черновики ремонта телефонов (проверены по открытым источникам)
@@ -73,9 +79,13 @@ for r in it:
     name=g('Название'); contact=g('Контакт') or ''
     addr=re.sub(r'\s+—.*$','',g('Адрес источника') or '')
     p={'id':r[0],'slug':addslug(translit(name),r[0]),'name':name,'cat':'repair','sub':'Ремонт телефонов','addr':('Батуми, '+addr) if addr else None,
-       'phones':phones(contact),'desc_ru':REPD.get(r[0]) or g('Описание RU'),'desc_en':g('Description EN'),'src':'Сверка публичных источников','status':'published',
+       'addr_ru':('Батуми, '+addr) if addr else None,'tags':['ремонт телефонов'],'phones':phones(contact),'desc_ru':REPD.get(r[0]) or g('Описание RU'),'desc_en':g('Description EN'),'src':'Сверка публичных источников','status':'published',
        'whatsapp':bool(re.search('whatsapp',contact,re.I)),'checked':str(r[ix['Дата сверки']])[:10] if r[ix['Дата сверки']] else None,'links':[u for u in split(g('Доказательства')) if re.match(r'https?://',u)][:4]}
     out.append({k:v for k,v in p.items() if v not in (None,[],'',False)})
 json.dump(out,open(OUT,'w'),ensure_ascii=False,separators=(',',':'))
+subs=collections.defaultdict(collections.Counter)
+for p in out:
+    if p.get('sub') and p['status']=='published': subs[p['cat']][p['sub']]+=1
+json.dump({c:[s for s,n in v.most_common(12) if n>=3] for c,v in subs.items()},open(os.path.join(os.path.dirname(OUT),'place-subs.json'),'w'),ensure_ascii=False,indent=0)
 c=collections.Counter(p['status'] for p in out); print(len(out),c)
 print(collections.Counter(p.get('sub') for p in out).most_common(15))

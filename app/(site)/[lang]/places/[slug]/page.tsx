@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { PT, placeCat, placeDesc, placeIndexable, placeName, prettyHours } from "@/lib/places";
+import { PT, placeAddr, placeCat, placeDesc, placeIndexable, placeName, placeSummary, prettyHours } from "@/lib/places";
 import { getPlaceBySlug, nearbyPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
 import { botUsername } from "@/lib/telegram";
@@ -33,7 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!p || p.status !== "published") return { robots: { index: false } };
   const c = placeCat(p.cat);
   const name = placeName(p, lang);
-  const desc = placeDesc(p, lang) ?? `${p.sub || c.label[lang]}${p.addr ? `, ${p.addr}` : ""}. ${PT[lang].h1}.`;
+  const a0 = placeAddr(p, lang);
+  const desc = placeDesc(p, lang) ?? `${p.sub || c.label[lang]}${a0 ? `, ${a0}` : ""}. ${PT[lang].h1}.`;
   const base = pageMeta(lang, `/places/${p.slug}`, `${name} — ${p.sub || c.label[lang]}, Батуми`, desc.slice(0, 160));
   return placeIndexable(p) ? base : { ...base, robots: { index: false, follow: true } };
 }
@@ -47,6 +48,8 @@ export default async function PlacePage({ params }: Props) {
   const c = placeCat(p.cat);
   const name = placeName(p, lang);
   const desc = placeDesc(p, lang);
+  const addr = placeAddr(p, lang);
+  const summary = desc ? "" : placeSummary(p, lang, c.label[lang]);
   const [near, bot] = await Promise.all([nearbyPlaces(p), botUsername().catch(() => null)]);
   const socials = [...(p.ig ? [p.ig] : []), ...(p.socials ?? []).filter((u) => u !== p.ig)];
   const altNames = [p.name, p.name_en, p.name_ka].filter((x, i, a) => x && x !== name && a.indexOf(x) === i);
@@ -57,7 +60,7 @@ export default async function PlacePage({ params }: Props) {
     ...(desc ? { description: desc } : {}),
     url: `${SITE_URL}/${lang}/places/${p.slug}`,
     ...(p.phones?.[0] ? { telephone: p.phones[0] } : {}),
-    ...(p.addr ? { address: { "@type": "PostalAddress", streetAddress: p.addr, addressLocality: "Batumi", addressCountry: "GE" } } : {}),
+    ...(addr ? { address: { "@type": "PostalAddress", streetAddress: addr, addressLocality: "Batumi", addressCountry: "GE" } } : {}),
     ...(p.lat != null ? { geo: { "@type": "GeoCoordinates", latitude: p.lat, longitude: p.lng } } : {}),
     ...(socials.length || p.site ? { sameAs: [...(p.site ? [p.site] : []), ...socials] } : {}),
   };
@@ -78,10 +81,45 @@ export default async function PlacePage({ params }: Props) {
         {p.sub || c.label[lang]}
         {altNames.length > 0 && ` · ${altNames.join(" · ")}`}
       </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {p.phones?.[0] && (
+          <a href={`tel:${p.phones[0]}`} className="btn-primary h-11 px-5 text-[15px]">
+            📞 {t.call}
+          </a>
+        )}
+        {p.lat != null && p.lng != null && (
+          <a href={`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer" className="btn-ghost h-11 px-4 text-[15px]">
+            🧭 {t.route}
+          </a>
+        )}
+        {p.ig && (
+          <a href={p.ig} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-11 px-4 text-[15px]">
+            Instagram
+          </a>
+        )}
+        {p.site && (
+          <a href={p.site} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-11 px-4 text-[15px]">
+            🌐 {t.site}
+          </a>
+        )}
+      </div>
       {p.owner_verified_at && <p className="mt-2 inline-block rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand-dark">{t.ownerOk}</p>}
 
       {p.photos && p.photos.length > 0 && <ArticleGallery photos={p.photos} />}
 
+      {!desc && summary && (
+        <section className="mt-6">
+          <h2 className="text-[18px] font-bold">{t.about}</h2>
+          <p className="mt-2 text-[16px] leading-relaxed text-[#2a2925]">{summary}</p>
+          {p.tags && p.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {p.tags.map((x) => (
+                <span key={x} className="rounded-full bg-cream px-2.5 py-1 text-[12px] text-muted">{x}</span>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
       {desc && (
         <section className="mt-6">
           <h2 className="text-[18px] font-bold">{t.about}</h2>
@@ -107,9 +145,10 @@ export default async function PlacePage({ params }: Props) {
             ))}
           </div>
         )}
-        {p.addr && (
+        {addr && (
           <p className="text-[15px]">
-            <span className="text-muted">{t.address}:</span> {p.addr}
+            <span className="text-muted">{t.address}:</span> {addr}
+            {lang === "ru" && p.addr && p.addr !== addr && <span translate="no" className="notranslate mt-0.5 block text-[13px] text-muted">{p.addr}</span>}
           </p>
         )}
         {p.hours && (
@@ -141,14 +180,6 @@ export default async function PlacePage({ params }: Props) {
       {p.lat != null && p.lng != null && (
         <section className="mt-6">
           <Map height={260} points={[{ lat: p.lat, lng: p.lng, title: name }]} />
-          <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost mt-2 h-10 px-4 text-[14px]"
-          >
-            🧭 {t.route}
-          </a>
         </section>
       )}
 

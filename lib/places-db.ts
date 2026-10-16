@@ -16,12 +16,12 @@ async function localAll(): Promise<Place[]> {
 
 function matches(p: Place, q: string) {
   const s = q.toLowerCase();
-  return [p.name, p.name_en, p.name_ka, p.sub, p.addr].some((x) => (x ?? "").toLowerCase().includes(s));
+  return [p.name, p.name_en, p.name_ka, p.sub, p.addr, p.addr_ru].some((x) => (x ?? "").toLowerCase().includes(s));
 }
 const rank = (p: Place) => (p.owner_verified_at ? 0 : 2) + (p.desc_ru || p.desc_en ? 0 : 1);
 const qSafe = (q: string) => q.replace(/[%,()*\\]/g, " ").trim().slice(0, 60);
 
-export async function listPlaces(opts: { cat?: string; q?: string; page?: number; admin?: { status?: string } }): Promise<{ items: Place[]; total: number }> {
+export async function listPlaces(opts: { cat?: string; q?: string; page?: number; subs?: string[]; tag?: string; admin?: { status?: string } }): Promise<{ items: Place[]; total: number }> {
   const page = Math.max(1, opts.page ?? 1);
   const q = qSafe(opts.q ?? "");
   const status = opts.admin ? opts.admin.status : "published";
@@ -30,7 +30,9 @@ export async function listPlaces(opts: { cat?: string; q?: string; page?: number
     let req = sb.from("places").select("*", { count: "exact" });
     if (status) req = req.eq("status", status);
     if (opts.cat) req = req.eq("cat", opts.cat);
-    if (q) req = req.or(["name", "name_en", "name_ka", "sub", "addr"].map((c) => `${c}.ilike.%${q}%`).join(","));
+    if (opts.subs?.length) req = req.in("sub", opts.subs);
+    if (opts.tag) req = req.contains("tags", [opts.tag]);
+    if (q) req = req.or(["name", "name_en", "name_ka", "sub", "addr", "addr_ru"].map((c) => `${c}.ilike.%${q}%`).join(","));
     const r = await req
       .order("owner_verified_at", { ascending: false, nullsFirst: false })
       .order("desc_ru", { ascending: true, nullsFirst: false })
@@ -39,7 +41,9 @@ export async function listPlaces(opts: { cat?: string; q?: string; page?: number
     if (r.error) return { items: [], total: 0 };
     return { items: (r.data as Place[]) ?? [], total: r.count ?? 0 };
   }
-  let all = (await localAll()).filter((p) => (!status || p.status === status) && (!opts.cat || p.cat === opts.cat) && (!q || matches(p, q)));
+  let all = (await localAll()).filter(
+    (p) => (!status || p.status === status) && (!opts.cat || p.cat === opts.cat) && (!opts.subs?.length || opts.subs.includes(p.sub ?? "")) && (!opts.tag || (p.tags ?? []).includes(opts.tag)) && (!q || matches(p, q)),
+  );
   all = all.sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
   return { items: all.slice((page - 1) * PAGE, page * PAGE), total: all.length };
 }
@@ -166,18 +170,41 @@ export async function placeClaimedBy(chatId: number): Promise<Place | null> {
   return (await localAll()).find((p) => p.claim_chat_id === chatId && (p.claim_at ?? "") >= since) ?? null;
 }
 
-const DATA_FIELDS = ["name", "name_en", "name_ka", "cat", "sub", "addr", "lat", "lng", "phones", "site", "ig", "socials", "email", "hours", "desc_ru", "desc_en", "src", "links", "area", "checked"] as const;
+const DATA_FIELDS = ["name", "name_en", "name_ka", "cat", "sub", "addr", "addr_ru", "tags", "lat", "lng", "phones", "site", "ig", "socials", "email", "hours", "desc_ru", "desc_en", "src", "links", "area", "checked"] as const;
+
+const isEmpty = (v: unknown) => v == null || v === "" || (Array.isArray(v) && v.length === 0);
+const georgianOnly = (s: string) => /[\u10A0-\u10FF]/.test(s) && !/[A-Za-zА-Яа-яЁё]/.test(s);
+
+/** Что дописать в существующее место из файла: только пустые поля, теги — объединить. null — ничего. */
+function mergeFill(prev: Place, row: Record<string, unknown>): Partial<Place> | null {
+  const patch: Record<string, unknown> = {};
+  for (const k of DATA_FIELDS) {
+    const nv = row[k];
+    if (isEmpty(nv)) continue;
+    const pv = (prev as Record<string, unknown>)[k];
+    if (k === "tags") {
+      const merged = [...new Set([...((pv as string[]) ?? []), ...(nv as string[])])];
+      if (merged.length !== ((pv as string[]) ?? []).length) patch.tags = merged;
+    } else if (k === "name") {
+      if (!prev.edited && georgianOnly(prev.name) && !georgianOnly(String(nv))) {
+        patch.name = nv;
+        if (!prev.name_ka) patch.name_ka = prev.name;
+      }
+    } else if (isEmpty(pv)) patch[k] = nv;
+  }
+  return Object.keys(patch).length ? (patch as Partial<Place>) : null;
+}
 
 /**
  * Импорт мест из файла data/places-*.json.
- * Новые — добавляет. Существующие — обновляет данными из файла, но НЕ трогает те, что правили вручную (edited),
- * и никогда не меняет статус, фото и владельца.
+ * Новые — добавляет. У существующих только ДОПОЛНЯЕТ пустые поля (не затирает проверенные и ручные правки),
+ * теги объединяет, грузинское название заменяет читаемым (оригинал — в name_ka). Статус, фото и владельца не меняет.
  */
 export async function importPlaces(rows: (Partial<Place> & { id: string; slug: string; name: string; cat: string; whatsapp?: boolean })[]): Promise<{ added: number; updated: number; skipped: number }> {
   const now = new Date().toISOString();
   const clean = rows.map((r) => {
     const o: Record<string, unknown> = { id: r.id, slug: r.slug };
-    for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" ? [] : k === "area" ? "batumi" : null);
+    for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" || k === "tags" ? [] : k === "area" ? "batumi" : null);
     return { row: o, status: r.status ?? "published" };
   });
   const sb = supabase();
@@ -185,16 +212,22 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
   let updated = 0;
   let skipped = 0;
   if (sb) {
-    const existing = new Map<string, { edited: boolean }>();
+    const existing = new Map<string, Place>();
     for (let from = 0; ; from += 1000) {
-      const r = await sb.from("places").select("id,edited").range(from, from + 999);
+      const r = await sb.from("places").select("*").order("id").range(from, from + 999);
       if (r.error) throw new Error(/does not exist|schema cache/i.test(r.error.message) ? "Таблица мест ещё не создана (миграция 0021) — дождитесь обновления сайта" : r.error.message);
-      for (const x of r.data as { id: string; edited: boolean }[]) existing.set(x.id, x);
+      for (const x of r.data as Place[]) existing.set(x.id, x);
       if ((r.data ?? []).length < 1000) break;
     }
     const fresh = clean.filter((c) => !existing.has(c.row.id as string)).map((c) => ({ ...c.row, status: c.status, created_at: now, updated_at: now }));
-    const upd = clean.filter((c) => existing.has(c.row.id as string) && !existing.get(c.row.id as string)!.edited).map((c) => ({ ...c.row, updated_at: now }));
-    skipped = clean.length - fresh.length - upd.length;
+    const upd: Record<string, unknown>[] = [];
+    for (const c of clean) {
+      const prev = existing.get(c.row.id as string);
+      if (!prev) continue;
+      const patch = mergeFill(prev, c.row);
+      if (patch) upd.push({ ...prev, ...patch, updated_at: now });
+      else skipped++;
+    }
     for (let i = 0; i < fresh.length; i += 500) {
       const r = await sb.from("places").insert(fresh.slice(i, i + 500));
       if (r.error) throw new Error(r.error.message);
@@ -213,10 +246,13 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
       if (!prev) {
         map.set(c.row.id as string, { ...(c.row as unknown as Place), status: c.status as Place["status"], created_at: now, updated_at: now });
         added++;
-      } else if (prev.edited) skipped++;
-      else {
-        map.set(prev.id, { ...prev, ...(c.row as unknown as Place), updated_at: now });
-        updated++;
+      } else {
+        const patch = mergeFill(prev, c.row);
+        if (!patch) skipped++;
+        else {
+          map.set(prev.id, { ...prev, ...patch, updated_at: now });
+          updated++;
+        }
       }
     }
     d.places = [...map.values()];
