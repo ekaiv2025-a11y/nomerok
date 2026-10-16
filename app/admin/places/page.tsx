@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { PLACE_CATS, placeCat } from "@/lib/places";
 import { PLACES_PAGE, adminPlaceStats, listPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
-import { importPlacesAction, togglePlaceAction } from "./actions";
+import { enrichPlacesAction, importPlacesAction, togglePlaceAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +33,25 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
           <button className="btn-primary mt-2 h-9 px-4 text-[13px]">⬇️ Импортировать / обновить</button>
         </div>
       </form>
+
+      <div className="mt-3 rounded-2xl bg-white p-4 text-[13px]">
+        <b>Проверка и дополнение (сайты, соцсети, описания)</b>
+        <p className="mt-1 text-muted">1) Скачайте пачку ещё не проверенных мест → 2) отдайте её ассистенту вместе с заданием → 3) загрузите сюда его CSV-результат. Проверенные места в следующую пачку не попадают — поэтому каждый раз начинайте «с № 1».</p>
+        <form method="get" action="/api/admin/places-export" className="mt-2 flex flex-wrap items-center gap-2">
+          <select name="cat" defaultValue={sp.cat ?? "food"} className="field h-10 w-auto py-0">
+            {PLACE_CATS.map((c) => (
+              <option key={c.id} value={c.id}>{c.emoji} {c.label.ru}</option>
+            ))}
+          </select>
+          <label className="flex items-center gap-1">с № <input name="from" defaultValue="1" type="number" min={1} className="field h-10 w-20 py-0" /></label>
+          <label className="flex items-center gap-1">сколько <input name="n" defaultValue="25" type="number" min={1} max={500} className="field h-10 w-20 py-0" /></label>
+          <button className="btn-ghost h-10 px-4">⬇️ Скачать пачку (CSV)</button>
+        </form>
+        <form action={enrichPlacesAction} className="mt-2 flex flex-wrap items-center gap-2">
+          <input type="file" name="file" accept=".csv,text/csv" required className="text-[13px]" />
+          <button className="btn-primary h-10 px-4">⬆️ Загрузить результат</button>
+        </form>
+      </div>
 
       <form className="mt-4 flex flex-wrap gap-2" method="get">
         <input name="q" defaultValue={sp.q} placeholder="Название, улица…" className="field h-11 min-w-0 grow basis-60" />

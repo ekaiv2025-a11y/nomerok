@@ -86,6 +86,13 @@ export default async function PlacePage({ params }: Props) {
         <section className="mt-6">
           <h2 className="text-[18px] font-bold">{t.about}</h2>
           <p className="mt-2 text-[16px] leading-relaxed text-[#2a2925]">{desc}</p>
+          {lang === "ru" && p.tags && p.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {p.tags.map((t) => (
+                <span key={t} className="rounded-full bg-cream px-2.5 py-1 text-[12px] text-muted">{t}</span>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

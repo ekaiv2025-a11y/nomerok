@@ -26,6 +26,8 @@ export type Place = {
   city?: string;
   status: "published" | "hidden";
   photos?: string[];
+  tags?: string[];
+  work_status?: string | null; // работает / закрыто / не найдено — по последней проверке
   checked?: string | null;
   edited?: boolean;
   claim_chat_id?: number | null;

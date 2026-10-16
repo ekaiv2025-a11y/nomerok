@@ -78,3 +78,21 @@ export async function togglePlaceAction(fd: FormData) {
   await updatePlace(id, { status: fd.get("status") === "hidden" ? "hidden" : "published", edited: true });
   redirect(String(fd.get("back") || "/admin/places"));
 }
+
+export async function enrichPlacesAction(fd: FormData) {
+  await requireAdmin();
+  const file = fd.get("file");
+  let msg: string;
+  if (!(file instanceof File) || !file.size) msg = "⚠️ Выберите CSV-файл с результатом";
+  else {
+    try {
+      const { applyEnrichment } = await import("@/lib/places-enrich");
+      const r = await applyEnrichment(await file.text());
+      msg = `✓ Обновлено мест: ${r.updated}${r.closed ? `, закрытых скрыто: ${r.closed}` : ""}${r.unknownIds.length ? `, не нашли id: ${r.unknownIds.slice(0, 5).join(", ")}${r.unknownIds.length > 5 ? "…" : ""}` : ""}${r.badRows ? `, строк без id: ${r.badRows}` : ""}`;
+    } catch (e) {
+      msg = `⚠️ ${e instanceof Error ? e.message : "Ошибка"}`;
+    }
+  }
+  revalidatePath("/admin/places");
+  redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);
+}

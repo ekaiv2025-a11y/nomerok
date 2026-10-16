@@ -111,6 +111,7 @@ export async function healthCheck() {
           ["0019 журнал (новости)", "posts", "slug"],
           ["0020 фото в журнале", "posts", "photos"],
           ["0021 места города", "places", "slug"],
+          ["0022 признаки мест", "places", "tags"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
