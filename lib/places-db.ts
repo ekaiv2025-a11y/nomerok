@@ -177,7 +177,7 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
   const now = new Date().toISOString();
   const clean = rows.map((r) => {
     const o: Record<string, unknown> = { id: r.id, slug: r.slug };
-    for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" ? [] : null);
+    for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" ? [] : k === "area" ? "batumi" : null);
     return { row: o, status: r.status ?? "published" };
   });
   const sb = supabase();

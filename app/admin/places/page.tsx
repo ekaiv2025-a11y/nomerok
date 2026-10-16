@@ -35,8 +35,8 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
       </form>
 
       <form className="mt-4 flex flex-wrap gap-2" method="get">
-        <input name="q" defaultValue={sp.q} placeholder="Название, улица…" className="field h-10 min-w-0 grow basis-60" />
-        <select name="cat" defaultValue={sp.cat ?? ""} className="field h-10">
+        <input name="q" defaultValue={sp.q} placeholder="Название, улица…" className="field h-11 min-w-0 grow basis-60" />
+        <select name="cat" defaultValue={sp.cat ?? ""} className="field h-11 w-auto py-0">
           <option value="">Все разделы</option>
           {PLACE_CATS.map((c) => (
             <option key={c.id} value={c.id}>
@@ -44,12 +44,12 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
             </option>
           ))}
         </select>
-        <select name="status" defaultValue={sp.status ?? ""} className="field h-10">
+        <select name="status" defaultValue={sp.status ?? ""} className="field h-11 w-auto py-0">
           <option value="">На сайте</option>
           <option value="hidden">Скрытые</option>
           <option value="all">Все</option>
         </select>
-        <button className="btn-ghost h-10 px-4">Найти</button>
+        <button className="btn-ghost h-11 px-5">Найти</button>
       </form>
 
       <p className="mt-3 text-[13px] text-muted">Найдено: {res.total}</p>
