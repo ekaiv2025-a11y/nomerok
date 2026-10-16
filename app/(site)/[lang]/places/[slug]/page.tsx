@@ -73,7 +73,7 @@ export default async function PlacePage({ params }: Props) {
           {c.emoji} {c.label[lang]}
         </Link>
       </nav>
-      <h1 className="mt-3 text-[26px] font-bold leading-tight sm:text-[34px]">{name}</h1>
+      <h1 translate="no" className="notranslate mt-3 text-[26px] font-bold leading-tight sm:text-[34px]">{name}</h1>
       <p className="mt-1 text-[15px] text-muted">
         {p.sub || c.label[lang]}
         {altNames.length > 0 && ` · ${altNames.join(" · ")}`}

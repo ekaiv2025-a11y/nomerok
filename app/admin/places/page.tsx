@@ -58,7 +58,7 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
           <div key={p.id} className="flex flex-wrap items-center gap-2 p-3 text-[14px]">
             <span className="text-[20px]">{placeCat(p.cat).emoji}</span>
             <Link href={`/admin/places/${p.id}`} className="min-w-0 grow basis-60">
-              <span className="block truncate font-semibold hover:text-brand">
+              <span translate="no" className="notranslate block truncate font-semibold hover:text-brand">
                 {p.name} {p.owner_verified_at && <span className="text-brand">✓ владелец</span>}
               </span>
               <span className="block truncate text-[12px] text-muted">

@@ -20,7 +20,7 @@ export function PlaceCard({ p, lang, n, wide }: { p: Place; lang: Locale; n?: nu
         </span>
       )}
       <div className="min-w-0 grow">
-        <Link href={href(lang, `/places/${p.slug}`)} className="block text-[16px] font-semibold leading-snug hover:text-brand">
+        <Link translate="no" href={href(lang, `/places/${p.slug}`)} className="notranslate block text-[16px] font-semibold leading-snug hover:text-brand">
           {placeName(p, lang)}
           {p.owner_verified_at && <span className="ml-1.5 text-[12px] font-medium text-brand" title="Подтверждено владельцем">✓</span>}
         </Link>
