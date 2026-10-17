@@ -4,7 +4,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
 
 export type MapPoint = { lat: number; lng: number; title?: string; subtitle?: string; href?: string; photo?: string | null; label?: string | number };
 
@@ -74,6 +74,11 @@ export default function LeafletMap({
         {!editable &&
           points.map((p, i) => (
             <Marker key={i} position={[p.lat, p.lng]} icon={p.label != null ? numbered(p.label) : pin}>
+              {p.title && (
+                <Tooltip direction="top" offset={p.label != null ? [0, -14] : [0, -40]} opacity={1}>
+                  <b>{p.title}</b>
+                </Tooltip>
+              )}
               {p.title && (
                 <Popup>
                   <a href={p.href} style={{ display: "flex", gap: 10, alignItems: "center", textDecoration: "none", color: "inherit", minWidth: 180 }}>
