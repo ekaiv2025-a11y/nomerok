@@ -54,7 +54,7 @@ export default function LeafletMap({
   points = [],
   height = 320,
   editable,
-  scrollZoom = false,
+  scrollZoom = true,
 }: {
   points?: MapPoint[];
   height?: number;

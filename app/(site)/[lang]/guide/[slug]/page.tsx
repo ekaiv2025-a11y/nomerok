@@ -110,9 +110,9 @@ export default async function ArticlePage({ params }: Props) {
               <div key={i} className="space-y-3">
                 {pts.length > 0 && (
                   <div className="rounded-2xl border border-line bg-white p-2">
-                    <Map height={360} points={pts} scrollZoom={false} />
+                    <Map height={360} points={pts} />
                     <p className="px-2 pb-1 pt-2 text-[13px] text-muted">
-                      📍 Номер на карте = номер в списке ниже. Нажмите на кружок, чтобы увидеть название.
+                      📍 Номер на карте = номер в списке ниже. Нажмите на кружок, чтобы увидеть название; колесо мыши — приблизить или отдалить.
                       {pts.length < ps.length ? ` На карте ${pts.length} из ${ps.length} — у остальных точный адрес уточняется.` : ""}
                     </p>
                   </div>
