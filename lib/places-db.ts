@@ -176,8 +176,21 @@ const isEmpty = (v: unknown) => v == null || v === "" || (Array.isArray(v) && v.
 const georgianOnly = (s: string) => /[\u10A0-\u10FF]/.test(s) && !/[A-Za-zА-Яа-яЁё]/.test(s);
 
 /** Что дописать в существующее место из файла: только пустые поля, теги — объединить. null — ничего. */
-function mergeFill(prev: Place, row: Record<string, unknown>): Partial<Place> | null {
+function mergeFill(prev: Place, row: Record<string, unknown>, force = false): Partial<Place> | null {
   const patch: Record<string, unknown> = {};
+  // Ручная сверка (force): исправляет данные из карт, но не трогает правки из админки
+  if (force && !prev.edited) {
+    for (const k of DATA_FIELDS) {
+      const nv = row[k];
+      if (isEmpty(nv)) continue;
+      const pv = (prev as Record<string, unknown>)[k];
+      if (k === "tags") {
+        const merged = [...new Set([...((pv as string[]) ?? []), ...(nv as string[])])];
+        if (merged.length !== ((pv as string[]) ?? []).length) patch.tags = merged;
+      } else if (JSON.stringify(pv) !== JSON.stringify(nv)) patch[k] = nv;
+    }
+    return Object.keys(patch).length ? (patch as Partial<Place>) : null;
+  }
   for (const k of DATA_FIELDS) {
     const nv = row[k];
     if (isEmpty(nv)) continue;
@@ -205,7 +218,7 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
   const clean = rows.map((r) => {
     const o: Record<string, unknown> = { id: r.id, slug: r.slug };
     for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" || k === "tags" ? [] : k === "area" ? "batumi" : null);
-    return { row: o, status: r.status ?? "published" };
+    return { row: o, status: r.status ?? "published", force: !!(r as { force?: boolean }).force };
   });
   const sb = supabase();
   let added = 0;
@@ -224,7 +237,7 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
     for (const c of clean) {
       const prev = existing.get(c.row.id as string);
       if (!prev) continue;
-      const patch = mergeFill(prev, c.row);
+      const patch = mergeFill(prev, c.row, c.force);
       if (patch) upd.push({ ...prev, ...patch, updated_at: now });
       else skipped++;
     }
@@ -247,7 +260,7 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
         map.set(c.row.id as string, { ...(c.row as unknown as Place), status: c.status as Place["status"], created_at: now, updated_at: now });
         added++;
       } else {
-        const patch = mergeFill(prev, c.row);
+        const patch = mergeFill(prev, c.row, c.force);
         if (!patch) skipped++;
         else {
           map.set(prev.id, { ...prev, ...patch, updated_at: now });

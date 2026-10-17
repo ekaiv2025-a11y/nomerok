@@ -85,6 +85,13 @@ for r in it:
     st=[u for u in p['links'] if not re.search(r't\.me/|instagram|facebook|tiktok|yandex|google|2gis|madloba|08\.ge|cybo|goo\.gl|batumibazar|fastbase|bizkontakte|tripadvisor',u)]
     if st: p['site']=st[0]
     out.append({k:v for k,v in p.items() if v not in (None,[],'',False)})
+# Ручная сверка (подборки): data/places-curated.json — дополняет и исправляет записи, добавляет новые
+cur_path=os.path.join(os.path.dirname(OUT),'places-curated.json')
+if os.path.exists(cur_path):
+    byid={p['id']:p for p in out}
+    for c in json.load(open(cur_path)):
+        if c['id'] in byid: byid[c['id']].update(c)
+        else: out.append(c)
 json.dump(out,open(OUT,'w'),ensure_ascii=False,separators=(',',':'))
 subs=collections.defaultdict(collections.Counter)
 for p in out:
