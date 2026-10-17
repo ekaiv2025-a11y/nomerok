@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { findMasterByPhone } from "@/lib/db";
+import { createLoginToken, findMasterByPhone } from "@/lib/db";
+import { SITE_URL } from "@/lib/site";
 import { normalizePhone } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
@@ -16,9 +17,9 @@ const COOKIE = "nm_code";
 const hash = (id: string, code: string) => createHash("sha256").update(`${id}|${code}|${process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || "nomerok-dev"}`).digest("hex");
 
 const MSG = {
-  ru: (c: string) => `🔐 Код для входа в кабинет NomerOk: <b>${c}</b>\n\nНикому его не сообщайте. Если это были не вы — просто проигнорируйте.`,
-  en: (c: string) => `🔐 Your NomerOk login code: <b>${c}</b>\n\nDon't share it with anyone. If it wasn't you, just ignore this.`,
-  ka: (c: string) => `🔐 NomerOk-ის კაბინეტში შესვლის კოდი: <b>${c}</b>\n\nარავის უთხრათ. თუ ეს თქვენ არ იყავით — უბრალოდ ყურადღება არ მიაქციოთ.`,
+  ru: (c: string) => `🔐 Код для входа в кабинет NomerOk: <b>${c}</b>\n\nВведите его на сайте — или просто нажмите кнопку ниже, код вводить не нужно.\nНикому его не сообщайте. Если это были не вы — проигнорируйте.`,
+  en: (c: string) => `🔐 Your NomerOk login code: <b>${c}</b>\n\nEnter it on the website — or just tap the button below, no code needed.\nDon't share it with anyone. If it wasn't you, ignore this.`,
+  ka: (c: string) => `🔐 NomerOk-ის კაბინეტში შესვლის კოდი: <b>${c}</b>\n\nშეიყვანეთ საიტზე — ან უბრალოდ დააჭირეთ ღილაკს ქვემოთ.\nარავის უთხრათ. თუ ეს თქვენ არ იყავით — ყურადღება არ მიაქციოთ.`,
 };
 
 /** Шаг 1: прислать код. */
@@ -36,7 +37,14 @@ export async function POST(req: Request) {
   if (!m.tg_chat_id) return NextResponse.json({ ok: false, error: "nobot" });
   const code = String(randomInt(100000, 1000000));
   const { sendTo } = await import("@/lib/telegram");
-  const sent = await sendTo(m.tg_chat_id, (MSG[m.lang as keyof typeof MSG] ?? MSG.ru)(code)).catch(() => null);
+  const lang = (["ru", "en", "ka"].includes(m.lang) ? m.lang : "ru") as keyof typeof MSG;
+  const loginToken = await createLoginToken(m.id).catch(() => null);
+  const BTN = { ru: "👤 Войти в кабинет", en: "👤 Open my dashboard", ka: "👤 კაბინეტში შესვლა" };
+  const sent = await sendTo(
+    m.tg_chat_id,
+    MSG[lang](code),
+    loginToken ? [[{ text: BTN[lang], url: `${SITE_URL}/api/cabinet/login?t=${loginToken}&lang=${lang}` }]] : undefined,
+  ).catch(() => null);
   if (!sent) return NextResponse.json({ ok: false, error: "nobot" });
   const res = NextResponse.json({ ok: true });
   res.cookies.set(COOKIE, signData("login-code", { id: m.id, h: hash(m.id, code), n: 0 }, 1 / 6), {

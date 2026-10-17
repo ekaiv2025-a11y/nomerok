@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
@@ -68,6 +68,22 @@ export function CabinetLogin({ lang }: { lang: Locale }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  // Телефон часто перезагружает страницу, пока человек смотрит код в Telegram — помним, что код уже отправлен (10 минут)
+  useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem("nm_code_step") || "null");
+      if (s && Date.now() - s.at < 10 * 60 * 1000) {
+        setStep("code");
+        setPhone(s.phone || "");
+      }
+    } catch {}
+  }, []);
+  const remember = (on: boolean) => {
+    try {
+      if (on) localStorage.setItem("nm_code_step", JSON.stringify({ at: Date.now(), phone }));
+      else localStorage.removeItem("nm_code_step");
+    } catch {}
+  };
 
   async function call(body: Record<string, string>) {
     setBusy(true);
@@ -88,13 +104,19 @@ export function CabinetLogin({ lang }: { lang: Locale }) {
           if (j.ok) {
             setStep("code");
             setCode("");
+            remember(true);
           } else setErr(t.errors[j.error ?? "net"] ?? t.errors.net);
         } else {
           const j = await call({ code });
-          if (j.ok) router.refresh();
-          else {
+          if (j.ok) {
+            remember(false);
+            router.refresh();
+          } else {
             setErr(t.errors[j.error ?? "net"] ?? t.errors.net);
-            if (j.error === "expired") setStep("phone");
+            if (j.error === "expired") {
+              setStep("phone");
+              remember(false);
+            }
           }
         }
       }}
@@ -127,7 +149,7 @@ export function CabinetLogin({ lang }: { lang: Locale }) {
         {busy && <Loader2 className="h-4 w-4 animate-spin" />} {step === "phone" ? t.getCode : t.enter}
       </button>
       {step === "code" && (
-        <button type="button" onClick={() => { setStep("phone"); setErr(""); }} className="w-full text-center text-[14px] text-muted underline">
+        <button type="button" onClick={() => { setStep("phone"); setErr(""); remember(false); }} className="w-full text-center text-[14px] text-muted underline">
           {t.again}
         </button>
       )}
