@@ -342,3 +342,13 @@ export async function geocodeMissing(limit = 40, onlyIds?: string[]): Promise<{ 
   } else left = (await localAll()).filter((p) => p.status === "published" && p.lat == null && !p.geo_tried).length;
   return { found, failed, left };
 }
+
+/** Места, где этот Telegram — подтверждённый владелец (последние подтверждённые первыми). */
+export async function placesOwnedBy(chatId: number): Promise<Place[]> {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("places").select("*").eq("owner_chat_id", chatId).not("owner_verified_at", "is", null).order("owner_verified_at", { ascending: false });
+    return r.error ? [] : (r.data as Place[]);
+  }
+  return (await localAll()).filter((p) => p.owner_chat_id === chatId && p.owner_verified_at);
+}

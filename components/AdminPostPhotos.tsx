@@ -4,7 +4,7 @@ import { useState } from "react";
 import { resizeImage } from "@/lib/image-resize";
 
 /** Админка журнала: галерея фото — загрузка по одному, порядок, удаление. Ссылки уходят в форму скрытым полем. */
-export function AdminPostPhotos({ initial }: { initial: string[] }) {
+export function AdminPostPhotos({ initial, hint }: { initial: string[]; hint?: string }) {
   const [list, setList] = useState<string[]>(initial);
   const [busy, setBusy] = useState(0);
   const [err, setErr] = useState("");
@@ -58,7 +58,7 @@ export function AdminPostPhotos({ initial }: { initial: string[] }) {
         <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
       </label>
       {err && <p className="mt-1 text-[13px] text-danger">{err}</p>}
-      <p className="mt-1 text-[12px] text-muted">Можно выбрать сразу несколько. Покажутся галереей после текста. Порядок — стрелками.</p>
+      <p className="mt-1 text-[12px] text-muted">{hint ?? "Можно выбрать сразу несколько. Покажутся галереей после текста. Порядок — стрелками."}</p>
     </div>
   );
 }

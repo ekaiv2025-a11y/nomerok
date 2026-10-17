@@ -5,6 +5,7 @@ import { PLACE_CATS } from "@/lib/places";
 import { getPlace } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
 import { savePlaceAction } from "../actions";
+import { AdminPostPhotos } from "@/components/AdminPostPhotos";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,10 @@ export default async function EditPlace({ params, searchParams }: { params: Prom
         </div>
         <label className="block"><span className={L}>Описание RU (своими словами)</span><textarea name="desc_ru" rows={4} defaultValue={p.desc_ru ?? ""} className={`${F} py-2`} /></label>
         <label className="block"><span className={L}>Description EN</span><textarea name="desc_en" rows={3} defaultValue={p.desc_en ?? ""} className={`${F} py-2`} /></label>
+        <div>
+          <span className={L}>Фото (первое — миниатюра в списках)</span>
+          <AdminPostPhotos initial={p.photos ?? []} hint="Только свои фото, фото от владельца или с разрешения автора. Первое фото — обложка. Порядок — стрелками." />
+        </div>
         <label className="block">
           <span className={L}>Показ на сайте</span>
           <select name="status" defaultValue={p.status} className={F}>

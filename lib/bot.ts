@@ -10,6 +10,7 @@ import {
   getMastersByChatId,
   findMasterByPhone,
   findMasterByUsername,
+  uploadPhoto,
   getRequest,
   getRequestByLinkToken,
   hasResponse,
@@ -31,7 +32,7 @@ import { categoryLabel } from "./categories";
 import { formatPhone, normalizePhone, normalizeTelegram, telegramLink } from "./phone";
 import { profileSteps } from "./profile";
 import { SITE_NAME, SITE_URL } from "./site";
-import { escapeHtml, notifyAdmin, sendTo, telegramChatId, tg } from "./telegram";
+import { downloadTelegramFile, escapeHtml, notifyAdmin, sendTo, telegramChatId, tg } from "./telegram";
 import { makeJoinToken } from "./join-token";
 import type { ClientRequest, Master, MasterStatus } from "./types";
 
@@ -244,6 +245,8 @@ type TgMessage = {
   text?: string;
   contact?: { phone_number: string; user_id?: number };
   reply_to_message?: { text?: string };
+  photo?: { file_id: string; width: number; height: number }[];
+  caption?: string;
 };
 type TgCallback = { id: string; from: TgUser; data?: string; message?: TgMessage };
 export type TgUpdate = { update_id: number; message?: TgMessage; callback_query?: TgCallback };
@@ -422,7 +425,7 @@ const PLACE_TXT = {
   ask: (name: string) =>
     `🏢 Подтверждение владельца: <b>${name}</b>\n\nНажмите кнопку <b>«📱 Поделиться номером»</b> внизу. Если номер совпадёт с телефоном заведения на сайте — подтвердим сразу.`,
   ok: (name: string) =>
-    `✅ Готово! Вы подтвердили, что «${name}» — ваше заведение.\n\nЧтобы добавить фото, меню, часы работы или исправить данные — просто напишите сюда сообщением или пришлите фото, мы обновим карточку.`,
+    `✅ Готово! Вы подтвердили, что «${name}» — ваше заведение.\n\n📷 Пришлите сюда фото заведения (интерьер, вход, блюда, работы) — они сразу появятся в карточке на сайте, до 12 штук.\nЧтобы изменить часы работы, меню или другие данные — просто напишите сюда.`,
   manual: (name: string) =>
     `Спасибо! Номер не совпал с телефоном «${name}» на сайте, поэтому проверим вручную — обычно в течение дня.\n\nМожете сразу написать сюда, кто вы (владелец, управляющий) и как с вами связаться.`,
   already: "✅ Это заведение уже подтверждено. Если хотите что-то изменить — напишите сюда.",
@@ -465,6 +468,34 @@ async function onPlaceContact(msg: TgMessage): Promise<boolean> {
       `🏢 <b>${esc(p.name)}</b>: заявка владельца, но номер ${esc(formatPhone(phone))} не совпал с номером места (${esc((p.phones ?? []).map(formatPhone).join(", ") || "нет номера")}).\n${esc(who)}\nПроверьте вручную: ${admin}\n<i>↩️ Ответить человеку — смахните это сообщение влево. #u${chatId}</i>`,
     );
   }
+  return true;
+}
+
+/** Владелец подтверждённого места прислал фото — добавляем в карточку места. */
+async function onOwnerPhoto(msg: TgMessage): Promise<boolean> {
+  const { placesOwnedBy, updatePlace } = await import("./places-db");
+  const places = await placesOwnedBy(msg.chat.id).catch(() => []);
+  if (!places.length) return false;
+  const p = places[0];
+  const have = p.photos ?? [];
+  if (have.length >= 12) {
+    await sendTo(msg.chat.id, `В карточке «${esc(p.name)}» уже 12 фото — это максимум. Напишите, какие убрать, и пришлите новые.`);
+    return true;
+  }
+  const size = [...msg.photo!].sort((a, b) => b.width - a.width).find((x) => x.width <= 1600) ?? msg.photo![msg.photo!.length - 1];
+  const f = await downloadTelegramFile(size.file_id).catch(() => null);
+  if (!f) {
+    await sendTo(msg.chat.id, "Не получилось загрузить фото — попробуйте ещё раз.");
+    return true;
+  }
+  const url = await uploadPhoto(`place-${p.id}`, new Blob([f.data], { type: f.type || "image/jpeg" }), f.type === "image/png" ? "png" : "jpg").catch(() => null);
+  if (!url) {
+    await sendTo(msg.chat.id, "Не получилось сохранить фото — попробуйте ещё раз.");
+    return true;
+  }
+  await updatePlace(p.id, { photos: [...have, url] });
+  await sendTo(msg.chat.id, `📷 Фото добавлено в карточку «${esc(p.name)}» (${have.length + 1} из 12). Можно прислать ещё.\n${siteUrl()}/ru/places/${p.slug}`);
+  await notifyAdmin(`📷 Владелец «${esc(p.name)}» добавил фото (${have.length + 1}).\n${siteUrl()}/admin/places/${encodeURIComponent(p.id)}`, { silent: true });
   return true;
 }
 
@@ -984,6 +1015,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   const msg = u.message;
   if (!msg || msg.chat.type !== "private") return;
   if (msg.contact) return void (await onContact(msg));
+  if (msg.photo?.length && (await onOwnerPhoto(msg))) return;
   const text = msg.text ?? "";
   if (text.startsWith("/start")) return void (await onStart(msg, text.split(/\s+/)[1] ?? ""));
   if (text === "/my") return void (await sendMyLink(msg.chat.id, guessLang(msg.from), msg.from));

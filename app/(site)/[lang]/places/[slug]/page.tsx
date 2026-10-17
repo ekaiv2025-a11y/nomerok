@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { PT, placeAddr, placeCat, placeDesc, placeIndexable, placeName, placeSummary, prettyHours } from "@/lib/places";
+import { PT, placeTone, placeAddr, placeCat, placeDesc, placeIndexable, placeName, placeSummary, prettyHours } from "@/lib/places";
 import { getPlaceBySlug, nearbyPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
 import { botUsername } from "@/lib/telegram";
@@ -83,6 +83,18 @@ export default async function PlacePage({ params }: Props) {
           {c.emoji} {c.label[lang]}
         </Link>
       </nav>
+      {p.photos?.[0] ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={p.photos[0]} alt={name} className="mt-4 h-56 w-full rounded-2xl object-cover sm:h-72" />
+      ) : (
+        <div
+          aria-hidden
+          className="mt-4 flex h-28 items-center justify-center rounded-2xl sm:h-36"
+          style={{ background: `linear-gradient(135deg, ${placeTone(p.cat)[0]}, ${placeTone(p.cat)[1]})` }}
+        >
+          <span className="text-[56px] drop-shadow-sm sm:text-[72px]">{c.emoji}</span>
+        </div>
+      )}
       <h1 translate="no" className="notranslate mt-3 text-[26px] font-bold leading-tight sm:text-[34px]">{name}</h1>
       <p className="mt-1 text-[15px] text-muted">
         {p.sub || c.label[lang]}
@@ -116,7 +128,10 @@ export default async function PlacePage({ params }: Props) {
       </div>
       {p.owner_verified_at && <p className="mt-2 inline-block rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand-dark">{t.ownerOk}</p>}
 
-      {p.photos && p.photos.length > 0 && <ArticleGallery photos={p.photos} />}
+      {(() => {
+        const gal = [...(p.photos ?? []).slice(1), ...reviews.flatMap((r) => r.photos)];
+        return gal.length > 0 ? <ArticleGallery photos={gal} /> : null;
+      })()}
 
       {!desc && summary && (
         <section className="mt-6">

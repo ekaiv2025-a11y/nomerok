@@ -74,6 +74,17 @@ export const PLACE_CATS: { id: string; emoji: string; label: L3 }[] = [
   { id: "rent", emoji: "🚲", label: { ru: "Аренда и прокат", en: "Rentals", ka: "გაქირავება" } },
   { id: "services", emoji: "🧺", label: { ru: "Бытовые услуги", en: "Household services", ka: "საყოფაცხოვრებო" } },
 ];
+/** Цвет раздела для обложек без фото: [светлый, насыщенный]. */
+const TONES: Record<string, [string, string]> = {
+  food: ["#fde7d4", "#f6b98a"], stay: ["#dcebfa", "#9cc6ee"], groceries: ["#e6f4d9", "#a9d68a"], beauty: ["#fbe1ec", "#f0a9c6"], health: ["#e0f2ef", "#8fd0c4"],
+  education: ["#e8e4fb", "#b5a8ef"], kids: ["#fff1cf", "#f7d06e"], clothes: ["#f3e1f6", "#d6a6e2"], shops: ["#f1ece2", "#d5c3a0"], electronics: ["#dfe9f3", "#9db7d3"],
+  repair: ["#e7ebee", "#aab8c3"], home: ["#efe7dc", "#cfb594"], auto: ["#e3e7ea", "#9fadb7"], culture: ["#f7e0f0", "#e1a2cf"], sport: ["#dff4ea", "#8fd4b2"],
+  tourism: ["#dff2f7", "#8ccbdc"], events: ["#fde3e3", "#f3a5a5"], realty: ["#e5edf5", "#a7bed6"], finance: ["#e6efe6", "#a8c8a8"], business: ["#e8e8ee", "#b0b0c4"],
+  pets: ["#f6ecdf", "#e0bf92"], flowers: ["#fce4ec", "#f2a7bf"], hobby: ["#ece6f7", "#c2b0e6"], delivery: ["#f1ebe1", "#d2bd98"], coworking: ["#e2edf7", "#a3c1e0"],
+  media: ["#f0e4ef", "#cfa3c9"], production: ["#e9e9e4", "#bdbdb0"], rent: ["#e1f1f1", "#9fd0d0"], services: ["#eaeef0", "#b4c2c9"],
+};
+export const placeTone = (cat: string): [string, string] => TONES[cat] ?? ["#eef0f2", "#c4ccd2"];
+
 export const placeCat = (id: string) => PLACE_CATS.find((c) => c.id === id) ?? PLACE_CATS[PLACE_CATS.length - 1];
 
 export function placeName(p: Pick<Place, "name" | "name_en" | "name_ka">, lang: Locale): string {

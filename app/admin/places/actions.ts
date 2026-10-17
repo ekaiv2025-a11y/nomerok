@@ -63,6 +63,10 @@ export async function savePlaceAction(fd: FormData) {
     checked: new Date().toISOString().slice(0, 10),
     edited: true,
   };
+  try {
+    const ph = JSON.parse(String(fd.get("photos") ?? "[]"));
+    if (Array.isArray(ph)) patch.photos = ph.filter((u) => typeof u === "string" && /^(https:\/\/|data:image\/)/.test(u)).slice(0, 12);
+  } catch {}
   if (fd.get("owner_ok") === "1") patch.owner_verified_at = new Date().toISOString();
   if (fd.get("owner_reset") === "1") Object.assign(patch, { owner_verified_at: null, owner_chat_id: null, owner_name: null });
   try {
