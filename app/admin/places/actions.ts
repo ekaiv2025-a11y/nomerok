@@ -112,3 +112,16 @@ export async function placeReviewStatusAction(fd: FormData) {
   }
   redirect(`/admin/places?msg=${encodeURIComponent(status === "published" ? "✓ Отзыв опубликован" : "Отзыв отклонён")}`);
 }
+
+export async function geocodePlacesAction() {
+  await requireAdmin();
+  const { geocodeMissing } = await import("@/lib/places-db");
+  let msg: string;
+  try {
+    const r = await geocodeMissing(40);
+    msg = `📍 Координаты: найдено ${r.found}, не нашли ${r.failed}. Осталось без точки: ${r.left}${r.left ? " — нажмите ещё раз" : ""}`;
+  } catch (e) {
+    msg = `⚠️ ${e instanceof Error ? e.message : "Ошибка"}`;
+  }
+  redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);
+}

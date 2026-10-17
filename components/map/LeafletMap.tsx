@@ -6,7 +6,17 @@ import L from "leaflet";
 import { useEffect } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
-export type MapPoint = { lat: number; lng: number; title?: string; subtitle?: string; href?: string; photo?: string | null };
+export type MapPoint = { lat: number; lng: number; title?: string; subtitle?: string; href?: string; photo?: string | null; label?: string | number };
+
+/** Метка с номером — для подборок (номер совпадает с номером в списке). */
+const numbered = (n: string | number) =>
+  L.divIcon({
+    className: "",
+    html: `<div style="width:30px;height:30px;border-radius:50%;background:#1f6b4f;color:#fff;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font:700 13px/1 system-ui,sans-serif">${String(n).replace(/[^\w]/g, "")}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -14],
+  });
 
 export const BATUMI: [number, number] = [41.6413, 41.6359];
 
@@ -63,7 +73,7 @@ export default function LeafletMap({
         {!editable && <FitBounds points={points} />}
         {!editable &&
           points.map((p, i) => (
-            <Marker key={i} position={[p.lat, p.lng]} icon={pin}>
+            <Marker key={i} position={[p.lat, p.lng]} icon={p.label != null ? numbered(p.label) : pin}>
               {p.title && (
                 <Popup>
                   <a href={p.href} style={{ display: "flex", gap: 10, alignItems: "center", textDecoration: "none", color: "inherit", minWidth: 180 }}>

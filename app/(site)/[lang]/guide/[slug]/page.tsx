@@ -7,7 +7,10 @@ import { RUBRICS, formatArticleDate, readingMinutes } from "@/lib/articles";
 import { journalArticle, journalArticles } from "@/lib/journal";
 import { ArticleGallery } from "@/components/ArticleGallery";
 import { PlaceCard } from "@/components/PlaceCard";
-import { placesByRefs } from "@/lib/places-db";
+import { geocodeMissing, placesByRefs } from "@/lib/places-db";
+import { after } from "next/server";
+import { Map } from "@/components/map/Map";
+import { placeAddr, placeName } from "@/lib/places";
 import { QUICK } from "@/lib/phones";
 import { SITE_URL } from "@/lib/site";
 
@@ -31,6 +34,9 @@ export default async function ArticlePage({ params }: Props) {
   const ARTICLES = await journalArticles();
   const refs = a.body.flatMap((b) => ("places" in b ? b.places : []));
   const placeList = refs.length ? await placesByRefs(refs) : [];
+  // У мест подборки нет точки на карте — ищем координаты по адресу в фоне (страница не ждёт)
+  const noGeo = placeList.filter((x) => x.lat == null && !x.geo_tried).map((x) => x.id);
+  if (noGeo.length) after(() => geocodeMissing(noGeo.length, noGeo).catch(() => undefined));
   let placeN = 0;
   const same = ARTICLES.filter((x) => x.slug !== a.slug && x.rubric === a.rubric);
   const others = [...same, ...ARTICLES.filter((x) => x.slug !== a.slug && x.rubric !== a.rubric)].slice(0, 4);
@@ -95,10 +101,26 @@ export default async function ArticlePage({ params }: Props) {
             );
           if ("places" in b) {
             const ps = b.places.map((r) => placeList.find((x) => x.id === r || x.slug === r)).filter((x): x is NonNullable<typeof x> => !!x);
+            const start = placeN;
+            const pts = ps
+              .map((x, k) => ({ x, n: start + k + 1 }))
+              .filter(({ x }) => x.lat != null && x.lng != null)
+              .map(({ x, n }) => ({ lat: x.lat!, lng: x.lng!, label: n, title: `${n}. ${placeName(x, lang)}`, subtitle: placeAddr(x, lang) ?? undefined, href: href(lang, `/places/${x.slug}`) }));
             return (
               <div key={i} className="space-y-3">
+                {pts.length > 0 && (
+                  <div className="rounded-2xl border border-line bg-white p-2">
+                    <Map height={360} points={pts} scrollZoom={false} />
+                    <p className="px-2 pb-1 pt-2 text-[13px] text-muted">
+                      📍 Номер на карте = номер в списке ниже. Нажмите на кружок, чтобы увидеть название.
+                      {pts.length < ps.length ? ` На карте ${pts.length} из ${ps.length} — у остальных точный адрес уточняется.` : ""}
+                    </p>
+                  </div>
+                )}
                 {ps.map((x) => (
-                  <PlaceCard key={x.id} p={x} lang={lang} n={++placeN} wide />
+                  <div key={x.id} id={`p-${++placeN}`} className="scroll-mt-24">
+                    <PlaceCard p={x} lang={lang} n={placeN} wide />
+                  </div>
                 ))}
               </div>
             );

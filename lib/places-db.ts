@@ -277,3 +277,55 @@ export async function adminPlaceStats(): Promise<{ total: number; published: num
   const all = await localAll();
   return { total: all.length, published: all.filter((p) => p.status === "published").length, withDesc: all.filter((p) => p.desc_ru).length, owners: all.filter((p) => p.owner_verified_at).length };
 }
+
+/* ---------- координаты по адресу (OpenStreetMap Nominatim, не чаще 1 запроса в секунду) ---------- */
+
+const UA = "Nomerok.ge/1.0 (https://nomerok.ge)";
+const VIEWBOX = "41.52,41.75,41.85,41.50"; // Батуми и окрестности
+
+async function nominatim(q: string): Promise<{ lat: number; lng: number } | null> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ge&viewbox=${VIEWBOX}&bounded=1&q=${encodeURIComponent(q)}`;
+  try {
+    const r = await fetch(url, { headers: { "User-Agent": UA }, cache: "no-store" });
+    const j = (await r.json()) as { lat: string; lon: string }[];
+    return j[0] ? { lat: Number(j[0].lat), lng: Number(j[0].lon) } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Найти координаты для опубликованных мест без точки на карте (за раз — не больше limit, ~1 секунда на место). */
+export async function geocodeMissing(limit = 40, onlyIds?: string[]): Promise<{ found: number; failed: number; left: number }> {
+  const sb = supabase();
+  let todo: Place[] = [];
+  if (sb) {
+    let q = sb.from("places").select("*").eq("status", "published").is("lat", null).eq("geo_tried", false);
+    if (onlyIds?.length) q = q.in("id", onlyIds);
+    const r = await q.limit(limit);
+    if (r.error) throw new Error(/geo_tried/.test(r.error.message) ? "Нужна миграция 0025 — дождитесь обновления сайта" : r.error.message);
+    todo = r.data as Place[];
+  } else {
+    todo = (await localAll()).filter((p) => p.status === "published" && p.lat == null && !p.geo_tried && (!onlyIds || onlyIds.includes(p.id))).slice(0, limit);
+  }
+  let found = 0;
+  let failed = 0;
+  for (const p of todo) {
+    const { toRussianAddress } = await import("./place-addr");
+    const variants = [p.addr, p.addr_ru, toRussianAddress(p.addr)].filter((x): x is string => !!x).map((a) => (/batumi|батуми|ბათუმ/i.test(a) ? a : `${a}, Batumi`));
+    let hit: { lat: number; lng: number } | null = null;
+    for (const v of [...new Set(variants)]) {
+      hit = await nominatim(v.replace(/^Батуми,\s*(.+)$/, "$1, Батуми"));
+      await new Promise((r) => setTimeout(r, 1100));
+      if (hit) break;
+    }
+    await updatePlace(p.id, hit ? { lat: hit.lat, lng: hit.lng, geo_tried: true } : { geo_tried: true });
+    if (hit) found++;
+    else failed++;
+  }
+  let left = 0;
+  if (sb) {
+    const r = await sb.from("places").select("id", { count: "exact", head: true }).eq("status", "published").is("lat", null).eq("geo_tried", false);
+    left = r.count ?? 0;
+  } else left = (await localAll()).filter((p) => p.status === "published" && p.lat == null && !p.geo_tried).length;
+  return { found, failed, left };
+}

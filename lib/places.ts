@@ -14,6 +14,7 @@ export type Place = {
   addr_ru?: string | null;
   lat?: number | null;
   lng?: number | null;
+  geo_tried?: boolean;
   phones?: string[];
   site?: string | null;
   ig?: string | null;

@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { PLACE_CATS, placeCat } from "@/lib/places";
 import { PLACES_PAGE, adminPlaceStats, listPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
-import { enrichPlacesAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
+import { enrichPlacesAction, geocodePlacesAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
 import { pendingPlaceReviews } from "@/lib/place-reviews-db";
 import { getPlace } from "@/lib/places-db";
 
@@ -82,6 +82,11 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
           <button className="btn-primary h-10 px-4">⬆️ Загрузить результат</button>
         </form>
       </div>
+
+      <form action={geocodePlacesAction} className="mt-3 rounded-2xl bg-white p-4 text-[13px]">
+        <b>📍 Точки на карте</b> — найти координаты по адресу для мест, у которых их нет (до 40 мест за нажатие, ~40 секунд). Нужны, чтобы место было на карте и в подборках.
+        <div><button className="btn-ghost mt-2 h-9 px-4 text-[13px]">Найти координаты</button></div>
+      </form>
 
       <form className="mt-4 flex flex-wrap gap-2" method="get">
         <input name="q" defaultValue={sp.q} placeholder="Название, улица…" className="field h-11 min-w-0 grow basis-60" />
