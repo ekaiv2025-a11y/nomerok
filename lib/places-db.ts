@@ -178,6 +178,11 @@ const georgianOnly = (s: string) => /[\u10A0-\u10FF]/.test(s) && !/[A-Za-zА-Я�
 /** Что дописать в существующее место из файла: только пустые поля, теги — объединить. null — ничего. */
 function mergeFill(prev: Place, row: Record<string, unknown>, force = false): Partial<Place> | null {
   const patch: Record<string, unknown> = {};
+  // Дубль другой карточки — скрываем (если не правили вручную и не подтверждён владельцем)
+  if (row.dup_of && !prev.edited && !prev.owner_verified_at && (prev.status !== "hidden" || prev.dup_of !== row.dup_of)) {
+    patch.status = "hidden";
+    patch.dup_of = row.dup_of;
+  }
   // Ручная сверка (force): исправляет данные из карт, но не трогает правки из админки
   if (force && !prev.edited) {
     for (const k of DATA_FIELDS) {
@@ -218,6 +223,7 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
   const clean = rows.map((r) => {
     const o: Record<string, unknown> = { id: r.id, slug: r.slug };
     for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" || k === "tags" ? [] : k === "area" ? "batumi" : null);
+    if (r.dup_of) o.dup_of = r.dup_of;
     return { row: o, status: r.status ?? "published", force: !!(r as { force?: boolean }).force };
   });
   const sb = supabase();

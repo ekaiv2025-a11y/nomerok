@@ -13,7 +13,7 @@ export async function importPlacesAction() {
   try {
     const data = (await import("@/data/places-batumi.json")).default as unknown as Parameters<typeof importPlaces>[0];
     const r = await importPlaces(data);
-    msg = `✓ Импорт: добавлено ${r.added}, обновлено ${r.updated}, не тронуто (правили вручную) ${r.skipped}`;
+    msg = `✓ Импорт: добавлено ${r.added}, обновлено ${r.updated}, без изменений ${r.skipped}`;
   } catch (e) {
     msg = `⚠️ ${e instanceof Error ? e.message : "Ошибка импорта"}`;
   }

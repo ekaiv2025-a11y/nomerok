@@ -85,6 +85,59 @@ for r in it:
     st=[u for u in p['links'] if not re.search(r't\.me/|instagram|facebook|tiktok|yandex|google|2gis|madloba|08\.ge|cybo|goo\.gl|batumibazar|fastbase|bizkontakte|tripadvisor',u)]
     if st: p['site']=st[0]
     out.append({k:v for k,v in p.items() if v not in (None,[],'',False)})
+# --- Дубли (одно место из OSM и из Overture): одинаковое название рядом (≤200 м) или тот же телефон рядом (≤300 м)
+import math
+def norm(n):
+    n=(n or '').lower()
+    n=re.sub(r'[^a-zа-яё0-9ა-ჰ]+',' ',n).strip()
+    n=re.sub(r'\b(hotel|отель|guest house|гостевой дом|restaurant|ресторан|cafe|кафе|batumi|батуми|ltd|llc|შპს)\b','',n)
+    return re.sub(r'\s+',' ',n).strip()
+def dist(a,b):
+    if a.get('lat') is None or b.get('lat') is None: return 1e9
+    dy=(a['lat']-b['lat'])*111000; dx=(a['lng']-b['lng'])*111000*math.cos(math.radians(a['lat']))
+    return math.hypot(dx,dy)
+CURATED_IDS={c['id'] for c in json.load(open(os.path.join(os.path.dirname(OUT),'places-curated.json')))} if os.path.exists(os.path.join(os.path.dirname(OUT),'places-curated.json')) else set()
+def richness(p): return (100 if p['id'] in CURATED_IDS or p['id'].startswith('REP') else 0) + sum(1 for k in ('phones','site','ig','socials','hours','addr','email','desc_ru','name_en','name_ka') if p.get(k)) + (2 if p['status']=='published' else 0)
+cells=collections.defaultdict(list)
+for p in out:
+    if p.get('lat') is not None: cells[(round(p['lat'],2),round(p['lng'],2))].append(p)
+parent={}
+def find(x):
+    while parent.get(x,x)!=x: x=parent[x]
+    return x
+for p in out:
+    p['_n']={x for x in (norm(p['name']),norm(p.get('name_en')),norm(p.get('name_ka'))) if len(x)>=3}
+    p['_p']={re.sub(r'\D','',x)[-9:] for x in p.get('phones',[])}
+def same(a,b):
+    d=dist(a,b)
+    if d>300: return False
+    return d<=200 and bool(a['_n'] & b['_n'])
+for (la,lo),lst in cells.items():
+    near=[q for dla in (-0.01,0,0.01) for dlo in (-0.01,0,0.01) for q in cells.get((round(la+dla,2),round(lo+dlo,2)),[])]
+    for a in lst:
+        for b in near:
+            if a['id']<b['id'] and a['_n'] & b['_n'] and same(a,b):
+                ra,rb=find(a['id']),find(b['id'])
+                if ra!=rb: parent[rb]=ra
+groups=collections.defaultdict(list)
+byid={p['id']:p for p in out}
+for p in out:
+    if p.get('lat') is not None: groups[find(p['id'])].append(p)
+ndup=0
+for g in groups.values():
+    if len(g)<2: continue
+    g.sort(key=lambda p:-richness(p))
+    main=g[0]
+    for o in g[1:]:
+        for k in ('site','ig','hours','addr','addr_ru','email','name_en','name_ka','desc_ru','desc_en','sub'):
+            if not main.get(k) and o.get(k): main[k]=o[k]
+        for k in ('phones','socials','tags'):
+            if o.get(k): main[k]=list(dict.fromkeys((main.get(k) or [])+o[k]))
+        if o['status']=='published': main['status']='published'
+        o['status']='hidden'; o['dup_of']=main['id']; ndup+=1
+print('дублей скрыто:',ndup, file=sys.stderr)
+for p in out: p.pop('_n',None); p.pop('_p',None)
+
 # Ручная сверка (подборки): data/places-curated.json — дополняет и исправляет записи, добавляет новые
 cur_path=os.path.join(os.path.dirname(OUT),'places-curated.json')
 if os.path.exists(cur_path):

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { PT, placeTone, placeAddr, placeCat, placeDesc, placeIndexable, placeName, placeSummary, prettyHours } from "@/lib/places";
-import { getPlaceBySlug, nearbyPlaces } from "@/lib/places-db";
+import { getPlace, getPlaceBySlug, nearbyPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
 import { botUsername } from "@/lib/telegram";
 import { PlaceCard } from "@/components/PlaceCard";
@@ -45,6 +45,11 @@ export default async function PlacePage({ params }: Props) {
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
   const p = await getPlaceBySlug(slug);
+  // Дубль — ведём на основную карточку
+  if (p && p.status !== "published" && p.dup_of) {
+    const main = await getPlace(p.dup_of);
+    if (main && main.status === "published") permanentRedirect(href(lang, `/places/${main.slug}`));
+  }
   if (!p || p.status !== "published") notFound();
   const t = PT[lang];
   const c = placeCat(p.cat);

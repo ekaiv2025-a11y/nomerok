@@ -15,6 +15,7 @@ export type Place = {
   lat?: number | null;
   lng?: number | null;
   geo_tried?: boolean;
+  dup_of?: string | null; // дубль — основная карточка
   phones?: string[];
   site?: string | null;
   ig?: string | null;
