@@ -7,6 +7,7 @@ import { RUBRICS, formatArticleDate, readingMinutes, type Article, type Rubric }
 
 import { journalArticles } from "@/lib/journal";
 import { articleViews } from "@/lib/article-views";
+import { posStyle } from "@/lib/photo-pos";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ function Cover({ a, big }: { a: Article; big?: boolean }) {
     <span className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${rub.bg} ${big ? "h-48 sm:h-full sm:min-h-64" : "h-36"}`}>
       {a.cover ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={a.cover} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <img src={a.cover} alt="" className="absolute inset-0 h-full w-full object-cover" style={posStyle(a.cover)} loading="lazy" />
       ) : (
         <span className={big ? "text-[84px]" : "text-[56px]"} aria-hidden>
           {a.emoji}

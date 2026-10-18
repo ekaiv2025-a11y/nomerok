@@ -8,6 +8,7 @@ import { journalArticle, journalArticles } from "@/lib/journal";
 import { ArticleGallery } from "@/components/ArticleGallery";
 import { ArticleViewTracker } from "@/components/ArticleViewTracker";
 import { articleViews } from "@/lib/article-views";
+import { posStyle } from "@/lib/photo-pos";
 import { PlaceCard } from "@/components/PlaceCard";
 import { geocodeMissing, placesByRefs } from "@/lib/places-db";
 import { after } from "next/server";
@@ -69,7 +70,7 @@ export default async function ArticlePage({ params }: Props) {
       </p>
       {a.cover && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={a.cover} alt="" className="mt-5 max-h-[420px] w-full rounded-2xl object-cover" />
+        <img src={a.cover} alt="" className="mt-5 h-[260px] w-full rounded-2xl object-cover sm:h-[380px]" style={posStyle(a.cover)} />
       )}
       {a.lead && <p className="mt-4 text-[17px] leading-relaxed text-[#3a3935]">{a.lead}</p>}
 

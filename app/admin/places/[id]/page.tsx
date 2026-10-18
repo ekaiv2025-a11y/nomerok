@@ -81,7 +81,7 @@ export default async function EditPlace({ params, searchParams }: { params: Prom
         <label className="block"><span className={L}>Description EN</span><textarea name="desc_en" rows={3} defaultValue={p.desc_en ?? ""} className={`${F} py-2`} /></label>
         <div>
           <span className={L}>Фото (первое — миниатюра в списках)</span>
-          <AdminPostPhotos initial={p.photos ?? []} hint="Только свои фото, фото от владельца или с разрешения автора. Первое фото — обложка. Порядок — стрелками." />
+          <AdminPostPhotos cover={false} initial={p.photos ?? []} hint="Только свои фото, фото от владельца или с разрешения автора. Первое фото — обложка. Порядок — стрелками." />
         </div>
         <label className="block">
           <span className={L}>Показ на сайте</span>
