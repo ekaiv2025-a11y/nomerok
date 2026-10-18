@@ -92,21 +92,20 @@ export default async function EditPost({ params, searchParams }: { params: Promi
             <input name="source_url" defaultValue={p?.source_url ?? ""} className="field mt-1 w-full" placeholder="https://…" />
           </label>
         </div>
-        <div>
-          <span className={label}>Фото-обложка (необязательно, до 4 МБ)</span>
-          {p?.cover_url && (
+        {p?.cover_url && (
+          <div>
+            <span className={label}>Отдельная обложка (загружена раньше)</span>
             <div className="mt-1 flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.cover_url} alt="" className="h-20 w-32 rounded-lg object-cover" />
               <label className="text-[13px] text-muted">
-                <input type="checkbox" name="cover_remove" /> убрать фото
+                <input type="checkbox" name="cover_remove" /> убрать — тогда обложкой станет первое фото ниже
               </label>
             </div>
-          )}
-          <input type="file" name="cover" accept="image/jpeg,image/png,image/webp" className="mt-1 block text-[13px]" />
-        </div>
+          </div>
+        )}
         <div>
-          <span className={label}>Галерея — ещё фото (необязательно)</span>
+          <span className={label}>Фото (первое — обложка в журнале, остальные — галерея после текста)</span>
           <AdminPostPhotos initial={p?.photos ?? []} />
         </div>
         <div className="flex flex-wrap gap-2 border-t border-line pt-4">

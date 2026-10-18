@@ -6,6 +6,8 @@ import { pageMeta } from "@/lib/i18n/page";
 import { RUBRICS, formatArticleDate, readingMinutes } from "@/lib/articles";
 import { journalArticle, journalArticles } from "@/lib/journal";
 import { ArticleGallery } from "@/components/ArticleGallery";
+import { ArticleViewTracker } from "@/components/ArticleViewTracker";
+import { articleViews } from "@/lib/article-views";
 import { PlaceCard } from "@/components/PlaceCard";
 import { geocodeMissing, placesByRefs } from "@/lib/places-db";
 import { after } from "next/server";
@@ -32,6 +34,7 @@ export default async function ArticlePage({ params }: Props) {
   const a = await journalArticle(slug);
   if (!a) notFound();
   const ARTICLES = await journalArticles();
+  const views = (await articleViews([a.slug]).catch(() => ({}) as Record<string, number>))[a.slug] ?? 0;
   const refs = a.body.flatMap((b) => ("places" in b ? b.places : []));
   const placeList = refs.length ? await placesByRefs(refs) : [];
   // У мест подборки нет точки на карте — ищем координаты по адресу в фоне (страница не ждёт)
@@ -48,6 +51,7 @@ export default async function ArticlePage({ params }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <ArticleViewTracker slug={a.slug} />
       <nav className="flex flex-wrap items-center gap-2 text-[14px] text-muted">
         <Link href={href(lang, "/guide")} className="hover:text-brand">
           ← Журнал
@@ -61,7 +65,7 @@ export default async function ArticlePage({ params }: Props) {
         {a.emoji} {a.h1}
       </h1>
       <p className="mt-2 text-[13px] text-muted">
-        Редакция NomerOk · {formatArticleDate(a.date)} · {readingMinutes(a)} мин чтения
+        Редакция NomerOk · {formatArticleDate(a.date)} · {readingMinutes(a)} мин чтения{views > 0 ? ` · 👁 ${views}` : ""}
       </p>
       {a.cover && (
         // eslint-disable-next-line @next/next/no-img-element

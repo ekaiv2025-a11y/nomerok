@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { adminListPosts } from "@/lib/posts-db";
 import { ARTICLES, RUBRICS, type Rubric } from "@/lib/articles";
+import { articleViews } from "@/lib/article-views";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,8 @@ export default async function AdminPosts({ searchParams }: { searchParams: Promi
   if (!(await isAdmin())) redirect("/admin/login");
   const sp = await searchParams;
   const posts = await adminListPosts().catch(() => []);
+  const views = await articleViews().catch(() => ({}) as Record<string, number>);
+  const top = ARTICLES.map((a) => ({ slug: a.slug, title: a.h1, v: views[a.slug] ?? 0 })).sort((x, y) => y.v - x.v).slice(0, 10);
   return (
     <div className="mx-auto max-w-3xl">
       <Link href="/admin" className="text-[14px] text-muted">← Админка</Link>
@@ -27,7 +30,7 @@ export default async function AdminPosts({ searchParams }: { searchParams: Promi
             <span className="min-w-0 grow">
               <span className="block truncate font-semibold">{p.title}</span>
               <span className="text-[12px] text-muted">
-                {RUBRICS[p.rubric as Rubric]?.label ?? p.rubric} · {new Date(p.published_at ?? p.created_at).toLocaleDateString("ru-RU")}
+                {RUBRICS[p.rubric as Rubric]?.label ?? p.rubric} · {new Date(p.published_at ?? p.created_at).toLocaleDateString("ru-RU")} · 👁 {views[p.slug] ?? 0}
               </span>
             </span>
             <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${p.status === "published" ? "bg-brand-soft text-brand-dark" : "bg-cream text-muted"}`}>
@@ -36,6 +39,18 @@ export default async function AdminPosts({ searchParams }: { searchParams: Promi
           </Link>
         ))}
       </div>
+      {top.some((x) => x.v > 0) && (
+        <div className="mt-6 rounded-2xl bg-white p-4 text-[14px]">
+          <b>👁 Статьи из кода — просмотры</b> <span className="text-[12px] text-muted">(1 человек = 1 просмотр в день, без роботов и без вас)</span>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            {top.map((x) => (
+              <li key={x.slug}>
+                <a href={`/ru/guide/${x.slug}`} target="_blank" className="hover:underline">{x.title}</a> — <b>{x.v}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       <p className="mt-6 text-[13px] text-muted">Ещё {ARTICLES.length} статей в журнале добавлены разработчиком — их меняют через Claude.</p>
     </div>
   );

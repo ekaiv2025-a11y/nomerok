@@ -105,8 +105,9 @@ export function postToArticle(p: Post): Article {
     rubric: (p.rubric as Rubric) || "news",
     cats: p.cats ?? [],
     body: [...parsePostBody(p.body), ...(p.cats?.[0] ? [{ cta: `${categoryPlural(p.cats[0], "ru")} на NomerOk — фото работ, цены, отзывы`, cat: p.cats[0] } as Block] : [])],
-    cover: p.cover_url,
-    photos: p.photos ?? [],
+    // Обложка: отдельное фото или первое из галереи
+    cover: p.cover_url || p.photos?.[0] || null,
+    photos: p.cover_url ? (p.photos ?? []) : (p.photos ?? []).slice(1),
     source: p.source_url ? { name: p.source_name || new URL(p.source_url).hostname, url: p.source_url } : null,
   };
 }

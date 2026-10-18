@@ -6,6 +6,7 @@ import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { RUBRICS, formatArticleDate, readingMinutes, type Article, type Rubric } from "@/lib/articles";
 
 import { journalArticles } from "@/lib/journal";
+import { articleViews } from "@/lib/article-views";
 
 export const dynamic = "force-dynamic";
 
@@ -40,10 +41,10 @@ function Cover({ a, big }: { a: Article; big?: boolean }) {
   );
 }
 
-function Meta({ a }: { a: Article }) {
+function Meta({ a, views }: { a: Article; views?: number }) {
   return (
     <span className="mt-2 block text-[12px] text-muted">
-      {formatArticleDate(a.date)} · {readingMinutes(a)} мин чтения
+      {formatArticleDate(a.date)} · {readingMinutes(a)} мин чтения{views ? ` · 👁 ${views}` : ""}
     </span>
   );
 }
@@ -54,6 +55,7 @@ export default async function GuideList({ params, searchParams }: LangParams & {
   const r = (await searchParams).r;
   const active = r && r in RUBRICS ? (r as Rubric) : null;
   const ARTICLES = await journalArticles();
+  const views = await articleViews().catch(() => ({}) as Record<string, number>);
   const list = active ? ARTICLES.filter((a) => a.rubric === active) : ARTICLES;
   const first: Article | null = active ? null : list[0] ?? null;
   const rest = active ? list : list.slice(1);
@@ -81,7 +83,7 @@ export default async function GuideList({ params, searchParams }: LangParams & {
             <span className="text-[12px] font-semibold uppercase tracking-wide text-brand">Новое</span>
             <span className="mt-1 block text-[22px] font-bold leading-snug group-hover:text-brand sm:text-[26px]">{first.h1}</span>
             <span className="mt-2 block text-[15px] leading-relaxed text-muted">{first.description}</span>
-            <Meta a={first} />
+            <Meta a={first} views={views[first.slug]} />
           </span>
         </Link>
       )}
@@ -94,7 +96,7 @@ export default async function GuideList({ params, searchParams }: LangParams & {
               <span className="block text-[16px] font-semibold leading-snug group-hover:text-brand">{a.h1}</span>
               <span className="mt-1.5 line-clamp-2 block text-[13px] leading-relaxed text-muted">{a.description}</span>
               <span className="grow" />
-              <Meta a={a} />
+              <Meta a={a} views={views[a.slug]} />
             </span>
           </Link>
         ))}
