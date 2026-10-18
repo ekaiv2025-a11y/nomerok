@@ -47,6 +47,24 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
         <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
         <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneGeneral}</p>
+        {result.held === "specialist" && (
+          <p className="mt-3 rounded-xl bg-[#fff8e6] p-3 text-left text-[14px] text-[#5a4a22]">
+            {lang === "ru"
+              ? "Похоже, вы специалист: этот номер уже есть в анкете на NomerOk. Заявки — для тех, кто ищет мастера, поэтому эту мы проверим вручную. Чтобы получать заказы, следите за заявками в боте и в кабинете."
+              : lang === "ka"
+                ? "როგორც ჩანს, თქვენ სპეციალისტი ხართ — ეს ნომერი უკვე არის ანკეტაში. განაცხადს ხელით შევამოწმებთ."
+                : "Looks like you're a specialist — this number is already in a NomerOk profile. We'll review this request manually."}
+          </p>
+        )}
+        {result.held === "self" && (
+          <p className="mt-3 rounded-xl bg-[#fff8e6] p-3 text-left text-[14px] text-[#5a4a22]">
+            {lang === "ru" ? "Текст похож на рекламу услуг, поэтому заявку проверим вручную. Если вы специалист — " : lang === "ka" ? "ტექსტი სარეკლამოს ჰგავს, ამიტომ ხელით შევამოწმებთ. თუ სპეციალისტი ხართ — " : "The text looks like an ad for services, so we'll review it manually. If you're a specialist — "}
+            <Link href={href(lang, "/join")} className="font-semibold text-brand underline">
+              {lang === "ru" ? "разместите анкету" : lang === "ka" ? "განათავსეთ ანკეტა" : "create a profile"}
+            </Link>
+            {lang === "ru" ? ", и заявки клиентов будут приходить вам сами." : lang === "ka" ? "." : " and client requests will come to you."}
+          </p>
+        )}
         <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
         {result.linked ? <LinkedNote lang={lang} href={href(lang, "/my")} /> : null}
         <Link href={href(lang)} className="btn-ghost mt-5">
@@ -87,6 +105,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
       name: f.get("name"),
       phone: f.get("phone"),
       website: f.get("website"),
+      notSelf: selfOk,
     });
   }
 

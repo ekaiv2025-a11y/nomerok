@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requestSchema, firstErrors, langFromBody } from "@/lib/validation";
-import { createRequest, getPublishedMasterBySlug } from "@/lib/db";
+import { createRequest, findMasterByPhone, getPublishedMasterBySlug } from "@/lib/db";
 import { botLink, notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { distributeRequest } from "@/lib/bot";
 import { rateLimit } from "@/lib/rate-limit";
@@ -11,7 +11,7 @@ import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 import { cityLabel, cityOf } from "@/lib/cities";
 import { currentClient } from "@/lib/client-auth";
-import { looksLikeAd } from "@/lib/request-check";
+import { looksLikeAd, looksLikeSelf } from "@/lib/request-check";
 import { updateRequest } from "@/lib/db";
 
 export async function POST(req: Request) {
@@ -60,6 +60,14 @@ export async function POST(req: Request) {
     // Похоже на рекламу (ссылки, «предлагаем», LLC…) — не рассылаем, ждём решения администратора.
     // Сообщение конкретному специалисту рассылаем всегда (он сам решит).
     const check = master ? { ad: false, reasons: [] as string[] } : looksLikeAd(saved);
+    // Номер принадлежит специалисту с анкетой — это он сам, а не клиент
+    const asMaster = master ? null : await findMasterByPhone(saved.phone).catch(() => null);
+    if (asMaster && asMaster.status !== "rejected") {
+      check.ad = true;
+      check.reasons.push(`номер специалиста «${asMaster.name}»`);
+    }
+    if (check.ad && body.notSelf === true) check.reasons.push("клиент нажал «Нет, я ищу мастера»");
+    const held: "specialist" | "self" | null = asMaster && asMaster.status !== "rejected" ? "specialist" : check.ad && looksLikeSelf(saved.description) ? "self" : null;
     const sent = check.ad
       ? 0
       : await distributeRequest(saved).catch((err) => {
@@ -84,7 +92,7 @@ export async function POST(req: Request) {
       `\n${SITE_URL}/admin`,
     ].filter(Boolean);
     await notifyAdmin(lines.join("\n"));
-    return NextResponse.json({ ok: true, linked: !!me, tgLink: me ? null : await botLink(`r_${saved.client_link_token}`) });
+    return NextResponse.json({ ok: true, held, linked: !!me, tgLink: me ? null : await botLink(`r_${saved.client_link_token}`) });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });
