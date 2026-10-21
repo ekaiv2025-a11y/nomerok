@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { masterApplicationSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { adminUpdateMaster, createMaster, uploadPhoto } from "@/lib/db";
 import { readJoinToken } from "@/lib/join-token";
+import { joinFailed, joinMark } from "@/lib/join-starts";
 import { setSpecCookies } from "@/lib/spec-auth";
 import { botDict } from "@/lib/i18n/bot";
 import { botLink, downloadTelegramFile, notifyAdmin, escapeHtml, sendTo, telegramToken } from "@/lib/telegram";
@@ -47,7 +48,12 @@ export async function POST(req: Request) {
   }
 
   const parsed = masterApplicationSchema(lang).safeParse(body);
-  if (!parsed.success) return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
+  if (!parsed.success) {
+    const fields = firstErrors(parsed.error);
+    if (pre && rateLimit("joinfail:" + pre.chatId, 3))
+      await joinFailed(pre.chatId, pre.phone, Object.entries(fields).map(([k, v]) => `${k} — «${v}»`).join("; ")).catch(() => null);
+    return NextResponse.json({ ok: false, fields }, { status: 422 });
+  }
   const d = parsed.data;
   if (d.website || (d.startedAt && Date.now() - d.startedAt < 2500)) return NextResponse.json({ ok: true });
   if (!rateLimit("master:" + (await clientIp()), 3)) return NextResponse.json({ ok: false, error: e.tooMany }, { status: 429 });
@@ -58,6 +64,7 @@ export async function POST(req: Request) {
   const lng = Number(body.place_lng);
   const hasPoint = body.place_lat != null && Number.isFinite(lat) && Number.isFinite(lng) && lat > 41 && lat < 43.7 && lng > 40 && lng < 46.8;
   const needsPlace = mode === "at_place" || mode === "both";
+  if (needsPlace && !hasPoint && pre && rateLimit("joinfail:" + pre.chatId, 3)) await joinFailed(pre.chatId, pre.phone, "не отметил(а) точку на карте").catch(() => null);
   if (needsPlace && !hasPoint) return NextResponse.json({ ok: false, fields: { place: getDict(lang).cabinet.placeRequired } }, { status: 422 });
   const where = {
     work_mode: mode,
@@ -106,6 +113,7 @@ export async function POST(req: Request) {
         }
       }
       await sendTo(pre.chatId, botDict(lang).joinSubmitted);
+      await joinMark(pre.chatId, "done_at").catch(() => null);
     }
 
     await notifyAdmin(

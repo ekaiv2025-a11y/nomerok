@@ -5,6 +5,8 @@ import { getDict, href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { SITE_NAME } from "@/lib/site";
 import { readJoinToken } from "@/lib/join-token";
+import { after } from "next/server";
+import { joinOpened } from "@/lib/join-starts";
 import { formatPhone } from "@/lib/phone";
 import { botUsername } from "@/lib/telegram";
 
@@ -22,6 +24,7 @@ export default async function JoinPage({ params, searchParams }: Props) {
   const p = readJoinToken(token);
   const prefill = p && token ? { token, name: p.name, phone: formatPhone(p.phone), telegram: p.username, hasPhoto: !!p.photoFileId } : null;
   const bot = prefill ? null : await botUsername();
+  if (p) after(() => joinOpened(p.chatId, p.name, p.phone).catch(() => null));
   const t = getDict(lang).join;
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">

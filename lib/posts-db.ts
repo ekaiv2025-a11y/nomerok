@@ -59,7 +59,7 @@ export function parsePostBody(text: string): Block[] {
     let list: string[] = [];
     let ordered = false;
     const flush = () => {
-      if (para.length) out.push({ p: para.join(" ") });
+      if (para.length) out.push({ p: para.join("\n") });
       if (list.length) out.push({ list, ordered });
       para = [];
       list = [];

@@ -77,7 +77,7 @@ export default async function ArticlePage({ params }: Props) {
       <article className="mt-6 space-y-4 text-[16px] leading-relaxed text-[#2a2925]">
         {a.body.map((b, i) => {
           if ("h2" in b) return <h2 key={i} className="pt-3 text-[21px] font-bold text-ink">{b.h2}</h2>;
-          if ("p" in b) return <p key={i}>{b.p}</p>;
+          if ("p" in b) return <p key={i} className="whitespace-pre-line">{b.p}</p>;
           if ("list" in b) {
             const L = b.ordered ? "ol" : "ul";
             return (

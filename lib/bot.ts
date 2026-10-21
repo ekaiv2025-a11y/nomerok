@@ -417,6 +417,34 @@ async function onJoinContact(msg: TgMessage, phone: string) {
   });
   await sendTo(chatId, b.verified, undefined, removeKeyboard);
   await sendTo(chatId, b.joinReady, [[{ text: b.btnJoinContinue, url: `${siteUrl()}/${lang}/join?t=${token}` }]]);
+  const { joinStarted } = await import("./join-starts");
+  await joinStarted(chatId, phone, [from?.first_name, from?.last_name].filter(Boolean).join(" ").slice(0, 80), lang).catch(() => null);
+}
+
+/** Напомнить тем, кто начал регистрацию в боте, но не отправил анкету (раз, через 3+ часа). */
+async function remindUnfinishedJoins(): Promise<number> {
+  const { joinsToRemind, joinMark } = await import("./join-starts");
+  const list = await joinsToRemind().catch(() => []);
+  let n = 0;
+  for (const j of list) {
+    if ((await getMastersByChatId(j.chat_id).catch(() => [])).length) {
+      await joinMark(j.chat_id, "done_at");
+      continue;
+    }
+    const lang = ["ru", "en", "ka"].includes(j.lang) ? j.lang : "ru";
+    const token = makeJoinToken({ chatId: j.chat_id, phone: j.phone ?? "", username: null, name: j.name ?? "", photoFileId: null });
+    const text =
+      lang === "ru"
+        ? "👋 Вы начали регистрацию на NomerOk, но анкета ещё не отправлена.\n\nЭто 3 минуты: имя, направление и пара слов об услугах — и клиенты смогут вас найти, а заявки начнут приходить сюда, в Telegram.\n\nЕсли что-то не получилось — просто напишите сюда, поможем."
+        : lang === "ka"
+          ? "👋 თქვენ დაიწყეთ რეგისტრაცია NomerOk-ზე, მაგრამ ანკეტა ჯერ არ არის გაგზავნილი. თუ რამე ვერ გამოვიდა — მოგვწერეთ აქ."
+          : "👋 You started signing up on NomerOk but haven't sent your profile yet. It takes 3 minutes. If something went wrong, just write here.";
+    const ok = await sendTo(j.chat_id, text, [[{ text: botDict(lang).btnJoinContinue, url: `${siteUrl()}/${lang}/join?t=${token}` }]]).catch(() => null);
+    await joinMark(j.chat_id, "reminded_at");
+    if (ok) n++;
+  }
+  if (n) await notifyAdmin(`🔔 Напомнили ${n} чел. закончить регистрацию (начали в боте, анкету не отправили)`, { silent: true });
+  return n;
 }
 
 /* ---------- «Это моё заведение»: подтверждение владельца места ---------- */
@@ -523,11 +551,9 @@ async function onContact(msg: TgMessage) {
       return;
     }
     await onJoinContact(msg, phone);
-    // Вдруг анкета уже есть, но с другим номером — не даём заводить дубль молча
-    await sendTo(chatId, botDict(lang).maybeHasProfile);
     const who = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
     await notifyAdmin(
-      `📱 ${esc(who || "—")}${msg.from?.username ? ` @${esc(msg.from.username)}` : ""} поделился номером ${esc(formatPhone(phone))} — анкеты с таким номером нет. Бот предложил новую анкету.\nЕсли это специалист, который не может войти, — откройте его анкету в админке → «Создать ссылку для входа» и ответьте ему здесь (смахните влево). #u${chatId}`,
+      `🆕 ${esc(who || "—")}${msg.from?.username ? ` @${esc(msg.from.username)}` : ""} начал(а) регистрацию: поделился номером ${esc(formatPhone(phone))}, бот прислал ссылку на анкету. Если откроет анкету — придёт «👀», если отправит — «Новая анкета». Не отправит за 3 часа — бот сам напомнит.\n<i>Ответить человеку — смахните влево. #u${chatId}</i>`,
       { silent: true },
     );
     return;
@@ -869,7 +895,8 @@ export async function runFollowups() {
   const directMissed = await checkDirectMisses().catch((e) => (console.error("[direct]", e), 0));
   const inactivity = await checkInactivity().catch((e) => (console.error("[inactive]", e), { warned: 0, archived: 0 }));
   const weeklyStats = await sendWeeklyStats().catch((e) => (console.error("[stats]", e), 0));
-  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats };
+  const joinReminders = await remindUnfinishedJoins().catch((e) => (console.error("[join-remind]", e), 0));
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats, joinReminders };
   const now = Date.now();
   const list = await listRequestsForFollowup();
   for (const r of list) {
