@@ -19,6 +19,7 @@ export type Block =
 /** Рубрики журнала. */
 export const RUBRICS = {
   news: { label: "Новости", emoji: "📰", bg: "from-[#eef0f3] to-[#d9dee6]" },
+  events: { label: "Афиша", emoji: "🎟️", bg: "from-[#fbe7f0] to-[#f3c9dc]" },
   picks: { label: "Подборки", emoji: "📍", bg: "from-[#fde9e4] to-[#f7cfc4]" },
   home: { label: "Дом и ремонт", emoji: "🏠", bg: "from-[#e7f3ec] to-[#cfe8da]" },
   life: { label: "Жизнь в Грузии", emoji: "🌴", bg: "from-[#e6f2fb] to-[#cde4f5]" },
@@ -42,6 +43,7 @@ export type Article = {
   cover?: string | null; // фото-обложка (записи из админки)
   photos?: string[]; // галерея
   source?: { name: string; url: string } | null; // источник новости
+  sources?: { name: string; url: string }[]; // несколько источников (автоновости)
   faq?: { q: string; a: string }[];
 };
 

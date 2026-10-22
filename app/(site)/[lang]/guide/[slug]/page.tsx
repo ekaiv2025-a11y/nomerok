@@ -146,13 +146,27 @@ export default async function ArticlePage({ params }: Props) {
 
       {a.photos && a.photos.length > 0 && <ArticleGallery photos={a.photos} />}
 
-      {a.source && (
+      {a.sources && a.sources.length > 1 ? (
         <p className="mt-6 text-[14px] text-muted">
-          Источник:{" "}
-          <a href={a.source.url} target="_blank" rel="noopener noreferrer nofollow" className="text-brand underline">
-            {a.source.name}
-          </a>
+          Источники:{" "}
+          {a.sources.map((s, k) => (
+            <span key={s.url}>
+              {k > 0 && ", "}
+              <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="text-brand underline">
+                {s.name}
+              </a>
+            </span>
+          ))}
         </p>
+      ) : (
+        a.source && (
+          <p className="mt-6 text-[14px] text-muted">
+            Источник:{" "}
+            <a href={a.source.url} target="_blank" rel="noopener noreferrer nofollow" className="text-brand underline">
+              {a.source.name}
+            </a>
+          </p>
+        )
       )}
 
       {a.faq && a.faq.length > 0 && (

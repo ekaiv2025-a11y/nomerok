@@ -57,7 +57,11 @@ export default async function GuideList({ params, searchParams }: LangParams & {
   const active = r && r in RUBRICS ? (r as Rubric) : null;
   const ARTICLES = await journalArticles();
   const views = await articleViews().catch(() => ({}) as Record<string, number>);
-  const list = active ? ARTICLES.filter((a) => a.rubric === active) : ARTICLES;
+  // На общей странице — только 12 свежих новостей и анонсов, остальные — в рубриках «Новости» и «Афиша»
+  let newsSeen = 0;
+  const list = active
+    ? ARTICLES.filter((a) => a.rubric === active)
+    : ARTICLES.filter((a) => (a.rubric === "news" || a.rubric === "events" ? ++newsSeen <= 12 : true));
   const first: Article | null = active ? null : list[0] ?? null;
   const rest = active ? list : list.slice(1);
   const chip = (on: boolean) => `whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition ${on ? "border-brand bg-brand text-white" : "border-line bg-white hover:border-brand"}`;
