@@ -26,7 +26,7 @@ export async function generateMetadata({ params, searchParams }: LangParams & { 
 function Cover({ a, big }: { a: Article; big?: boolean }) {
   const rub = RUBRICS[a.rubric ?? "home"];
   return (
-    <span className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${rub.bg} ${big ? "h-48 sm:h-full sm:min-h-64" : "h-36"}`}>
+    <span className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${rub.bg} ${big ? "aspect-[16/10] sm:aspect-auto sm:h-full sm:min-h-64" : "aspect-[16/10]"}`}>
       {a.cover ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={a.cover} alt="" className="absolute inset-0 h-full w-full object-cover" style={posStyle(a.cover)} loading="lazy" />

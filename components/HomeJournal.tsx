@@ -75,7 +75,7 @@ export async function HomeJournal({ lang }: { lang: Locale }) {
             </div>
             {event && (
               <Link href={url(event)} className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand">
-                <Cover a={event} h="h-40" />
+                <Cover a={event} h="aspect-[16/10]" />
                 <span className="p-4">
                   <span className="text-[12px] font-semibold uppercase tracking-wide text-brand">🎟️ Афиша</span>
                   <span className="mt-1 block text-[17px] font-bold leading-snug group-hover:text-brand">{event.title}</span>
@@ -94,7 +94,7 @@ export async function HomeJournal({ lang }: { lang: Locale }) {
           <div className="no-scrollbar -mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
             {travel.map((a) => (
               <Link key={a.slug} href={url(a)} className="group w-[260px] shrink-0 snap-start overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand sm:w-[300px]">
-                <Cover a={a} h="h-36" />
+                <Cover a={a} h="aspect-[16/10]" />
                 <span className="block p-4">
                   <span className="block text-[16px] font-bold leading-snug group-hover:text-brand">{a.title}</span>
                   <span className="mt-1 line-clamp-2 block text-[13px] text-muted">{a.description}</span>
@@ -112,7 +112,7 @@ export async function HomeJournal({ lang }: { lang: Locale }) {
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {picks.map((a) => (
               <Link key={a.slug} href={url(a)} className="group flex overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand sm:block">
-                <Cover a={a} h="h-auto min-h-20 sm:h-32" cls="w-24 shrink-0 sm:w-auto [&>span]:text-[34px] sm:[&>span]:text-[46px]" />
+                <Cover a={a} h="h-auto min-h-20 sm:aspect-[16/10] sm:h-auto" cls="w-24 shrink-0 sm:w-auto [&>span]:text-[34px] sm:[&>span]:text-[46px]" />
                 <span className="flex items-center p-3 text-[15px] font-semibold leading-snug group-hover:text-brand sm:block sm:p-4 sm:text-[16px]">{a.title}</span>
               </Link>
             ))}
@@ -127,7 +127,7 @@ export async function HomeJournal({ lang }: { lang: Locale }) {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {useful.map((a) => (
               <Link key={a.slug} href={url(a)} className="group flex overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand sm:block">
-                <Cover a={a} h="h-auto min-h-20 sm:h-28" cls="w-24 shrink-0 sm:w-auto [&>span]:text-[34px] sm:[&>span]:text-[46px]" />
+                <Cover a={a} h="h-auto min-h-20 sm:aspect-[16/10] sm:h-auto" cls="w-24 shrink-0 sm:w-auto [&>span]:text-[34px] sm:[&>span]:text-[46px]" />
                 <span className="flex items-center p-3 text-[15px] font-semibold leading-snug group-hover:text-brand sm:block sm:p-4">{a.title}</span>
               </Link>
             ))}

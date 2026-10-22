@@ -297,9 +297,38 @@ function isMissingColumn(err: { message: string } | null): boolean {
 /* ---------- мастера: публичная часть ---------- */
 
 /** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
+/**
+ * Порядок в каталоге: выше — активные специалисты с отзывами и хорошо заполненной анкетой.
+ * Новичкам первую неделю небольшой бонус, чтобы их тоже видели. Без оплаты и «поднятий» — только честные признаки.
+ */
+export function rankScore(m: PublicMaster): number {
+  let s = 0;
+  if (m.reviews) s += Math.min(40, m.reviews * 8) + ((m.rating ?? 4) - 4) * 8;
+  if (m.verified) s += 15;
+  if (m.has_tg) s += 10;
+  if (m.photo_url) s += 12;
+  s += Math.min(4, Array.isArray(m.portfolio) ? m.portfolio.length : 0) * 4;
+  if ((m.services ?? "").length > 60) s += 6;
+  if ((m.about ?? "").length > 80) s += 6;
+  if (m.price_from) s += 5;
+  if (m.experience_years) s += 3;
+  if (m.docs_verified) s += 5;
+  if (m.work_hours) s += 2;
+  if (m.links && Object.keys(m.links).length) s += 3;
+  if (m.active === "today") s += 12;
+  else if (m.active === "week") s += 6;
+  if ((m.seen_days ?? 0) > 30) s -= 10;
+  if (Date.now() - new Date(m.created_at).getTime() < 7 * 86400_000) s += 6;
+  return s;
+}
+
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
   // Кто на паузе (в отпуске) — в каталоге не показываем
-  const real = (await withRatings(await listPublishedFromDb())).filter((m) => !m.away);
+  const real = (await withRatings(await listPublishedFromDb()))
+    .filter((m) => !m.away)
+    .map((m) => ({ m, s: rankScore(m) }))
+    .sort((a, b) => b.s - a.s || b.m.created_at.localeCompare(a.m.created_at))
+    .map((x) => x.m);
   if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
   const have = new Set(real.map((m) => m.slug));
   return [...real, ...demoPublicMasters().filter((m) => !have.has(m.slug))];

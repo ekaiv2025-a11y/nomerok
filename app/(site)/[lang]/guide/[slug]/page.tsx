@@ -126,6 +126,43 @@ export default async function ArticlePage({ params }: Props) {
               </div>
             );
           }
+          if ("event" in b) {
+            const e = b.event;
+            const mapQ = encodeURIComponent(`${e.venue}, ${e.address}`);
+            return (
+              <div key={i} className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+                <p className="text-[13px] font-semibold uppercase tracking-wide text-brand">{e.when}</p>
+                <p className="mt-1 text-[18px] font-bold leading-snug">{e.title}</p>
+                {e.what && <p className="mt-1 text-[15px] text-[#3a3935]">{e.what}</p>}
+                <p className="mt-2 text-[14px]">
+                  📍 <b>{e.venue}</b>, {e.address}{" "}
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${mapQ}`} target="_blank" rel="noopener noreferrer nofollow" className="whitespace-nowrap text-brand underline">
+                    на карте
+                  </a>
+                </p>
+                {e.organizer && <p className="mt-1 text-[14px] text-muted">Организатор: {e.organizer}</p>}
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[13px]">
+                  {e.price && <span className="rounded-full bg-brand-soft px-2.5 py-1 font-semibold text-brand-dark">🎟 {e.price}</span>}
+                  {e.age && <span className="rounded-full bg-cream px-2.5 py-1">{e.age}</span>}
+                </div>
+                {e.note && <p className="mt-2 text-[13px] text-muted">ℹ️ {e.note}</p>}
+                {(e.buy || e.info) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {e.buy && (
+                      <a href={e.buy} target="_blank" rel="noopener noreferrer nofollow" className="btn-primary h-10 px-4 text-[14px]">
+                        Купить билет
+                      </a>
+                    )}
+                    {e.info && (
+                      <a href={e.info} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-10 px-4 text-[14px]">
+                        Подробнее
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          }
           if ("img" in b)
             return (
               <figure key={i} className="overflow-hidden rounded-2xl bg-cream">

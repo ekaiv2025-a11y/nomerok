@@ -8,7 +8,7 @@ const errors = [];
 const slugs = new Set();
 const urls = new Map();
 const BANNED = /(лучш(ий|ие|ая)\s+мастер|провер(енные|ены)\s+(мастера|специалисты|документы)|whatsapp|ватсап)/i;
-const BLOCK_KEYS = ["h2", "p", "list", "tip", "cta", "link", "map", "img"];
+const BLOCK_KEYS = ["h2", "p", "list", "tip", "cta", "link", "map", "img", "event"];
 const LICENSE = /^(CC BY(-SA)? [0-9.]+|CC0|Public domain|Общественное достояние)/i;
 const today = new Date(Date.now() + 4 * 3600_000).toISOString().slice(0, 10); // дата по Тбилиси
 
@@ -34,7 +34,7 @@ for (const [i, n] of list.entries()) {
   }
   const text = JSON.stringify(n);
   if (BANNED.test(text)) errors.push(`${at}: запрещённые слова (лучшие мастера / проверенные / WhatsApp)`);
-  const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || ""), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
+  const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
   const minWords = n.rubric === "travel" ? 1200 : 120;
   if (words < minWords) errors.push(`${at}: слишком коротко (${words} слов, нужно от ${minWords})`);
   for (const b of n.body ?? []) {
@@ -45,6 +45,16 @@ for (const [i, n] of list.entries()) {
     if ("img" in b) {
       if (!/^https:\/\/upload\.wikimedia\.org\//.test(b.img)) errors.push(`${at}: фото только с upload.wikimedia.org`);
       if (!b.alt || !b.credit || !LICENSE.test(b.license || "") || !/^https:\/\/commons\.wikimedia\.org\//.test(b.source || "")) errors.push(`${at}: у фото нужны alt, автор (credit), лицензия CC BY/CC BY-SA/CC0/Public domain и ссылка на страницу файла на commons.wikimedia.org`);
+    }
+  }
+  if (n.rubric === "events") {
+    const evs = (n.body ?? []).filter((b) => "event" in b).map((b) => b.event);
+    if (evs.length < 4) errors.push(`${at}: в афише нужно минимум 4 блока event (сейчас ${evs.length})`);
+    for (const e of evs) {
+      const nm = `«${e?.title}»`;
+      if (!e?.title || !e?.when || !e?.venue || !e?.address) errors.push(`${at}: у события ${nm} нужны title, when, venue и address`);
+      if (!e?.buy && !e?.info) errors.push(`${at}: у события ${nm} нужна ссылка buy (где купить) или info (страница события)`);
+      for (const u of [e?.buy, e?.info]) if (u && !/^https:\/\/\S+$/.test(u)) errors.push(`${at}: у события ${nm} ссылка должна начинаться с https://`);
     }
   }
   if (n.rubric === "travel") {

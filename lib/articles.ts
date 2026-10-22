@@ -16,7 +16,24 @@ export type Block =
   | { places: string[] } // карточки мест (id или адрес-slug) — для подборок
   | { map: { name: string; lat: number; lng: number; note?: string }[] } // карта с пронумерованными точками (туристические статьи)
   | { img: string; alt: string; credit: string; license: string; source: string } // фото со свободной лицензией (Wikimedia Commons)
+  | { event: AfishaEvent } // событие афиши: где, когда, сколько стоит, где купить
   | { phones: true };
+
+/** Событие в афише. Цена и ссылки — только из источника. */
+export type AfishaEvent = {
+  title: string;
+  when: string; // «Сб, 24 октября, 19:00»
+  venue: string;
+  address: string;
+  city?: string;
+  what?: string; // одна-две фразы: что это
+  organizer?: string;
+  price?: string; // «10 ₾», «40–130 ₾»
+  age?: string; // «12+»
+  buy?: string; // ссылка на покупку (tkt.ge, biletebi.ge, сайт площадки)
+  info?: string; // страница события
+  note?: string; // «опоздавших не пускают», «уточняйте адрес»
+};
 
 /** Рубрики журнала. */
 export const RUBRICS = {
