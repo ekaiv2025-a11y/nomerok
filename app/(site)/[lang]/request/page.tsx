@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 const SPEC_HINT = { ru: "Эта форма — чтобы найти специалиста. Хотите рассказать о своих услугах?", en: "This form is for finding a specialist. Want to offer your services?", ka: "ეს ფორმა სპეციალისტის მოსაძებნადაა. გსურთ თქვენი მომსახურების შეთავაზება?" } as const;
 const SPEC_LINK = { ru: "Зарегистрируйтесь как специалист →", en: "Register as a specialist →", ka: "დარეგისტრირდით სპეციალისტად →" } as const;
 
-type Props = LangParams & { searchParams: Promise<{ category?: string; master?: string; city?: string }> };
+type Props = LangParams & { searchParams: Promise<{ category?: string; master?: string; city?: string; text?: string }> };
 
 /** Общая заявка: её получают все специалисты направления. Написать конкретному — на странице специалиста. */
 export default async function RequestPage({ params, searchParams }: Props) {
@@ -45,7 +45,7 @@ export default async function RequestPage({ params, searchParams }: Props) {
         </Link>
       </p>
       <div className="mt-6">
-        <RequestForm lang={lang} defaultCategory={sp.category} defaultCity={sp.city} me={await clientContact()} />
+        <RequestForm lang={lang} defaultCategory={sp.category} defaultCity={sp.city} defaultText={sp.text?.slice(0, 200)} me={await clientContact()} />
       </div>
       <p className="mt-6 text-center text-[14px]">
         <Link href={href(lang) + "#masters"} className="font-semibold text-brand hover:underline">

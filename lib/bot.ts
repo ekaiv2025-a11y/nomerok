@@ -812,6 +812,38 @@ async function sendWeeklyStats(force = false): Promise<number> {
   return n;
 }
 
+/** Понедельник: сводка для админа — сколько людей пришло, откуда, что искали, сколько заявок и регистраций. */
+async function sendAdminWeekly(force = false): Promise<boolean> {
+  const weekday = new Date(todayTbilisi() + "T12:00:00Z").getUTCDay();
+  if (weekday !== 1 && !force) return false;
+  const { siteSummary } = await import("./site-stats");
+  const { getStats } = await import("./stats-db");
+  const { joinFunnel } = await import("./join-starts");
+  const [site, st, prev, jf] = await Promise.all([siteSummary(7), getStats(7), getStats(14), joinFunnel(7)]);
+  const sum = (k: "requests" | "signups" | "contacts" | "views") => st.days.reduce((a, d) => a + d[k], 0);
+  const sumPrev = (k: "requests" | "signups" | "contacts" | "views") => prev.days.slice(0, 7).reduce((a, d) => a + d[k], 0);
+  const delta = (a: number, b: number) => (b ? ` (${a >= b ? "+" : ""}${Math.round(((a - b) / b) * 100)}%)` : "");
+  const src = site.sources.slice(0, 6).map((s) => `${esc(s.source)} — ${s.n}`).join(", ") || "—";
+  const missing = site.searches.filter((s) => s.found === 0).slice(0, 8).map((s) => `«${esc(s.q)}»${s.n > 1 ? ` ×${s.n}` : ""}`).join(", ");
+  const popular = site.searches.filter((s) => s.found > 0).slice(0, 6).map((s) => `«${esc(s.q)}»${s.n > 1 ? ` ×${s.n}` : ""}`).join(", ");
+  const lines = [
+    "📊 <b>Неделя на NomerOk</b>",
+    "",
+    `👥 Посетителей сайта: <b>${site.visitors}</b>`,
+    `↪️ Откуда: ${src}`,
+    `👀 Просмотров анкет: ${sum("views")}${delta(sum("views"), sumPrev("views"))}`,
+    `📞 Открыли контакты: ${sum("contacts")}${delta(sum("contacts"), sumPrev("contacts"))}`,
+    `📝 Заявок клиентов: ${sum("requests")}${delta(sum("requests"), sumPrev("requests"))}`,
+    `🧑‍🔧 Регистрация через бота: начали ${jf.started}, открыли анкету ${jf.opened}, отправили ${jf.done}`,
+    `✅ Новых анкет всего: ${sum("signups")}`,
+  ];
+  if (missing) lines.push("", `🔍 <b>Искали, но никого не нашли:</b> ${missing}`, "<i>— вот каких специалистов стоит позвать в первую очередь</i>");
+  if (popular) lines.push("", `🔎 Чаще всего искали: ${popular}`);
+  lines.push("", `Подробно: ${SITE_URL}/admin/stats`);
+  await notifyAdmin(lines.join("\n"));
+  return true;
+}
+
 /** Пауза закончилась — включаем заявки обратно и сообщаем специалисту. */
 async function endExpiredPauses(): Promise<number> {
   const today = todayTbilisi();
@@ -895,8 +927,9 @@ export async function runFollowups() {
   const directMissed = await checkDirectMisses().catch((e) => (console.error("[direct]", e), 0));
   const inactivity = await checkInactivity().catch((e) => (console.error("[inactive]", e), { warned: 0, archived: 0 }));
   const weeklyStats = await sendWeeklyStats().catch((e) => (console.error("[stats]", e), 0));
+  const adminWeekly = await sendAdminWeekly().catch((e) => (console.error("[admin-weekly]", e), false));
   const joinReminders = await remindUnfinishedJoins().catch((e) => (console.error("[join-remind]", e), 0));
-  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats, joinReminders };
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats, joinReminders, adminWeekly };
   const now = Date.now();
   const list = await listRequestsForFollowup();
   for (const r of list) {

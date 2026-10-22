@@ -63,7 +63,7 @@ const en: Dict = {
     viewMap: "Map",
     mapEmpty: "None of these specialists have marked a place on the map yet.",
     mapNote: "The map shows specialists who receive clients at their place.",
-    searchPlaceholder: "Who do you need? Plumber, tutor, doctor…",
+    searchPlaceholder: "E.g. leaking tap, English tutor",
     searchAria: "Search specialists",
     clear: "Clear",
     all: "All",

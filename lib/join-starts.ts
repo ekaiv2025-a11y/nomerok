@@ -70,3 +70,15 @@ export async function joinOpened(chatId: number, name: string, phone: string) {
 export async function joinFailed(chatId: number, phone: string, why: string) {
   await notifyAdmin(`⚠️ Анкета от ${formatPhone(phone)} не отправилась: ${why}. #u${chatId}`, { silent: true });
 }
+
+/** За `days` дней: сколько начали регистрацию в боте, открыли анкету и отправили. */
+export async function joinFunnel(days: number): Promise<{ started: number; opened: number; done: number }> {
+  const since = new Date(Date.now() - days * 86400_000).toISOString();
+  let rows: JoinStart[] = [];
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("join_starts").select("*").gte("created_at", since).limit(5000);
+    rows = r.error ? [] : (r.data as JoinStart[]);
+  } else if (dbMode() !== "none") rows = (((await readLocal()) as unknown as L).join_starts ?? []).filter((x) => x.created_at >= since);
+  return { started: rows.length, opened: rows.filter((x) => x.opened_at || x.done_at).length, done: rows.filter((x) => x.done_at).length };
+}

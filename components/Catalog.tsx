@@ -88,6 +88,19 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     if (sort === "cheap") return [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9));
     return list;
   }, [masters, cat, sub, q, intents, fMode, fLang, fPrice, sort]);
+  // Запоминаем, что искали (через 1.5 с после ввода) — админ видит, каких специалистов не хватает
+  useEffect(() => {
+    const query = q.trim();
+    if (query.length < 3) return;
+    const id = setTimeout(() => {
+      fetch("/api/search-log", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ q: query, cat: intents[0]?.cat ?? null, found: filtered.length }),
+      }).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
   const ft = F[lang];
   const anyFilter = !!(fMode || fLang || fPrice || sort);
 
@@ -110,7 +123,11 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
       href: href(lang, `/master/${m.slug}`),
       photo: m.photo_url,
     }));
-  const requestHref = href(lang, `/request?${new URLSearchParams({ ...(cat !== "all" ? { category: cat } : {}), ...(city !== "batumi" ? { city } : {}) }).toString()}`);
+  const reqCat = cat !== "all" ? cat : intents[0]?.cat;
+  const requestHref = href(
+    lang,
+    `/request?${new URLSearchParams({ ...(reqCat ? { category: reqCat } : {}), ...(city !== "batumi" ? { city } : {}), ...(q.trim().length > 2 ? { text: q.trim() } : {}) }).toString()}`,
+  );
 
   return (
     <section id="masters" className="mx-auto max-w-6xl px-4 sm:px-6">

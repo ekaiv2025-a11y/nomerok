@@ -24,16 +24,16 @@ const SELF = {
 
 const SUGGEST = { ru: "Похоже, подойдёт раздел:", en: "Looks like:", ka: "როგორც ჩანს:" } as const;
 
-type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; me?: { name: string; phone: string } | null };
+type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; defaultText?: string; me?: { name: string; phone: string } | null };
 
 /** Общая заявка — для всех специалистов направления. */
-export function RequestForm({ lang, defaultCategory, defaultCity, me }: Props) {
+export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, me }: Props) {
   const d = getDict(lang);
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
   const [files, setFiles] = useState<File[]>([]);
   const [catSel, setCatSel] = useState<string>("");
-  const [desc, setDesc] = useState("");
+  const [desc, setDesc] = useState(defaultText ?? "");
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
   const [selfOk, setSelfOk] = useState(false);

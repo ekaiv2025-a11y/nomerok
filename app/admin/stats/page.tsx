@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { getStats } from "@/lib/stats-db";
 import { adminListMasters } from "@/lib/db";
+import { siteSummary } from "@/lib/site-stats";
+import { joinFunnel } from "@/lib/join-starts";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,8 @@ const ROWS = [
 export default async function StatsPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   const period = Math.min(90, Math.max(7, Number((await searchParams).d) || 30));
-  const [{ days, top }, masters] = await Promise.all([getStats(period), adminListMasters()]);
+  const [{ days, top }, masters, site, jf] = await Promise.all([getStats(period), adminListMasters(), siteSummary(period), joinFunnel(period)]);
+  const srcMax = Math.max(1, ...site.sources.map((s) => s.n));
   const name = new Map(masters.map((m) => [m.id, m]));
   const sum = (k: (typeof ROWS)[number]["key"]) => days.reduce((s, d) => s + d[k], 0);
   const last7 = (k: (typeof ROWS)[number]["key"]) => days.slice(-7).reduce((s, d) => s + d[k], 0);
@@ -55,6 +58,49 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
             </div>
           );
         })}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl bg-white p-4">
+          <p className="font-semibold">Посетители сайта: {site.visitors}</p>
+          <p className="text-[12px] text-muted">разные люди за {period} дней · откуда пришли</p>
+          <div className="mt-3 space-y-1.5 text-[13px]">
+            {site.sources.slice(0, 12).map((s) => (
+              <div key={s.source} className="flex items-center gap-2">
+                <span className="w-28 shrink-0 truncate">{s.source}</span>
+                <span className="h-2.5 rounded-full bg-brand" style={{ width: `${(s.n / srcMax) * 60}%`, minWidth: 4 }} />
+                <span className="text-muted">{s.n}</span>
+              </div>
+            ))}
+            {!site.sources.length && <p className="text-muted">Пока нет данных — счёт начался с этого обновления.</p>}
+          </div>
+          <p className="mt-3 text-[12px] text-muted">
+            Чтобы видеть, откуда люди пришли по вашей ссылке, добавляйте к ней метку: <b>nomerok.ge/ru?from=stories</b> (или from=yesbatumi, from=threads…).
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white p-4">
+          <p className="font-semibold">Регистрация через бота</p>
+          <p className="text-[12px] text-muted">за {period} дней: где люди останавливаются</p>
+          <div className="mt-3 space-y-1.5 text-[14px]">
+            <p>📱 Поделились номером: <b>{jf.started}</b></p>
+            <p>👀 Открыли анкету: <b>{jf.opened}</b></p>
+            <p>✅ Отправили анкету: <b>{jf.done}</b></p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-white p-4">
+        <p className="font-semibold">Что искали в каталоге</p>
+        <p className="text-[12px] text-muted">красным — ничего не нашли: этих специалистов стоит позвать в первую очередь</p>
+        <div className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
+          {site.searches.slice(0, 60).map((s) => (
+            <span key={s.q} className={`rounded-full px-2.5 py-1 ${s.found ? "bg-cream" : "bg-[#fde8e8] text-danger"}`}>
+              {s.q}
+              {s.n > 1 && <b> ×{s.n}</b>}
+            </span>
+          ))}
+          {!site.searches.length && <p className="text-muted">Пока пусто.</p>}
+        </div>
       </div>
 
       {ROWS.map((r) => {
