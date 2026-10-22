@@ -40,6 +40,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/recommend">{SOCIAL[lang].recLink}</L>
             <L to="/phones">{PH[lang].nav}</L>
             <L to="/places">📍 {PT[lang].nav}</L>
+            <L to="/realty">🏠 {{ ru: "Недвижимость", en: "Real estate", ka: "უძრავი ქონება" }[lang]}</L>
             {lang === "ru" && <L to="/guide">Журнал</L>}
           </ul>
         </div>
@@ -49,6 +50,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/join">{t.placeProfile}</L>
             <L to="/how#specialists">{t.conditions}</L>
             <L to="/cabinet">{t.cabinet}</L>
+            <L to="/cabinet?tab=realty">{{ ru: "🏠 Риелторам: объявления", en: "🏠 Agents: listings", ka: "🏠 რიელტორებს: განცხადებები" }[lang]}</L>
             <L to="/org">{{ ru: "🏢 Для клиник, салонов и центров", en: "🏢 For clinics, salons & centres", ka: "🏢 კლინიკებს, სალონებს და ცენტრებს" }[lang]}</L>
           </ul>
         </div>

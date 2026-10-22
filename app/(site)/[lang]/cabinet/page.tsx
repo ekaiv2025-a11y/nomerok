@@ -8,6 +8,8 @@ import { signedUrls } from "@/lib/documents";
 import { masterStats, viewsByDay } from "@/lib/stats";
 import { StatsCard } from "@/components/StatsCard";
 import { CabinetOrgs } from "@/components/CabinetOrgs";
+import { CabinetRealty } from "@/components/CabinetRealty";
+import { isRealtor } from "@/lib/realty-auth";
 import { QrCards } from "@/components/QrCards";
 import { NotifyToggle } from "@/components/NotifyToggle";
 import { CabinetOrders } from "@/components/CabinetOrders";
@@ -26,6 +28,7 @@ const CAB_TABS = {
   ka: [["home", "🏠 მთავარი"], ["orders", "📩 მოთხოვნები"], ["profile", "✏️ ანკეტა"], ["reviews", "⭐ შეფასებები"], ["promo", "🚀 პოპულარიზაცია"]],
 } as const;
 
+const REALTY_TAB = { ru: "🏠 Объявления", en: "🏠 Listings", ka: "🏠 განცხადებები" } as const;
 const OR = { ru: "или войти по ссылке из бота", en: "or log in with a link from the bot", ka: "ან შედით ბოტის ბმულით" } as const;
 import { offerStatus, recentCodes } from "@/lib/referral-db";
 import { transliterate } from "@/lib/slug";
@@ -51,7 +54,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return { title: getDict(lang).cabinet.title, robots: { index: false } };
 }
 
-type Props = LangParams & { searchParams: Promise<{ expired?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string }> };
+type Props = LangParams & { searchParams: Promise<{ expired?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string; edit?: string; new?: string; saved?: string }> };
 
 export default async function CabinetPage({ params, searchParams }: Props) {
   const lang = await langOf(params);
@@ -129,9 +132,10 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const statusColor =
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
 
-  const tab = (["home", "orders", "profile", "reviews", "promo"] as const).find((x) => x === sp.tab) ?? "home";
+  const realtor = isRealtor(m);
+  const tab = (["home", "orders", "profile", "reviews", "promo", ...(realtor ? (["realty"] as const) : [])] as const).find((x) => x === sp.tab) ?? "home";
   const tabHref = (k: string) => `/${lang}/cabinet${k === "home" ? "" : `?tab=${k}`}`;
-  const TABS = CAB_TABS[lang];
+  const TABS: readonly (readonly [string, string])[] = realtor ? [CAB_TABS[lang][0], CAB_TABS[lang][1], ["realty", REALTY_TAB[lang]], ...CAB_TABS[lang].slice(2)] : CAB_TABS[lang];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
@@ -224,6 +228,12 @@ export default async function CabinetPage({ params, searchParams }: Props) {
         <div className="mt-4">
           <NotifyToggle lang={lang} initial={!!m.notify_requests} hasBot={!!m.tg_chat_id} />
           {m.status === "published" ? <CabinetOrders m={m} lang={lang} /> : <p className="mt-4 text-[14px] text-muted">{t.statuses[m.status]}</p>}
+        </div>
+      )}
+
+      {tab === "realty" && (
+        <div className="mt-4">
+          <CabinetRealty m={m} lang={lang} editId={sp.edit} isNew={!!sp.new} saved={!!sp.saved} />
         </div>
       )}
 

@@ -120,6 +120,7 @@ export async function healthCheck() {
           ["0028 начатые регистрации", "join_starts", "chat_id"],
           ["0029 посетители сайта", "site_visits", "visitor"],
           ["0030 организации", "org_members", "place_id"],
+          ["0031 недвижимость", "listings", "tg_key"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

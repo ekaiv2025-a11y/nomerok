@@ -32,7 +32,7 @@ import { categoryLabel } from "./categories";
 import { formatPhone, normalizePhone, normalizeTelegram, telegramLink } from "./phone";
 import { profileSteps } from "./profile";
 import { SITE_NAME, SITE_URL } from "./site";
-import { downloadTelegramFile, escapeHtml, notifyAdmin, sendTo, telegramChatId, tg } from "./telegram";
+import { downloadTelegramFile, escapeHtml, notifyAdmin, sendTo, telegramChatId, tg, webhookSecret } from "./telegram";
 import { makeJoinToken } from "./join-token";
 import type { ClientRequest, Master, MasterStatus } from "./types";
 
@@ -247,9 +247,22 @@ type TgMessage = {
   reply_to_message?: { text?: string };
   photo?: { file_id: string; width: number; height: number }[];
   caption?: string;
+  media_group_id?: string;
+  sender_chat?: { id: number; title?: string; username?: string; type: string };
 };
+type TgChat = { id: number; type: string; title?: string; username?: string };
+type TgMemberUpdate = { chat: TgChat; from: TgUser; new_chat_member: { status: string; user: TgUser } };
 type TgCallback = { id: string; from: TgUser; data?: string; message?: TgMessage };
-export type TgUpdate = { update_id: number; message?: TgMessage; callback_query?: TgCallback };
+export type TgUpdate = {
+  update_id: number;
+  message?: TgMessage;
+  callback_query?: TgCallback;
+  channel_post?: TgMessage & { chat: TgChat };
+  edited_channel_post?: TgMessage & { chat: TgChat };
+  my_chat_member?: TgMemberUpdate;
+};
+
+const ALLOWED_UPDATES = ["message", "callback_query", "channel_post", "edited_channel_post", "my_chat_member"];
 
 function guessLang(u?: TgUser): string {
   const l = (u?.language_code ?? "").slice(0, 2);
@@ -1014,7 +1027,9 @@ export async function runFollowups() {
   const weeklyStats = await sendWeeklyStats().catch((e) => (console.error("[stats]", e), 0));
   const adminWeekly = await sendAdminWeekly().catch((e) => (console.error("[admin-weekly]", e), false));
   const joinReminders = await remindUnfinishedJoins().catch((e) => (console.error("[join-remind]", e), 0));
-  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats, joinReminders, adminWeekly };
+  const listingsArchived = await expireListings().catch((e) => (console.error("[listings]", e), 0));
+  await ensureWebhookUpdates().catch(() => null);
+  const out = { noResponse: 0, asked: 0, reviewInvites: 0, pausesEnded, directMissed, inactiveWarned: inactivity.warned, archived: inactivity.archived, weeklyStats, joinReminders, adminWeekly, listingsArchived };
   const now = Date.now();
   const list = await listRequestsForFollowup();
   for (const r of list) {
@@ -1138,6 +1153,9 @@ async function onText(msg: TgMessage) {
 }
 
 export async function handleUpdate(u: TgUpdate): Promise<void> {
+  if (u.my_chat_member) return void (await onBotMembership(u.my_chat_member).catch((e) => console.error("[channel]", e)));
+  if (u.channel_post) return void (await onChannelPost(u.channel_post, false).catch((e) => console.error("[channel]", e)));
+  if (u.edited_channel_post) return void (await onChannelPost(u.edited_channel_post, true).catch((e) => console.error("[channel]", e)));
   // Любое действие специалиста в боте = он на связи
   const fromId = u.callback_query?.from.id ?? u.message?.from?.id;
   if (fromId) {
@@ -1172,11 +1190,155 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
   if (text) return void (await onText(msg));
 }
 
+/* ---------- недвижимость: Telegram-каналы риелторов ---------- */
+
+const isRealtor = (m: Master) => m.category === "realtor" || (m.extra_categories ?? []).includes("realtor");
+
+/** Бота добавили/удалили в канале. Привязываем канал к риелтору, который добавил. */
+async function onBotMembership(u: TgMemberUpdate) {
+  if (u.chat.type !== "channel") return;
+  const { saveChannel, removeChannel, getChannel } = await import("./realty-db");
+  const st = u.new_chat_member.status;
+  if (st === "left" || st === "kicked") {
+    const had = await getChannel(u.chat.id);
+    await removeChannel(u.chat.id);
+    if (had) {
+      const m = await adminGetMaster(had.master_id);
+      if (m?.tg_chat_id) await sendTo(m.tg_chat_id, `ℹ️ Канал «${esc(u.chat.title ?? "")}» отключён от NomerOk — новые посты больше не превращаются в объявления.`).catch(() => null);
+    }
+    return;
+  }
+  if (st !== "administrator") return;
+  const masters = (await getMastersByChatId(u.from.id)).filter(isRealtor);
+  if (!masters.length) {
+    await sendTo(u.from.id, "🏠 Чтобы посты канала превращались в объявления на NomerOk, нужна анкета риелтора, привязанная к этому Telegram. Зарегистрируйтесь на сайте (раздел «Риелторы») и добавьте бота в канал ещё раз.").catch(() => null);
+    return;
+  }
+  await saveChannel({ chat_id: u.chat.id, master_id: masters[0].id, title: u.chat.title ?? null, username: u.chat.username ?? null });
+  await sendTo(
+    u.from.id,
+    `✅ Канал «${esc(u.chat.title ?? "")}» подключён к NomerOk.\n\nТеперь каждый новый пост с фото и описанием квартиры (цена, комнаты, площадь) сам становится объявлением на сайте. Цену, комнаты, площадь и район бот находит в тексте — если что-то не так, поправьте в кабинете.\n\nОбъявления живут ${60} дней, потом уходят в архив — продлить можно одной кнопкой.`,
+    [[{ text: "🏠 Мои объявления", url: `${siteUrl()}/ru/cabinet?tab=realty` }]],
+  ).catch(() => null);
+}
+
+/** Пост в канале → объявление. Альбом приходит несколькими сообщениями с одним media_group_id. */
+async function onChannelPost(msg: TgMessage & { chat: TgChat }, edited: boolean) {
+  const { getChannel, listingByTgKey, createListing, updateListing } = await import("./realty-db");
+  const { parseListingText, autoTitle, MAX_PHOTOS } = await import("./realty");
+  const ch = await getChannel(msg.chat.id);
+  if (!ch) return;
+  const m = await adminGetMaster(ch.master_id);
+  if (!m || m.status === "rejected" || m.archived_at) return;
+  const key = `${msg.chat.id}:${msg.media_group_id ?? msg.message_id}`;
+  const text = (msg.caption ?? msg.text ?? "").trim();
+  const link = msg.chat.username ? `https://t.me/${msg.chat.username}/${msg.message_id}` : null;
+  const existing = await listingByTgKey(key);
+
+  // фото: самое большое из вариантов
+  let photoUrl: string | null = null;
+  if (msg.photo?.length && !edited) {
+    const best = msg.photo[msg.photo.length - 1];
+    const f = await downloadTelegramFile(best.file_id).catch(() => null);
+    if (f) photoUrl = await uploadPhoto(`${m.id}/realty`, new Blob([f.data], { type: f.type }), f.type === "image/png" ? "png" : "jpg").catch(() => null);
+  }
+
+  if (existing) {
+    const patch: Record<string, unknown> = {};
+    if (photoUrl && existing.photos.length < MAX_PHOTOS) patch.photos = [...existing.photos, photoUrl];
+    if (text) {
+      const p = parseListingText(text, { city: m.city ?? "batumi" });
+      Object.assign(patch, {
+        description: text.slice(0, 4000),
+        title: p.title || existing.title,
+        ...(p.deal ? { deal: p.deal } : {}),
+        ...(p.rooms != null ? { rooms: p.rooms } : {}),
+        ...(p.area ? { area: p.area } : {}),
+        ...(p.floor ? { floor: p.floor } : {}),
+        ...(p.price ? { price: p.price, currency: p.currency } : {}),
+        ...(p.district ? { district: p.district } : {}),
+      });
+    }
+    if (Object.keys(patch).length) await updateListing(existing.id, patch as never);
+    return;
+  }
+  if (edited) return;
+  // Новый пост: только с фото и похожий на объявление (для альбома текст приходит в первом сообщении)
+  if (!photoUrl) return;
+  const p = parseListingText(text, { city: m.city ?? "batumi" });
+  if (!text || !p.looksLikeListing) {
+    // фото без текста — возможно, часть альбома, текст придёт в другом сообщении: сохраняем черновик
+    if (!msg.media_group_id) return;
+  }
+  const deal = p.deal ?? "rent";
+  const base = { deal, kind: p.kind, rooms: p.rooms, area: p.area, district: p.district };
+  const ready = !!text && p.looksLikeListing;
+  const l = await createListing({
+    master_id: m.id,
+    city: p.city,
+    ...base,
+    floor: p.floor,
+    price: p.price,
+    currency: p.currency,
+    address: null,
+    lat: null,
+    lng: null,
+    title: p.title || autoTitle(base, "ru"),
+    description: text ? text.slice(0, 4000) : null,
+    photos: [photoUrl],
+    status: ready && ch.auto_publish ? "published" : "draft",
+    source: "telegram",
+    tg_key: key,
+    tg_link: link,
+  }).catch(async () => {
+    // другое фото того же альбома успело создать объявление — просто добавим фото к нему
+    const again = await listingByTgKey(key);
+    if (again && again.photos.length < MAX_PHOTOS) await updateListing(again.id, { photos: [...again.photos, photoUrl!] });
+    return null;
+  });
+  if (!l) return;
+  if (m.tg_chat_id && ready) {
+    await sendTo(
+      m.tg_chat_id,
+      l.status === "published"
+        ? `🏠 Пост из «${esc(ch.title ?? "канала")}» опубликован на NomerOk: <b>${esc(l.title)}</b>.\nПроверьте цену, комнаты и район — если бот ошибся, поправьте.`
+        : `📝 Пост из «${esc(ch.title ?? "канала")}» сохранён как черновик: <b>${esc(l.title)}</b>. Проверьте и опубликуйте.`,
+      [[{ text: "Открыть объявление", url: `${siteUrl()}/ru/cabinet?tab=realty&edit=${l.id}` }]],
+    ).catch(() => null);
+  }
+}
+
+/** Архив истёкших объявлений и предупреждение за 3 дня (ежедневно). */
+async function expireListings(): Promise<number> {
+  const { listingsToExpire, updateListing } = await import("./realty-db");
+  const { expired, soon } = await listingsToExpire().catch(() => ({ expired: [], soon: [] }));
+  for (const l of expired) await updateListing(l.id, { status: "archived" });
+  const byMaster = new Map<string, number>();
+  for (const l of soon) {
+    await updateListing(l.id, { expire_warned_at: new Date().toISOString() });
+    byMaster.set(l.master_id, (byMaster.get(l.master_id) ?? 0) + 1);
+  }
+  for (const [mid, n] of byMaster) {
+    const m = await adminGetMaster(mid);
+    if (m?.tg_chat_id) await sendTo(m.tg_chat_id, `⏳ ${n} ваш(их) объявлений на NomerOk уйдут в архив через 3 дня. Если квартира ещё актуальна — продлите одной кнопкой в кабинете.`, [[{ text: "Продлить", url: `${siteUrl()}/ru/cabinet?tab=realty` }]]).catch(() => null);
+  }
+  return expired.length;
+}
+
+/** Вебхук должен получать посты каналов — проверяем раз в день и переподключаем при необходимости. */
+async function ensureWebhookUpdates(): Promise<void> {
+  const info = await tg<{ url?: string; allowed_updates?: string[] }>("getWebhookInfo", {}).catch(() => null);
+  const secret = webhookSecret();
+  if (!info?.url || !secret) return;
+  if (ALLOWED_UPDATES.every((x) => (info.allowed_updates ?? []).includes(x))) return;
+  await tg("setWebhook", { url: info.url, secret_token: secret, allowed_updates: ALLOWED_UPDATES });
+}
+
 /* ---------- подключение бота к сайту ---------- */
 
 export async function setupBot(baseUrl: string, secret: string): Promise<{ ok: boolean; url: string }> {
   const url = `${baseUrl.replace(/\/$/, "")}/api/telegram/webhook`;
-  const ok = await tg("setWebhook", { url, secret_token: secret, allowed_updates: ["message", "callback_query"] });
+  const ok = await tg("setWebhook", { url, secret_token: secret, allowed_updates: ALLOWED_UPDATES });
   for (const lang of ["ru", "en", "ka"] as const) {
     const b = botDict(lang);
     await tg("setMyCommands", {

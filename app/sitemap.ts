@@ -6,12 +6,14 @@ import { seoCategoryIds } from "@/lib/seo-categories";
 import { DISTRICTS, servesDistrict } from "@/lib/districts";
 import { journalArticles } from "@/lib/journal";
 import { indexablePlaces, placeCounts } from "@/lib/places-db";
+import { indexableListings } from "@/lib/realty-db";
 
 export const dynamic = "force-dynamic";
 
 const PAGES: { path: string; priority: number }[] = [
   { path: "", priority: 1 },
   { path: "/request", priority: 0.8 },
+  { path: "/realty", priority: 0.7 },
   { path: "/orders", priority: 0.7 },
   { path: "/join", priority: 0.6 },
   { path: "/phones", priority: 0.6 },
@@ -28,9 +30,10 @@ function entry(path: string, priority: number, lastModified?: string): MetadataR
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const masters = await listPublishedMasters().catch(() => []);
   const ARTICLES = await journalArticles();
-  const [pc, pl] = await Promise.all([placeCounts().catch(() => ({}) as Record<string, number>), indexablePlaces().catch(() => [])]);
+  const [pc, pl, ls] = await Promise.all([placeCounts().catch(() => ({}) as Record<string, number>), indexablePlaces().catch(() => []), indexableListings().catch(() => [])]);
   return [
     ...PAGES.flatMap((p) => entry(p.path, p.priority)),
+    ...ls.flatMap((l) => entry(`/realty/${l.id}`, 0.5, l.updated_at)),
     // Статьи — пока только на русском
     { url: `${SITE_URL}/ru/guide`, priority: 0.6 },
     ...ARTICLES.map((a) => ({ url: `${SITE_URL}/ru/guide/${a.slug}`, priority: 0.7, lastModified: a.date })),
