@@ -104,6 +104,41 @@ export default async function ArticlePage({ params }: Props) {
                 </Link>
               </div>
             );
+          if ("map" in b) {
+            const pts = b.map.map((x, k) => ({ lat: x.lat, lng: x.lng, label: k + 1, title: `${k + 1}. ${x.name}`, subtitle: x.note }));
+            return (
+              <div key={i} className="rounded-2xl border border-line bg-white p-2">
+                <Map height={380} points={pts} />
+                <ol className="space-y-1 px-3 pb-2 pt-3 text-[14px]">
+                  {b.map.map((x, k) => (
+                    <li key={k} className="flex gap-2">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-[12px] font-bold text-white">{k + 1}</span>
+                      <span>
+                        <b>{x.name}</b>
+                        {x.note ? <span className="text-muted"> — {x.note}</span> : null}{" "}
+                        <a href={`https://www.google.com/maps/search/?api=1&query=${x.lat},${x.lng}`} target="_blank" rel="noopener noreferrer nofollow" className="whitespace-nowrap text-brand underline">
+                          маршрут
+                        </a>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            );
+          }
+          if ("img" in b)
+            return (
+              <figure key={i} className="overflow-hidden rounded-2xl bg-cream">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={b.img} alt={b.alt} loading="lazy" className="w-full object-cover" />
+                <figcaption className="px-4 py-2 text-[12px] text-muted">
+                  {b.alt}. Фото: {b.credit},{" "}
+                  <a href={b.source} target="_blank" rel="noopener noreferrer nofollow" className="underline">
+                    {b.license}
+                  </a>
+                </figcaption>
+              </figure>
+            );
           if ("places" in b) {
             const ps = b.places.map((r) => placeList.find((x) => x.id === r || x.slug === r)).filter((x): x is NonNullable<typeof x> => !!x);
             const start = placeN;

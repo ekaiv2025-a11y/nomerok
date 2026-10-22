@@ -14,12 +14,15 @@ export type Block =
   | { cta: string; cat: string }
   | { link: string; href: string }
   | { places: string[] } // карточки мест (id или адрес-slug) — для подборок
+  | { map: { name: string; lat: number; lng: number; note?: string }[] } // карта с пронумерованными точками (туристические статьи)
+  | { img: string; alt: string; credit: string; license: string; source: string } // фото со свободной лицензией (Wikimedia Commons)
   | { phones: true };
 
 /** Рубрики журнала. */
 export const RUBRICS = {
   news: { label: "Новости", emoji: "📰", bg: "from-[#eef0f3] to-[#d9dee6]" },
   events: { label: "Афиша", emoji: "🎟️", bg: "from-[#fbe7f0] to-[#f3c9dc]" },
+  travel: { label: "Куда поехать", emoji: "🧭", bg: "from-[#e3f1f6] to-[#c4e2ec]" },
   picks: { label: "Подборки", emoji: "📍", bg: "from-[#fde9e4] to-[#f7cfc4]" },
   home: { label: "Дом и ремонт", emoji: "🏠", bg: "from-[#e7f3ec] to-[#cfe8da]" },
   life: { label: "Жизнь в Грузии", emoji: "🌴", bg: "from-[#e6f2fb] to-[#cde4f5]" },
