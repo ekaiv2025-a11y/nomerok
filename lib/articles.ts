@@ -4,6 +4,7 @@
  */
 
 import { MORE_ARTICLES } from "./articles-more";
+import { CITY_ARTICLES } from "./articles-cities";
 
 export type Block =
   | { h2: string }
@@ -179,7 +180,7 @@ const FIRST: Article[] = [
 const RUBRIC_BY_SLUG: Record<string, Rubric> = { "kak-nayti-nyanyu-batumi": "family" };
 
 /** Все статьи журнала, новые сверху. */
-export const ARTICLES: Article[] = [...MORE_ARTICLES, ...FIRST]
+export const ARTICLES: Article[] = [...CITY_ARTICLES, ...MORE_ARTICLES, ...FIRST]
   .map((a) => ({ ...a, rubric: a.rubric ?? RUBRIC_BY_SLUG[a.slug] ?? "home" }))
   .sort((a, b) => b.date.localeCompare(a.date));
 
