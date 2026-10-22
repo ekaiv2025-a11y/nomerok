@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { articlesForCat } from "@/lib/articles";
+import { guideFor } from "@/lib/seo/guides";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { listPublishedMasters } from "@/lib/db";
@@ -92,6 +93,7 @@ export default async function ServicePage({ params }: Props) {
     .sort((a, b) => a.price_from! - b.price_from!);
   const price = priced[0] ? priceText(priced[0], lang).toLowerCase() : null;
   const faq = [{ q: t.priceQ, a: t.priceA(price) }, ...t.faq];
+  const guide = guideFor(cat, lang);
 
   const group = CATEGORIES.find((c) => c.id === cat)?.group;
   const related = CATEGORIES.filter((c) => c.group === group && c.id !== cat);
@@ -211,6 +213,45 @@ export default async function ServicePage({ params }: Props) {
           </ol>
         </section>
       </div>
+
+      {guide && (
+        <article className="mt-14 max-w-3xl">
+          <h2 className="text-[24px] font-bold leading-tight sm:text-[28px]">{guide.h}</h2>
+          <p className="mt-4 text-[16px] leading-[1.7] text-[#3a3935]">{guide.intro}</p>
+          {guide.sections.map((sec) => (
+            <section key={sec.h} className="mt-8">
+              <h3 className="text-[19px] font-bold leading-snug">{sec.h}</h3>
+              {sec.p.map((x, i) => (
+                <p key={i} className="mt-3 text-[16px] leading-[1.7] text-[#3a3935]">
+                  {x}
+                </p>
+              ))}
+              {sec.list && (
+                <ul className="mt-3 space-y-2 text-[16px] leading-relaxed text-[#3a3935]">
+                  {sec.list.map((x) => (
+                    <li key={x} className="flex gap-2">
+                      <span className="text-brand">•</span>
+                      <span>{x}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {sec.after?.map((x, i) => (
+                <p key={i} className="mt-3 text-[16px] leading-[1.7] text-[#3a3935]">
+                  {x}
+                </p>
+              ))}
+            </section>
+          ))}
+          <div className="mt-8 rounded-2xl bg-brand-soft p-5">
+            <p className="font-semibold text-brand-dark">{l.notFound}</p>
+            <p className="mt-1 text-[14px] text-[#3d5a4c]">{l.notFoundText}</p>
+            <Link href={requestHref} className="btn-primary mt-3 h-11">
+              {l.request}
+            </Link>
+          </div>
+        </article>
+      )}
 
       <section className="mt-12 max-w-3xl">
         <h2 className="text-[20px] font-bold">{l.faq}</h2>
