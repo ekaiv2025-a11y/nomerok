@@ -117,12 +117,12 @@ export function Header({ lang }: { lang: Locale }) {
           <nav className="flex items-center gap-1 min-[400px]:gap-1.5 sm:gap-2">
             <Link
               href={href(lang) + "#masters"}
-              className="flex h-10 w-9 shrink-0 items-center max-[359px]:hidden justify-center gap-1.5 rounded-full text-[14px] font-semibold text-ink hover:bg-cream lg:w-auto lg:px-3"
+              className="flex h-10 w-9 shrink-0 items-center max-[359px]:hidden justify-center gap-1.5 rounded-full text-[14px] font-semibold text-ink hover:bg-cream xl:w-auto xl:px-3"
               aria-label={t.nav.allSpecialists}
               title={t.nav.allSpecialists}
             >
               <Users className="h-5 w-5 text-brand" />
-              <span className="hidden whitespace-nowrap lg:inline">{t.nav.allSpecialists}</span>
+              <span className="hidden whitespace-nowrap xl:inline">{t.nav.allSpecialists}</span>
             </Link>
             <Link href={href(lang, "/orders")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
               {ORD[lang].nav}
@@ -141,7 +141,7 @@ export function Header({ lang }: { lang: Locale }) {
             <Link href={href(lang, "/favorites")} className="hidden h-10 items-center rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink md:inline-flex" title={SOCIAL[lang].fav}>
               ♡
             </Link>
-            <Link href={href(lang, "/my")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">
+            <Link href={href(lang, "/my")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink 2xl:inline-flex">
               {MY[lang].nav}
             </Link>
             <LanguageSwitcher lang={lang} label={t.nav.language} compact />

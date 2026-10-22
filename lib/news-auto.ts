@@ -37,4 +37,5 @@ export const AUTO_NEWS: Article[] = (AUTO as unknown as AutoNews[])
     source: n.sources?.[0] ?? null,
     sources: n.sources ?? [],
     faq: n.faq ?? [],
+    cover: (n.body.find((b) => "img" in b) as { img: string } | undefined)?.img ?? null,
   }));
