@@ -4,6 +4,8 @@ import { GUIDES_PEOPLE } from "./people";
 import { EXTRA_HOME } from "./extra-home";
 import { EXTRA_PEOPLE } from "./extra-people";
 import { EXTRA_SERVICES } from "./extra-services";
+import { EXTRA2_A } from "./extra2-a";
+import { EXTRA2_B } from "./extra2-b";
 
 /*
  * Большие статьи-руководства для страниц направлений (/ru/services/plumber): 1000+ слов про Батуми.
@@ -18,7 +20,7 @@ const EXTRA: Record<string, GuideSection[]> = { ...EXTRA_HOME, ...EXTRA_PEOPLE, 
 /** Дополнительные разделы встают перед последним (про NomerOk). */
 export const GUIDES_RU: Record<string, Guide> = Object.fromEntries(
   Object.entries(BASE).map(([k, g]) => {
-    const x = EXTRA[k] ?? [];
+    const x = [...(EXTRA[k] ?? []), ...(EXTRA2_A[k] ?? []), ...(EXTRA2_B[k] ?? [])];
     return [k, { ...g, sections: [...g.sections.slice(0, -1), ...x, ...g.sections.slice(-1)] }];
   }),
 );
