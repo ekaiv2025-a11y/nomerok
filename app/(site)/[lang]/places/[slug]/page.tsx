@@ -13,6 +13,9 @@ import { ArticleGallery } from "@/components/ArticleGallery";
 import { SITE_URL } from "@/lib/site";
 import { ShareButton } from "@/components/ShareButton";
 import { publishedPlaceReviews } from "@/lib/place-reviews-db";
+import { publicTeamOf } from "@/lib/org-db";
+import { MasterCard } from "@/components/MasterCard";
+import { currentSpecialistId } from "@/lib/spec-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +44,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return placeIndexable(p) ? base : { ...base, robots: { index: false, follow: true } };
 }
 
+const TEAM_T = {
+  ru: { team: "Команда", empty: "Специалисты этой организации ещё не добавлены.", request: "Отправить заявку", iWork: "Я здесь работаю", ownerHint: "Владелец?", ownerLink: "Кабинет организации" },
+  en: { team: "Team", empty: "No specialists added yet.", request: "Send a request", iWork: "I work here", ownerHint: "Owner?", ownerLink: "Organization account" },
+  ka: { team: "გუნდი", empty: "სპეციალისტები ჯერ არ დამატებულა.", request: "განაცხადის გაგზავნა", iWork: "აქ ვმუშაობ", ownerHint: "მფლობელი ხართ?", ownerLink: "ორგანიზაციის კაბინეტი" },
+} as const;
+
 export default async function PlacePage({ params }: Props) {
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
@@ -57,7 +66,15 @@ export default async function PlacePage({ params }: Props) {
   const desc = placeDesc(p, lang);
   const addr = placeAddr(p, lang);
   const summary = desc ? "" : placeSummary(p, lang, c.label[lang]);
-  const [near, bot, reviews] = await Promise.all([nearbyPlaces(p), botUsername().catch(() => null), publishedPlaceReviews(p.id).catch(() => [])]);
+  const [near, bot, reviews, team, specId] = await Promise.all([
+    nearbyPlaces(p),
+    botUsername().catch(() => null),
+    publishedPlaceReviews(p.id).catch(() => []),
+    p.owner_verified_at ? publicTeamOf(p.id).catch(() => []) : Promise.resolve([]),
+    currentSpecialistId().catch(() => null),
+  ]);
+  const TT = TEAM_T[lang];
+  const inTeam = !!specId && team.some((m) => m.id === specId);
   const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
   const mapQuery = encodeURIComponent([name, addr ?? "", "Batumi"].filter(Boolean).join(", "));
   const gmaps = p.lat != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
@@ -223,6 +240,40 @@ export default async function PlacePage({ params }: Props) {
           </div>
         )}
       </section>
+
+      {p.owner_verified_at && (
+        <section className="mt-6 rounded-2xl border border-line bg-white p-5">
+          <h2 className="text-[18px] font-bold">
+            👥 {TT.team}
+            {team.length > 0 && <span className="ml-2 text-[15px] font-semibold text-muted">{team.length}</span>}
+          </h2>
+          {team.length > 0 ? (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {team.map((m) => (
+                <MasterCard key={m.id} m={m} lang={lang} />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-[14px] text-muted">{TT.empty}</p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href={href(lang, `/request?org=${p.id}`)} className="btn-primary h-11 px-5">
+              {TT.request}
+            </Link>
+            {!inTeam && (
+              <Link href={href(lang, `/cabinet?tab=profile&org=${p.id}#orgs`)} className="btn-ghost h-11 px-5 text-[14px]">
+                {TT.iWork}
+              </Link>
+            )}
+          </div>
+          <p className="mt-3 text-[12px] text-muted">
+            {TT.ownerHint}{" "}
+            <Link href={href(lang, "/org")} className="underline">
+              {TT.ownerLink}
+            </Link>
+          </p>
+        </section>
+      )}
 
       {p.lat != null && p.lng != null && (
         <section className="mt-6">

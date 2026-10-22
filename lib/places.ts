@@ -39,6 +39,8 @@ export type Place = {
   owner_chat_id?: number | null;
   owner_name?: string | null;
   owner_verified_at?: string | null;
+  invite_code?: string | null; // ссылка-приглашение в команду организации
+  team_requests?: boolean; // заявки организации получает и команда
   created_at?: string;
   updated_at?: string;
 };

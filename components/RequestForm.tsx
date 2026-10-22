@@ -24,10 +24,10 @@ const SELF = {
 
 const SUGGEST = { ru: "Похоже, подойдёт раздел:", en: "Looks like:", ka: "როგორც ჩანს:" } as const;
 
-type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; defaultText?: string; me?: { name: string; phone: string } | null };
+type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; defaultText?: string; org?: string; me?: { name: string; phone: string } | null };
 
 /** Общая заявка — для всех специалистов направления. */
-export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, me }: Props) {
+export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, org, me }: Props) {
   const d = getDict(lang);
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
@@ -106,6 +106,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, m
       phone: f.get("phone"),
       website: f.get("website"),
       notSelf: selfOk,
+      org: org ?? null,
     });
   }
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { orgsOfMaster } from "@/lib/org-db";
+import { placeName } from "@/lib/places";
 import { adminGetMaster, getPublishedMasterBySlug, listPublishedMasters } from "@/lib/db";
 import { publicDocuments } from "@/lib/documents";
 import { categoryLabel, categoryPlural, languageLabel, MEDICAL_CATEGORIES } from "@/lib/categories";
@@ -50,6 +52,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const WORKS_AT = { ru: "Работает в:", en: "Works at:", ka: "მუშაობს:" } as const;
+
 export default async function MasterPage({ params }: Props) {
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
@@ -64,6 +68,7 @@ export default async function MasterPage({ params }: Props) {
   const bot = m.demo ? null : await botUsername();
   const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
+  const works = m.demo ? [] : (await orgsOfMaster(m.id).catch(() => [])).filter((x) => x.place.status === "published");
   // 🎁 бонус за рекомендацию (если специалист включил и бонусы не закончились)
   const bonus = m.demo ? null : await liveOffer(m.id);
   const me = bonus ? await currentClient().catch(() => null) : null;
@@ -96,6 +101,19 @@ export default async function MasterPage({ params }: Props) {
             {subcatsOf(m).length ? ` (${subcatsOf(m).map((id) => subcatLabel(m.category, id, lang)).join(", ").toLowerCase()})` : ""} · {cityLabel(m.city, lang)}
             {m.experience_years ? ` · ${t.experience(m.experience_years)}` : ""}
           </p>
+          {works.length > 0 && (
+            <p className="mt-1 text-[14px]">
+              🏢 {WORKS_AT[lang]}{" "}
+              {works.map((x, k) => (
+                <span key={x.place.id}>
+                  {k > 0 && ", "}
+                  <Link href={href(lang, `/places/${x.place.slug}`)} className="font-semibold text-brand hover:underline">
+                    {placeName(x.place, lang)}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          )}
           {m.seen_days != null && (
             <p className="mt-1 flex items-center gap-1.5 text-[13px] text-muted">
               <span className={`h-2 w-2 rounded-full ${m.seen_days <= 1 ? "bg-[#2fb36b]" : m.seen_days <= 7 ? "bg-[#9fd3b6]" : "bg-[#d6d2c8]"}`} />

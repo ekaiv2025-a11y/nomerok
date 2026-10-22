@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { requestSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { createRequest, findMasterByPhone, getPublishedMasterBySlug } from "@/lib/db";
-import { botLink, notifyAdmin, escapeHtml } from "@/lib/telegram";
-import { distributeRequest } from "@/lib/bot";
+import { botLink, notifyAdmin, escapeHtml, sendTo } from "@/lib/telegram";
+import { distributeRequest, sendRequestToChosen } from "@/lib/bot";
+import { getPlace } from "@/lib/places-db";
+import { orgRequestTargets } from "@/lib/org-db";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
@@ -57,6 +59,11 @@ export async function POST(req: Request) {
       saved.client_tg_chat_id = me.chatId;
     }
 
+    // Заявка организации: получат её команда и владелец (а не весь раздел)
+    const org = !master && typeof body.org === "string" ? await getPlace(body.org.slice(0, 40)).catch(() => null) : null;
+    const orgOk = org && org.owner_verified_at ? org : null;
+    if (orgOk) await updateRequest(saved.id, { org_place_id: orgOk.id } as never).catch(() => null);
+
     // Похоже на рекламу (ссылки, «предлагаем», LLC…) — не рассылаем, ждём решения администратора.
     // Сообщение конкретному специалисту рассылаем всегда (он сам решит).
     const check = master ? { ad: false, reasons: [] as string[] } : looksLikeAd(saved);
@@ -68,15 +75,35 @@ export async function POST(req: Request) {
     }
     if (check.ad && body.notSelf === true) check.reasons.push("клиент нажал «Нет, я ищу мастера»");
     const held: "specialist" | "self" | null = asMaster && asMaster.status !== "rejected" ? "specialist" : check.ad && looksLikeSelf(saved.description) ? "self" : null;
-    const sent = check.ad
-      ? 0
-      : await distributeRequest(saved).catch((err) => {
-          console.error("[distribute]", err);
-          return 0;
-        });
+    let sent = 0;
+    if (!check.ad && orgOk) {
+      const targets = await orgRequestTargets(orgOk).catch(() => []);
+      sent = (await sendRequestToChosen(saved, targets).catch(() => [])).length;
+      if (orgOk.owner_chat_id && !targets.some((m) => m.tg_chat_id === orgOk.owner_chat_id)) {
+        const ok = await sendTo(
+          orgOk.owner_chat_id,
+          [
+            `📩 <b>Заявка в «${escapeHtml(orgOk.name)}»</b>`,
+            `<b>Задача:</b> ${escapeHtml(saved.description)}`,
+            saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
+            `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
+            targets.length ? `Заявка также отправлена вашей команде: ${targets.length}.` : "Свяжитесь с клиентом напрямую.",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        ).catch(() => null);
+        if (ok) sent++;
+      }
+      if (sent > 0) await updateRequest(saved.id, { status: "sent", sent_count: sent }).catch(() => null);
+    } else if (!check.ad) {
+      sent = await distributeRequest(saved).catch((err) => {
+        console.error("[distribute]", err);
+        return 0;
+      });
+    }
 
     const lines = [
-      master ? "✉️ <b>Сообщение специалисту</b>" : "🆕 <b>Новая заявка</b>",
+      master ? "✉️ <b>Сообщение специалисту</b>" : orgOk ? `🏢 <b>Заявка в организацию «${escapeHtml(orgOk.name)}»</b>` : "🆕 <b>Новая заявка</b>",
       `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}`,
       master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
       `<b>Задача:</b> ${escapeHtml(saved.description)}`,

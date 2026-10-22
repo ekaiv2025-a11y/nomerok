@@ -7,6 +7,7 @@ import { DocumentsEditor } from "@/components/DocumentsEditor";
 import { signedUrls } from "@/lib/documents";
 import { masterStats, viewsByDay } from "@/lib/stats";
 import { StatsCard } from "@/components/StatsCard";
+import { CabinetOrgs } from "@/components/CabinetOrgs";
 import { QrCards } from "@/components/QrCards";
 import { NotifyToggle } from "@/components/NotifyToggle";
 import { CabinetOrders } from "@/components/CabinetOrders";
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return { title: getDict(lang).cabinet.title, robots: { index: false } };
 }
 
-type Props = LangParams & { searchParams: Promise<{ expired?: string; tab?: string }> };
+type Props = LangParams & { searchParams: Promise<{ expired?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string }> };
 
 export default async function CabinetPage({ params, searchParams }: Props) {
   const lang = await langOf(params);
@@ -264,6 +265,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           <div className="mt-8">
             <DocumentsEditor lang={lang} initial={myDocs} />
           </div>
+          <CabinetOrgs masterId={m.id} lang={lang} q={sp.orgq} org={sp.org} msg={sp.orgmsg} />
         </div>
       )}
 

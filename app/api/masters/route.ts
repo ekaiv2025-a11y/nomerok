@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { masterApplicationSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { adminUpdateMaster, createMaster, uploadPhoto } from "@/lib/db";
 import { readJoinToken } from "@/lib/join-token";
-import { joinFailed, joinMark } from "@/lib/join-starts";
+import { getJoinStart, joinFailed, joinMark } from "@/lib/join-starts";
+import { addMember } from "@/lib/org-db";
+import { getPlace } from "@/lib/places-db";
 import { setSpecCookies } from "@/lib/spec-auth";
 import { botDict } from "@/lib/i18n/bot";
 import { botLink, downloadTelegramFile, notifyAdmin, escapeHtml, sendTo, telegramToken } from "@/lib/telegram";
@@ -114,6 +116,15 @@ export async function POST(req: Request) {
       }
       await sendTo(pre.chatId, botDict(lang).joinSubmitted);
       await joinMark(pre.chatId, "done_at").catch(() => null);
+      // Пришёл по приглашению организации — сразу в команду
+      const js = await getJoinStart(pre.chatId).catch(() => null);
+      if (js?.org_place_id) {
+        const p = await getPlace(js.org_place_id).catch(() => null);
+        if (p && (await addMember(p.id, m.id, "active", "invite").catch(() => false))) {
+          await sendTo(pre.chatId, `🏢 Вы в команде «${escapeHtml(p.name)}» — анкета появится на странице организации после проверки.`).catch(() => null);
+          if (p.owner_chat_id) await sendTo(p.owner_chat_id, `✅ <b>${escapeHtml(m.name)}</b> зарегистрировался(ась) по вашему приглашению и добавлен(а) в команду «${escapeHtml(p.name)}». Анкета появится на сайте после проверки.`).catch(() => null);
+        }
+      }
     }
 
     await notifyAdmin(

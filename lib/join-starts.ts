@@ -4,7 +4,7 @@ import { formatPhone } from "./phone";
 import { dbMode, readLocal, supabase, writeLocal } from "./db";
 
 /* Начатые регистрации через бота: поделился номером → получил ссылку на анкету → (открыл) → (отправил). */
-export type JoinStart = { chat_id: number; phone: string | null; name: string | null; lang: string; created_at: string; opened_at: string | null; reminded_at: string | null; done_at: string | null };
+export type JoinStart = { chat_id: number; phone: string | null; name: string | null; lang: string; created_at: string; opened_at: string | null; reminded_at: string | null; done_at: string | null; org_place_id?: string | null };
 type L = { join_starts?: JoinStart[] };
 
 async function patchLocal(chatId: number, patch: Partial<JoinStart>, create?: JoinStart) {
@@ -81,4 +81,17 @@ export async function joinFunnel(days: number): Promise<{ started: number; opene
     rows = r.error ? [] : (r.data as JoinStart[]);
   } else if (dbMode() !== "none") rows = (((await readLocal()) as unknown as L).join_starts ?? []).filter((x) => x.created_at >= since);
   return { started: rows.length, opened: rows.filter((x) => x.opened_at || x.done_at).length, done: rows.filter((x) => x.done_at).length };
+}
+
+/** Человек пришёл по приглашению организации — после регистрации добавим его в команду. */
+export async function joinSetOrg(chatId: number, placeId: string, lang: string) {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("join_starts").update({ org_place_id: placeId }).eq("chat_id", chatId).select("chat_id");
+    if (!r.error && r.data?.length) return;
+    await sb.from("join_starts").insert({ chat_id: chatId, lang, org_place_id: placeId, created_at: new Date().toISOString() });
+    return;
+  }
+  const row: JoinStart = { chat_id: chatId, phone: null, name: null, lang, created_at: new Date().toISOString(), opened_at: null, reminded_at: null, done_at: null };
+  await patchLocal(chatId, { org_place_id: placeId }, row);
 }

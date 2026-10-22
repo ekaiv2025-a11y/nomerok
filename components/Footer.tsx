@@ -49,6 +49,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/join">{t.placeProfile}</L>
             <L to="/how#specialists">{t.conditions}</L>
             <L to="/cabinet">{t.cabinet}</L>
+            <L to="/org">{{ ru: "🏢 Для клиник, салонов и центров", en: "🏢 For clinics, salons & centres", ka: "🏢 კლინიკებს, სალონებს და ცენტრებს" }[lang]}</L>
           </ul>
         </div>
         <div>

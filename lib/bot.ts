@@ -343,6 +343,15 @@ async function onStart(msg: TgMessage, payload: string) {
   // «Это моё заведение» со страницы места: t.me/бот?start=pl_ID
   if (payload.startsWith("pl_")) return onPlaceClaim(chatId, from, payload.slice(3));
 
+  // Приглашение в команду организации: t.me/бот?start=o_КОД
+  if (payload.startsWith("o_")) return onOrgInvite(chatId, from, payload.slice(2));
+
+  // «Кабинет организации» с сайта: t.me/бот?start=org_ru
+  if (payload.startsWith("org")) {
+    const lang = ["ru", "en", "ka"].includes(payload.slice(4)) ? payload.slice(4) : guessLang(from);
+    return sendOrgLogin(chatId, from, lang);
+  }
+
   // «Мои заявки» на сайте: t.me/бот?start=my_ru → ссылка для входа
   if (payload.startsWith("my")) {
     const lang = ["ru", "en", "ka"].includes(payload.slice(3)) ? payload.slice(3) : guessLang(from);
@@ -457,8 +466,83 @@ const PLACE_TXT = {
   manual: (name: string) =>
     `Спасибо! Номер не совпал с телефоном «${name}» на сайте, поэтому проверим вручную — обычно в течение дня.\n\nМожете сразу написать сюда, кто вы (владелец, управляющий) и как с вами связаться.`,
   already: "✅ Это заведение уже подтверждено. Если хотите что-то изменить — напишите сюда.",
+  cabinet: "🏢 В кабинете организации можно изменить описание и контакты, собрать команду специалистов и получать заявки от клиентов.",
   gone: "Не нашли это место. Возможно, ссылка устарела — откройте карточку на сайте ещё раз.",
 };
+
+/* ---------- организации: кабинет и команда ---------- */
+
+/** Ссылка входа в кабинет организации (действует час). */
+export async function sendOrgLogin(chatId: number, from?: TgUser, lang = "ru") {
+  const { placesOwnedBy } = await import("./places-db");
+  const { orgLoginToken } = await import("./org-auth");
+  const mine = await placesOwnedBy(chatId).catch(() => []);
+  const name = [from?.first_name, from?.last_name].filter(Boolean).join(" ") || mine[0]?.owner_name || "";
+  const url = `${siteUrl()}/api/org/login?lang=${lang}&t=${orgLoginToken(chatId, name)}`;
+  const text = mine.length
+    ? `${PLACE_TXT.cabinet}\n\nВаши организации: ${mine.map((p) => `«${esc(p.name)}»`).join(", ")}.\n<i>Ссылка действует 1 час.</i>`
+    : "🏢 Кабинет организации: найдите свою организацию в «Местах» или добавьте новую, затем соберите команду специалистов.\n<i>Ссылка действует 1 час.</i>";
+  return sendTo(chatId, text, [[{ text: "🏢 Открыть кабинет организации", url }]]);
+}
+
+/** Приглашение в команду: t.me/бот?start=o_КОД */
+async function onOrgInvite(chatId: number, from: TgUser | undefined, code: string) {
+  const lang = guessLang(from);
+  const { placeByInvite, addMember } = await import("./org-db");
+  const p = await placeByInvite(code).catch(() => null);
+  if (!p) return sendTo(chatId, "Ссылка-приглашение устарела. Попросите организацию прислать новую.");
+  const masters = await getMastersByChatId(chatId);
+  if (masters.length) {
+    const ok = await addMember(p.id, masters[0].id, "active", "invite");
+    if (!ok) return sendTo(chatId, "Вы уже состоите в трёх организациях — это максимум. Выйти из одной можно в кабинете специалиста.");
+    if (p.owner_chat_id) await sendTo(p.owner_chat_id, `✅ <b>${esc(masters[0].name)}</b> присоединился(ась) к команде «${esc(p.name)}».\n${siteUrl()}/ru/master/${masters[0].slug}`).catch(() => null);
+    return sendTo(chatId, `✅ Вы в команде «${esc(p.name)}». Ваша анкета теперь видна на странице организации, а в анкете появилась строка «Работает в: ${esc(p.name)}».`, [[{ text: "Страница организации", url: `${siteUrl()}/${lang}/places/${p.slug}` }]]);
+  }
+  // Анкеты ещё нет — сначала регистрация, после неё сразу добавим в команду
+  const { joinSetOrg } = await import("./join-starts");
+  await joinSetOrg(chatId, p.id, lang).catch(() => null);
+  const b = botDict(lang);
+  return tg("sendMessage", {
+    chat_id: chatId,
+    text: `🏢 Вас пригласили в команду «${esc(p.name)}» на NomerOk.\n\nСначала создайте свою анкету специалиста — это около 3 минут. Сразу после этого вы появитесь в команде.\n\n${b.joinAsk}`,
+    parse_mode: "HTML",
+    reply_markup: { keyboard: [[{ text: b.btnShareContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true },
+  });
+}
+
+/** Специалист попросился в организацию — спрашиваем владельца. */
+export async function askOrgApproval(placeId: string, m: Master): Promise<boolean> {
+  const { getPlace } = await import("./places-db");
+  const p = await getPlace(placeId).catch(() => null);
+  if (!p?.owner_chat_id) return false;
+  await sendTo(
+    p.owner_chat_id,
+    `🙋 <b>${esc(m.name)}</b> (${esc(categoryLabel(m.category, "ru"))}) пишет, что работает в «${esc(p.name)}», и просит добавить в команду.\n${siteUrl()}/ru/master/${m.slug}`,
+    [[{ text: "✅ Добавить в команду", callback_data: `om:a:${p.id}:${m.id}` }, { text: "Нет", callback_data: `om:d:${p.id}:${m.id}` }]],
+  );
+  return true;
+}
+
+async function onOrgDecision(cb: TgCallback, data: string) {
+  const [, act, placeId, masterId] = data.split(":");
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const { getPlace } = await import("./places-db");
+  const { addMember, removeMember } = await import("./org-db");
+  const p = await getPlace(placeId).catch(() => null);
+  if (!p || p.owner_chat_id !== cb.from.id) return;
+  const m = await adminGetMaster(masterId);
+  if (!m) return;
+  const chat = cb.message?.chat.id ?? cb.from.id;
+  if (act === "a") {
+    await addMember(p.id, m.id, "active", "self");
+    await sendTo(chat, `✅ ${esc(m.name)} — в команде «${esc(p.name)}».`);
+    if (m.tg_chat_id) await sendTo(m.tg_chat_id, `✅ «${esc(p.name)}» подтвердили, что вы в команде. В анкете появилась строка «Работает в».`).catch(() => null);
+  } else {
+    await removeMember(p.id, m.id);
+    await sendTo(chat, `Хорошо, ${esc(m.name)} не добавлен(а) в команду.`);
+  }
+  if (cb.message) await tg("editMessageReplyMarkup", { chat_id: chat, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [] } }).catch(() => null);
+}
 
 async function onPlaceClaim(chatId: number, from: TgUser | undefined, placeId: string) {
   const { getPlace, updatePlace } = await import("./places-db");
@@ -489,6 +573,7 @@ async function onPlaceContact(msg: TgMessage): Promise<boolean> {
   if (same) {
     await updatePlace(p.id, { owner_chat_id: chatId, owner_name: who.slice(0, 80), owner_verified_at: new Date().toISOString() });
     await sendTo(chatId, PLACE_TXT.ok(esc(p.name)), undefined, removeKeyboard);
+    await sendOrgLogin(chatId, msg.from);
     await notifyAdmin(`🏢 <b>${esc(p.name)}</b>: владелец подтверждён автоматически — номер ${esc(formatPhone(phone))} совпал с номером места.\n${esc(who)}\n${admin}`);
   } else {
     await sendTo(chatId, PLACE_TXT.manual(esc(p.name)), undefined, removeKeyboard);
@@ -1068,6 +1153,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data.startsWith("ph:")) return void (await onPhoneChoice(u.callback_query, data));
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
+    if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
     await tg("answerCallbackQuery", { callback_query_id: u.callback_query.id });
     return;
