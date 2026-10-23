@@ -1,13 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Share2 } from "lucide-react";
+import { BONUS } from "@/lib/bonus-text";
 import type { Locale } from "@/lib/i18n/config";
 import { REF_TEXT } from "@/lib/referral-text";
 
 /** Профиль: «🎁 Бонус за рекомендацию» — условия и кнопка «Порекомендовать другу» (личный код + ссылка). */
-export function ReferralBox({ lang, slug, master, friend, reward, left, defaultName }: { lang: Locale; slug: string; master: string; friend: string; reward: string; left: number | null; defaultName?: string }) {
+export function ReferralBox({
+  lang,
+  slug,
+  master,
+  friend,
+  reward,
+  left,
+  defaultName,
+  hasRef = true,
+  repost = null,
+  url = "",
+  card = null,
+}: {
+  lang: Locale;
+  slug: string;
+  master: string;
+  friend: string;
+  reward: string;
+  left: number | null;
+  defaultName?: string;
+  /** есть бонус за рекомендацию (коды) */
+  hasRef?: boolean;
+  /** бонус за репост — текст условий */
+  repost?: string | null;
+  /** ссылка на профиль (для репоста) */
+  url?: string;
+  /** картинка для сторис */
+  card?: string | null;
+}) {
   const t = REF_TEXT[lang];
+  const bt = BONUS[lang];
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(typeof navigator !== "undefined" && !!navigator.share), []);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(defaultName ?? "");
   const [busy, setBusy] = useState(false);
@@ -41,6 +74,7 @@ export function ReferralBox({ lang, slug, master, friend, reward, left, defaultN
 
   return (
     <section className="mt-8 rounded-2xl border border-[#f0d58a] bg-[#fffaf0] p-5">
+      {hasRef && (<>
       <h2 className="text-[18px] font-bold">{t.title}</h2>
       <ul className="mt-2 space-y-1 text-[15px]">
         <li>
@@ -94,9 +128,41 @@ export function ReferralBox({ lang, slug, master, friend, reward, left, defaultN
             <a href={`https://t.me/share/url?url=${encodeURIComponent(res.url)}&text=${encodeURIComponent(t.shareText(master, friend, res.code))}`} target="_blank" rel="noopener noreferrer" className="btn-ghost h-10 px-4 text-[14px]">
               {t.shareTg}
             </a>
-            <a href={`https://wa.me/?text=${encodeURIComponent(share)}`} target="_blank" rel="noopener noreferrer" className="btn-ghost h-10 px-4 text-[14px]">
-              {t.shareWa}
+          </div>
+        </div>
+      )}
+      </>)}
+      {repost && (
+        <div className={hasRef ? "mt-5 border-t border-[#f0d58a] pt-5" : ""}>
+          <h2 className="text-[18px] font-bold">{bt.repBoxTitle}</h2>
+          <p className="mt-1 text-[15px] font-bold">{repost}</p>
+          <p className="mt-1 text-[14px] leading-relaxed text-muted">{bt.repBoxHow}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {canShare && (
+              <button type="button" onClick={() => navigator.share({ url, text: bt.repShareText(master) }).catch(() => {})} className="btn-primary h-10 px-4 text-[14px]">
+                <Share2 className="h-4 w-4" /> {bt.repShare}
+              </button>
+            )}
+            <a href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(bt.repShareText(master))}`} target="_blank" rel="noopener noreferrer" className="btn-ghost h-10 px-4 text-[14px]">
+              {bt.repTg}
             </a>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(url);
+                  setLinkCopied(true);
+                } catch {}
+              }}
+              className="btn-ghost h-10 px-4 text-[14px]"
+            >
+              {linkCopied ? bt.repCopied : bt.repCopy}
+            </button>
+            {card && (
+              <a href={card} download className="btn-ghost h-10 px-4 text-[14px]">
+                🖼 {bt.repStory}
+              </a>
+            )}
           </div>
         </div>
       )}

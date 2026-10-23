@@ -1,5 +1,6 @@
 import { LatestOrders } from "@/components/LatestOrders";
 import { HomeJournal } from "@/components/HomeJournal";
+import { BonusStrip } from "@/components/BonusStrip";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClipboardList, Search } from "lucide-react";
@@ -62,6 +63,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
         </Link>
       </section>
       {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} />}
+      {!broken && <BonusStrip lang={lang} masters={masters} />}
       {!broken && <LatestOrders lang={lang} />}
       <HomeJournal lang={lang} />
     </>

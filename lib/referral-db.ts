@@ -8,7 +8,19 @@ import { check, dbMode, DbNotConfiguredError, readLocal, supabase, writeLocal } 
  * Бонус выдаёт сам специалист — сайт только передаёт код и считает, сколько кодов выдано.
  */
 
-export type Offer = { master_id: string; active: boolean; friend: string; reward: string; max_uses: number; prefix: string; since: string; updated_at: string };
+export type Offer = {
+  master_id: string;
+  active: boolean;
+  friend: string;
+  reward: string;
+  max_uses: number;
+  prefix: string;
+  since: string;
+  updated_at: string;
+  /** Бонус за репост: что получит клиент, который поделился профилем (проверяет и выдаёт сам специалист) */
+  repost?: string;
+  repost_active?: boolean;
+};
 export type Referral = { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null };
 
 export const LIMITS = [5, 10, 20, 50, 0] as const; // 0 — без ограничения
@@ -39,7 +51,7 @@ export async function getOffer(masterId: string): Promise<Offer | null> {
   return (await readLocal()).referral_offers?.find((o) => o.master_id === masterId) ?? null;
 }
 
-export async function saveOffer(masterId: string, o: { active: boolean; friend: string; reward: string; max_uses: number; prefix: string; restart?: boolean }): Promise<Offer> {
+export async function saveOffer(masterId: string, o: { active: boolean; friend: string; reward: string; max_uses: number; prefix: string; restart?: boolean; repost?: string; repost_active?: boolean }): Promise<Offer> {
   const now = new Date().toISOString();
   const prev = await getOffer(masterId);
   const row: Offer = {
@@ -51,6 +63,8 @@ export async function saveOffer(masterId: string, o: { active: boolean; friend: 
     prefix: cleanPrefix(o.prefix) || "NOMEROK",
     since: o.restart || !prev ? now : prev.since,
     updated_at: now,
+    repost: (o.repost ?? prev?.repost ?? "").trim().slice(0, 140),
+    repost_active: o.repost_active ?? prev?.repost_active ?? false,
   };
   const sb = supabase();
   if (sb) {
@@ -88,11 +102,14 @@ export async function offerStatus(masterId: string): Promise<{ offer: Offer; iss
   return { offer, issued, left };
 }
 
-/** Действующее предложение для страницы специалиста (или null — бонусов нет/закончились). */
+/** Действующие бонусы для страницы специалиста: за рекомендацию (ref) и/или за репост (repost). null — нет ни одного. */
 export async function liveOffer(masterId: string) {
   const s = await offerStatus(masterId).catch(() => null);
-  if (!s || !s.offer.active || !s.offer.friend || s.left === 0) return null;
-  return s;
+  if (!s) return null;
+  const ref = !!(s.offer.active && s.offer.friend && s.left !== 0);
+  const repost = !!(s.offer.repost_active && s.offer.repost);
+  if (!ref && !repost) return null;
+  return { ...s, ref, repost };
 }
 
 /** У каких специалистов сейчас есть бонус — для значка 🎁 в каталоге. */
@@ -101,12 +118,16 @@ export async function mastersWithBonus(): Promise<Set<string>> {
   const sb = supabase();
   let offers: Offer[] = [];
   if (sb) {
-    const r = await sb.from("referral_offers").select("*").eq("active", true);
+    const r = await sb.from("referral_offers").select("*");
     if (r.error) return out;
     offers = r.data as Offer[];
-  } else if (dbMode() !== "none") offers = ((await readLocal()).referral_offers ?? []).filter((o) => o.active);
+  } else if (dbMode() !== "none") offers = (await readLocal()).referral_offers ?? [];
   for (const o of offers) {
-    if (!o.friend) continue;
+    if (o.repost_active && o.repost) {
+      out.add(o.master_id);
+      continue;
+    }
+    if (!o.active || !o.friend) continue;
     if (!o.max_uses) out.add(o.master_id);
     else if ((await listCodes(o.master_id, o.since)).length < o.max_uses) out.add(o.master_id);
   }
@@ -132,7 +153,7 @@ export async function findCode(code: string): Promise<Referral | null> {
  */
 export async function issueCode(masterId: string, name: string, chatId: number | null): Promise<{ ref: Referral; fresh: boolean } | null> {
   const s = await liveOffer(masterId);
-  if (!s) return null;
+  if (!s || !s.ref) return null;
   const codes = await listCodes(masterId);
   const nm = name.trim().slice(0, 40);
   const same = codes.find((x) => (chatId && x.chat_id === chatId) || x.name.toLowerCase() === nm.toLowerCase());

@@ -374,7 +374,19 @@ export default async function MasterPage({ params }: Props) {
 
       <div className="lg:max-w-[calc(100%-380px)]">
           {bonus && !m.away && (
-            <ReferralBox lang={lang} slug={m.slug} master={`${m.name} — ${cat}`} friend={bonus.offer.friend} reward={bonus.offer.reward} left={bonus.left} defaultName={me?.tgName} />
+            <ReferralBox
+              lang={lang}
+              slug={m.slug}
+              master={`${m.name} — ${cat}`}
+              friend={bonus.offer.friend}
+              reward={bonus.offer.reward}
+              left={bonus.left}
+              defaultName={me?.tgName}
+              hasRef={bonus.ref}
+              repost={bonus.repost ? bonus.offer.repost : null}
+              url={m.short ? `${SITE_URL}/${m.short}` : `${SITE_URL}/${lang}/master/${m.slug}`}
+              card={`/api/card/${m.slug}?s=${m.photo_url ? "photo" : "green"}&lang=${lang}&dl=1`}
+            />
           )}
           <section className="mt-8">
             <h2 className="text-[18px] font-bold">{t.share}</h2>

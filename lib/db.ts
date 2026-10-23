@@ -122,6 +122,7 @@ export async function healthCheck() {
           ["0030 организации", "org_members", "place_id"],
           ["0031 недвижимость", "listings", "tg_key"],
           ["0032 вход по почте, Google, Facebook", "accounts", "num"],
+          ["0033 бонус за репост и подъём анкеты", "story_boosts", "until"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -167,10 +168,11 @@ type LocalData = {
   complaints: Complaint[];
   profile_views: { master_id: string; visitor: string; day: string; created_at: string }[];
   outreach?: { tg_user_id: string; name: string; category: string; status: string; created_at: string }[];
-  referral_offers?: { master_id: string; active: boolean; friend: string; reward: string; max_uses: number; prefix: string; since: string; updated_at: string }[];
+  referral_offers?: import("./referral-db").Offer[];
   posts?: import("./posts-db").Post[];
   places?: import("./places").Place[];
   referrals?: { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null }[];
+  story_boosts?: import("./boosts-db").Boost[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 
@@ -300,7 +302,8 @@ function isMissingColumn(err: { message: string } | null): boolean {
 /** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
 /**
  * Порядок в каталоге: выше — активные специалисты с отзывами и хорошо заполненной анкетой.
- * Новичкам первую неделю небольшой бонус, чтобы их тоже видели. Без оплаты и «поднятий» — только честные признаки.
+ * Новичкам первую неделю небольшой бонус, чтобы их тоже видели. Без оплаты — только честные признаки
+ * и временный подъём за выложенную карточку NomerOk в сторис (lib/boosts-db.ts).
  */
 export function rankScore(m: PublicMaster): number {
   let s = 0;
@@ -320,13 +323,18 @@ export function rankScore(m: PublicMaster): number {
   else if (m.active === "week") s += 6;
   if ((m.seen_days ?? 0) > 30) s -= 10;
   if (Date.now() - new Date(m.created_at).getTime() < 7 * 86400_000) s += 6;
+  // Выложил карточку NomerOk в сторис (проверено) — 7 дней выше в каталоге. Не продаётся, только за репост.
+  if (m.boosted) s += 20;
   return s;
 }
 
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
   // Кто на паузе (в отпуске) — в каталоге не показываем
+  const { boostedIds } = await import("./boosts-db");
+  const boosted = await boostedIds().catch(() => new Set<string>());
   const real = (await withRatings(await listPublishedFromDb()))
     .filter((m) => !m.away)
+    .map((m) => (boosted.has(m.id) ? { ...m, boosted: true } : m))
     .map((m) => ({ m, s: rankScore(m) }))
     .sort((a, b) => b.s - a.s || b.m.created_at.localeCompare(a.m.created_at))
     .map((x) => x.m);

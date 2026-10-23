@@ -30,7 +30,10 @@ const CAB_TABS = {
 
 const REALTY_TAB = { ru: "🏠 Объявления", en: "🏠 Listings", ka: "🏠 განცხადებები" } as const;
 const OR = { ru: "или войти по ссылке из бота", en: "or log in with a link from the bot", ka: "ან შედით ბოტის ბმულით" } as const;
-import { offerStatus, recentCodes } from "@/lib/referral-db";
+import { mastersWithBonus, offerStatus, recentCodes } from "@/lib/referral-db";
+import { BOOST_DAYS, boostState } from "@/lib/boosts-db";
+import { StoryBoost } from "@/components/StoryBoost";
+import { BONUS } from "@/lib/bonus-text";
 import { transliterate } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
 import { getDict, href } from "@/lib/i18n";
@@ -154,6 +157,17 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const reviews = await listMasterReviews(m.id).catch(() => []);
   const refStatus = await offerStatus(m.id).catch(() => null);
   const refCodes = refStatus ? await recentCodes(m.id).catch(() => []) : [];
+  const bonusOn = !!(refStatus && ((refStatus.offer.active && refStatus.offer.friend) || (refStatus.offer.repost_active && refStatus.offer.repost)));
+  const nobodyYet = !bonusOn && (await mastersWithBonus().catch(() => new Set<string>())).size === 0;
+  const boost = await boostState(m.id).catch(() => ({ last: null, activeUntil: null, canSend: true }));
+  const boostView = {
+    status: boost.last?.status ?? null,
+    activeUntil: boost.activeUntil,
+    canSend: boost.canSend && m.status === "published",
+    nextFrom: boost.last ? new Date(Date.parse(boost.last.created_at) + BOOST_DAYS * 86400_000).toISOString() : null,
+  };
+  const bt = BONUS[lang];
+  const dayFmt = (iso: string) => new Date(iso).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long" });
   const zero = { views: 0, contacts: 0, taken: 0 };
   const [week, month, byDay] = await Promise.all([
     masterStats(m.id, 7).catch(() => zero),
@@ -256,6 +270,27 @@ export default async function CabinetPage({ params, searchParams }: Props) {
               )}
             </div>
           </div>
+          {m.status === "published" && (
+            <div className="rounded-2xl border-2 border-[#f0d58a] bg-[#fffaf0] p-5">
+              <p className="text-[17px] font-bold">{bt.homeTitle}</p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="max-w-md text-[14px] leading-snug">{bonusOn ? bt.homeBonusOn : `🎁 ${bt.homeBonusOff}`}</p>
+                <Link href={`/${lang}/cabinet?tab=promo#bonus`} className={`btn h-10 shrink-0 rounded-full px-4 text-[14px] font-semibold ${bonusOn ? "btn-ghost" : "bg-accent text-ink hover:bg-[#cf9620]"}`}>
+                  {bonusOn ? bt.homeBonusEdit : bt.homeBonusBtn}
+                </Link>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#f0d58a] pt-3">
+                <p className="max-w-md text-[14px] leading-snug">
+                  {boostView.activeUntil ? bt.homeBoostOn(dayFmt(boostView.activeUntil)) : boostView.status === "pending" ? `⏳ ${bt.homeBoostWait}` : `📈 ${bt.homeBoost}`}
+                </p>
+                {!boostView.activeUntil && boostView.status !== "pending" && (
+                  <Link href={`/${lang}/cabinet?tab=promo#boost`} className="btn-ghost h-10 shrink-0 px-4 text-[14px]">
+                    {bt.homeBoostBtn}
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
           <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
           <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
           <div className="rounded-2xl border border-line p-5">
@@ -365,6 +400,14 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       {tab === "promo" && (
         <div className="mt-4 space-y-4">
+          <ReferralEditor
+            lang={lang}
+            initial={refStatus?.offer ?? null}
+            nobodyYet={nobodyYet}
+            issued={refStatus?.issued ?? 0}
+            codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at }))}
+            suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12) || "NOMEROK"}
+          />
           <ProfileCards
             lang={lang}
             name={m.name}
@@ -378,13 +421,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             url={m.short ? `${SITE_URL}/${m.short}` : `${SITE_URL}/${lang}/master/${m.slug}`}
             serverCard={m.status === "published" ? `/api/card/${m.slug}?v=${Date.parse(m.updated_at ?? m.created_at) || 0}` : null}
           />
-          <ReferralEditor
-            lang={lang}
-            initial={refStatus?.offer ?? null}
-            issued={refStatus?.issued ?? 0}
-            codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at }))}
-            suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12) || "NOMEROK"}
-          />
+          {m.status === "published" && <StoryBoost lang={lang} state={boostView} />}
           <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
           <QrCards
             lang={lang}
