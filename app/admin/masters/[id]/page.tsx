@@ -47,10 +47,12 @@ export default async function EditMasterPage({ params, searchParams }: { params:
             ? `✓ номер подтверждён ${new Date(m.phone_verified_at).toLocaleDateString("ru-RU")}`
             : m.tg_verified_at
               ? "подключён, но в Telegram другой номер — заявки получает, отметки «Номер подтверждён» нет"
+              : m.tg_chat_id && Number(m.tg_chat_id) <= -5_000_000_000_000_000
+              ? `нет — вход и заявки через почту ${m.email ?? ""} (номер телефона не подтверждён)`
               : m.tg_chat_id
               ? "подключён, номер ещё не подтверждён"
               : "не подключён"}
-          {m.tg_username ? ` · @${m.tg_username}` : ""} · профиль заполнен на {percent}%
+          {m.tg_username ? ` · @${m.tg_username}` : ""}{m.email && m.account_id ? ` · 📧 ${m.email}` : ""} · профиль заполнен на {percent}%
         </p>
         <form action={verifyPhoneManually} className="mt-2">
           <input type="hidden" name="id" value={m.id} />

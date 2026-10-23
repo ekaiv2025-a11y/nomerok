@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { LoginBox } from "@/components/LoginBox";
+import { providerEnabled } from "@/lib/oauth";
 import { currentClientChatId } from "@/lib/client-auth";
 import { listClientRequests, listResponsesFor } from "@/lib/client-db";
 import { listPublishedMasters } from "@/lib/db";
@@ -33,13 +34,9 @@ export default async function MyPage({ params, searchParams }: LangParams & { se
         <h1 className="text-[26px] font-bold sm:text-[32px]">📋 {t.title}</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-muted">{t.loginLead}</p>
         {expired && <p className="mt-3 rounded-xl bg-[#fdf6e6] p-3 text-[14px]">⏰ Ссылка устарела — войдите ещё раз.</p>}
-        {link ? (
-          <a href={link} target="_blank" rel="noopener noreferrer" className="btn mt-6 h-12 w-full bg-[#229ED9] text-white hover:bg-[#1c89bd]">
-            <Send className="h-4 w-4" /> {t.loginBtn}
-          </a>
-        ) : (
-          <p className="mt-6 text-danger">{t.noBot}</p>
-        )}
+        <div className="mt-6">
+          <LoginBox lang={lang} intent="client" google={providerEnabled("google")} facebook={providerEnabled("facebook")} tgLink={link} tgLabel={t.loginBtn} />
+        </div>
         <p className="mt-2 text-center text-[13px] text-muted">{t.loginNote}</p>
       </div>
     );

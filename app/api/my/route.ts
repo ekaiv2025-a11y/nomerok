@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   if (body.action === "logout") {
     const res = NextResponse.json({ ok: true });
     res.cookies.set(CLIENT_COOKIE, "", { path: "/", maxAge: 0 });
+    res.cookies.set("nm_acc", "", { path: "/", maxAge: 0 });
     return res;
   }
   const chatId = await currentClientChatId();

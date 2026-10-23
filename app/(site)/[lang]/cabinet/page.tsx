@@ -37,6 +37,39 @@ import { getDict, href } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
 import { currentSpecialistId } from "@/lib/spec-auth";
 import { botLink, botUsername } from "@/lib/telegram";
+import { LoginBox } from "@/components/LoginBox";
+import { providerEnabled } from "@/lib/oauth";
+import { isAccountChat } from "@/lib/accounts";
+
+const CAB_AUTH = {
+  ru: {
+    other: "Регистрировались через Google или почту?",
+    title: "Вход в кабинет",
+    has: (e: string) => `Вход через Google/почту: ${e}. Сообщения и заявки дублируются на неё, если не подключён Telegram.`,
+    tg: "Telegram подключён — заявки приходят туда.",
+    add: "Добавьте запасной вход через Google или почту — пригодится, если потеряете доступ к Telegram.",
+    addBtn: "Добавить вход через Google или почту",
+    linked: "✅ Готово: теперь можно входить и через Google/почту.",
+  },
+  en: {
+    other: "Signed up with Google or email?",
+    title: "Signing in",
+    has: (e: string) => `Google/email sign-in: ${e}. Messages and requests go there if Telegram isn't connected.`,
+    tg: "Telegram is connected — requests come there.",
+    add: "Add a backup sign-in with Google or email in case you lose access to Telegram.",
+    addBtn: "Add Google or email sign-in",
+    linked: "✅ Done: you can now sign in with Google/email too.",
+  },
+  ka: {
+    other: "დარეგისტრირდით Google-ით ან ელფოსტით?",
+    title: "კაბინეტში შესვლა",
+    has: (e: string) => `შესვლა Google-ით/ელფოსტით: ${e}. თუ Telegram არ არის მიერთებული, შეტყობინებები და განაცხადები იქ მოვა.`,
+    tg: "Telegram მიერთებულია — განაცხადები იქ მოდის.",
+    add: "დაამატეთ სათადარიგო შესვლა Google-ით ან ელფოსტით — გამოგადგებათ, თუ Telegram-ზე წვდომას დაკარგავთ.",
+    addBtn: "Google-ით ან ელფოსტით შესვლის დამატება",
+    linked: "✅ მზადაა: ახლა შეგიძლიათ შეხვიდეთ Google-ითაც/ელფოსტითაც.",
+  },
+} as const;
 import { profileSteps } from "@/lib/profile";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
@@ -54,7 +87,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return { title: getDict(lang).cabinet.title, robots: { index: false } };
 }
 
-type Props = LangParams & { searchParams: Promise<{ expired?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string; edit?: string; new?: string; saved?: string }> };
+type Props = LangParams & { searchParams: Promise<{ expired?: string; linked?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string; edit?: string; new?: string; saved?: string }> };
 
 export default async function CabinetPage({ params, searchParams }: Props) {
   const lang = await langOf(params);
@@ -92,6 +125,10 @@ export default async function CabinetPage({ params, searchParams }: Props) {
               {t.loginBtn}
             </a>
           )}
+          <p className="mt-6 text-center text-[14px] font-semibold">{CAB_AUTH[lang].other}</p>
+          <div className="mt-3">
+            <LoginBox lang={lang} intent="spec" google={providerEnabled("google")} facebook={providerEnabled("facebook")} />
+          </div>
           <div className="mt-6 flex gap-2.5 rounded-2xl bg-cream p-4 text-[13px] leading-relaxed text-muted">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0 text-brand" aria-hidden>
               <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />
@@ -221,6 +258,21 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           </div>
           <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
           <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
+          <div className="rounded-2xl border border-line p-5">
+            <p className="text-[15px] font-semibold">🔑 {CAB_AUTH[lang].title}</p>
+            {sp.linked && <p className="mt-2 rounded-xl bg-brand-soft p-3 text-[14px] text-brand-dark">{CAB_AUTH[lang].linked}</p>}
+            {m.tg_chat_id && !isAccountChat(m.tg_chat_id) && <p className="mt-2 text-[14px] text-muted">{CAB_AUTH[lang].tg}</p>}
+            {m.account_id && m.email ? (
+              <p className="mt-2 text-[14px] text-muted">{CAB_AUTH[lang].has(m.email)}</p>
+            ) : (
+              <>
+                <p className="mt-2 text-[14px] text-muted">{CAB_AUTH[lang].add}</p>
+                <Link href={href(lang, "/login?as=link")} className="btn-ghost mt-3 h-10 px-4 text-[14px]">
+                  {CAB_AUTH[lang].addBtn}
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       )}
 

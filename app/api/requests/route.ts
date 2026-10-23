@@ -119,7 +119,7 @@ export async function POST(req: Request) {
       `\n${SITE_URL}/admin`,
     ].filter(Boolean);
     await notifyAdmin(lines.join("\n"));
-    return NextResponse.json({ ok: true, held, linked: !!me, tgLink: me ? null : await botLink(`r_${saved.client_link_token}`) });
+    return NextResponse.json({ ok: true, held, linked: !!me, claim: me ? null : saved.client_link_token, tgLink: me ? null : await botLink(`r_${saved.client_link_token}`) });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });

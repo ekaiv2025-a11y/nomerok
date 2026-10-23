@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDict, href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
+import { PRIVACY } from "@/lib/privacy-text";
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = await langOf(params);
@@ -24,6 +25,8 @@ export default async function RulesPage({ params }: LangParams) {
       <ul>{t.reviewsRules.map((s, i) => <li key={i}>{s}</li>)}</ul>
       <h2>{t.forbiddenTitle}</h2>
       <ul>{t.forbidden.map((s, i) => <li key={i}>{s}</li>)}</ul>
+      <h2 id="privacy" className="scroll-mt-24">{PRIVACY[lang].title}</h2>
+      <ul>{PRIVACY[lang].items.map((s, i) => <li key={i}>{s}</li>)}</ul>
       <p className="mt-6 rounded-xl bg-cream p-4 text-[14px]">{t.note}</p>
       <div className="mt-8 flex flex-wrap gap-2">
         <Link href={href(lang, "/how")} className="btn-ghost">{d.nav.how}</Link>

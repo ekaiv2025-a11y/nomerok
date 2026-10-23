@@ -16,12 +16,24 @@ import { SITE_URL } from "@/lib/site";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
 import { cityLabel, cityOf } from "@/lib/cities";
 import { normalizeLinks } from "@/lib/links";
+import { currentAccount, mastersOfAccount } from "@/lib/account-auth";
+import { accountChatId, getAccount } from "@/lib/accounts";
 import { pullLinks } from "@/lib/extract-links";
 
 const TG_REQUIRED = {
   ru: "Анкету можно создать только через Telegram — откройте страницу заново и нажмите «Зарегистрироваться через Telegram».",
   en: "Profiles can only be created via Telegram — reload the page and tap “Sign up with Telegram”.",
   ka: "ანკეტის შექმნა მხოლოდ Telegram-ით შეიძლება — გახსენით გვერდი თავიდან და დააჭირეთ «რეგისტრაცია Telegram-ით».",
+} as const;
+const NEED_EMAIL = {
+  ru: "Подтвердите почту — на неё будут приходить заявки.",
+  en: "Please confirm your email — requests will be sent there.",
+  ka: "დაადასტურეთ ელფოსტა — განაცხადები მასზე მოვა.",
+} as const;
+const TOO_MANY = {
+  ru: "У вас уже 3 анкеты. Откройте кабинет, чтобы изменить их.",
+  en: "You already have 3 profiles. Open your dashboard to edit them.",
+  ka: "უკვე გაქვთ 3 ანკეტა. გახსენით კაბინეტი მათ შესაცვლელად.",
 } as const;
 const TG_EXPIRED = {
   ru: "Ссылка из бота устарела (действует 24 часа). Откройте бота NomerOk, нажмите «📱 Поделиться номером» ещё раз и получите новую ссылку.",
@@ -37,8 +49,14 @@ export async function POST(req: Request) {
 
   // Анкета «через Telegram»: номер берём из подписанного токена бота
   const pre = readJoinToken(body.tg);
-  // Без Telegram регистрации нет: иначе специалист не получает заявки и не может войти в кабинет
-  if (!pre && telegramToken()) {
+  // Или вход через почту/Google/Facebook: заявки и сообщения будут приходить письмом
+  const accS = pre ? null : await currentAccount();
+  const acc = accS ? await getAccount(accS.id).catch(() => null) : null;
+  if (acc && !acc.email) return NextResponse.json({ ok: false, error: NEED_EMAIL[lang] }, { status: 422 });
+  if (acc && (await mastersOfAccount(acc).catch(() => [])).filter((x) => x.status !== "rejected").length >= 3)
+    return NextResponse.json({ ok: false, error: TOO_MANY[lang] }, { status: 422 });
+  // Без Telegram или аккаунта регистрации нет: иначе специалист не получает заявки и не может войти в кабинет
+  if (!pre && !acc && telegramToken()) {
     const msg = body.tg ? TG_EXPIRED[lang] : TG_REQUIRED[lang];
     return NextResponse.json({ ok: false, error: msg }, { status: 422 });
   }
@@ -127,6 +145,11 @@ export async function POST(req: Request) {
       }
     }
 
+    if (acc) {
+      await adminUpdateMaster(m.id, { tg_chat_id: accountChatId(acc.num), account_id: acc.id, email: acc.email, email_verified_at: new Date().toISOString() } as never);
+      await sendTo(accountChatId(acc.num), botDict(lang).joinSubmitted).catch(() => null);
+    }
+
     await notifyAdmin(
       [
         "🧑‍💼 <b>Новая анкета специалиста</b>",
@@ -135,6 +158,7 @@ export async function POST(req: Request) {
         `<b>Телефон:</b> ${escapeHtml(formatPhone(m.phone))}${m.telegram ? ` · @${escapeHtml(m.telegram)}` : ""}`,
         `<b>Город:</b> ${cityLabel(cityOf(body.city), "ru")}`,
         `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
+        acc ? `📧 Без Telegram: вход и заявки через почту ${escapeHtml(acc.email ?? "")} (${acc.google_sub ? "Google" : acc.facebook_id ? "Facebook" : "код на почту"}). Номер телефона НЕ подтверждён.` : "",
         pre ? (normalizePhone(m.phone) === tgPhone ? "✅ Номер подтверждён через Telegram" : `✅ Telegram подключён (в Telegram другой номер: ${escapeHtml(formatPhone(tgPhone ?? ""))})`) : "",
         `\nПроверить и опубликовать: ${SITE_URL}/admin/masters/${m.id}`,
       ]
@@ -142,7 +166,7 @@ export async function POST(req: Request) {
         .join("\n"),
     );
     // Сразу «входим» в кабинет новой анкеты — чтобы можно было загрузить фото
-    const res = NextResponse.json({ ok: true, verified: !!pre, tgLink: pre ? null : await botLink(`m_${m.tg_link_token}`) });
+    const res = NextResponse.json({ ok: true, verified: !!pre || !!acc, viaEmail: acc?.email ?? null, tgLink: pre ? null : await botLink(`m_${m.tg_link_token}`) });
     setSpecCookies(res, m.id);
     return res;
   } catch (err) {

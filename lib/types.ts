@@ -54,6 +54,11 @@ export type Master = {
   phone_verified_at: string | null;
   /** Telegram подтверждён, но в анкете другой номер (см. бот) */
   tg_verified_at?: string | null;
+  /** Вход через почту/Google/Facebook (lib/accounts.ts) */
+  account_id?: string | null;
+  /** Почта для заявок (если нет Telegram) и когда она подтверждена */
+  email?: string | null;
+  email_verified_at?: string | null;
   /** короткая ссылка nomerok.ge/<short> */
   short?: string | null;
   slots?: { d: string; t: string }[];

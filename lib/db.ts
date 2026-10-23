@@ -121,6 +121,7 @@ export async function healthCheck() {
           ["0029 посетители сайта", "site_visits", "visitor"],
           ["0030 организации", "org_members", "place_id"],
           ["0031 недвижимость", "listings", "tg_key"],
+          ["0032 вход по почте, Google, Facebook", "accounts", "num"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -644,8 +645,8 @@ export async function getMastersByChatId(chatId: number): Promise<Master[]> {
 
 /** Подтверждённые специалисты категории, которые принимают заявки. */
 /** Заявки получают те, кто подтвердил номер — или подключил Telegram с другим номером (tg_verified_at). */
-export function canGetRequests(m: Pick<Master, "phone_verified_at" | "tg_verified_at">): boolean {
-  return !!(m.phone_verified_at || m.tg_verified_at);
+export function canGetRequests(m: Pick<Master, "phone_verified_at" | "tg_verified_at" | "email_verified_at">): boolean {
+  return !!(m.phone_verified_at || m.tg_verified_at || m.email_verified_at);
 }
 
 export async function listMastersForRequests(category: string, city = "batumi"): Promise<Master[]> {

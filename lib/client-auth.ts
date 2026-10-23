@@ -9,7 +9,7 @@ import { readSigned, signData } from "./signed";
 export const CLIENT_COOKIE = "nm_client";
 const DAYS = 60;
 
-export const clientLoginToken = (chatId: number, name = "") => signData("client-login", { c: chatId, n: name.slice(0, 60) }, 0.5);
+export const clientLoginToken = (chatId: number, name = "", hours = 0.5) => signData("client-login", { c: chatId, n: name.slice(0, 60) }, hours);
 export const readClientLoginToken = (t: string | null) => readSigned<{ c: number; n?: string }>("client-login", t);
 
 export function clientCookieValue(chatId: number, name = "") {

@@ -27,6 +27,12 @@ const API_BASE = (process.env.TELEGRAM_API_BASE || "https://api.telegram.org").r
 /** Вызов любого метода Telegram Bot API. Возвращает result или null при ошибке. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function tg<T = any>(method: string, payload: Record<string, unknown> = {}): Promise<T | null> {
+  // Вошёл через почту/Google/Facebook — вместо Telegram пишем письмо
+  const cid = payload.chat_id;
+  if ((typeof cid === "number" || typeof cid === "string") && Number(cid) <= -5_000_000_000_000_000) {
+    const { bridgeToMail } = await import("./mail-bridge");
+    return (await bridgeToMail(Number(cid), method, payload).catch(() => null)) as T | null;
+  }
   const token = telegramToken();
   if (!token) return null;
   try {

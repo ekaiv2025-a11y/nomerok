@@ -10,12 +10,56 @@ import { WhereFields, type WhereValue } from "./WhereFields";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { LinkFields, readLinkFields } from "./SocialLinks";
 import { Field, Honeypot, TelegramStep, fc, useSubmit } from "./form-kit";
+import { LoginBox } from "./LoginBox";
+
+const JA = {
+  ru: {
+    noTg: "Нет Telegram или неудобно? Зарегистрируйтесь через Google или почту — заявки будут приходить письмом.",
+    as: (e: string) => `Вы вошли как ${e}. Заявки и сообщения будут приходить на эту почту.`,
+    needEmail: "Укажите почту — на неё будут приходить заявки. Мы пришлём код для подтверждения.",
+    doneMail: (e: string) => `Анкета отправлена на проверку. Ответ и заявки придут на ${e}.`,
+    tgOpt: "Хотите получать заявки быстрее? Подключите Telegram — это необязательно.",
+    logout: "Выйти",
+  },
+  en: {
+    noTg: "No Telegram? Sign up with Google or email — requests will arrive by email.",
+    as: (e: string) => `Signed in as ${e}. Requests and messages will be sent to this email.`,
+    needEmail: "Add your email — requests will be sent there. We'll send a code to confirm it.",
+    doneMail: (e: string) => `Your profile has been sent for review. The answer and requests will come to ${e}.`,
+    tgOpt: "Want requests faster? Connect Telegram — optional.",
+    logout: "Sign out",
+  },
+  ka: {
+    noTg: "არ გაქვთ Telegram? დარეგისტრირდით Google-ით ან ელფოსტით — განაცხადები წერილით მოვა.",
+    as: (e: string) => `შესული ხართ როგორც ${e}. განაცხადები და შეტყობინებები ამ ელფოსტაზე მოვა.`,
+    needEmail: "მიუთითეთ ელფოსტა — განაცხადები მასზე მოვა. დასადასტურებლად კოდს გამოგიგზავნით.",
+    doneMail: (e: string) => `ანკეტა გაიგზავნა შესამოწმებლად. პასუხი და განაცხადები მოვა მისამართზე ${e}.`,
+    tgOpt: "გინდათ განაცხადები უფრო სწრაფად? მიაერთეთ Telegram — არასავალდებულოა.",
+    logout: "გასვლა",
+  },
+} as const;
+export type JoinAccount = { name: string; email: string | null };
 
 export type JoinPrefill = { token: string; name: string; phone: string; telegram: string | null; hasPhoto: boolean };
 
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?: JoinPrefill | null; tgFastLink?: string | null }) {
+export function JoinForm({
+  lang,
+  prefill,
+  tgFastLink,
+  account,
+  google = false,
+  facebook = false,
+}: {
+  lang: Locale;
+  prefill?: JoinPrefill | null;
+  tgFastLink?: string | null;
+  account?: JoinAccount | null;
+  google?: boolean;
+  facebook?: boolean;
+}) {
+  const ja = JA[lang];
   const d = getDict(lang);
   const t = d.join;
   const opt = d.form.optional;
@@ -64,8 +108,18 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
   }, [state, file, upload, lang]);
 
   // Регистрация только через Telegram: без него специалист не получит заявки и не сможет войти
-  if (!prefill && tgFastLink) {
+  if (account && !account.email && !prefill) {
     return (
+      <div className="rounded-2xl border border-line bg-white p-5 sm:p-6">
+        <p className="mb-4 text-[15px] leading-relaxed">{ja.needEmail}</p>
+        <LoginBox lang={lang} intent="join" google={false} facebook={false} />
+      </div>
+    );
+  }
+
+  if (!prefill && !account && tgFastLink) {
+    return (
+      <div className="space-y-4">
       <div className="rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5 sm:p-6">
         <p className="text-[18px] font-bold text-[#0f5c82]">{t.gateTitle}</p>
         <p className="mt-2 text-[15px] leading-relaxed text-[#2f5d74]">{t.gateText}</p>
@@ -83,7 +137,11 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
           </svg>
           {t.gateBtn}
         </a>
-        <p className="mt-3 text-center text-[13px] text-muted">{t.gateNoTg}</p>
+      </div>
+      <div className="rounded-2xl border border-line bg-white p-5 sm:p-6">
+        <p className="mb-4 text-[15px] leading-relaxed text-muted">{ja.noTg}</p>
+        <LoginBox lang={lang} intent="join" google={google} facebook={facebook} />
+      </div>
       </div>
     );
   }
@@ -93,8 +151,8 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
         <h2 className="mt-3 text-xl font-bold">{result.verified ? t.doneTitle : t.doneAlmost}</h2>
-        <p className="mt-2 text-[15px] text-[#3d5a4c]">{result.verified ? t.doneVerified : t.doneWaitTg}</p>
-        <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
+        <p className="mt-2 text-[15px] text-[#3d5a4c]">{result.viaEmail ? ja.doneMail(String(result.viaEmail)) : result.verified ? t.doneVerified : t.doneWaitTg}</p>
+        <TelegramStep title={t.tgTitle} text={result.viaEmail ? ja.tgOpt : t.tgText} button={t.tgBtn} link={result.tgLink} />
         {upload === "uploading" && (
           <p className="mt-3 inline-flex items-center gap-2 text-[14px] text-muted">
             <Loader2 className="h-4 w-4 animate-spin" /> {t.photoUploading}
@@ -143,12 +201,19 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
-      {prefill ? (
+      {account?.email && !prefill ? (
+        <p className="flex flex-wrap items-center gap-2 rounded-2xl bg-brand-soft p-4 text-[15px] font-semibold text-brand-dark">
+          <CheckCircle2 className="h-5 w-5 shrink-0" /> {ja.as(account.email)}{" "}
+          <a href={`/api/auth/logout?lang=${lang}`} className="text-[13px] font-normal underline">
+            {ja.logout}
+          </a>
+        </p>
+      ) : prefill ? (
         <p className="flex items-center gap-2 rounded-2xl bg-brand-soft p-4 text-[15px] font-semibold text-brand-dark">
           <CheckCircle2 className="h-5 w-5 shrink-0" /> {t.filled}
         </p>
       ) : (
-        tgFastLink && (
+        !account && tgFastLink && (
           <div className="rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5">
             <p className="font-semibold text-[#0f5c82]">{t.fastTitle}</p>
             <p className="mt-1 text-[14px] leading-relaxed text-[#2f5d74]">{t.fastText}</p>
@@ -197,7 +262,7 @@ export function JoinForm({ lang, prefill, tgFastLink }: { lang: Locale; prefill?
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field label={t.name} hint={t.nameHint} error={errors.name}>
-          <input name="name" autoComplete="name" className={fc(errors.name)} defaultValue={prefill?.name} required />
+          <input name="name" autoComplete="name" className={fc(errors.name)} defaultValue={prefill?.name ?? account?.name} required />
         </Field>
         <Field label={t.direction} error={errors.category}>
           <select name="category" defaultValue="" className={fc(errors.category)} required>

@@ -66,6 +66,11 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
           </p>
         )}
         <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
+        {typeof result.claim === "string" && (
+          <Link href={href(lang, `/login?as=client&claim=${result.claim}`)} className="btn-ghost mt-3 h-11 w-full gap-2 text-[14px]">
+            📧 {lang === "ru" ? "Получать отклики на почту (или через Google)" : lang === "ka" ? "პასუხების მიღება ელფოსტაზე (ან Google-ით)" : "Get replies by email (or via Google)"}
+          </Link>
+        )}
         {result.linked ? <LinkedNote lang={lang} href={href(lang, "/my")} /> : null}
         <Link href={href(lang)} className="btn-ghost mt-5">
           {d.form.toHome}

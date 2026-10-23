@@ -10,5 +10,6 @@ export async function GET(req: NextRequest) {
   const res = NextResponse.redirect(url);
   res.cookies.delete(SPEC_COOKIE);
   res.cookies.delete("nm_is_spec");
+  res.cookies.delete("nm_acc");
   return res;
 }

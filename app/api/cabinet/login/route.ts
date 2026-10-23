@@ -12,7 +12,10 @@ export async function GET(req: NextRequest) {
   const url = req.nextUrl.clone();
   url.search = "";
   url.pathname = `/${lang}/cabinet`;
+  const tab = req.nextUrl.searchParams.get("tab");
+  if (tab && ["orders", "profile", "reviews"].includes(tab)) url.searchParams.set("tab", tab);
   if (!id) {
+    url.search = "";
     url.searchParams.set("expired", "1");
     return NextResponse.redirect(url);
   }

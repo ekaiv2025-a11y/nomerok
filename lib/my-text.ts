@@ -11,8 +11,8 @@ export const MY: Record<
 > = {
   ru: {
     title: "Мои заявки", nav: "Мои заявки",
-    loginLead: "Здесь — ваши заявки, кто на них откликнулся, и избранные специалисты. Регистрация не нужна: вход через Telegram в одно нажатие.",
-    loginBtn: "Войти через Telegram", loginNote: "Откроется наш бот — нажмите «Start», и он пришлёт ссылку для входа.", noBot: "Вход временно недоступен.",
+    loginLead: "Здесь — ваши заявки, кто на них откликнулся, и избранные специалисты. Вход без пароля: через Google, Telegram или код на почту.",
+    loginBtn: "Войти через Telegram", loginNote: "Telegram: откроется наш бот — нажмите «Start», и он пришлёт ссылку для входа.", noBot: "Вход временно недоступен.",
     requests: "Заявки", noRequests: "Заявок пока нет. Здесь появятся заявки, которые вы оставите на сайте и подключите к Telegram.",
     newRequest: "Разместить заявку", similar: "Похожая заявка", close: "Закрыть заявку", closed: "Закрыта", logout: "Выйти",
     status: { new: "Новая", sent: "Разослана специалистам", taken: "Есть отклики", in_work: "В работе", done: "Закрыта" },
@@ -22,7 +22,7 @@ export const MY: Record<
   },
   en: {
     title: "My requests", nav: "My requests",
-    loginLead: "Your requests, who responded, and saved specialists. No sign-up: log in with Telegram in one tap.",
+    loginLead: "Your requests, who responded, and saved specialists. No password: sign in with Google, Telegram or an email code.",
     loginBtn: "Log in with Telegram", loginNote: "Our bot will open — tap “Start” and it will send you a login link.", noBot: "Login is temporarily unavailable.",
     requests: "Requests", noRequests: "No requests yet. Requests you leave on the site and connect to Telegram will appear here.",
     newRequest: "Post a request", similar: "Similar request", close: "Close request", closed: "Closed", logout: "Log out",
@@ -33,7 +33,7 @@ export const MY: Record<
   },
   ka: {
     title: "ჩემი განაცხადები", nav: "ჩემი განაცხადები",
-    loginLead: "აქ არის თქვენი განაცხადები, ვინ გამოეხმაურა და შენახული სპეციალისტები. რეგისტრაცია არ არის საჭირო — შესვლა Telegram-ით.",
+    loginLead: "აქ არის თქვენი განაცხადები, ვინ გამოეხმაურა და შენახული სპეციალისტები. შესვლა პაროლის გარეშე: Google-ით, Telegram-ით ან ელფოსტის კოდით.",
     loginBtn: "შესვლა Telegram-ით", loginNote: "გაიხსნება ჩვენი ბოტი — დააჭირეთ „Start“-ს და ის გამოგიგზავნით ბმულს.", noBot: "შესვლა დროებით მიუწვდომელია.",
     requests: "განაცხადები", noRequests: "განაცხადები ჯერ არ არის.",
     newRequest: "განაცხადის განთავსება", similar: "მსგავსი განაცხადი", close: "დახურვა", closed: "დახურულია", logout: "გასვლა",
