@@ -57,7 +57,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
             <span className="mt-1 block text-[12.5px] leading-snug text-[#3d5a4c] sm:text-[13px]">{t.pathRequestText}</span>
           </Link>
         </div>
-        <Link href={href(lang, "/join")} className="mt-4 inline-block text-[14px] font-semibold text-brand hover:underline md:hidden">
+        <Link href={href(lang, "/join")} className="mt-4 block rounded-2xl border border-accent/50 bg-[#fdf3dc] px-4 py-3 text-[14px] font-semibold leading-snug text-[#5a4410] hover:bg-[#fbecc6] md:hidden">
           {t.specialistCta}
         </Link>
       </section>

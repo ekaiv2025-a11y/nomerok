@@ -19,6 +19,11 @@ import { getDict, href, type Locale } from "@/lib/i18n";
  */
 const MYCAB = { ru: "Мой кабинет", en: "My dashboard", ka: "ჩემი კაბინეტი" } as const;
 
+/* Короткие подписи кнопок для телефона */
+const SPEC_SHORT = { ru: "Я мастер", en: "I'm a pro", ka: "სპეციალისტი" } as const;
+const CAB_SHORT = { ru: "Кабинет", en: "Dashboard", ka: "კაბინეტი" } as const;
+const REQ_SHORT = { ru: "Ищу мастера", en: "Need help", ka: "განაცხადი" } as const;
+
 export function Header({ lang }: { lang: Locale }) {
   const t = getDict(lang);
   const [hidden, setHidden] = useState(false);
@@ -118,7 +123,7 @@ export function Header({ lang }: { lang: Locale }) {
           <nav className="flex items-center gap-1 min-[400px]:gap-1.5 sm:gap-2">
             <Link
               href={href(lang) + "#masters"}
-              className="flex h-10 w-9 shrink-0 items-center max-[359px]:hidden justify-center gap-1.5 rounded-full text-[14px] font-semibold text-ink hover:bg-cream xl:w-auto xl:px-3"
+              className="hidden h-10 w-9 shrink-0 items-center sm:flex justify-center gap-1.5 rounded-full text-[14px] font-semibold text-ink hover:bg-cream xl:w-auto xl:px-3"
               aria-label={t.nav.allSpecialists}
               title={t.nav.allSpecialists}
             >
@@ -136,9 +141,6 @@ export function Header({ lang }: { lang: Locale }) {
                 Журнал
               </Link>
             )}
-            <Link href={href(lang, isSpec ? "/cabinet" : "/join")} className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft md:inline-flex">
-              {isSpec ? MYCAB[lang] : t.nav.iAmSpecialist}
-            </Link>
             <Link href={href(lang, "/favorites")} className="hidden h-10 items-center rounded-full px-3 text-[14px] font-medium text-muted hover:text-ink md:inline-flex" title={SOCIAL[lang].fav}>
               ♡
             </Link>
@@ -146,9 +148,17 @@ export function Header({ lang }: { lang: Locale }) {
               {MY[lang].nav}
             </Link>
             <LanguageSwitcher lang={lang} label={t.nav.language} compact />
-            <Link href={href(lang, "/request")} className="btn-primary h-10 whitespace-nowrap px-3 text-[13px] max-[359px]:px-2.5 sm:px-4 sm:text-[14px]">
+            {/* Две разные кнопки: специалистам (жёлтая) и клиентам (зелёная) — чтобы мастера не путали анкету с заявкой */}
+            <Link
+              href={href(lang, isSpec ? "/cabinet" : "/join")}
+              className="btn h-10 whitespace-nowrap rounded-full bg-accent px-2.5 text-[12.5px] font-semibold text-ink hover:bg-[#cf9620] sm:px-4 sm:text-[14px]"
+            >
+              <span className="hidden sm:inline">{isSpec ? MYCAB[lang] : t.nav.iAmSpecialist}</span>
+              <span className="sm:hidden">{isSpec ? CAB_SHORT[lang] : SPEC_SHORT[lang]}</span>
+            </Link>
+            <Link href={href(lang, "/request")} className="btn-primary h-10 whitespace-nowrap px-2.5 text-[12.5px] sm:px-4 sm:text-[14px]">
               <span className="hidden sm:inline">{t.nav.leaveRequest}</span>
-              <span className="sm:hidden">{t.nav.leaveRequestShort}</span>
+              <span className="sm:hidden">{REQ_SHORT[lang]}</span>
             </Link>
             <button
               type="button"
