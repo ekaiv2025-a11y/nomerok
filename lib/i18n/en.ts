@@ -20,7 +20,7 @@ const en: Dict = {
   nav: {
     leaveRequestShort: "Post a request",
     how: "How it works",
-    iAmSpecialist: "For specialists",
+    iAmSpecialist: "I'm a specialist",
     leaveRequest: "Post a request",
     language: "Language",
     menu: "Menu",

@@ -23,6 +23,8 @@ const MYCAB = { ru: "Мой кабинет", en: "My dashboard", ka: "ჩემ�
 const SPEC_SHORT = { ru: "Я мастер", en: "I'm a pro", ka: "სპეციალისტი" } as const;
 const CAB_SHORT = { ru: "Кабинет", en: "Dashboard", ka: "კაბინეტი" } as const;
 const REQ_SHORT = { ru: "Ищу мастера", en: "Need help", ka: "განაცხადი" } as const;
+/* Зелёная кнопка — для клиентов: по подписи сразу ясно, что это «найти», а не «разместить анкету» */
+const REQ_LONG = { ru: "Ищу специалиста", en: "Find a specialist", ka: "ვეძებ სპეციალისტს" } as const;
 
 export function Header({ lang }: { lang: Locale }) {
   const t = getDict(lang);
@@ -157,7 +159,7 @@ export function Header({ lang }: { lang: Locale }) {
               <span className="sm:hidden">{isSpec ? CAB_SHORT[lang] : SPEC_SHORT[lang]}</span>
             </Link>
             <Link href={href(lang, "/request")} className="btn-primary h-10 whitespace-nowrap px-2.5 text-[12.5px] sm:px-4 sm:text-[14px]">
-              <span className="hidden sm:inline">{t.nav.leaveRequest}</span>
+              <span className="hidden sm:inline">{REQ_LONG[lang]}</span>
               <span className="sm:hidden">{REQ_SHORT[lang]}</span>
             </Link>
             <button

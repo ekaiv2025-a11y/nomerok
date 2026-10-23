@@ -18,7 +18,7 @@ const ka: Dict = {
   nav: {
     leaveRequestShort: "განაცხადი",
     how: "როგორ მუშაობს",
-    iAmSpecialist: "სპეციალისტებს",
+    iAmSpecialist: "სპეციალისტი ვარ",
     leaveRequest: "განაცხადის განთავსება",
     language: "ენა",
     menu: "მენიუ",
