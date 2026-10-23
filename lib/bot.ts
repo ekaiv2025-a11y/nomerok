@@ -223,6 +223,33 @@ export async function broadcastToMasters(html: string, opts: { onlyPublished: bo
   return { sent, failed };
 }
 
+/**
+ * Рассылка карточек для сторис: каждому опубликованному специалисту — его картинка 1080×1920
+ * и текст ({ссылка} заменяется на его ссылку). Порциями: from — с какого по счёту, batch — сколько.
+ */
+export async function broadcastCards(html: string, from: number, batch = 20): Promise<{ sent: number; failed: number; total: number; next: number | null }> {
+  const list = (await adminListMasters())
+    .filter((m) => m.tg_chat_id && !m.archived_at && m.status === "published" && !m.slug.startsWith("demo-"))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  let sent = 0;
+  let failed = 0;
+  const site = siteUrl();
+  for (const m of list.slice(from, from + batch)) {
+    const link = m.short ? `${site.replace(/^https?:\/\//, "")}/${m.short}` : `${site.replace(/^https?:\/\//, "")}/${m.lang}/master/${m.slug}`;
+    const v = Date.parse(m.updated_at ?? m.created_at) || 0;
+    const photo = `${site}/api/card/${m.slug}?s=${m.photo_url ? "photo" : "green"}&lang=${m.lang}&v=${v}`;
+    const caption = html.replaceAll("{ссылка}", link).slice(0, 1024);
+    const token = await createLoginToken(m.id);
+    const btn = { text: botDict(m.lang).btnCabinet, url: `${site}/api/cabinet/login?t=${token}&lang=${m.lang}&tab=promo` };
+    const ok = await tg("sendPhoto", { chat_id: m.tg_chat_id, photo, caption, parse_mode: "HTML", reply_markup: { inline_keyboard: [[btn]] } }).catch(() => null);
+    if (ok) sent++;
+    else failed++;
+    await new Promise((r) => setTimeout(r, 80));
+  }
+  const next = from + batch < list.length ? from + batch : null;
+  return { sent, failed, total: list.length, next };
+}
+
 /** Админка → «Попросить исправить номер»: сообщение с кнопкой входа в кабинет. */
 export async function askFixPhone(m: Master): Promise<boolean> {
   if (!m.tg_chat_id) return false;

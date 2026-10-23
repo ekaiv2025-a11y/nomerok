@@ -464,3 +464,18 @@ export async function moveMasterCategory(formData: FormData) {
   revalidatePath("/", "layout");
   redirect(`/admin?tab=masters&moved=${n}`);
 }
+
+/** Рассылка карточек для сторис — порциями по 20, чтобы не упереться в лимит времени сервера. */
+export async function sendCardBroadcast(formData: FormData) {
+  await requireAdmin();
+  const text = String(formData.get("text") ?? "").trim().slice(0, 900);
+  const from = Math.max(0, Number(formData.get("from") ?? 0) || 0);
+  if (!text) redirect("/admin/broadcast");
+  const { escapeHtml } = await import("@/lib/telegram");
+  const { broadcastCards } = await import("@/lib/bot");
+  const html = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  const r = await broadcastCards(html, from);
+  const q = new URLSearchParams({ cs: String(r.sent), cf: String(r.failed), ct: String(r.total), cfrom: String(from) });
+  if (r.next != null) q.set("cnext", String(r.next));
+  redirect(`/admin/broadcast?${q}#cards`);
+}

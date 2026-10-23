@@ -26,11 +26,14 @@ function bodyFromTelegram(html: string): string {
 }
 
 export async function bridgeToMail(chatId: number, method: string, payload: Record<string, unknown>): Promise<{ message_id: number } | null> {
-  if (method !== "sendMessage") return null; // фото, правки сообщений и т. п. письмом не дублируем
+  // Картинка с подписью (например, карточка для сторис) → письмо с подписью и кнопкой «Открыть картинку»
+  const isPhoto = method === "sendPhoto" && typeof payload.photo === "string" && String(payload.photo).startsWith("http") && !!payload.caption;
+  if (method !== "sendMessage" && !isPhoto) return null; // остальное (альбомы, правки сообщений) письмом не дублируем
   const acc = await accountByChatId(chatId).catch(() => null);
   if (!acc?.email) return null;
-  const html = String(payload.text ?? "");
+  const html = String((isPhoto ? payload.caption : payload.text) ?? "");
   const rows = ((payload.reply_markup as { inline_keyboard?: Btn[][] } | undefined)?.inline_keyboard ?? []).flat();
+  if (isPhoto) rows.unshift({ text: "🖼 Открыть картинку", url: String(payload.photo) });
 
   const masters = await getMastersByChatId(chatId).catch(() => []);
   const master = masters.find((m) => m.status !== "rejected") ?? masters[0] ?? null;

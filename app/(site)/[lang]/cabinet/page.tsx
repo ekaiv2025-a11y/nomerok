@@ -376,6 +376,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             services={m.services.split(/\n/).map((x) => x.trim().replace(/^[-•·*]\s*/, "")).filter(Boolean)}
             linkText={m.short ? `nomerok.ge/${m.short}` : `nomerok.ge/${lang}/master/${m.slug}`}
             url={m.short ? `${SITE_URL}/${m.short}` : `${SITE_URL}/${lang}/master/${m.slug}`}
+            serverCard={m.status === "published" ? `/api/card/${m.slug}?v=${Date.parse(m.updated_at ?? m.created_at) || 0}` : null}
           />
           <ReferralEditor
             lang={lang}

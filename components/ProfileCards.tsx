@@ -23,7 +23,16 @@ export type CardData = {
   services: string[];
   linkText: string; // nomerok.ge/anna
   url: string; // полная ссылка
+  /** Адрес готовой сторис с сервера (/api/card/<slug>) — для опубликованной анкеты: три оформления и QR по желанию */
+  serverCard?: string | null;
 };
+
+type CardStyle = "green" | "light" | "photo";
+const STYLE_T = {
+  ru: { green: "Зелёная", light: "Светлая", photo: "С фото", qr: "Добавить QR-код", qrHint: "QR удобен для печати и показа с экрана — в сторис обычно хватает стикера «Ссылка»." },
+  en: { green: "Green", light: "Light", photo: "Photo", qr: "Add a QR code", qrHint: "A QR code is handy for printing or showing on screen; in stories a Link sticker is usually enough." },
+  ka: { green: "მწვანე", light: "ღია", photo: "ფოტოთი", qr: "QR კოდის დამატება", qrHint: "QR მოსახერხებელია ბეჭდვისთვის ან ეკრანიდან ჩვენებისთვის — სთორიში საკმარისია «ბმულის» სტიკერი." },
+} as const;
 
 const T = {
   ru: {
@@ -40,7 +49,7 @@ const T = {
     how: [
       "Нажмите «Поделиться» (или «Скачать») и выберите Instagram → История.",
       "Нажмите «Скопировать ссылку» здесь.",
-      "В истории добавьте стикер «Ссылка» и вставьте её — положите стикер на стрелку внизу карточки.",
+      "В истории добавьте стикер «Ссылка» и вставьте её — положите стикер на ссылку внизу карточки.",
       "Ту же ссылку поставьте в шапку профиля Instagram: «Редактировать профиль» → «Ссылки».",
     ],
     verified: "Номер подтверждён",
@@ -63,7 +72,7 @@ const T = {
     how: [
       "Tap “Share” (or “Download”) and choose Instagram → Story.",
       "Tap “Copy link” here.",
-      "In the story add a Link sticker and paste it — place the sticker over the arrow at the bottom.",
+      "In the story add a Link sticker and paste it — place the sticker over the link at the bottom.",
       "Put the same link in your Instagram bio: Edit profile → Links.",
     ],
     verified: "Verified number",
@@ -86,7 +95,7 @@ const T = {
     how: [
       "დააჭირეთ «გაზიარებას» (ან «ჩამოტვირთვას») და აირჩიეთ Instagram → სთორი.",
       "დააჭირეთ «ბმულის კოპირებას» აქ.",
-      "სთორიში დაამატეთ სტიკერი «ბმული» და ჩასვით — დადეთ ისარზე ბარათის ქვემოთ.",
+      "სთორიში დაამატეთ სტიკერი «ბმული» და ჩასვით — დადეთ ბარათის ქვემოთ ბმულზე.",
       "იგივე ბმული ჩასვით Instagram-ის პროფილში: «პროფილის რედაქტირება» → «ბმულები».",
     ],
     verified: "ნომერი დადასტურებულია",
@@ -343,11 +352,20 @@ export function ProfileCards(d: CardData) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
+  const [style, setStyle] = useState<CardStyle>(d.photo ? "photo" : "green");
+  const [qr, setQr] = useState(false);
+  const st = STYLE_T[d.lang];
+  const server = kind === "story" && d.serverCard ? `${d.serverCard}${d.serverCard.includes("?") ? "&" : "?"}s=${style}&lang=${d.lang}${qr ? "&qr=1" : ""}` : null;
+  const getBlob = async (): Promise<Blob | null> => (server ? await fetch(server).then((r) => (r.ok ? r.blob() : null)).catch(() => null) : await toBlob(await draw(d, kind)));
 
   useEffect(() => {
     let url: string | null = null;
     let alive = true;
     setPreview(null);
+    if (server) {
+      setPreview(server);
+      return;
+    }
     draw(d, kind).then(async (c) => {
       const b = await toBlob(c);
       if (!b || !alive) return;
@@ -363,14 +381,14 @@ export function ProfileCards(d: CardData) {
       if (url) URL.revokeObjectURL(url);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kind, d.photo, d.name]);
+  }, [kind, d.photo, d.name, server]);
 
-  const fileName = `nomerok-${kind === "story" ? "story" : "post"}.png`;
+  const fileName = `nomerok-${kind === "story" ? `story-${style}${qr ? "-qr" : ""}` : "post"}.png`;
 
   async function download() {
     setBusy(true);
     try {
-      const b = await toBlob(await draw(d, kind));
+      const b = await getBlob();
       if (!b) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(b);
@@ -387,7 +405,7 @@ export function ProfileCards(d: CardData) {
   async function share() {
     setBusy(true);
     try {
-      const b = await toBlob(await draw(d, kind));
+      const b = await getBlob();
       if (!b) return;
       const file = new File([b], fileName, { type: "image/png" });
       await navigator.share({ files: [file] }).catch(() => {});
@@ -417,6 +435,21 @@ export function ProfileCards(d: CardData) {
         ))}
       </div>
 
+      {server && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {(["photo", "green", "light"] as const)
+            .filter((k) => k !== "photo" || d.photo)
+            .map((k) => (
+              <button key={k} type="button" onClick={() => setStyle(k)} className={`rounded-full border px-3.5 py-1.5 text-[13px] font-semibold ${style === k ? "border-brand bg-brand-soft text-brand-dark" : "border-line text-muted"}`}>
+                {st[k]}
+              </button>
+            ))}
+          <label className="ml-1 inline-flex cursor-pointer items-center gap-2 text-[13px]" title={st.qrHint}>
+            <input type="checkbox" checked={qr} onChange={(e) => setQr(e.target.checked)} className="h-4 w-4 accent-[#1f6b4f]" />
+            {st.qr}
+          </label>
+        </div>
+      )}
       <div className="mt-4 grid gap-5 sm:grid-cols-[240px_1fr]">
         <div className={`overflow-hidden rounded-2xl border border-line bg-cream ${kind === "story" ? "aspect-[9/16]" : "aspect-[4/5]"} w-full max-w-[240px]`}>
           {preview ? <img src={preview} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-muted"><Loader2 className="h-5 w-5 animate-spin" /></div>}
