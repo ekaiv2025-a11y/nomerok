@@ -37,7 +37,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     return <p className="rounded-2xl bg-white p-6">База не подключена. Добавьте SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в Vercel.</p>;
   }
   const { tab = "requests", bot: botResult, fu, msg, moved, notg } = await searchParams;
-  const boostsPending = (await import("@/lib/boosts-db").then((x) => x.pendingBoosts()).catch(() => [])).length;
   const [masters, requests, views, responses] = await Promise.all([
     adminListMasters(),
     adminListRequests(),
@@ -101,7 +100,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <div className="flex gap-2">
           <Link href="/admin/stats" className="btn-ghost h-10 text-[14px]">📊 Статистика</Link>
           <Link href="/admin/broadcast" className="btn-ghost h-10 text-[14px]">📣 Рассылка</Link>
-          <Link href="/admin/boosts" className="btn-ghost h-10 text-[14px]">📈 Сторис{boostsPending ? ` · ${boostsPending}` : ""}</Link>
           <Link href="/admin/posts" className="btn-ghost h-10 text-[14px]">📰 Журнал</Link>
           <Link href="/admin/places" className="btn-ghost h-10 text-[14px]">📍 Места</Link>
           <Link href="/admin/realty" className="btn-ghost h-10 text-[14px]">🏠 Недвижимость</Link>

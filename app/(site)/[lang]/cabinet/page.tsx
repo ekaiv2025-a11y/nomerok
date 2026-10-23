@@ -31,8 +31,6 @@ const CAB_TABS = {
 const REALTY_TAB = { ru: "🏠 Объявления", en: "🏠 Listings", ka: "🏠 განცხადებები" } as const;
 const OR = { ru: "или войти по ссылке из бота", en: "or log in with a link from the bot", ka: "ან შედით ბოტის ბმულით" } as const;
 import { mastersWithBonus, offerStatus, recentCodes } from "@/lib/referral-db";
-import { BOOST_DAYS, boostState } from "@/lib/boosts-db";
-import { StoryBoost } from "@/components/StoryBoost";
 import { BONUS } from "@/lib/bonus-text";
 import { transliterate } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
@@ -159,15 +157,19 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const refCodes = refStatus ? await recentCodes(m.id).catch(() => []) : [];
   const bonusOn = !!(refStatus && ((refStatus.offer.active && refStatus.offer.friend) || (refStatus.offer.repost_active && refStatus.offer.repost)));
   const nobodyYet = !bonusOn && (await mastersWithBonus().catch(() => new Set<string>())).size === 0;
-  const boost = await boostState(m.id).catch(() => ({ last: null, activeUntil: null, canSend: true }));
-  const boostView = {
-    status: boost.last?.status ?? null,
-    activeUntil: boost.activeUntil,
-    canSend: boost.canSend && m.status === "published",
-    nextFrom: boost.last ? new Date(Date.parse(boost.last.created_at) + BOOST_DAYS * 86400_000).toISOString() : null,
-  };
   const bt = BONUS[lang];
-  const dayFmt = (iso: string) => new Date(iso).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long" });
+  const { takenLast30 } = await import("@/lib/db");
+  const taken30 = (await takenLast30().catch(() => new Map<string, number>())).get(m.id) ?? 0;
+  // Чек-лист «Как подняться выше»: те же признаки, что и в порядке каталога (lib/db.ts → rankScore)
+  const rankList: { k: keyof typeof bt.rank; done: boolean; fix: string }[] = [
+    { k: "photo", done: !!m.photo_url, fix: `/${lang}/cabinet?tab=profile` },
+    { k: "full", done: percent >= 80, fix: `/${lang}/cabinet?tab=profile` },
+    { k: "reviews", done: reviews.length > 0, fix: `/${lang}/cabinet?tab=reviews` },
+    { k: "taken", done: taken30 > 0, fix: `/${lang}/cabinet?tab=orders` },
+    { k: "bonus", done: bonusOn, fix: `/${lang}/cabinet?tab=promo#bonus` },
+    { k: "short", done: !!m.short, fix: `/${lang}/cabinet?tab=promo` },
+    { k: "active", done: true, fix: "" },
+  ];
   const zero = { views: 0, contacts: 0, taken: 0 };
   const [week, month, byDay] = await Promise.all([
     masterStats(m.id, 7).catch(() => zero),
@@ -279,15 +281,22 @@ export default async function CabinetPage({ params, searchParams }: Props) {
                   {bonusOn ? bt.homeBonusEdit : bt.homeBonusBtn}
                 </Link>
               </div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#f0d58a] pt-3">
-                <p className="max-w-md text-[14px] leading-snug">
-                  {boostView.activeUntil ? bt.homeBoostOn(dayFmt(boostView.activeUntil)) : boostView.status === "pending" ? `⏳ ${bt.homeBoostWait}` : `📈 ${bt.homeBoost}`}
-                </p>
-                {!boostView.activeUntil && boostView.status !== "pending" && (
-                  <Link href={`/${lang}/cabinet?tab=promo#boost`} className="btn-ghost h-10 shrink-0 px-4 text-[14px]">
-                    {bt.homeBoostBtn}
-                  </Link>
-                )}
+              <div className="mt-3 border-t border-[#f0d58a] pt-3">
+                <p className="text-[15px] font-bold">{bt.rankTitle}</p>
+                <p className="mt-0.5 text-[13px] text-muted">{bt.rankLead}</p>
+                <ul className="mt-2 space-y-1.5 text-[14px]">
+                  {rankList.map((r) => (
+                    <li key={r.k} className="flex items-center gap-2">
+                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${r.done ? "bg-brand text-white" : "border border-line bg-white"}`}>{r.done ? "✓" : ""}</span>
+                      <span className={r.done ? "text-muted" : ""}>{bt.rank[r.k]}</span>
+                      {!r.done && r.fix && (
+                        <Link href={r.fix} className="ml-auto shrink-0 text-[13px] font-semibold text-brand underline">
+                          {bt.rankFix}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}
@@ -421,7 +430,6 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             url={m.short ? `${SITE_URL}/${m.short}` : `${SITE_URL}/${lang}/master/${m.slug}`}
             serverCard={m.status === "published" ? `/api/card/${m.slug}?v=${Date.parse(m.updated_at ?? m.created_at) || 0}` : null}
           />
-          {m.status === "published" && <StoryBoost lang={lang} state={boostView} />}
           <ShortLinkCard lang={lang} initial={m.short ?? null} suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20)} />
           <QrCards
             lang={lang}

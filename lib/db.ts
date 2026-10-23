@@ -122,7 +122,7 @@ export async function healthCheck() {
           ["0030 организации", "org_members", "place_id"],
           ["0031 недвижимость", "listings", "tg_key"],
           ["0032 вход по почте, Google, Facebook", "accounts", "num"],
-          ["0033 бонус за репост и подъём анкеты", "story_boosts", "until"],
+          ["0033 бонус за репост", "referral_offers", "repost"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -172,7 +172,6 @@ type LocalData = {
   posts?: import("./posts-db").Post[];
   places?: import("./places").Place[];
   referrals?: { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null }[];
-  story_boosts?: import("./boosts-db").Boost[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 
@@ -302,8 +301,8 @@ function isMissingColumn(err: { message: string } | null): boolean {
 /** Каталог: настоящие специалисты + примеры, пока настоящих мало. */
 /**
  * Порядок в каталоге: выше — активные специалисты с отзывами и хорошо заполненной анкетой.
- * Новичкам первую неделю небольшой бонус, чтобы их тоже видели. Без оплаты — только честные признаки
- * и временный подъём за выложенную карточку NomerOk в сторис (lib/boosts-db.ts).
+ * Новичкам первую неделю небольшой бонус, чтобы их тоже видели. Без оплаты и ручных «поднятий» — только честные признаки:
+ * чем активнее специалист на сайте (заходит, берёт заявки, собирает отзывы, включил бонус клиентам), тем он выше.
  */
 export function rankScore(m: PublicMaster): number {
   let s = 0;
@@ -323,18 +322,34 @@ export function rankScore(m: PublicMaster): number {
   else if (m.active === "week") s += 6;
   if ((m.seen_days ?? 0) > 30) s -= 10;
   if (Date.now() - new Date(m.created_at).getTime() < 7 * 86400_000) s += 6;
-  // Выложил карточку NomerOk в сторис (проверено) — 7 дней выше в каталоге. Не продаётся, только за репост.
-  if (m.boosted) s += 20;
+  // Активность на сайте: брал заявки за последние 30 дней, включил бонус клиентам, завёл короткую ссылку
+  s += Math.min(16, (m.taken30 ?? 0) * 4);
+  if (m.bonus) s += 6;
+  if (m.short) s += 2;
   return s;
+}
+
+/** Сколько заявок каждый специалист взял за последние 30 дней (для порядка в каталоге). */
+export async function takenLast30(): Promise<Map<string, number>> {
+  const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+  const out = new Map<string, number>();
+  const sb = supabase();
+  let rows: { master_id: string }[] = [];
+  if (sb) {
+    const r = await sb.from("request_responses").select("master_id").gte("created_at", since).limit(5000);
+    if (r.error) return out;
+    rows = r.data as { master_id: string }[];
+  } else if (dbMode() !== "none") rows = (await readLocal()).responses.filter((x) => x.created_at >= since);
+  for (const r of rows) out.set(r.master_id, (out.get(r.master_id) ?? 0) + 1);
+  return out;
 }
 
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
   // Кто на паузе (в отпуске) — в каталоге не показываем
-  const { boostedIds } = await import("./boosts-db");
-  const boosted = await boostedIds().catch(() => new Set<string>());
+  const taken = await takenLast30().catch(() => new Map<string, number>());
   const real = (await withRatings(await listPublishedFromDb()))
     .filter((m) => !m.away)
-    .map((m) => (boosted.has(m.id) ? { ...m, boosted: true } : m))
+    .map((m) => (taken.has(m.id) ? { ...m, taken30: taken.get(m.id) } : m))
     .map((m) => ({ m, s: rankScore(m) }))
     .sort((a, b) => b.s - a.s || b.m.created_at.localeCompare(a.m.created_at))
     .map((x) => x.m);

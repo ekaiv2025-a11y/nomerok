@@ -480,24 +480,3 @@ export async function sendCardBroadcast(formData: FormData) {
   redirect(`/admin/broadcast?${q}#cards`);
 }
 
-/** Скриншот сторис: поднять анкету на 7 дней или отклонить. Специалисту — сообщение от бота. */
-export async function decideBoostAction(formData: FormData) {
-  await requireAdmin();
-  const { decideBoost } = await import("@/lib/boosts-db");
-  const ok = formData.get("ok") === "1";
-  const b = await decideBoost(String(formData.get("id") ?? ""), ok);
-  if (b) {
-    const m = await adminGetMaster(b.master_id).catch(() => null);
-    if (m?.tg_chat_id) {
-      const { sendTo } = await import("@/lib/telegram");
-      const until = b.until ? new Date(b.until).toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Tbilisi" }) : "";
-      await sendTo(
-        m.tg_chat_id,
-        ok
-          ? `📈 Спасибо за сторис! Ваша анкета поднята в каталоге NomerOk до ${until}.\n\nЧерез неделю можно выложить карточку снова и прислать новый скриншот — кабинет → «🚀 Продвижение».`
-          : `Скриншот сторис не подошёл: на нём должна быть ваша карточка NomerOk (или ссылка на ваш профиль) в сторис. Попробуйте ещё раз — кабинет → «🚀 Продвижение».`,
-      ).catch(() => null);
-    }
-  }
-  redirect("/admin/boosts");
-}
