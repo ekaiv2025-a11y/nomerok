@@ -27,7 +27,7 @@ for (const [i, n] of list.entries()) {
   if (slugs.has(n.slug)) errors.push(`${at}: повтор slug`);
   slugs.add(n.slug);
   if (n.date && (!/^\d{4}-\d{2}-\d{2}$/.test(n.date) || n.date > today)) errors.push(`${at}: неверная дата ${n.date}`);
-  if (!["news", "events", "travel"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events или travel`);
+  if (!["news", "events", "travel", "life"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel или life`);
   if (n.title && n.title.length > 110) errors.push(`${at}: заголовок длиннее 110 знаков`);
   if (n.description && (n.description.length < 60 || n.description.length > 200)) errors.push(`${at}: description 60–200 знаков`);
   if (!Array.isArray(n.body) || n.body.length < 3) errors.push(`${at}: body — минимум 3 блока`);
@@ -47,7 +47,7 @@ for (const [i, n] of list.entries()) {
   const text = JSON.stringify(n);
   if (BANNED.test(text)) errors.push(`${at}: запрещённые слова (лучшие мастера / проверенные / WhatsApp)`);
   const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
-  const minWords = n.rubric === "travel" ? 1200 : 120;
+  const minWords = n.rubric === "travel" ? 1200 : n.rubric === "life" ? 350 : 120;
   if (words < minWords) errors.push(`${at}: слишком коротко (${words} слов, нужно от ${minWords})`);
   for (const b of n.body ?? []) {
     if ("map" in b) {
