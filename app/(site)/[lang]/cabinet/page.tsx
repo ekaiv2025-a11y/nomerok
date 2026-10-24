@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { adminGetMaster, touchActive } from "@/lib/db";
 import { UnarchiveButton } from "@/components/UnarchiveButton";
 import { PortfolioEditor } from "@/components/PortfolioEditor";
@@ -186,6 +187,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
 
   const realtor = isRealtor(m);
+  // «Объявления» — только у риелторов; остальным показываем, как стать риелтором
+  if (sp.tab === "realty" && !realtor) redirect(`/${lang}/realty/agents`);
   const tab = (["home", "orders", "profile", "reviews", "promo", ...(realtor ? (["realty"] as const) : [])] as const).find((x) => x === sp.tab) ?? "home";
   const tabHref = (k: string) => `/${lang}/cabinet${k === "home" ? "" : `?tab=${k}`}`;
   const TABS: readonly (readonly [string, string])[] = realtor ? [CAB_TABS[lang][0], CAB_TABS[lang][1], ["realty", REALTY_TAB[lang]], ...CAB_TABS[lang].slice(2)] : CAB_TABS[lang];

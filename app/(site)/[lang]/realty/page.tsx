@@ -116,7 +116,7 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
           <p className="font-semibold text-brand-dark">{t.realtor}</p>
           <p className="mt-1 text-[14px] text-[#3d5a4c]">{t.realtorText}</p>
         </div>
-        <Link href={href(lang, "/cabinet?tab=realty")} className="btn-primary mt-3 h-11 shrink-0 px-5 sm:mt-0">
+        <Link href={href(lang, "/realty/agents")} className="btn-primary mt-3 h-11 shrink-0 px-5 sm:mt-0">
           {t.realtorBtn}
         </Link>
       </section>

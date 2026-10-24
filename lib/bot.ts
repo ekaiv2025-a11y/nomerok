@@ -1238,7 +1238,7 @@ async function onBotMembership(u: TgMemberUpdate) {
   if (st !== "administrator") return;
   const masters = (await getMastersByChatId(u.from.id)).filter(isRealtor);
   if (!masters.length) {
-    await sendTo(u.from.id, "🏠 Чтобы посты канала превращались в объявления на NomerOk, нужна анкета риелтора, привязанная к этому Telegram. Зарегистрируйтесь на сайте (раздел «Риелторы») и добавьте бота в канал ещё раз.").catch(() => null);
+    await sendTo(u.from.id, `🏠 Чтобы посты канала превращались в объявления на NomerOk, нужна анкета риелтора, привязанная к этому Telegram. Как это сделать: ${siteUrl()}/ru/realty/agents — потом добавьте бота в канал ещё раз.`).catch(() => null);
     return;
   }
   await saveChannel({ chat_id: u.chat.id, master_id: masters[0].id, title: u.chat.title ?? null, username: u.chat.username ?? null });
