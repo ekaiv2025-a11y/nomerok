@@ -53,16 +53,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const TR_NOTE = {
-  ru: (from: string) => `Анкета переведена автоматически ${from} — возможны неточности.`,
-  en: (from: string) => `This profile was machine-translated ${from} — wording may be imperfect.`,
-  ka: (from: string) => `ანკეტა ავტომატურად ითარგმნა ${from} — შესაძლოა უზუსტობები იყოს.`,
-} as const;
-const LANG_FROM = {
-  ru: { ru: "с русского", ka: "с грузинского", en: "с английского" },
-  en: { ru: "from Russian", ka: "from Georgian", en: "from English" },
-  ka: { ru: "რუსულიდან", ka: "ქართულიდან", en: "ინგლისურიდან" },
-} as const;
 const TR_ORIG = { ru: "Показать оригинал", en: "Show original", ka: "ორიგინალის ნახვა" } as const;
 const TR_SHOW = { ru: "Показать перевод", en: "Show translation", ka: "თარგმანის ნახვა" } as const;
 
@@ -315,9 +305,8 @@ export default async function MasterPage({ params, searchParams }: Props) {
           )}
 
           {tr?.tr_from ? (
-            <p className="mt-6 text-[13px] text-muted">
-              🌐 {TR_NOTE[lang](LANG_FROM[lang][tr.tr_from])}{" "}
-              <Link href={href(lang, `/master/${m.slug}${showOrig ? "" : "?orig=1"}`)} className="font-semibold text-brand underline" rel="nofollow">
+            <p className="mt-6 text-[13px]">
+              <Link href={href(lang, `/master/${m.slug}${showOrig ? "" : "?orig=1"}`)} className="text-muted underline hover:text-brand" rel="nofollow">
                 {showOrig ? TR_SHOW[lang] : TR_ORIG[lang]}
               </Link>
             </p>
