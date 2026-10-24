@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "crypto";
 import { dbMode, readLocal, supabase, writeLocal } from "./db";
-import { LISTING_DAYS, type Listing, type RealtyChannel } from "./realty";
+import { LISTING_DAYS, listingQuality, rankAt, type Listing, type RealtyChannel } from "./realty";
 
 /* Объявления недвижимости (только от риелторов с анкетой) и Telegram-каналы риелторов. */
 type L = { listings?: Listing[]; realty_channels?: RealtyChannel[] };
@@ -9,7 +9,20 @@ const local = async () => (dbMode() === "none" ? ({} as L) : ((await readLocal()
 const save = async (d: L) => writeLocal(d as never);
 const expiry = () => new Date(Date.now() + LISTING_DAYS * 86400_000).toISOString();
 
-export type ListingFilter = { city?: string; deal?: string; rooms?: number; maxPrice?: number; district?: string; page?: number };
+export type ListingFilter = {
+  city?: string;
+  deal?: string;
+  kind?: string;
+  rooms?: number;
+  maxPrice?: number;
+  minArea?: number;
+  district?: string;
+  building?: string;
+  renovated?: boolean;
+  amenity?: string;
+  page?: number;
+};
+const RENOVATED = ["new_renovation", "renovated"];
 const PAGE = 24;
 
 export async function listListings(f: ListingFilter): Promise<{ items: Listing[]; total: number }> {
@@ -22,7 +35,14 @@ export async function listListings(f: ListingFilter): Promise<{ items: Listing[]
     if (f.rooms != null) q = f.rooms >= 3 ? q.gte("rooms", 3) : q.eq("rooms", f.rooms);
     if (f.maxPrice) q = q.lte("price", f.maxPrice);
     if (f.district) q = q.eq("district", f.district);
-    const r = await q.order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
+    if (f.kind) q = q.eq("kind", f.kind);
+    if (f.minArea) q = q.gte("area", f.minArea);
+    if (f.building) q = q.eq("building", f.building);
+    if (f.renovated) q = q.in("condition", RENOVATED);
+    if (f.amenity) q = q.contains("amenities", [f.amenity]);
+    // порядок: свежесть + бонус за заполненность (rank_at), для старых записей — дата создания
+    let r = await q.order("rank_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
+    if (r.error && /rank_at|column/i.test(r.error.message)) r = await q.order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
     return r.error ? { items: [], total: 0 } : { items: r.data as Listing[], total: r.count ?? 0 };
   }
   let all = ((await local()).listings ?? []).filter((l) => l.status === "published");
@@ -31,7 +51,12 @@ export async function listListings(f: ListingFilter): Promise<{ items: Listing[]
   if (f.rooms != null) all = all.filter((l) => (f.rooms! >= 3 ? (l.rooms ?? -1) >= 3 : l.rooms === f.rooms));
   if (f.maxPrice) all = all.filter((l) => l.price != null && l.price <= f.maxPrice!);
   if (f.district) all = all.filter((l) => l.district === f.district);
-  all.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  if (f.kind) all = all.filter((l) => l.kind === f.kind);
+  if (f.minArea) all = all.filter((l) => (l.area ?? 0) >= f.minArea!);
+  if (f.building) all = all.filter((l) => l.building === f.building);
+  if (f.renovated) all = all.filter((l) => RENOVATED.includes(l.condition ?? ""));
+  if (f.amenity) all = all.filter((l) => (l.amenities ?? []).includes(f.amenity!));
+  all.sort((a, b) => (b.rank_at ?? b.created_at).localeCompare(a.rank_at ?? a.created_at));
   return { items: all.slice((page - 1) * PAGE, page * PAGE), total: all.length };
 }
 
@@ -65,7 +90,8 @@ export async function listingsOf(masterId: string): Promise<Listing[]> {
 
 export async function createListing(data: Omit<Listing, "id" | "created_at" | "updated_at" | "reports" | "expires_at"> & { expires_at?: string | null }): Promise<Listing> {
   const now = new Date().toISOString();
-  const row: Listing = { ...data, id: randomUUID(), reports: 0, created_at: now, updated_at: now, expires_at: data.status === "published" ? expiry() : null };
+  const quality = data.quality ?? listingQuality(data).percent;
+  const row: Listing = { ...data, id: randomUUID(), reports: 0, created_at: now, updated_at: now, expires_at: data.status === "published" ? expiry() : null, quality, rank_at: data.rank_at ?? rankAt(now, quality) };
   const sb = supabase();
   if (sb) {
     const r = await sb.from("listings").insert(row).select("*").single();
@@ -190,4 +216,50 @@ export async function adminListings(status?: string): Promise<Listing[]> {
     return r.error ? [] : (r.data as Listing[]);
   }
   return ((await local()).listings ?? []).filter((l) => !status || l.status === status);
+}
+
+/** Пересчитать заполненность и место в списке (после правок из Telegram). */
+export async function refreshQuality(id: string): Promise<void> {
+  const l = await getListing(id);
+  if (!l) return;
+  const q = listingQuality(l).percent;
+  const base = l.rank_at ? new Date(Date.parse(l.rank_at) - ((l.quality ?? 0) / 100) * 48 * 3600_000).toISOString() : l.created_at;
+  await updateListing(id, { quality: q, rank_at: rankAt(base, q) });
+}
+
+/** «Поднять» бесплатно — не чаще раза в 7 дней: объявление снова как свежее. Возвращает false, если рано. */
+export async function bumpListing(l: Listing): Promise<boolean> {
+  const base = l.rank_at ? Date.parse(l.rank_at) - ((l.quality ?? 0) / 100) * 48 * 3600_000 : Date.parse(l.created_at);
+  if (Date.now() - base < 7 * 86400_000) return false;
+  const q = listingQuality(l).percent;
+  await updateListing(l.id, { quality: q, rank_at: rankAt(new Date().toISOString(), q), status: "published", expire_warned_at: null });
+  return true;
+}
+/** Когда можно поднять снова (ISO) — для кнопки в кабинете. */
+export function nextBumpAt(l: Listing): string {
+  const base = l.rank_at ? Date.parse(l.rank_at) - ((l.quality ?? 0) / 100) * 48 * 3600_000 : Date.parse(l.created_at);
+  return new Date(base + 7 * 86400_000).toISOString();
+}
+
+/** Счётчики: просмотр объявления, нажатие «Показать телефон» / «Написать». */
+export async function countListing(id: string, field: "views" | "contacts"): Promise<void> {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.rpc("listing_bump", { lid: id, field });
+    if (r.error) {
+      const l = await getListing(id);
+      if (l) await sb.from("listings").update({ [field]: (l[field] ?? 0) + 1 }).eq("id", id);
+    }
+    return;
+  }
+  const d = await local();
+  d.listings = (d.listings ?? []).map((l) => (l.id === id ? { ...l, [field]: (l[field] ?? 0) + 1 } : l));
+  await save(d);
+}
+
+/** Копия объявления (черновик) — для похожих квартир в том же доме. */
+export async function duplicateListing(l: Listing): Promise<Listing> {
+  const { id: _id, created_at: _c, updated_at: _u, reports: _r, expires_at: _e, views: _v, contacts: _ct, rank_at: _rk, ...rest } = l;
+  void _id; void _c; void _u; void _r; void _e; void _v; void _ct; void _rk;
+  return createListing({ ...rest, title: `${l.title} (копия)`.slice(0, 120), status: "draft", source: "site", tg_key: null, tg_link: null, expire_warned_at: null, views: 0, contacts: 0 });
 }

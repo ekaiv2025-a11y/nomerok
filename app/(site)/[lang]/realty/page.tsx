@@ -3,7 +3,7 @@ import Link from "next/link";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { href, type Locale } from "@/lib/i18n";
 import { listListings } from "@/lib/realty-db";
-import { DEALS, DISTRICTS } from "@/lib/realty";
+import { KINDS, DEALS, DISTRICTS } from "@/lib/realty";
 import { listPublishedMasters } from "@/lib/db";
 import { CITIES, cityIn, cityOf } from "@/lib/cities";
 import { ListingCard } from "@/components/ListingCard";
@@ -16,7 +16,12 @@ const T = {
   ka: { title: (c: string) => `უძრავი ქონება ${c}: ქირა და გაყიდვა რიელტორებისგან`, h1: "უძრავი ქონება", lead: "ბინები ქირით, დღიურად და გასაყიდად — მხოლოდ რიელტორებისა და სააგენტოებისგან, რომლებსაც NomerOk-ზე ანკეტა აქვთ.", all: "ყველა", rooms: "საძინებელი", studio: "სტუდიო", price: "ფასი მდე", district: "რაიონი", any: "ნებისმიერი", find: "ჩვენება", empty: "ამ პირობებით განცხადებები ჯერ არ არის. დატოვეთ განაცხადი — რიელტორები შეგირჩევენ.", req: "განაცხადი რიელტორებს", found: (n: number) => `ნაპოვნია: ${n}`, realtor: "რიელტორი ხართ?", realtorText: "განათავსეთ განცხადებები უფასოდ — ხელით ან ავტომატურად თქვენი Telegram-არხიდან.", realtorBtn: "როგორ დავაკავშიროთ", more: "მეტი" },
 } as const;
 
-type SP = { city?: string; deal?: string; rooms?: string; max?: string; district?: string; page?: string };
+type SP = { city?: string; deal?: string; rooms?: string; max?: string; district?: string; page?: string; kind?: string; area?: string; new?: string; reno?: string; am?: string };
+const XF = {
+  ru: { kind: "Тип", area: "Площадь от, м²", new: "Новостройка", reno: "С ремонтом", sea: "🌊 Вид на море", pets: "🐾 С животными", balcony: "🪴 Балкон" },
+  en: { kind: "Type", area: "Area from, m²", new: "New building", reno: "Renovated", sea: "🌊 Sea view", pets: "🐾 Pets allowed", balcony: "🪴 Balcony" },
+  ka: { kind: "ტიპი", area: "ფართი დან, მ²", new: "ახალი აშენებული", reno: "გარემონტებული", sea: "🌊 ზღვის ხედი", pets: "🐾 ცხოველებით", balcony: "🪴 აივანი" },
+} as const;
 
 export async function generateMetadata({ params, searchParams }: LangParams & { searchParams: Promise<SP> }): Promise<Metadata> {
   const lang = (await langOf(params)) as Locale;
@@ -34,7 +39,14 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
   const rooms = sp.rooms !== undefined && /^[0-3]$/.test(sp.rooms) ? Number(sp.rooms) : undefined;
   const maxPrice = Number(sp.max) > 0 ? Number(sp.max) : undefined;
   const page = Math.max(1, Number(sp.page) || 1);
-  const [{ items, total }, masters] = await Promise.all([listListings({ city, deal, rooms, maxPrice, district: sp.district || undefined, page }), listPublishedMasters().catch(() => [])]);
+  const kind = sp.kind && sp.kind in KINDS ? sp.kind : undefined;
+  const minArea = Number(sp.area) > 0 ? Number(sp.area) : undefined;
+  const amenity = sp.am && ["sea_view", "pets_ok", "balcony"].includes(sp.am) ? sp.am : undefined;
+  const xf = XF[lang];
+  const [{ items, total }, masters] = await Promise.all([
+    listListings({ city, deal, rooms, maxPrice, district: sp.district || undefined, page, kind, minArea, building: sp.new === "1" ? "new" : undefined, renovated: sp.reno === "1", amenity }),
+    listPublishedMasters().catch(() => []),
+  ]);
   const byId = new Map(masters.map((m) => [m.id, m]));
   const list = items.filter((l) => byId.has(l.master_id));
   const qs = (patch: Partial<SP>) => {
@@ -60,6 +72,9 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
 
       <form method="get" className="mt-3 flex flex-wrap items-center gap-2">
         {deal && <input type="hidden" name="deal" value={deal} />}
+        {sp.new === "1" && <input type="hidden" name="new" value="1" />}
+        {sp.reno === "1" && <input type="hidden" name="reno" value="1" />}
+        {amenity && <input type="hidden" name="am" value={amenity} />}
         <select name="city" defaultValue={city} className={sel}>
           {CITIES.map((c) => (
             <option key={c.id} value={c.id}>
@@ -84,9 +99,34 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
             ))}
           </select>
         )}
+        <select name="kind" defaultValue={kind ?? ""} className={sel}>
+          <option value="">{xf.kind}: {t.any}</option>
+          {Object.entries(KINDS).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v[lang]}
+            </option>
+          ))}
+        </select>
         <input name="max" type="number" min={0} defaultValue={sp.max ?? ""} placeholder={t.price} className={`${sel} w-32`} />
+        <input name="area" type="number" min={0} defaultValue={sp.area ?? ""} placeholder={xf.area} className={`${sel} w-40`} />
         <button className="btn-primary h-10 px-5 text-[14px]">{t.find}</button>
       </form>
+      <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
+        {(
+          [
+            ["new", xf.new, sp.new === "1", { new: sp.new === "1" ? undefined : "1" }],
+            ["reno", xf.reno, sp.reno === "1", { reno: sp.reno === "1" ? undefined : "1" }],
+            ["sea", xf.sea, amenity === "sea_view", { am: amenity === "sea_view" ? undefined : "sea_view" }],
+            ["balcony", xf.balcony, amenity === "balcony", { am: amenity === "balcony" ? undefined : "balcony" }],
+            ["pets", xf.pets, amenity === "pets_ok", { am: amenity === "pets_ok" ? undefined : "pets_ok" }],
+          ] as [string, string, boolean, Partial<SP>][]
+        ).map(([k, label, on, patch]) => (
+          <Link key={k} href={qs({ ...patch, page: undefined })} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] ${on ? "border-brand bg-brand-soft font-semibold text-brand-dark" : "border-line bg-white"}`}>
+            {on ? "✓ " : ""}
+            {label}
+          </Link>
+        ))}
+      </div>
 
       <p className="mt-4 text-[13px] text-muted">{t.found(total)}</p>
       {list.length ? (

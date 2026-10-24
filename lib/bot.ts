@@ -1284,9 +1284,22 @@ async function onChannelPost(msg: TgMessage & { chat: TgChat }, edited: boolean)
         ...(p.floor ? { floor: p.floor } : {}),
         ...(p.price ? { price: p.price, currency: p.currency } : {}),
         ...(p.district ? { district: p.district } : {}),
+        ...(p.floor_n != null ? { floor_n: p.floor_n } : {}),
+        ...(p.floors_total ? { floors_total: p.floors_total } : {}),
+        ...(p.building ? { building: p.building } : {}),
+        ...(p.condition ? { condition: p.condition } : {}),
+        ...(p.heating ? { heating: p.heating } : {}),
+        ...(p.parking ? { parking: p.parking } : {}),
+        ...(p.amenities.length ? { amenities: p.amenities } : {}),
+        ...(p.bathrooms != null ? { bathrooms: p.bathrooms } : {}),
+        ...(p.deposit && (p.deal ?? existing.deal) === "rent" ? { deposit: p.deposit } : {}),
       });
     }
-    if (Object.keys(patch).length) await updateListing(existing.id, patch as never);
+    if (Object.keys(patch).length) {
+      await updateListing(existing.id, patch as never);
+      const { refreshQuality } = await import("./realty-db");
+      await refreshQuality(existing.id).catch(() => null);
+    }
     return;
   }
   if (edited) return;
@@ -1305,6 +1318,15 @@ async function onChannelPost(msg: TgMessage & { chat: TgChat }, edited: boolean)
     city: p.city,
     ...base,
     floor: p.floor,
+    floor_n: p.floor_n,
+    floors_total: p.floors_total,
+    building: p.building,
+    condition: p.condition,
+    heating: p.heating,
+    parking: p.parking,
+    amenities: p.amenities,
+    bathrooms: p.bathrooms,
+    deposit: deal === "rent" ? p.deposit : null,
     price: p.price,
     currency: p.currency,
     address: null,

@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { currentRealtor } from "@/lib/realty-auth";
-import { channelsOf, deleteListing, getListing, removeChannel, updateChannel, updateListing } from "@/lib/realty-db";
+import { bumpListing, channelsOf, deleteListing, duplicateListing, getListing, removeChannel, updateChannel, updateListing } from "@/lib/realty-db";
+import { redirect } from "next/navigation";
 
 /** Действия с объявлением: опубликовать, продлить, в архив, удалить. */
 export async function listingAction(fd: FormData) {
@@ -14,6 +15,12 @@ export async function listingAction(fd: FormData) {
   if (act === "publish" || act === "renew") {
     if (!l.photos.length) return;
     await updateListing(l.id, { status: "published", expire_warned_at: null });
+  } else if (act === "bump") await bumpListing(l);
+  else if (act === "copy") {
+    const c = await duplicateListing(l);
+    revalidatePath("/[lang]/cabinet", "page");
+    const lang = ["ru", "en", "ka"].includes(String(fd.get("lang"))) ? String(fd.get("lang")) : "ru";
+    redirect(`/${lang}/cabinet?tab=realty&edit=${c.id}`);
   } else if (act === "archive") await updateListing(l.id, { status: "archived" });
   else if (act === "delete") await deleteListing(l.id);
   revalidatePath("/[lang]/cabinet", "page");
