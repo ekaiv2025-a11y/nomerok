@@ -1,3 +1,4 @@
+import { localizeMasters } from "@/lib/translate-db";
 import { LatestOrders } from "@/components/LatestOrders";
 import { HomeJournal } from "@/components/HomeJournal";
 import { BonusStrip } from "@/components/BonusStrip";
@@ -28,7 +29,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
   let masters: PublicMaster[] = [];
   let broken = false;
   try {
-    masters = await listPublishedMasters();
+    masters = await localizeMasters(await listPublishedMasters(), lang);
   } catch (e) {
     // Любая ошибка базы — показываем аккуратное сообщение, а не белый экран.
     console.error("Ошибка базы. Проверьте /api/health", e);

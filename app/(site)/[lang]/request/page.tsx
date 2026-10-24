@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPlace } from "@/lib/places-db";
 import { publicTeamOf } from "@/lib/org-db";
+import { localizeMasters } from "@/lib/translate-db";
 import { placeName } from "@/lib/places";
 import { redirect } from "next/navigation";
 import { RequestForm } from "@/components/RequestForm";
@@ -40,7 +41,7 @@ export default async function RequestPage({ params, searchParams }: Props) {
   // Заявка организации (со страницы места): получат владелец и команда
   const org = sp.org ? await getPlace(sp.org).catch(() => null) : null;
   const orgOk = org && org.owner_verified_at ? org : null;
-  const team = orgOk ? await publicTeamOf(orgOk.id).catch(() => []) : [];
+  const team = orgOk ? await publicTeamOf(orgOk.id).then((x) => localizeMasters(x, lang)).catch(() => []) : [];
   const orgCat = team[0]?.category ?? ORG_CAT[orgOk?.cat ?? ""];
   return (
     <div className="mx-auto max-w-xl px-4 py-6 sm:py-12">

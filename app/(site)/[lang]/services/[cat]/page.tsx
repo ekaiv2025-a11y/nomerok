@@ -3,6 +3,7 @@ import { articlesForCat } from "@/lib/articles";
 import { guideFor } from "@/lib/seo/guides";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { localizeMasters } from "@/lib/translate-db";
 import { listPublishedMasters } from "@/lib/db";
 import { CATEGORIES, categoryPlural } from "@/lib/categories";
 import { href, isLocale, type Locale } from "@/lib/i18n";
@@ -82,7 +83,7 @@ export default async function ServicePage({ params }: Props) {
   if (!t) notFound();
   const l = L[lang];
 
-  const all = await listPublishedMasters().catch(() => []);
+  const all = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
   const masters = all.filter(
     // Страницы услуг пока только про Батуми
     (m) => m.city === "batumi" && (m.category === cat || m.extra_categories.includes(cat)),

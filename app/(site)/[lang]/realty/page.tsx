@@ -4,6 +4,7 @@ import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { href, type Locale } from "@/lib/i18n";
 import { listListings } from "@/lib/realty-db";
 import { KINDS, DEALS, DISTRICTS } from "@/lib/realty";
+import { localizeMasters } from "@/lib/translate-db";
 import { listPublishedMasters } from "@/lib/db";
 import { CITIES, cityIn, cityOf } from "@/lib/cities";
 import { ListingCard } from "@/components/ListingCard";
@@ -45,7 +46,7 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
   const xf = XF[lang];
   const [{ items, total }, masters] = await Promise.all([
     listListings({ city, deal, rooms, maxPrice, district: sp.district || undefined, page, kind, minArea, building: sp.new === "1" ? "new" : undefined, renovated: sp.reno === "1", amenity }),
-    listPublishedMasters().catch(() => []),
+    listPublishedMasters().then((x) => localizeMasters(x, lang)).catch(() => []),
   ]);
   const byId = new Map(masters.map((m) => [m.id, m]));
   const list = items.filter((l) => byId.has(l.master_id));

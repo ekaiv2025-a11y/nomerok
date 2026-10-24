@@ -31,16 +31,17 @@ import { botUsername } from "@/lib/telegram";
 import { liveOffer } from "@/lib/referral-db";
 import { ReferralBox, RefBanner } from "@/components/ReferralBox";
 import { currentClient } from "@/lib/client-auth";
+import { localizeMaster, localizeMasters } from "@/lib/translate-db";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ lang: string; slug: string }> };
+type Props = { params: Promise<{ lang: string; slug: string }>; searchParams?: Promise<{ orig?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
   if (!isLocale(lang)) return {};
   const t = getDict(lang);
-  const m = await getPublishedMasterBySlug(slug).catch(() => null);
+  const m = await localizeMaster(await getPublishedMasterBySlug(slug).catch(() => null), lang);
   if (!m) return { title: t.meta.masterNotFound };
   const title = t.meta.masterTitle(m.name, categoryLabel(m.category, lang), cityIn(m.city, lang));
   const services = m.services.split(/\n/).map((s) => s.trim()).filter(Boolean).join(", ").slice(0, 150);
@@ -52,12 +53,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const TR_NOTE = {
+  ru: (from: string) => `Анкета переведена автоматически ${from} — возможны неточности.`,
+  en: (from: string) => `This profile was machine-translated ${from} — wording may be imperfect.`,
+  ka: (from: string) => `ანკეტა ავტომატურად ითარგმნა ${from} — შესაძლოა უზუსტობები იყოს.`,
+} as const;
+const LANG_FROM = {
+  ru: { ru: "с русского", ka: "с грузинского", en: "с английского" },
+  en: { ru: "from Russian", ka: "from Georgian", en: "from English" },
+  ka: { ru: "რუსულიდან", ka: "ქართულიდან", en: "ინგლისურიდან" },
+} as const;
+const TR_ORIG = { ru: "Показать оригинал", en: "Show original", ka: "ორიგინალის ნახვა" } as const;
+const TR_SHOW = { ru: "Показать перевод", en: "Show translation", ka: "თარგმანის ნახვა" } as const;
+
 const WORKS_AT = { ru: "Работает в:", en: "Works at:", ka: "მუშაობს:" } as const;
 
-export default async function MasterPage({ params }: Props) {
+export default async function MasterPage({ params, searchParams }: Props) {
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
-  const m = await getPublishedMasterBySlug(slug);
+  const showOrig = (await searchParams)?.orig === "1";
+  const raw = await getPublishedMasterBySlug(slug);
+  const tr = await localizeMaster(raw, lang);
+  const m = showOrig ? raw : tr;
   if (!m) notFound();
   const d = getDict(lang);
   const t = d.master;
@@ -77,7 +94,7 @@ export default async function MasterPage({ params }: Props) {
   const url = `${SITE_URL}/${lang}/master/${m.slug}`;
 
   // Другие специалисты: сначала из той же категории, потом остальные (до 8 штук)
-  const all = await listPublishedMasters().catch(() => []);
+  const all = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
   const others = all.filter((x) => x.id !== m.id && x.city === m.city);
   // Похожие — только того же направления (основного или дополнительного), без сантехников под маникюром
   // Только та же основная категория: доп. категории («Также») дают странные совпадения
@@ -94,6 +111,7 @@ export default async function MasterPage({ params }: Props) {
         <AvatarZoom name={m.name} photo={m.photo_url} size={88} />
         <div className="min-w-0">
           <h1 className="text-[24px] font-bold leading-tight sm:text-[30px]">{m.name}</h1>
+          {m.name_orig && <p className="text-[13px] text-muted">{m.name_orig}</p>}
           {m.verified && <VerifiedBadge label={getDict(lang).card.verified} large />}
           {m.demo && <DemoBadge label={getDict(lang).card.demo} />}
           <p className="mt-1 text-[15px] text-muted">
@@ -296,8 +314,17 @@ export default async function MasterPage({ params }: Props) {
             </section>
           )}
 
-          <p className="mt-6 text-[12px] text-muted">{t.ownLanguageNote}</p>
-          {(() => {
+          {tr?.tr_from ? (
+            <p className="mt-6 text-[13px] text-muted">
+              🌐 {TR_NOTE[lang](LANG_FROM[lang][tr.tr_from])}{" "}
+              <Link href={href(lang, `/master/${m.slug}${showOrig ? "" : "?orig=1"}`)} className="font-semibold text-brand underline" rel="nofollow">
+                {showOrig ? TR_SHOW[lang] : TR_ORIG[lang]}
+              </Link>
+            </p>
+          ) : (
+            <p className="mt-6 text-[12px] text-muted">{t.ownLanguageNote}</p>
+          )}
+          {!tr?.tr_from && (() => {
             const full = [m.services, m.about, m.credentials].filter(Boolean).join("\n\n");
             const tl = textLang(full);
             return tl && tl !== lang ? (

@@ -1,3 +1,4 @@
+import { localizeMasters } from "@/lib/translate-db";
 import type { Metadata } from "next";
 import { listPublishedMasters } from "@/lib/db";
 import { FavList } from "@/components/FavList";
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 export default async function FavoritesPage({ params }: LangParams) {
   const lang = await langOf(params);
   const t = SOCIAL[lang];
-  const masters = await listPublishedMasters().catch(() => []);
+  const masters = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <h1 className="text-[26px] font-bold sm:text-[32px]">❤️ {t.favTitle}</h1>

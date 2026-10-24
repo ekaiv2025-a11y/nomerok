@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { localizeMasters } from "@/lib/translate-db";
 import { listPublishedMasters } from "@/lib/db";
 import { categoryPlural } from "@/lib/categories";
 import { href, isLocale, type Locale } from "@/lib/i18n";
@@ -37,10 +38,10 @@ const L: Record<Locale, { title: (c: string, d: string) => string; desc: (c: str
   },
 };
 
-async function load(cat: string, districtId: string) {
+async function load(cat: string, districtId: string, lang: Locale = "ru") {
   const d = districtOf(districtId);
   if (!d) return null;
-  const all = await listPublishedMasters().catch(() => []);
+  const all = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
   const inCat = all.filter((m) => !m.demo && m.city === "batumi" && (m.category === cat || m.extra_categories.includes(cat)));
   const exact = inCat.filter((m) => servesDistrict(m, d) === "exact");
   const city = inCat.filter((m) => servesDistrict(m, d) === "city");
@@ -50,7 +51,7 @@ async function load(cat: string, districtId: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, cat, district } = await params;
   if (!isLocale(lang) || !seoText(cat, lang)) return {};
-  const r = await load(cat, district);
+  const r = await load(cat, district, lang);
   if (!r) return {};
   const c = categoryPlural(cat, lang);
   return {
@@ -64,7 +65,7 @@ export default async function DistrictPage({ params }: Props) {
   const { lang, cat, district } = await params;
   if (!isLocale(lang)) notFound();
   if (!seoText(cat, lang)) notFound();
-  const r = await load(cat, district);
+  const r = await load(cat, district, lang);
   if (!r) notFound();
   const l = L[lang];
   const c = categoryPlural(cat, lang);

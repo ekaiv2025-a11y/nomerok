@@ -15,6 +15,7 @@ import { SITE_URL } from "@/lib/site";
 import { ShareButton } from "@/components/ShareButton";
 import { publishedPlaceReviews } from "@/lib/place-reviews-db";
 import { publicTeamOf } from "@/lib/org-db";
+import { localizeMasters } from "@/lib/translate-db";
 import { MasterCard } from "@/components/MasterCard";
 import { currentSpecialistId } from "@/lib/spec-auth";
 
@@ -71,7 +72,7 @@ export default async function PlacePage({ params }: Props) {
     nearbyPlaces(p),
     botUsername().catch(() => null),
     publishedPlaceReviews(p.id).catch(() => []),
-    p.owner_verified_at ? publicTeamOf(p.id).catch(() => []) : Promise.resolve([]),
+    p.owner_verified_at ? publicTeamOf(p.id).then((x) => localizeMasters(x, lang)).catch(() => []) : Promise.resolve([]),
     currentSpecialistId().catch(() => null),
   ]);
   const TT = TEAM_T[lang];

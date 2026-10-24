@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedMasterBySlug } from "@/lib/db";
+import { localizeMaster } from "@/lib/translate-db";
 import { categoryLabel } from "@/lib/categories";
 import { getDict, href, isLocale } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -25,7 +26,7 @@ export default async function MessagePage({ params, searchParams }: Props) {
   const when = String((await searchParams)?.when ?? "").slice(0, 60);
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
-  const m = await getPublishedMasterBySlug(slug);
+  const m = await localizeMaster(await getPublishedMasterBySlug(slug), lang);
   if (!m) notFound();
   const d = getDict(lang);
   const t = d.message;

@@ -4,6 +4,7 @@ import { LoginBox } from "@/components/LoginBox";
 import { providerEnabled } from "@/lib/oauth";
 import { currentClientChatId } from "@/lib/client-auth";
 import { listClientRequests, listResponsesFor } from "@/lib/client-db";
+import { localizeMasters } from "@/lib/translate-db";
 import { listPublishedMasters } from "@/lib/db";
 import { hasReviewFrom } from "@/lib/reviews-db";
 import { reviewToken } from "@/lib/signed";
@@ -64,7 +65,7 @@ export default async function MyPage({ params, searchParams }: LangParams & { se
     );
   }
 
-  const [requests, masters] = await Promise.all([listClientRequests(chatId).catch(() => []), listPublishedMasters().catch(() => [])]);
+  const [requests, masters] = await Promise.all([listClientRequests(chatId).catch(() => []), listPublishedMasters().then((x) => localizeMasters(x, lang)).catch(() => [])]);
   const responses = await listResponsesFor(requests.map((r) => r.id)).catch(() => []);
   const myRefs = await referralsOfChat(chatId).catch(() => []);
   const refRows = await Promise.all(myRefs.map(async (x) => ({ x, offer: await getOffer(x.master_id).catch(() => null) })));
