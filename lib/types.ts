@@ -127,7 +127,7 @@ export type PublicMaster = Pick<
   | "work_hours"
   | "city"
   | "links"
-> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number; bonus?: boolean; taken30?: number };
+> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number; bonus?: boolean; bonusText?: string; bonusKind?: "ref" | "repost"; taken30?: number };
 
 export type MasterContacts = {
   phone: string;

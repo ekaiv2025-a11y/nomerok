@@ -62,8 +62,8 @@ export default async function Home({ params, searchParams }: LangParams & { sear
           {t.specialistCta}
         </Link>
       </section>
-      {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} />}
       {!broken && <BonusStrip lang={lang} masters={masters} />}
+      {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} />}
       {!broken && <LatestOrders lang={lang} />}
       <HomeJournal lang={lang} />
     </>

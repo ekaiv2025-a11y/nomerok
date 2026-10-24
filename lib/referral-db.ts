@@ -112,9 +112,9 @@ export async function liveOffer(masterId: string) {
   return { ...s, ref, repost };
 }
 
-/** У каких специалистов сейчас есть бонус — для значка 🎁 в каталоге. */
-export async function mastersWithBonus(): Promise<Set<string>> {
-  const out = new Set<string>();
+/** У каких специалистов сейчас есть бонус и какой (коротко) — для значка 🎁 в каталоге. */
+export async function mastersWithBonus(): Promise<Map<string, { kind: "ref" | "repost"; text: string }>> {
+  const out = new Map<string, { kind: "ref" | "repost"; text: string }>();
   const sb = supabase();
   let offers: Offer[] = [];
   if (sb) {
@@ -123,13 +123,10 @@ export async function mastersWithBonus(): Promise<Set<string>> {
     offers = r.data as Offer[];
   } else if (dbMode() !== "none") offers = (await readLocal()).referral_offers ?? [];
   for (const o of offers) {
-    if (o.repost_active && o.repost) {
-      out.add(o.master_id);
-      continue;
-    }
-    if (!o.active || !o.friend) continue;
-    if (!o.max_uses) out.add(o.master_id);
-    else if ((await listCodes(o.master_id, o.since)).length < o.max_uses) out.add(o.master_id);
+    const refOk = !!(o.active && o.friend) && (!o.max_uses || (await listCodes(o.master_id, o.since)).length < o.max_uses);
+    const repOk = !!(o.repost_active && o.repost);
+    if (refOk) out.set(o.master_id, { kind: "ref", text: o.friend });
+    else if (repOk) out.set(o.master_id, { kind: "repost", text: o.repost! });
   }
   return out;
 }

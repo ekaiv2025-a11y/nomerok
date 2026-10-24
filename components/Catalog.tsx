@@ -15,9 +15,9 @@ import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
 import { detectIntent } from "@/lib/search-intent";
 
 const F = {
-  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить" },
-  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset" },
-  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება" },
+  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить", bonus: "С бонусом" },
+  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset", bonus: "With a bonus" },
+  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება", bonus: "ბონუსით" },
 } as const;
 const LANG_OPTS: [string, string][] = [["Грузинский", "ქართ. / KA"], ["Русский", "Рус. / RU"], ["Английский", "Eng / EN"], ["Украинский", "Укр. / UA"], ["Турецкий", "Türk / TR"]];
 
@@ -52,6 +52,14 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
   const [fMode, setFMode] = useState("");
   const [fLang, setFLang] = useState("");
   const [fPrice, setFPrice] = useState(false);
+  const [fBonus, setFBonus] = useState(false);
+  // ?bonus=1 (кнопка «Мастера с бонусом» на главной) — сразу включаем фильтр
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("bonus") === "1") {
+      setFBonus(true);
+      document.getElementById("masters")?.scrollIntoView({ block: "start" });
+    }
+  }, []);
   const [sort, setSort] = useState("");
   const [view, setView] = useState<"list" | "map">("list");
 
@@ -75,6 +83,7 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
       if (fMode === "online" && m.work_mode !== "online") return false;
       if (fLang && !(m.languages ?? []).includes(fLang)) return false;
       if (fPrice && m.price_from == null) return false;
+      if (fBonus && !m.bonus) return false;
       if (cat !== "all" && m.category !== cat && !(m.extra_categories ?? []).includes(cat)) return false;
       if (cat !== "all" && sub !== "all" && !subcatsOf(m, cat).includes(sub)) return false;
       if (!query) return true;
@@ -87,7 +96,7 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     if (sort === "reviews") return [...list].sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.rating ?? 0) - (a.rating ?? 0));
     if (sort === "cheap") return [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9));
     return list;
-  }, [masters, cat, sub, q, intents, fMode, fLang, fPrice, sort]);
+  }, [masters, cat, sub, q, intents, fMode, fLang, fPrice, fBonus, sort]);
   // Запоминаем, что искали (через 1.5 с после ввода) — админ видит, каких специалистов не хватает
   useEffect(() => {
     const query = q.trim();
@@ -102,7 +111,8 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     return () => clearTimeout(id);
   }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
   const ft = F[lang];
-  const anyFilter = !!(fMode || fLang || fPrice || sort);
+  const anyFilter = !!(fMode || fLang || fPrice || fBonus || sort);
+  const bonusCount = masters.filter((m) => m.bonus).length;
 
   // Уточнения внутри направления (например, «Красота» → парикмахер, маникюр…)
   const subCounts = useMemo(() => {
@@ -229,13 +239,18 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
         <button type="button" onClick={() => setFPrice((v) => !v)} className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] ${fPrice ? "border-brand bg-brand-soft text-brand-dark" : "border-line bg-white"}`}>
           {fPrice ? "✓ " : ""}{ft.price}
         </button>
+        {bonusCount > 0 && (
+          <button type="button" onClick={() => setFBonus((v) => !v)} className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] font-semibold ${fBonus ? "border-accent bg-[#fdf3dc] text-[#6b4f12]" : "border-[#f0d58a] bg-[#fffaf0] text-[#6b4f12]"}`}>
+            {fBonus ? "✓ " : "🎁 "}{ft.bonus} · {bonusCount}
+          </button>
+        )}
         <select value={sort} onChange={(e) => setSort(e.target.value)} className={`h-9 rounded-full border bg-white px-3 text-[13px] outline-none ${sort ? "border-brand text-brand-dark" : "border-line"}`}>
           <option value="">↕ {ft.sort}</option>
           <option value="reviews">⭐ {ft.reviews}</option>
           <option value="cheap">₾ {ft.cheap}</option>
         </select>
         {anyFilter && (
-          <button type="button" onClick={() => { setFMode(""); setFLang(""); setFPrice(false); setSort(""); }} className="h-9 shrink-0 whitespace-nowrap px-2 text-[13px] text-muted underline">
+          <button type="button" onClick={() => { setFMode(""); setFLang(""); setFPrice(false); setFBonus(false); setSort(""); }} className="h-9 shrink-0 whitespace-nowrap px-2 text-[13px] text-muted underline">
             {ft.reset}
           </button>
         )}

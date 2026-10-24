@@ -324,7 +324,8 @@ export function rankScore(m: PublicMaster): number {
   if (Date.now() - new Date(m.created_at).getTime() < 7 * 86400_000) s += 6;
   // Активность на сайте: брал заявки за последние 30 дней, включил бонус клиентам, завёл короткую ссылку
   s += Math.min(16, (m.taken30 ?? 0) * 4);
-  if (m.bonus) s += 6;
+  // Бонус клиентам — заметно выше: клиентам выгодно, а специалист вкладывается в привлечение
+  if (m.bonus) s += 60; // = размаху ротации: с бонусом всегда выше похожих анкет без бонуса
   if (m.short) s += 2;
   return s;
 }
@@ -401,10 +402,10 @@ async function withRatings(list: PublicMaster[]): Promise<PublicMaster[]> {
   const stats = await reviewStats().catch(() => new Map<string, { sum: number; n: number }>());
   // 🎁 бонус за рекомендацию — значок в карточке
   const { mastersWithBonus } = await import("./referral-db");
-  const bonus = await mastersWithBonus().catch(() => new Set<string>());
+  const bonus = await mastersWithBonus().catch(() => new Map<string, { kind: "ref" | "repost"; text: string }>());
   return list.map((m) => {
     const st = stats.get(m.id);
-    const b = bonus.has(m.id) ? { bonus: true } : {};
+    const b = bonus.has(m.id) ? { bonus: true, bonusText: bonus.get(m.id)!.text, bonusKind: bonus.get(m.id)!.kind } : {};
     return st ? { ...m, ...b, rating: Math.round((st.sum / st.n) * 10) / 10, reviews: st.n } : { ...m, ...b };
   });
 }

@@ -1,46 +1,62 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import type { PublicMaster } from "@/lib/types";
-import { BONUS } from "@/lib/bonus-text";
-import { categoryLabel } from "@/lib/categories";
 import { href, type Locale } from "@/lib/i18n";
 
-/** Главная: «Бонусы за рекомендации и репосты» — для клиентов и для специалистов. */
+const T = {
+  ru: {
+    clients: "🎁 Скидки за рекомендацию и репост",
+    clientsText: "Посоветуйте мастера другу или поделитесь его профилем — у специалистов со значком 🎁 за это скидка или подарок.",
+    show: (n: number) => `Показать мастеров с бонусом · ${n}`,
+    masters: "Специалистам",
+    mastersText: "Включите бонус клиентам — они приведут друзей, а ваша анкета поднимется выше в каталоге.",
+    on: "Включить бонус",
+    join: "Зарегистрироваться",
+  },
+  en: {
+    clients: "🎁 Discounts for referrals and reposts",
+    clientsText: "Recommend a specialist to a friend or share their profile — specialists with a 🎁 badge give a discount or a gift for it.",
+    show: (n: number) => `Show specialists with a bonus · ${n}`,
+    masters: "For specialists",
+    mastersText: "Turn on a client bonus — clients bring friends, and your profile moves higher in the catalog.",
+    on: "Turn on a bonus",
+    join: "Sign up",
+  },
+  ka: {
+    clients: "🎁 ფასდაკლება რეკომენდაციისა და რეპოსტისთვის",
+    clientsText: "ურჩიეთ სპეციალისტი მეგობარს ან გააზიარეთ მისი პროფილი — 🎁 ნიშნიანი სპეციალისტები ამისთვის ფასდაკლებას ან საჩუქარს იძლევიან.",
+    show: (n: number) => `ბონუსიანი სპეციალისტები · ${n}`,
+    masters: "სპეციალისტებს",
+    mastersText: "ჩართეთ ბონუსი კლიენტებისთვის — ისინი მეგობრებს მოიყვანენ, თქვენი ანკეტა კი კატალოგში მაღლა ავა.",
+    on: "ბონუსის ჩართვა",
+    join: "რეგისტრაცია",
+  },
+} as const;
+
+/** Главная, над каталогом: короткий блок про бонусы — клиентам кнопка «мастера с бонусом», специалистам — «включить бонус». */
 export async function BonusStrip({ lang, masters }: { lang: Locale; masters: PublicMaster[] }) {
-  const b = BONUS[lang];
+  const t = T[lang];
   const isSpec = (await cookies()).get("nm_is_spec")?.value === "1";
-  const withBonus = masters.filter((m) => m.bonus && !m.demo).slice(0, 6);
+  const n = masters.filter((m) => m.bonus && !m.demo).length;
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="rounded-3xl border-2 border-[#f0d58a] bg-[#fffaf0] p-5 sm:p-7">
-        <h2 className="text-[22px] font-bold leading-tight sm:text-[26px]">{b.siteTitle}</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl bg-white p-4 sm:p-5">
-            <p className="text-[13px] font-bold uppercase tracking-wide text-brand">{b.siteClients}</p>
-            <p className="mt-1.5 text-[15px] leading-relaxed">{b.siteClientsText}</p>
-            {withBonus.length > 0 && (
-              <>
-                <p className="mt-3 text-[13px] font-semibold text-muted">{b.siteWith}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {withBonus.map((m) => (
-                    <Link key={m.id} href={href(lang, `/master/${m.slug}`)} className="rounded-full border border-[#f0d58a] bg-[#fffaf0] px-3 py-1.5 text-[13px] font-medium hover:border-accent">
-                      🎁 {m.name} · {categoryLabel(m.category, lang)}
-                    </Link>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-          <div className="rounded-2xl bg-white p-4 sm:p-5">
-            <p className="text-[13px] font-bold uppercase tracking-wide text-[#8a6a1f]">{b.siteMasters}</p>
-            <p className="mt-1.5 text-[15px] leading-relaxed">{b.siteMastersText}</p>
-            <Link
-              href={isSpec ? `/${lang}/cabinet?tab=promo#bonus` : href(lang, "/join")}
-              className="btn mt-3 h-11 rounded-full bg-accent px-5 text-[14px] font-semibold text-ink hover:bg-[#cf9620]"
-            >
-              {isSpec ? b.siteMastersBtn : b.siteJoinBtn}
-            </Link>
-          </div>
+    <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
+      <div className="grid gap-3 rounded-2xl border border-[#f0d58a] bg-[#fffaf0] p-4 md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-5">
+        <div>
+          <p className="text-[15px] font-bold leading-snug">{t.clients}</p>
+          <p className="mt-0.5 text-[13px] leading-snug text-[#5a4410]">{t.clientsText}</p>
+          {n > 0 && (
+            <a href={`/${lang}?bonus=1#masters`} className="btn mt-2 h-9 rounded-full bg-accent px-4 text-[13px] font-semibold text-ink hover:bg-[#cf9620]">
+              {t.show(n)}
+            </a>
+          )}
+        </div>
+        <div className="hidden h-12 w-px bg-[#f0d58a] md:block" aria-hidden />
+        <div className="border-t border-[#f0d58a] pt-3 md:border-0 md:pt-0">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-[#8a6a1f]">{t.masters}</p>
+          <p className="mt-0.5 text-[13px] leading-snug text-[#5a4410]">{t.mastersText}</p>
+          <Link href={isSpec ? `/${lang}/cabinet?tab=promo#bonus` : href(lang, "/join")} className="mt-2 inline-block text-[13px] font-semibold text-[#6b4f12] underline">
+            {isSpec ? t.on : t.join} →
+          </Link>
         </div>
       </div>
     </section>

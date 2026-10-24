@@ -68,6 +68,11 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             <RatingLine rating={m.rating} count={m.reviews} label={getDict(lang).reviews.count(m.reviews)} />
           </div>
         )}
+        {m.bonus && m.bonusText && !m.away && (
+          <p className="mt-1.5 line-clamp-2 rounded-lg bg-[#fdf3dc] px-2 py-1 text-[12px] font-semibold leading-snug text-[#6b4f12]">🎁 {m.bonusText}
+            <span className="font-normal"> · {m.bonusKind === "repost" ? { ru: "за репост", en: "for a repost", ka: "რეპოსტისთვის" }[lang] : { ru: "другу по рекомендации", en: "for a referred friend", ka: "მეგობარს რეკომენდაციით" }[lang]}</span>
+          </p>
+        )}
         {summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>}
         {(atPlace || mode || langs.length > 0) && (
           <div className="mt-2 flex max-h-[22px] flex-wrap gap-1 overflow-hidden sm:max-h-none">

@@ -156,7 +156,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const refStatus = await offerStatus(m.id).catch(() => null);
   const refCodes = refStatus ? await recentCodes(m.id).catch(() => []) : [];
   const bonusOn = !!(refStatus && ((refStatus.offer.active && refStatus.offer.friend) || (refStatus.offer.repost_active && refStatus.offer.repost)));
-  const nobodyYet = !bonusOn && (await mastersWithBonus().catch(() => new Set<string>())).size === 0;
+  const nobodyYet = !bonusOn && (await mastersWithBonus().catch(() => new Map())).size === 0;
   const bt = BONUS[lang];
   const { takenLast30 } = await import("@/lib/db");
   const taken30 = (await takenLast30().catch(() => new Map<string, number>())).get(m.id) ?? 0;
