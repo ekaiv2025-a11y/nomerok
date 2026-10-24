@@ -329,6 +329,21 @@ export function rankScore(m: PublicMaster): number {
   return s;
 }
 
+/*
+ * Ротация: чтобы наверху не стояли всегда одни и те же, к баллам добавляется «случайная» добавка 0–ROTATE_POINTS,
+ * которая меняется каждые ROTATE_HOURS часа (у всех посетителей в это время порядок одинаковый).
+ * Добавка меньше разницы между активной заполненной анкетой и пустой — поэтому активные в среднем всё равно выше,
+ * но похожие по активности специалисты регулярно меняются местами, и каждый время от времени попадает в первые ряды.
+ */
+const ROTATE_POINTS = 60;
+const ROTATE_HOURS = 2;
+export function rotation(id: string, now = Date.now()): number {
+  const bucket = Math.floor(now / (ROTATE_HOURS * 3600_000));
+  let h = 2166136261;
+  for (const ch of `${id}:${bucket}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return ((h >>> 0) % 1000) / 1000 * ROTATE_POINTS;
+}
+
 /** Сколько заявок каждый специалист взял за последние 30 дней (для порядка в каталоге). */
 export async function takenLast30(): Promise<Map<string, number>> {
   const since = new Date(Date.now() - 30 * 86400_000).toISOString();
@@ -350,7 +365,7 @@ export async function listPublishedMasters(): Promise<PublicMaster[]> {
   const real = (await withRatings(await listPublishedFromDb()))
     .filter((m) => !m.away)
     .map((m) => (taken.has(m.id) ? { ...m, taken30: taken.get(m.id) } : m))
-    .map((m) => ({ m, s: rankScore(m) }))
+    .map((m) => ({ m, s: rankScore(m) + rotation(m.id) }))
     .sort((a, b) => b.s - a.s || b.m.created_at.localeCompare(a.m.created_at))
     .map((x) => x.m);
   if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
