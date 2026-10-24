@@ -337,6 +337,8 @@ export function rankScore(m: PublicMaster): number {
  * но похожие по активности специалисты регулярно меняются местами, и каждый время от времени попадает в первые ряды.
  */
 const ROTATE_POINTS = 60;
+/** Специалисты с бонусом — первыми в каталоге (решение владельца, 24.10.2026). false — вернуть обычный порядок по баллам. */
+const BONUS_FIRST = true;
 const ROTATE_HOURS = 2;
 export function rotation(id: string, now = Date.now()): number {
   const bucket = Math.floor(now / (ROTATE_HOURS * 3600_000));
@@ -367,7 +369,8 @@ export async function listPublishedMasters(): Promise<PublicMaster[]> {
     .filter((m) => !m.away)
     .map((m) => (taken.has(m.id) ? { ...m, taken30: taken.get(m.id) } : m))
     .map((m) => ({ m, s: rankScore(m) + rotation(m.id) }))
-    .sort((a, b) => b.s - a.s || b.m.created_at.localeCompare(a.m.created_at))
+    // Пока бонусов мало — специалисты с бонусом клиентам всегда в самом верху (между собой — по баллам и ротации)
+    .sort((a, b) => (BONUS_FIRST ? Number(!!b.m.bonus) - Number(!!a.m.bonus) : 0) || b.s - a.s || b.m.created_at.localeCompare(a.m.created_at))
     .map((x) => x.m);
   if (real.filter((m) => !m.demo).length >= DEMO_UNTIL) return real.filter((m) => !m.demo);
   const have = new Set(real.map((m) => m.slug));
