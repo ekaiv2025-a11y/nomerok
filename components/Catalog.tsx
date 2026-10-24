@@ -11,13 +11,14 @@ import { MasterCard } from "./MasterCard";
 import { useRouter } from "next/navigation";
 import { CITIES, type CityId } from "@/lib/cities";
 import { MapPin } from "lucide-react";
+import { CategoryIcon } from "@/lib/category-icons";
 import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
 import { detectIntent } from "@/lib/search-intent";
 
 const F = {
-  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить", bonus: "С бонусом" },
-  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset", bonus: "With a bonus" },
-  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება", bonus: "ბონუსით" },
+  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить", more: (n: number) => `Ещё ${n}`, less: "Свернуть", bonus: "С бонусом" },
+  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset", more: (n: number) => `${n} more`, less: "Show less", bonus: "With a bonus" },
+  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება", more: (n: number) => `კიდევ ${n}`, less: "აკეცვა", bonus: "ბონუსით" },
 } as const;
 const LANG_OPTS: [string, string][] = [["Грузинский", "ქართ. / KA"], ["Русский", "Рус. / RU"], ["Английский", "Eng / EN"], ["Украинский", "Укр. / UA"], ["Турецкий", "Türk / TR"]];
 
@@ -69,7 +70,12 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     return c;
   }, [masters]);
 
-  const visibleCats = CATEGORIES.filter((c) => counts[c.id]);
+  // Сначала категории, где больше специалистов; «Другое» всегда в конце
+  const visibleCats = CATEGORIES.filter((c) => counts[c.id]).sort((a, b) => (a.id === "other" ? 1 : b.id === "other" ? -1 : counts[b.id] - counts[a.id]));
+  const [allCats, setAllCats] = useState(false);
+  const TOP_CATS = 11;
+  const shownCats = allCats || visibleCats.length <= TOP_CATS + 2 ? visibleCats : visibleCats.filter((c, i) => i < TOP_CATS || c.id === cat);
+  const hiddenCats = visibleCats.length - shownCats.length;
 
   const intents = useMemo(() => detectIntent(q), [q]);
   const filtered = useMemo(() => {
@@ -198,13 +204,20 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
       {visibleCats.length > 1 && (
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
           <Chip active={cat === "all"} onClick={() => chooseCat("all")}>
+            <CategoryIcon id="all" className={ICO} />
             {t.all} · {masters.length}
           </Chip>
-          {visibleCats.map((c) => (
+          {shownCats.map((c) => (
             <Chip key={c.id} active={cat === c.id} onClick={() => chooseCat(c.id)}>
-              {c.plural[lang]} · {counts[c.id]}
+              <CategoryIcon id={c.id} className={ICO} />
+              {c.plural[lang]} <span className="opacity-60">{counts[c.id]}</span>
             </Chip>
           ))}
+          {(hiddenCats > 0 || allCats) && visibleCats.length > TOP_CATS + 2 && (
+            <button type="button" onClick={() => setAllCats((v) => !v)} className="h-9 shrink-0 whitespace-nowrap rounded-full px-3 text-[13px] font-semibold text-brand underline-offset-2 hover:underline">
+              {allCats ? ft.less : ft.more(hiddenCats)}
+            </button>
+          )}
         </div>
       )}
 
@@ -305,11 +318,13 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
   );
 }
 
+const ICO = "h-4 w-4 shrink-0 opacity-70";
+
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-4 text-[13px] font-medium transition-colors ${
+      className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
         active ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink"
       }`}
     >
