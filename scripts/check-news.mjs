@@ -10,6 +10,7 @@ const urls = new Map();
 const BANNED = /(лучш(ий|ие|ая)\s+мастер|провер(енные|ены)\s+(мастера|специалисты|документы)|whatsapp|ватсап)/i;
 const BLOCK_KEYS = ["h2", "p", "list", "tip", "cta", "link", "map", "img", "event"];
 const LICENSE = /^(CC BY(-SA)? [0-9.]+|CC0|Public domain|Общественное достояние)/i;
+const CITY_IDS = ["batumi", "tbilisi", "kutaisi", "rustavi", "kobuleti", "zugdidi", "poti", "gori", "telavi", "borjomi"];
 const today = new Date(Date.now() + 4 * 3600_000).toISOString().slice(0, 10); // дата по Тбилиси
 
 if (!Array.isArray(list)) errors.push("auto.json должен быть массивом");
@@ -62,9 +63,22 @@ for (const [i, n] of list.entries()) {
     if (!Array.isArray(n.faq) || n.faq.length < 4) errors.push(`${at}: в статье «Куда поехать» нужно минимум 4 вопроса в faq`);
   }
   for (const f of n.faq ?? []) if (!f?.q || !f?.a) errors.push(`${at}: в faq нужны q и a`);
+  // Новые заметки (с 25.10.2026): фото с Commons по запросу и место
+  if (n.date >= "2026-10-25") {
+    if (!n.photo || typeof n.photo.q !== "string" || n.photo.q.trim().length < 4 || /[а-яё]/i.test(n.photo.q))
+      errors.push(`${at}: нужен "photo": { "q": "…" } — что искать на Wikimedia Commons, по-английски (место, здание, предмет)`);
+    if (n.city && !CITY_IDS.includes(n.city)) errors.push(`${at}: city «${n.city}» — не из списка городов сайта; для другого города пишите "place": "Местиа"`);
+  }
 }
 if (errors.length) {
   console.error("❌ Ошибки в lib/news/auto.json:\n" + errors.map((e) => " - " + e).join("\n"));
   process.exit(1);
+}
+// Сводка за сегодня: сколько новостей по городам (упор — на Тбилиси)
+const todays = list.filter((n) => n.date === today && n.rubric === "news");
+if (todays.length) {
+  const by = {};
+  for (const n of todays) { const k = n.city || n.place || "Вся Грузия"; by[k] = (by[k] || 0) + 1; }
+  console.log("Сегодня новостей: " + todays.length + " — " + Object.entries(by).map(([k, v]) => `${k}: ${v}`).join(", "));
 }
 console.log(`✅ auto.json в порядке: ${list.length} заметок`);

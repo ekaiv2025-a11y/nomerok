@@ -3,6 +3,7 @@ import { RUBRICS, formatArticleDate, type Article } from "@/lib/articles";
 import { journalArticles } from "@/lib/journal";
 import { href, type Locale } from "@/lib/i18n";
 import { posStyle } from "@/lib/photo-pos";
+import { cityLabel, isCity } from "@/lib/cities";
 
 /*
  * Главная: живой журнал под каталогом — новости, афиша, куда поехать, подборки, советы.
@@ -23,6 +24,9 @@ function Cover({ a, h = "h-32", cls = "" }: { a: Article; h?: string; cls?: stri
         <span className="text-[46px]" aria-hidden>
           {a.emoji}
         </span>
+      )}
+      {(a.rubric === "news" || a.rubric === "events") && (
+        <span className="absolute bottom-2 left-2 rounded-full bg-ink/75 px-2 py-0.5 text-[11px] font-semibold text-white">📍 {a.place || (isCity(a.city) ? cityLabel(a.city, "ru") : "Вся Грузия")}</span>
       )}
     </span>
   );

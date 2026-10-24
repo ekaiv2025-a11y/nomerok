@@ -72,6 +72,15 @@ export default async function ArticlePage({ params }: Props) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={a.cover} alt="" className="mt-5 h-[260px] w-full rounded-2xl object-cover sm:h-[380px]" style={posStyle(a.cover)} />
       )}
+      {a.cover && a.coverCredit && (
+        <p className="mt-1.5 text-[12px] text-muted">
+          Фото:{" "}
+          <a href={a.coverCredit.source} target="_blank" rel="noopener noreferrer nofollow" className="underline">
+            {a.coverCredit.credit}
+          </a>
+          , {a.coverCredit.license}, Wikimedia Commons. Иллюстрация, не снимок события.
+        </p>
+      )}
       {a.lead && <p className="mt-4 text-[17px] leading-relaxed text-[#3a3935]">{a.lead}</p>}
 
       <article className="mt-6 space-y-4 text-[16px] leading-relaxed text-[#2a2925]">

@@ -259,7 +259,10 @@
         "name": "Википедия — Собор Баграти",
         "url": "https://en.wikipedia.org/wiki/Bagrati_Cathedral"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Kutaisi White Bridge Rioni"
+    }
   },
   {
     "slug": "privivka-ot-grippa-besplatno-gruziya-2026-10-24",
@@ -316,7 +319,10 @@
         "name": "Mix.Metronome (заявление NCDC)",
         "url": "https://mix.metronome.ge/news/344653"
       }
-    ]
+    ],
+    "photo": {
+      "q": "vaccination syringe vial"
+    }
   },
   {
     "slug": "tbilisi-ceny-novostroyki-iii-kvartal-2026-10-24",
@@ -362,7 +368,10 @@
         "name": "NewsGeorgia (по данным Сакстата)",
         "url": "https://www.newsgeorgia.ge/v-iii-kvartale-2026-goda-ceny-na-novostrojki-v-tbilisi-vyrosli-pochti-na-7-sakstat/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Tbilisi new residential buildings construction"
+    }
   },
   {
     "slug": "nacbank-sohranil-stavku-8-25-oktyabr-2026-10-24",
@@ -409,7 +418,10 @@
         "name": "The Moscow Times",
         "url": "https://ru.themoscowtimes.com/2026/10/21/tsb-gruzii-sokhranil-klyuchevuyu-stavku-na-urovne-825-a209145"
       }
-    ]
+    ],
+    "photo": {
+      "q": "National Bank of Georgia building Tbilisi"
+    }
   },
   {
     "slug": "batumi-proverki-reklamnyh-vyvesok-2026-10-24",
@@ -460,7 +472,10 @@
         "name": "Грузия Online",
         "url": "https://www.apsny.ge/other/1792757551/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Batumi street shop signs"
+    }
   },
   {
     "slug": "tbilisi-festival-gruzinskoy-vypechki-food-geni-2026-10-23",
@@ -505,7 +520,10 @@
         "name": "News.az",
         "url": "https://news.az/news/tbilisi-to-host-georgian-pastry-festival-for-first-time"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Georgian bread shoti tone bakery"
+    }
   },
   {
     "slug": "nacbank-preduprezhdaet-moshenniki-kredit-2026-10-23",
@@ -555,7 +573,10 @@
         "name": "Новости-Грузия",
         "url": "https://www.newsgeorgia.ge/nacbank-gruzii-predupredil-o-novoj-sheme-kreditnogo-moshennichestva/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "smartphone phone call"
+    }
   },
   {
     "slug": "cifrovoy-lari-nacbank-ne-planiruet-2026-10-23",
@@ -591,7 +612,10 @@
         "name": "Новости-Грузия",
         "url": "https://www.newsgeorgia.ge/nacbank-gruzii-ne-planiruet-polnomasshtabnyj-zapusk-cifrovogo-lari-v-blizhajshie-gody/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Georgian lari coins banknotes"
+    }
   },
   {
     "slug": "vodopad-mahuntseti-most-caricy-tamary-kak-dobratsya",
@@ -813,7 +837,10 @@
         "name": "Sarafan.ge — как доехать без машины (отзывы)",
         "url": "https://sarafan.ge/threads/podskazhite-kakoj-nibud-mestnyj-avtobus-v-batumi-vozit-na-vodopad-maxunceti-kak-mozhno-dobratsja-pomimo-mashiny-i-turov.1169/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Makhuntseti waterfall"
+    }
   },
   {
     "slug": "afisha-batumi-24-oktyabrya-1-noyabrya-2026",
@@ -1053,7 +1080,10 @@
         "name": "TKT.ge",
         "url": "https://tkt.ge/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "Batumi Drama Theatre"
+    }
   },
   {
     "slug": "gnerc-oshtrafoval-gwp-voda-rustavi-2026-10-23",
@@ -1097,7 +1127,10 @@
         "name": "NewsGeorgia",
         "url": "https://www.newsgeorgia.ge/reguljator-oshtrafoval-gwp-iz-za-narushenij-v-vodosnabzhenii-rustavi/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "water pipe repair"
+    }
   },
   {
     "slug": "molochnye-produkty-rastitelnye-zhiry-markirovka-2027",
@@ -1135,6 +1168,9 @@
         "name": "NewsGeorgia",
         "url": "https://www.newsgeorgia.ge/v-gruzii-uzhestochajut-pravila-prodazhi-molochnyh-produktov-s-rastitelnymi-zhirami/"
       }
-    ]
+    ],
+    "photo": {
+      "q": "dairy products shelf supermarket"
+    }
   }
 ]

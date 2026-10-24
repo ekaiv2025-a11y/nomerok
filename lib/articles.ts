@@ -61,6 +61,13 @@ export type Article = {
   cats: string[]; // связанные разделы каталога
   body: Block[];
   cover?: string | null; // фото-обложка (записи из админки)
+  /** автор и лицензия обложки (фото из Wikimedia Commons) */
+  coverCredit?: { credit: string; license: string; source: string } | null;
+  /** что искать на Commons для обложки (автоновости) */
+  photoQuery?: string | null;
+  /** город (id из lib/cities) и/или место словами — «Местиа», «Кахетия» */
+  city?: string | null;
+  place?: string | null;
   photos?: string[]; // галерея
   source?: { name: string; url: string } | null; // источник новости
   sources?: { name: string; url: string }[]; // несколько источников (автоновости)

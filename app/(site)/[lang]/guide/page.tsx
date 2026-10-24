@@ -8,6 +8,26 @@ import { RUBRICS, formatArticleDate, readingMinutes, type Article, type Rubric }
 import { journalArticles } from "@/lib/journal";
 import { articleViews } from "@/lib/article-views";
 import { posStyle } from "@/lib/photo-pos";
+import { cityLabel, isCity } from "@/lib/cities";
+
+/** Где: город сайта, место словами или «Вся Грузия» — для новостей, афиши и поездок. */
+function whereOf(a: Article): string | null {
+  if (a.rubric !== "news" && a.rubric !== "events" && a.rubric !== "travel") return null;
+  return a.place || (isCity(a.city) ? cityLabel(a.city, "ru") : "Вся Грузия");
+}
+/** Фильтр по городам в новостях: Тбилиси, Батуми, Кутаиси, другие регионы, вся Грузия */
+const CITY_TABS: [string, string][] = [
+  ["tbilisi", "Тбилиси"],
+  ["batumi", "Батуми"],
+  ["kutaisi", "Кутаиси"],
+  ["regions", "Другие города и регионы"],
+  ["all-georgia", "Вся Грузия"],
+];
+function matchCity(a: Article, c: string): boolean {
+  if (c === "all-georgia") return !a.city && !a.place;
+  if (c === "regions") return (!!a.city && !["tbilisi", "batumi", "kutaisi"].includes(a.city)) || (!a.city && !!a.place);
+  return a.city === c;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +58,7 @@ function Cover({ a, big }: { a: Article; big?: boolean }) {
       <span className="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[12px] font-semibold text-ink backdrop-blur">
         {rub.emoji} {rub.label}
       </span>
+      {whereOf(a) && <span className="absolute bottom-3 left-3 rounded-full bg-ink/75 px-2.5 py-1 text-[12px] font-semibold text-white backdrop-blur">📍 {whereOf(a)}</span>}
     </span>
   );
 }
@@ -50,20 +71,23 @@ function Meta({ a, views }: { a: Article; views?: number }) {
   );
 }
 
-export default async function GuideList({ params, searchParams }: LangParams & { searchParams: Promise<{ r?: string }> }) {
+export default async function GuideList({ params, searchParams }: LangParams & { searchParams: Promise<{ r?: string; c?: string }> }) {
   const lang = await langOf(params);
   if (lang !== "ru") notFound();
-  const r = (await searchParams).r;
+  const { r, c: cRaw } = await searchParams;
+  const c = CITY_TABS.some(([k]) => k === cRaw) ? cRaw! : null;
   const active = r && r in RUBRICS ? (r as Rubric) : null;
   const ARTICLES = await journalArticles();
   const views = await articleViews().catch(() => ({}) as Record<string, number>);
   // На общей странице — только 12 свежих новостей и анонсов, остальные — в рубриках «Новости» и «Афиша»
   let newsSeen = 0;
-  const list = active
+  const list = c
+    ? ARTICLES.filter((a) => (a.rubric === "news" || a.rubric === "events" || a.rubric === "travel") && (!active || a.rubric === active) && matchCity(a, c))
+    : active
     ? ARTICLES.filter((a) => a.rubric === active)
     : ARTICLES.filter((a) => (a.rubric === "news" || a.rubric === "events" ? ++newsSeen <= 12 : true));
-  const first: Article | null = active ? null : list[0] ?? null;
-  const rest = active ? list : list.slice(1);
+  const first: Article | null = active || c ? null : list[0] ?? null;
+  const rest = active || c ? list : list.slice(1);
   const chip = (on: boolean) => `whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition ${on ? "border-brand bg-brand text-white" : "border-line bg-white hover:border-brand"}`;
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -80,6 +104,19 @@ export default async function GuideList({ params, searchParams }: LangParams & {
           </Link>
         ))}
       </nav>
+      {(!active || active === "news" || active === "events" || active === "travel") && (
+        <nav className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Город">
+          <Link href={href(lang, `/guide${active ? `?r=${active}` : ""}`)} className={chip(!c)}>
+            📍 Все города
+          </Link>
+          {CITY_TABS.map(([k, label]) => (
+            <Link key={k} href={href(lang, `/guide?${active ? `r=${active}&` : ""}c=${k}`)} className={chip(c === k)}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+      )}
+      {c && list.length === 0 && <p className="mt-6 rounded-2xl bg-cream p-5 text-[14px] text-muted">Здесь пока нет заметок — загляните через пару дней.</p>}
 
       {first && (
         <Link href={href(lang, `/guide/${first.slug}`)} className="group mt-6 grid overflow-hidden rounded-3xl border border-line bg-white transition hover:shadow-md sm:grid-cols-2">
