@@ -17,6 +17,7 @@ import { placeAddr, placeName } from "@/lib/places";
 import { QUICK } from "@/lib/phones";
 import { SITE_URL } from "@/lib/site";
 import { articleCity, relatedArticles } from "@/lib/related";
+import { makeLinker } from "@/lib/autolink";
 import { categoryLabel, CATEGORIES } from "@/lib/categories";
 import { cityIn, cityLabel, isCity } from "@/lib/cities";
 
@@ -46,6 +47,8 @@ export default async function ArticlePage({ params }: Props) {
   if (noGeo.length) after(() => geocodeMissing(noGeo.length, noGeo).catch(() => undefined));
   let placeN = 0;
   const others = relatedArticles(a, ARTICLES, 6);
+  // ссылки в тексте: [текст](/ru/…) и автоссылки на статьи и разделы каталога
+  const linkify = makeLinker(`/ru/guide/${a.slug}`);
   const city = articleCity(a);
   const cityOk = isCity(city) ? city : null;
   const topicCats = (a.cats ?? []).filter((c) => CATEGORIES.some((x) => x.id === c)).slice(0, 4);
@@ -93,16 +96,16 @@ export default async function ArticlePage({ params }: Props) {
       <article className="mt-6 space-y-4 text-[16px] leading-relaxed text-[#2a2925]">
         {a.body.map((b, i) => {
           if ("h2" in b) return <h2 key={i} className="pt-3 text-[21px] font-bold text-ink">{b.h2}</h2>;
-          if ("p" in b) return <p key={i} className="whitespace-pre-line">{b.p}</p>;
+          if ("p" in b) return <p key={i} className="whitespace-pre-line">{linkify(b.p)}</p>;
           if ("list" in b) {
             const L = b.ordered ? "ol" : "ul";
             return (
               <L key={i} className={`space-y-1.5 pl-6 ${b.ordered ? "list-decimal" : "list-disc"} marker:text-brand`}>
-                {b.list.map((x, j) => <li key={j}>{x}</li>)}
+                {b.list.map((x, j) => <li key={j}>{typeof x === "string" ? linkify(x) : x}</li>)}
               </L>
             );
           }
-          if ("tip" in b) return <p key={i} className="rounded-2xl border border-[#f0d58a] bg-[#fff8e6] p-4 text-[15px]">💡 {b.tip}</p>;
+          if ("tip" in b) return <p key={i} className="rounded-2xl border border-[#f0d58a] bg-[#fff8e6] p-4 text-[15px]">💡 {linkify(b.tip)}</p>;
           if ("phones" in b)
             return (
               <div key={i} className="rounded-2xl bg-cream p-4">

@@ -14,6 +14,11 @@ const CITY_IDS = ["batumi", "tbilisi", "kutaisi", "rustavi", "kobuleti", "zugdid
 const today = new Date(Date.now() + 4 * 3600_000).toISOString().slice(0, 10); // дата по Тбилиси
 
 if (!Array.isArray(list)) errors.push("auto.json должен быть массивом");
+// Все существующие статьи — чтобы проверить ссылки [текст](/ru/guide/slug)
+const libDir = new URL("../lib/", import.meta.url);
+const knownSlugs = new Set(list.map((n) => n?.slug));
+for (const f of fs.readdirSync(libDir)) if (/^articles.*\.ts$/.test(f)) for (const m of fs.readFileSync(new URL(f, libDir), "utf8").matchAll(/slug: "([a-z0-9-]+)"/g)) knownSlugs.add(m[1]);
+const PAGES = /^\/ru(\/(request|phones|places|realty|guide|orders|join)?(\?[\w=&-]*)?)?$|^\/ru\/services\/[a-z]+$|^\/ru\/guide\?[\w=&-]+$/;
 for (const [i, n] of list.entries()) {
   const at = `#${i} «${n?.slug}»`;
   if (!n || typeof n !== "object") { errors.push(`${at}: не объект`); continue; }
@@ -33,6 +38,12 @@ for (const [i, n] of list.entries()) {
     if (urls.has(s.url) && urls.get(s.url) !== n.slug && n.rubric === "news") errors.push(`${at}: эта ссылка уже использована в «${urls.get(s.url)}» — похоже на повтор новости`);
     urls.set(s.url, n.slug);
   }
+  for (const b of n.body ?? []) for (const t of [b.p, b.tip, ...(b.list ?? [])].filter((x) => typeof x === "string"))
+    for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
+      const u = m[2];
+      const g = /^\/ru\/guide\/([a-z0-9-]+)$/.exec(u);
+      if (g ? !knownSlugs.has(g[1]) : !(PAGES.test(u) || /^https:\/\//.test(u))) errors.push(`${at}: ссылка «${m[1]}» ведёт на несуществующую страницу ${u}`);
+    }
   const text = JSON.stringify(n);
   if (BANNED.test(text)) errors.push(`${at}: запрещённые слова (лучшие мастера / проверенные / WhatsApp)`);
   const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
