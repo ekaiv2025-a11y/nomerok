@@ -16,6 +16,9 @@ import { Map } from "@/components/map/Map";
 import { placeAddr, placeName } from "@/lib/places";
 import { QUICK } from "@/lib/phones";
 import { SITE_URL } from "@/lib/site";
+import { articleCity, relatedArticles } from "@/lib/related";
+import { categoryLabel, CATEGORIES } from "@/lib/categories";
+import { cityIn, cityLabel, isCity } from "@/lib/cities";
 
 type Props = { params: Promise<{ lang: string; slug: string }> };
 
@@ -42,8 +45,12 @@ export default async function ArticlePage({ params }: Props) {
   const noGeo = placeList.filter((x) => x.lat == null && !x.geo_tried).map((x) => x.id);
   if (noGeo.length) after(() => geocodeMissing(noGeo.length, noGeo).catch(() => undefined));
   let placeN = 0;
-  const same = ARTICLES.filter((x) => x.slug !== a.slug && x.rubric === a.rubric);
-  const others = [...same, ...ARTICLES.filter((x) => x.slug !== a.slug && x.rubric !== a.rubric)].slice(0, 4);
+  const others = relatedArticles(a, ARTICLES, 6);
+  const city = articleCity(a);
+  const cityOk = isCity(city) ? city : null;
+  const topicCats = (a.cats ?? []).filter((c) => CATEGORIES.some((x) => x.id === c)).slice(0, 4);
+  // городская статья «Мастера и быт» для этого города — ссылка из новостей
+  const cityGuide = cityOk ? ARTICLES.find((x) => x.slug === `mastera-i-byt-${cityOk}` && x.slug !== a.slug) : null;
   const rub = RUBRICS[a.rubric ?? "home"];
   const ld = [
     { "@context": "https://schema.org", "@type": "Article", headline: a.h1, description: a.description, datePublished: a.date, inLanguage: "ru", mainEntityOfPage: `${SITE_URL}/ru/guide/${a.slug}`, dateModified: a.date, author: { "@type": "Organization", name: "Редакция NomerOk" }, publisher: { "@type": "Organization", name: "NomerOk.ge" } },
@@ -266,13 +273,58 @@ export default async function ArticlePage({ params }: Props) {
 
 
 
+      {(topicCats.length > 0 || cityOk) && (
+        <section className="mt-10 rounded-2xl bg-brand-soft p-5">
+          <h2 className="text-[18px] font-bold">🔎 Специалисты по теме{cityOk ? ` ${cityIn(cityOk, "ru")}` : ""}</h2>
+          <p className="mt-1 text-[14px] text-[#3d5a4c]">Фото работ, цены и отзывы — связывайтесь напрямую или оставьте заявку.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {topicCats.map((c) => (
+              <Link key={c} href={href(lang, cityOk && cityOk !== "batumi" ? `/?city=${cityOk}&cat=${c}#masters` : `/services/${c}`)} className="rounded-full bg-white px-3.5 py-1.5 text-[14px] font-medium text-brand-dark hover:shadow-sm">
+                {categoryLabel(c, "ru")}
+              </Link>
+            ))}
+            <Link href={href(lang, cityOk ? `/?city=${cityOk}#masters` : "/#masters")} className="rounded-full bg-brand px-3.5 py-1.5 text-[14px] font-semibold text-white">
+              Все специалисты{cityOk ? ` ${cityIn(cityOk, "ru")}` : ""} →
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {(cityOk || cityGuide) && (
+        <div className="mt-4 flex flex-wrap gap-2 text-[14px]">
+          {cityOk && (
+            <Link href={href(lang, `/guide?r=news&c=${["tbilisi", "batumi", "kutaisi"].includes(cityOk) ? cityOk : "regions"}`)} className="rounded-full border border-line px-3.5 py-1.5 hover:border-brand">
+              📰 Ещё новости: {cityLabel(cityOk, "ru")}
+            </Link>
+          )}
+          {cityGuide && (
+            <Link href={href(lang, `/guide/${cityGuide.slug}`)} className="rounded-full border border-line px-3.5 py-1.5 hover:border-brand">
+              🏙 {cityGuide.h1}
+            </Link>
+          )}
+        </div>
+      )}
+
       {others.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-[18px] font-bold">Читайте также</h2>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <h2 className="text-[20px] font-bold">Читайте также</h2>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((o) => (
-              <Link key={o.slug} href={href(lang, `/guide/${o.slug}`)} className="rounded-xl border border-line bg-white px-4 py-3 text-[15px] hover:border-brand">
-                {o.emoji} {o.h1}
+              <Link key={o.slug} href={href(lang, `/guide/${o.slug}`)} className="group overflow-hidden rounded-2xl border border-line bg-white transition hover:shadow-md">
+                <span className={`relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-gradient-to-br ${RUBRICS[o.rubric ?? "home"].bg}`}>
+                  {o.cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={o.cover} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={posStyle(o.cover)} />
+                  ) : (
+                    <span className="text-[44px]" aria-hidden>
+                      {o.emoji}
+                    </span>
+                  )}
+                  <span className="absolute left-2 top-2 rounded-full bg-white/85 px-2 py-0.5 text-[11px] font-semibold">
+                    {RUBRICS[o.rubric ?? "home"].emoji} {RUBRICS[o.rubric ?? "home"].label}
+                  </span>
+                </span>
+                <span className="block p-3 text-[15px] font-semibold leading-snug group-hover:text-brand">{o.h1}</span>
               </Link>
             ))}
           </div>

@@ -12,7 +12,7 @@ const UA = "NomerOk.ge/1.0 (https://nomerok.ge/ru/contacts) news covers";
 const LICENSE_OK = /^(cc0|cc[- ]by(-sa)? \d(\.\d)?|public domain|pd)/i;
 const BAD_TITLE = /\b(map|karte|flag|coat of arms|logo|emblem|seal|plan|scheme|diagram|chart|graph|stamp|banknote|signature|icon)\b|\.(svg|png|gif|tif)$/i;
 
-const mem = new Map<string, Promise<CommonsPhoto | null>>();
+const mem = new Map<string, Promise<CommonsPhoto | null | undefined>>();
 
 const strip = (html: string) =>
   html
@@ -56,7 +56,8 @@ export function pickPhoto(json: unknown): CommonsPhoto | null {
   return null;
 }
 
-async function search(q: string): Promise<CommonsPhoto | null> {
+/** null — подходящего фото нет; undefined — Commons не ответил (дальше не пробуем, чтобы страница не ждала). */
+async function search(q: string): Promise<CommonsPhoto | null | undefined> {
   const params = new URLSearchParams({
     action: "query",
     format: "json",
@@ -71,19 +72,24 @@ async function search(q: string): Promise<CommonsPhoto | null> {
     origin: "*",
   });
   try {
-    const r = await fetch(`${API}?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(6000), next: { revalidate: 7 * 86400 } });
-    if (!r.ok) return null;
+    const r = await fetch(`${API}?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(3500), next: { revalidate: 7 * 86400 } });
+    if (!r.ok) return undefined;
     return pickPhoto(await r.json());
   } catch {
-    return null;
+    return undefined;
   }
 }
 
 /** Фото по запросу (английские слова: место, здание, предмет). null — ничего подходящего. */
-export function commonsPhoto(q: string | null | undefined): Promise<CommonsPhoto | null> {
+export function commonsPhoto(q: string | null | undefined): Promise<CommonsPhoto | null | undefined> {
   const key = String(q ?? "").trim().slice(0, 120);
   if (!key) return Promise.resolve(null);
-  if (!mem.has(key)) mem.set(key, search(key));
+  if (!mem.has(key)) {
+    const p = search(key);
+    mem.set(key, p);
+    // ошибку сети не запоминаем — в следующий раз попробуем снова
+    p.then((v) => v === undefined && mem.delete(key));
+  }
   return mem.get(key)!;
 }
 

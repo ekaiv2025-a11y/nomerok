@@ -1,0 +1,61 @@
+/*
+ * Обложки для статей журнала, написанных вручную: что искать на Wikimedia Commons (по-английски).
+ * Сайт сам найдёт фото со свободной лицензией и подпишет автора (lib/commons.ts).
+ * Нет строки — обложка подбирается по теме (cats) или городу статьи.
+ */
+export const ARTICLE_PHOTO: Record<string, string> = {
+  "kommunalnye-sluzhby-gruzii": "electricity meters apartment building",
+  "mastera-i-byt-tbilisi": "Tbilisi Sololaki street houses",
+  "mastera-i-byt-kutaisi": "Kutaisi Colchis Fountain",
+  "mastera-i-byt-rustavi": "Rustavi city Georgia",
+  "mastera-i-byt-kobuleti": "Kobuleti beach",
+  "mastera-i-byt-zugdidi": "Zugdidi Dadiani Palace",
+  "mastera-i-byt-poti": "Poti cathedral Georgia",
+  "mastera-i-byt-gori": "Gori fortress",
+  "mastera-i-byt-telavi": "Telavi Alazani valley",
+  "mastera-i-byt-borjomi": "Borjomi central park",
+  "gazovyy-kotel-zima-gruziya": "gas boiler heating",
+  "kak-oplatit-kommunalku-gruziya": "utility bill payment terminal",
+  "kovorkingi-batumi": "coworking space laptops",
+  "hachapuri-i-hinkali-batumi": "Adjarian khachapuri",
+  "remont-telefonov-batumi": "smartphone repair",
+  "plesen-v-kvartire-batumi": "mold damp wall",
+  "chistka-kondicionera": "air conditioner split system",
+  "snyat-kvartiru-batumi-chek-list": "Batumi residential buildings",
+  "pereezd-bez-nervov": "moving boxes cardboard",
+  "generalnaya-uborka-chek-list": "cleaning supplies bucket mop",
+  "kak-opisat-zadachu-masteru": "toolbox hand tools",
+  "kak-vybrat-repetitora": "child studying homework",
+  "gruzinskiy-yazyk-s-nulya": "Georgian alphabet Mkhedruli",
+  "kak-vybrat-psihologa": "psychotherapy office armchair",
+  "kogda-srochno-k-veterinaru": "veterinarian examining dog",
+  "anketa-specialista-kotoraya-prodaet": "laptop on desk workspace",
+  "kak-prosit-otzyvy": "handshake business",
+  "propal-svet-batumi": "power lines electricity pole",
+  "net-vody-batumi": "water tap faucet",
+  "kak-vybrat-mastera-batumi": "handyman tools work",
+  "remont-novostroyki-batumi": "Batumi new buildings construction",
+  "kak-nayti-nyanyu-batumi": "children toys playroom",
+};
+
+/** Запасной запрос по разделу каталога (первый из cats статьи). */
+export const CAT_PHOTO: Record<string, string> = {
+  plumber: "plumber pipes repair",
+  electrician: "electrician electrical panel",
+  repair: "apartment renovation interior",
+  handyman: "handyman tools work",
+  aircon: "air conditioner split system",
+  cleaning: "cleaning supplies bucket mop",
+  moving: "moving boxes cardboard",
+  tutor: "child studying homework",
+  languages: "language textbooks study",
+  nanny: "children toys playroom",
+  vet: "veterinarian examining dog",
+  psychologist: "psychotherapy office armchair",
+  realtor: "Batumi residential buildings",
+  appliances: "household appliance repair",
+  food: "Georgian cuisine khinkali",
+  it: "laptop on desk workspace",
+  photo: "photographer camera",
+  beauty: "beauty salon interior",
+};

@@ -36,7 +36,8 @@ export const AUTO_NEWS: Article[] = (AUTO as unknown as AutoNews[])
     h1: n.title,
     description: n.description,
     lead: n.lead,
-    cats: n.cats ?? [],
+    // темы: явно или из ссылок на каталог внутри заметки ({cta, cat})
+    cats: n.cats ?? [...new Set(n.body.filter((b) => "cat" in b && typeof (b as { cat?: string }).cat === "string").map((b) => (b as { cat: string }).cat))],
     body: n.body,
     source: n.sources?.[0] ?? null,
     sources: n.sources ?? [],
