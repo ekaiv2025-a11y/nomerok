@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Search, Sparkles, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Save, Search, Sparkles, Star, Trash2 } from "lucide-react";
 import { resizeImage } from "@/lib/image-resize";
 import {
   AMENITIES,
@@ -17,7 +17,10 @@ import {
   PARKINGS,
   QUALITY_PARTS,
   autoTitle,
+  fillTemplate,
   listingQuality,
+  TEMPLATE_TOKENS,
+  TOKEN_RE,
   parseListingText,
   pricePerM2,
   type Listing,
@@ -29,13 +32,27 @@ import type { Locale } from "@/lib/i18n";
 const T = {
   ru: {
     back: "К моим объявлениям",
+    tplStart: "📋 Начать с шаблона",
+    tplHint: "Шаблон заполняет текст, район, удобства и подпись. Остаётся добавить фото и цену.",
+    tplActive: (n: string) => `Шаблон «${n}». Слова в фигурных скобках — {цена}, {этаж} — заменятся значениями из полей ниже.`,
+    preview: "Так увидят клиенты (значения из полей подставлены):",
+    tokens: "Вставить в текст:",
+    tplSave: "Сохранить как шаблон",
+    tplShort: "Шаблон",
+    tplName: "Название шаблона",
+    tplNamePh: "Например: Аренда — Новый бульвар",
+    tplSaved: (n: string) => `✓ Шаблон «${n}» сохранён`,
+    tplLimit: "Можно хранить до 10 шаблонов — удалите ненужный в списке объявлений.",
+    tplOk: "Сохранить",
+    tplCancel: "Отмена",
+    unfilled: (x: string) => `Заполните поля, которые есть в тексте: ${x}`,
     newTitle: "Новое объявление",
     editTitle: "Редактирование объявления",
     quality: (p: number) => `Объявление заполнено на ${p}%`,
     qualityHint: "Чем полнее объявление, тем выше оно в списке и тем чаще звонят. Не хватает:",
     qualityFull: "Отлично — объявление заполнено полностью.",
     s1: "1. Текст объявления",
-    s1hint: "Вставьте готовый текст (например, из Telegram или WhatsApp-рассылки) и нажмите «Заполнить из текста» — мы сами расставим цену, комнаты, этаж, ремонт, удобства и район. Потом проверьте поля ниже.",
+    s1hint: "Вставьте готовый текст (например, из своего Telegram-канала) и нажмите «Заполнить из текста» — мы сами расставим цену, комнаты, этаж, ремонт, удобства и район. Потом проверьте поля ниже.",
     descPh: "Например: Сдаётся 2 спальни на Новом бульваре, 15/30 этаж, 78 м², свежий ремонт, вид на море, мебель и техника. 900$ в месяц, депозит 900.",
     fill: "Заполнить из текста",
     filled: (n: number) => `Заполнили полей: ${n}. Проверьте их ниже.`,
@@ -80,12 +97,26 @@ const T = {
     video: "Видео (YouTube, Instagram, TikTok)",
     publish: "Опубликовать",
     save: "Сохранить изменения",
-    draft: "Сохранить черновик",
+    draft: "Черновик",
     needPhoto: "Добавьте хотя бы одно фото",
     any: "—",
   },
   en: {
     back: "Back to my listings",
+    tplStart: "📋 Start from a template",
+    tplHint: "A template fills the text, district, amenities and signature. Just add photos and the price.",
+    tplActive: (n: string) => `Template “${n}”. Words in braces — {цена}, {этаж} — are replaced with the field values below.`,
+    preview: "What clients will see (field values filled in):",
+    tokens: "Insert into text:",
+    tplSave: "Save as template",
+    tplShort: "Template",
+    tplName: "Template name",
+    tplNamePh: "E.g.: Rent — New Boulevard",
+    tplSaved: (n: string) => `✓ Template “${n}” saved`,
+    tplLimit: "You can keep up to 10 templates — delete one in the listings list.",
+    tplOk: "Save",
+    tplCancel: "Cancel",
+    unfilled: (x: string) => `Fill in the fields used in the text: ${x}`,
     newTitle: "New listing",
     editTitle: "Edit listing",
     quality: (p: number) => `Listing ${p}% complete`,
@@ -143,6 +174,20 @@ const T = {
   },
   ka: {
     back: "ჩემს განცხადებებზე",
+    tplStart: "📋 შაბლონით დაწყება",
+    tplHint: "შაბლონი ავსებს ტექსტს, რაიონს, კომფორტს და ხელმოწერას. დარჩება ფოტო და ფასი.",
+    tplActive: (n: string) => `შაბლონი «${n}»: ველების მნიშვნელობები ტექსტში თავად ჩაისმება.`,
+    preview: "ასე დაინახავენ კლიენტები:",
+    tokens: "ტექსტში ჩასმა:",
+    tplSave: "შაბლონად შენახვა",
+    tplShort: "შაბლონი",
+    tplName: "შაბლონის სახელი",
+    tplNamePh: "მაგ.: ქირა — ახალი ბულვარი",
+    tplSaved: (n: string) => `✓ შაბლონი «${n}» შენახულია`,
+    tplLimit: "შეიძლება 10 შაბლონამდე — წაშალეთ ზედმეტი სიაში.",
+    tplOk: "შენახვა",
+    tplCancel: "გაუქმება",
+    unfilled: (x: string) => `შეავსეთ ტექსტში გამოყენებული ველები: ${x}`,
     newTitle: "ახალი განცხადება",
     editTitle: "განცხადების რედაქტირება",
     quality: (p: number) => `განცხადება შევსებულია ${p}%-ით`,
@@ -293,7 +338,22 @@ function Section({ id, title, hint, children }: { id: string; title: string; hin
 const SECTION_OF: Record<string, string> = { photos5: "le-photos", price: "le-price", area: "le-params", rooms: "le-params", floor: "le-params", district: "le-where", map: "le-where", condition: "le-house", building: "le-house", amenities: "le-amen", desc: "le-text", extra: "le-house" };
 
 /** Форма объявления в кабинете риелтора — подробные параметры, карта, удобства, заполненность. */
-export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; initial?: Listing | null; defaultCity: string }) {
+export type EditorTemplate = { id: string; name: string; data: Record<string, unknown> };
+
+export function ListingEditor({
+  lang,
+  initial,
+  defaultCity,
+  templates = [],
+  startTemplate = null,
+}: {
+  lang: Locale;
+  initial?: Listing | null;
+  defaultCity: string;
+  templates?: EditorTemplate[];
+  /** «Новое по шаблону» из списка шаблонов */
+  startTemplate?: string | null;
+}) {
   const t = T[lang];
   const router = useRouter();
   const [f, setF] = useState<F>(() => fromListing(initial, defaultCity));
@@ -302,6 +362,13 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [filledMsg, setFilledMsg] = useState("");
+  // Шаблон: в тексте и заголовке могут быть подстановки ({цена}, {этаж}…) — клиенты увидят уже подставленные значения
+  const [tplName0, setTplName0] = useState<string | null>(null);
+  const [tplOpen, setTplOpen] = useState(false);
+  const [tplName, setTplName] = useState("");
+  const [tplMsg, setTplMsg] = useState("");
+  const [myTpl, setMyTpl] = useState(templates);
+  const descRef = useRef<HTMLTextAreaElement>(null);
   const cityCenter = (id: string) => (CITIES.find((c) => c.id === id)?.center as unknown as [number, number] | undefined) ?? null;
   const [focus, setFocus] = useState<[number, number] | null>(() => (initial?.lat != null ? null : cityCenter(initial?.city ?? defaultCity)));
   const [searching, setSearching] = useState(false);
@@ -329,6 +396,63 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
   );
   const q = listingQuality(asListing);
   const perM2 = pricePerM2({ price: Number(f.price) || null, area: Number(f.area) || null, currency: f.currency, deal: f.deal });
+
+  const finalDesc = fillTemplate(f.description, f, lang);
+  const finalTitle = fillTemplate(f.title, f, lang);
+  const hasTokens = /\{[а-яё]+\}/i.test(f.description + f.title);
+
+  function applyTemplate(t0: EditorTemplate) {
+    const d = t0.data as Partial<Record<keyof F, unknown>>;
+    setF((x) => {
+      const next = { ...x };
+      for (const [k, v] of Object.entries(d)) {
+        if (!(k in next) || v == null) continue;
+        if (k === "amenities") next.amenities = Array.isArray(v) ? (v as string[]) : [];
+        else if (k === "lat" || k === "lng") (next as Record<string, unknown>)[k] = typeof v === "number" ? v : null;
+        else (next as Record<string, unknown>)[k] = String(v);
+      }
+      return next;
+    });
+    setTplName0(t0.name);
+    if (typeof d.lat === "number" && typeof d.lng === "number") setFocus([d.lat, d.lng]);
+  }
+
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current || !startTemplate || initial) return;
+    started.current = true;
+    const x = templates.find((y) => y.id === startTemplate);
+    if (x) applyTemplate(x);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function insertToken(tok: string) {
+    const el = descRef.current;
+    const pos = el ? el.selectionStart : f.description.length;
+    const text = f.description.slice(0, pos) + tok + f.description.slice(pos);
+    set("description", text);
+    // курсор — сразу после вставленного, чтобы печатать дальше
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(pos + tok.length, pos + tok.length);
+    });
+  }
+
+  async function saveAsTemplate() {
+    const name = tplName.trim();
+    if (name.length < 2) return;
+    // в шаблон — исходный текст с подстановками (если шаблон уже был) и типовые поля; фото — нет
+    const data = { ...f };
+    const r = await fetch("/api/realty/template", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, data }) })
+      .then((x) => x.json())
+      .catch(() => null);
+    if (r?.ok) {
+      setMyTpl((l) => [...l, r.template]);
+      setTplMsg(t.tplSaved(name));
+      setTplOpen(false);
+      setTplName("");
+    } else setTplMsg(r?.error === "limit" ? t.tplLimit : "Error");
+  }
 
   async function addFiles(list: FileList | null) {
     if (!list?.length) return;
@@ -409,13 +533,15 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
   }
 
   async function save(publish: boolean) {
+    const left = [...new Set([...finalDesc.matchAll(TOKEN_RE), ...finalTitle.matchAll(TOKEN_RE)].map((m) => m[0]))];
+    if (publish && left.length) return setErr(t.unfilled(left.join(", ")));
     if (publish && !photos.length) {
       document.getElementById("le-photos")?.scrollIntoView({ behavior: "smooth" });
       return setErr(t.needPhoto);
     }
     setBusy(true);
     setErr("");
-    const r = await fetch("/api/realty/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...f, photos, id: initial?.id, publish }) })
+    const r = await fetch("/api/realty/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...f, description: finalDesc, title: finalTitle, photos, id: initial?.id, publish }) })
       .then((x) => x.json())
       .catch(() => null);
     setBusy(false);
@@ -436,6 +562,19 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
         <ArrowLeft className="h-4 w-4" /> {t.back}
       </a>
       <h2 className="text-[22px] font-bold">{initial ? t.editTitle : t.newTitle}</h2>
+      {myTpl.length > 0 && (
+        <div className="rounded-2xl border-2 border-[#f0d58a] bg-[#fffaf0] p-4">
+          <p className="text-[15px] font-bold">{t.tplStart}</p>
+          <p className="mt-0.5 text-[13px] text-[#5a4410]">{t.tplHint}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {myTpl.map((x) => (
+              <button key={x.id} type="button" onClick={() => applyTemplate(x)} className={`rounded-full border px-3.5 py-1.5 text-[14px] font-semibold ${tplName0 === x.name ? "border-brand bg-brand text-white" : "border-[#f0d58a] bg-white hover:border-accent"}`}>
+                {x.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Заполненность — липкая полоска сверху */}
       <div className="sticky top-[118px] z-20 rounded-2xl border border-line bg-white/95 p-3.5 shadow-sm backdrop-blur md:top-[124px]">
@@ -443,17 +582,18 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
           <p className="text-[14px] font-semibold">{t.quality(q.percent)}</p>
           <span className="text-[13px] text-muted">{q.percent}%</span>
         </div>
-        <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-cream">
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-cream">
           <div className={`h-full rounded-full transition-all ${qColor}`} style={{ width: `${q.percent}%` }} />
         </div>
         {q.missing.length ? (
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px]">
             <span className="text-muted">{t.qualityHint}</span>
-            {q.missing.map((k) => (
+            {q.missing.slice(0, 4).map((k) => (
               <a key={k} href={`#${SECTION_OF[k] ?? "le-text"}`} className="rounded-full bg-[#fdf3dc] px-2 py-0.5 font-medium text-[#6b4f12] hover:underline">
                 {QUALITY_PARTS.find((p) => p.k === k)?.tip[lang]}
               </a>
             ))}
+            {q.missing.length > 4 && <span className="text-muted">+{q.missing.length - 4}</span>}
           </div>
         ) : (
           <p className="mt-1.5 text-[12px] font-medium text-brand">{t.qualityFull}</p>
@@ -461,7 +601,31 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
       </div>
 
       <Section id="le-text" title={t.s1} hint={t.s1hint}>
-        <textarea value={f.description} onChange={(e) => set("description", e.target.value)} rows={7} maxLength={4000} placeholder={t.descPh} className="field w-full py-2" />
+        {tplName0 && <p className="mb-2 rounded-xl bg-brand-soft px-3 py-2 text-[13px] text-brand-dark">{t.tplActive(tplName0)}</p>}
+        <textarea
+          ref={descRef}
+          value={f.description}
+          onChange={(e) => set("description", e.target.value)}
+          rows={7}
+          maxLength={4000}
+          placeholder={t.descPh}
+          className="field w-full py-2"
+        />
+        <div className="mt-1.5 flex flex-wrap items-center gap-1">
+          <span className="text-[12px] text-muted">{t.tokens}</span>
+          {TEMPLATE_TOKENS.map((x) => (
+            <button key={x.t} type="button" onClick={() => insertToken(x.t)} className="rounded-full border border-line bg-white px-2 py-0.5 text-[12px] hover:border-brand" title={x.t}>
+              {x.label[lang]}
+            </button>
+          ))}
+        </div>
+        {hasTokens && (
+          <div className="mt-3 rounded-xl border border-dashed border-brand/40 bg-cream p-3">
+            <p className="text-[12px] font-semibold text-muted">{t.preview}</p>
+            {finalTitle && <p className="mt-1 text-[14px] font-bold">{finalTitle}</p>}
+            <p className="mt-1 whitespace-pre-line text-[14px] leading-relaxed">{finalDesc}</p>
+          </div>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <button type="button" onClick={fillFromText} disabled={!f.description.trim()} className="btn h-10 gap-1.5 rounded-full bg-accent px-4 text-[14px] font-semibold text-ink hover:bg-[#cf9620] disabled:opacity-50">
             <Sparkles className="h-4 w-4" /> {t.fill}
@@ -710,15 +874,31 @@ export function ListingEditor({ lang, initial, defaultCity }: { lang: Locale; in
       </Section>
 
       {err && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{err}</p>}
-      <div className="sticky bottom-3 z-20 flex flex-wrap gap-2 rounded-2xl border border-line bg-white/95 p-3 shadow-sm backdrop-blur">
-        <button type="button" disabled={busy || !!upload} onClick={() => save(true)} className="btn-primary h-11 px-6">
+      <div className="sticky bottom-3 z-20 ml-12 flex flex-wrap items-center gap-1.5 rounded-2xl border border-line bg-white/95 p-1.5 shadow-sm backdrop-blur sm:ml-0 sm:gap-2 sm:p-2.5">
+        <button type="button" disabled={busy || !!upload} onClick={() => save(true)} className="btn-primary h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-6 sm:text-[14px]">
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} {initial?.status === "published" ? t.save : t.publish}
         </button>
         {initial?.status !== "published" && (
-          <button type="button" disabled={busy || !!upload} onClick={() => save(false)} className="btn-ghost h-11 px-5">
+          <button type="button" disabled={busy || !!upload} onClick={() => save(false)} className="btn-ghost h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-5 sm:text-[14px]">
             {t.draft}
           </button>
         )}
+        <button type="button" onClick={() => setTplOpen((v) => !v)} className="btn-ghost h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-4 sm:text-[14px]" title={t.tplSave}>
+          <Save className="hidden h-4 w-4 sm:block" /> <span className="hidden sm:inline">{t.tplSave}</span>
+          <span className="sm:hidden">{t.tplShort}</span>
+        </button>
+        {tplOpen && (
+          <div className="flex w-full flex-wrap items-center gap-2 border-t border-line pt-2">
+            <input value={tplName} onChange={(e) => setTplName(e.target.value)} maxLength={60} placeholder={t.tplNamePh} aria-label={t.tplName} className="field h-10 min-w-0 flex-1" />
+            <button type="button" onClick={saveAsTemplate} disabled={tplName.trim().length < 2} className="btn-primary h-10 px-4 text-[14px]">
+              {t.tplOk}
+            </button>
+            <button type="button" onClick={() => setTplOpen(false)} className="text-[13px] text-muted underline">
+              {t.tplCancel}
+            </button>
+          </div>
+        )}
+        {tplMsg && <p className="w-full text-[13px] font-medium text-brand">{tplMsg}</p>}
       </div>
     </div>
   );

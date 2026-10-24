@@ -4,7 +4,9 @@ import { dbMode, readLocal, supabase, writeLocal } from "./db";
 import { LISTING_DAYS, listingQuality, rankAt, type Listing, type RealtyChannel } from "./realty";
 
 /* Объявления недвижимости (только от риелторов с анкетой) и Telegram-каналы риелторов. */
-type L = { listings?: Listing[]; realty_channels?: RealtyChannel[] };
+type L = { listings?: Listing[]; realty_channels?: RealtyChannel[]; listing_templates?: ListingTemplate[] };
+export type ListingTemplate = { id: string; master_id: string; name: string; data: Record<string, unknown>; created_at: string; updated_at: string };
+export const MAX_TEMPLATES = 10;
 const local = async () => (dbMode() === "none" ? ({} as L) : ((await readLocal()) as unknown as L));
 const save = async (d: L) => writeLocal(d as never);
 const expiry = () => new Date(Date.now() + LISTING_DAYS * 86400_000).toISOString();
@@ -262,4 +264,47 @@ export async function duplicateListing(l: Listing): Promise<Listing> {
   const { id: _id, created_at: _c, updated_at: _u, reports: _r, expires_at: _e, views: _v, contacts: _ct, rank_at: _rk, ...rest } = l;
   void _id; void _c; void _u; void _r; void _e; void _v; void _ct; void _rk;
   return createListing({ ...rest, title: `${l.title} (копия)`.slice(0, 120), status: "draft", source: "site", tg_key: null, tg_link: null, expire_warned_at: null, views: 0, contacts: 0 });
+}
+
+/* ---------- шаблоны объявлений ---------- */
+
+export async function templatesOf(masterId: string): Promise<ListingTemplate[]> {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("listing_templates").select("*").eq("master_id", masterId).order("created_at").limit(MAX_TEMPLATES);
+    return r.error ? [] : (r.data as ListingTemplate[]);
+  }
+  return ((await local()).listing_templates ?? []).filter((x) => x.master_id === masterId);
+}
+
+/** Создать или обновить шаблон. null — достигнут лимит. */
+export async function saveTemplate(masterId: string, t: { id?: string; name: string; data?: Record<string, unknown> }): Promise<ListingTemplate | null> {
+  const now = new Date().toISOString();
+  const list = await templatesOf(masterId);
+  const old = t.id ? list.find((x) => x.id === t.id) : null;
+  if (!old && list.length >= MAX_TEMPLATES) return null;
+  const row: ListingTemplate = old
+    ? { ...old, name: t.name, data: t.data ?? old.data, updated_at: now }
+    : { id: randomUUID(), master_id: masterId, name: t.name, data: t.data ?? {}, created_at: now, updated_at: now };
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("listing_templates").upsert(row);
+    if (r.error) throw new Error(r.error.message);
+    return row;
+  }
+  const d = await local();
+  d.listing_templates = [...(d.listing_templates ?? []).filter((x) => x.id !== row.id), row];
+  await save(d);
+  return row;
+}
+
+export async function deleteTemplate(masterId: string, id: string): Promise<void> {
+  const sb = supabase();
+  if (sb) {
+    await sb.from("listing_templates").delete().eq("id", id).eq("master_id", masterId);
+    return;
+  }
+  const d = await local();
+  d.listing_templates = (d.listing_templates ?? []).filter((x) => !(x.id === id && x.master_id === masterId));
+  await save(d);
 }

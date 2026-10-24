@@ -125,6 +125,7 @@ export async function healthCheck() {
           ["0033 бонус за репост", "referral_offers", "repost"],
           ["0035 бонус рекомендателю", "referrals", "reward_at"],
           ["0036 параметры объявлений", "listings", "rank_at"],
+          ["0037 шаблоны объявлений", "listing_templates", "data"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

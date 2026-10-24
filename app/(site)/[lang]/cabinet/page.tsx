@@ -89,7 +89,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return { title: getDict(lang).cabinet.title, robots: { index: false } };
 }
 
-type Props = LangParams & { searchParams: Promise<{ expired?: string; linked?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string; edit?: string; new?: string; saved?: string }> };
+type Props = LangParams & { searchParams: Promise<{ expired?: string; linked?: string; tab?: string; orgq?: string; org?: string; orgmsg?: string; edit?: string; new?: string; saved?: string; tpl?: string }> };
 
 export default async function CabinetPage({ params, searchParams }: Props) {
   const lang = await langOf(params);
@@ -332,7 +332,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       {tab === "realty" && (
         <div className="mt-4">
-          <CabinetRealty m={m} lang={lang} editId={sp.edit} isNew={!!sp.new} saved={!!sp.saved} />
+          <CabinetRealty m={m} lang={lang} editId={sp.edit} isNew={!!sp.new} saved={!!sp.saved} tplId={sp.tpl} />
         </div>
       )}
 

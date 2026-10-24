@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { channelsOf, getListing, listingsOf, nextBumpAt } from "@/lib/realty-db";
+import { channelsOf, getListing, listingsOf, nextBumpAt, templatesOf } from "@/lib/realty-db";
+import { TemplateList } from "./TemplateList";
 import { DEALS, listingQuality, priceLabel, type Listing } from "@/lib/realty";
 import { botUsername } from "@/lib/telegram";
 import { href, type Locale } from "@/lib/i18n";
@@ -15,13 +16,21 @@ const T = {
 
 const btn = "h-8 rounded-full border border-line px-3 text-[12px] hover:border-ink";
 
-export async function CabinetRealty({ m, lang, editId, isNew, saved }: { m: Master; lang: Locale; editId?: string; isNew?: boolean; saved?: boolean }) {
+export async function CabinetRealty({ m, lang, editId, isNew, saved, tplId }: { m: Master; lang: Locale; editId?: string; isNew?: boolean; saved?: boolean; tplId?: string }) {
   const t = T[lang];
   if (isNew || editId) {
-    const l = editId ? await getListing(editId) : null;
-    return <ListingEditor lang={lang} initial={l && l.master_id === m.id ? l : null} defaultCity={m.city ?? "batumi"} />;
+    const [l, tpls] = await Promise.all([editId ? getListing(editId) : null, templatesOf(m.id).catch(() => [])]);
+    return (
+      <ListingEditor
+        lang={lang}
+        initial={l && l.master_id === m.id ? l : null}
+        defaultCity={m.city ?? "batumi"}
+        templates={tpls.map((x) => ({ id: x.id, name: x.name, data: x.data }))}
+        startTemplate={tplId ?? null}
+      />
+    );
   }
-  const [list, channels, bot] = await Promise.all([listingsOf(m.id), channelsOf(m.id), botUsername().catch(() => null)]);
+  const [list, channels, bot, tpls] = await Promise.all([listingsOf(m.id), channelsOf(m.id), botUsername().catch(() => null), templatesOf(m.id).catch(() => [])]);
   const act = (l: Listing, a: string, label: string, primary = false) => (
     <form action={listingAction}>
       <input type="hidden" name="id" value={l.id} />
@@ -104,6 +113,8 @@ export async function CabinetRealty({ m, lang, editId, isNew, saved }: { m: Mast
           ))}
         </div>
       </section>
+
+      <TemplateList lang={lang} initial={tpls.map((x) => ({ id: x.id, name: x.name }))} />
 
       <section className="rounded-2xl border border-[#229ED9]/30 bg-[#eaf6fc] p-5">
         <h2 className="text-[18px] font-bold text-[#0f5c82]">📣 {t.tgTitle}</h2>

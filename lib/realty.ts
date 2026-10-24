@@ -274,3 +274,43 @@ export function parseListingText(text: string, defaults: { city?: string } = {})
 export function autoTitle(l: Pick<Listing, "deal" | "kind" | "rooms" | "area" | "district">, lang: Locale): string {
   return [DEALS[l.deal][lang], l.kind === "apartment" ? roomsLabel(l.rooms, lang) : KINDS[l.kind][lang], l.area ? `${l.area} м²` : "", l.district ?? ""].filter(Boolean).join(" · ");
 }
+
+/* ---------- шаблоны объявлений: подстановки в тексте ---------- */
+
+/** Подстановки, которые можно вставить в текст шаблона (подпись — для кнопок в редакторе). */
+export const TEMPLATE_TOKENS: { t: string; label: L3 }[] = [
+  { t: "{спальни}", label: { ru: "спальни", en: "bedrooms", ka: "საძინებელი" } },
+  { t: "{площадь}", label: { ru: "площадь", en: "area", ka: "ფართი" } },
+  { t: "{этаж}", label: { ru: "этаж", en: "floor", ka: "სართული" } },
+  { t: "{этажей}", label: { ru: "этажей в доме", en: "floors", ka: "სართულიანობა" } },
+  { t: "{цена}", label: { ru: "цена", en: "price", ka: "ფასი" } },
+  { t: "{депозит}", label: { ru: "депозит", en: "deposit", ka: "დეპოზიტი" } },
+  { t: "{район}", label: { ru: "район", en: "district", ka: "რაიონი" } },
+  { t: "{ремонт}", label: { ru: "состояние", en: "condition", ka: "მდგომარეობა" } },
+  { t: "{дом}", label: { ru: "тип дома", en: "building", ka: "შენობა" } },
+  { t: "{санузлы}", label: { ru: "санузлы", en: "bathrooms", ka: "სველი წერტ." } },
+];
+export const TOKEN_RE = /\{(спальни|площадь|этаж|этажей|цена|депозит|район|ремонт|дом|санузлы)\}/g;
+
+/** Подставить значения полей в текст шаблона. Пустые поля оставляем как есть — {цена} — чтобы было видно, что не заполнено. */
+export function fillTemplate(
+  text: string,
+  v: { rooms?: string | number | null; area?: string | number | null; floor_n?: string | number | null; floors_total?: string | number | null; price?: string | number | null; currency?: Listing["currency"]; deposit?: string | number | null; district?: string | null; condition?: string | null; building?: string | null; bathrooms?: string | number | null },
+  lang: Locale = "ru",
+): string {
+  const has = (x: unknown) => x != null && x !== "";
+  const money = (x: unknown) => `${new Intl.NumberFormat("ru-RU").format(Number(x))} ${CUR_SIGN[v.currency ?? "USD"]}`;
+  const val: Record<string, string | null> = {
+    спальни: has(v.rooms) ? (Number(v.rooms) === 0 ? roomsLabel(0, lang) : String(v.rooms)) : null,
+    площадь: has(v.area) ? String(v.area) : null,
+    этаж: has(v.floor_n) ? String(v.floor_n) : null,
+    этажей: has(v.floors_total) ? String(v.floors_total) : null,
+    цена: has(v.price) && Number(v.price) > 0 ? money(v.price) : null,
+    депозит: has(v.deposit) && Number(v.deposit) > 0 ? money(v.deposit) : null,
+    район: v.district || null,
+    ремонт: v.condition && v.condition in CONDITIONS ? CONDITIONS[v.condition as Condition][lang] : null,
+    дом: v.building && v.building in BUILDINGS ? BUILDINGS[v.building as Building][lang] : null,
+    санузлы: has(v.bathrooms) ? String(v.bathrooms) : null,
+  };
+  return text.replace(TOKEN_RE, (m, k: string) => val[k] ?? m);
+}
