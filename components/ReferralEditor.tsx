@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { REF_TEXT } from "@/lib/referral-text";
 import { BONUS } from "@/lib/bonus-text";
+import { RefCodes, type RefCode } from "./RefCodes";
 
 type Props = {
   lang: Locale;
   initial: { active: boolean; friend: string; reward: string; max_uses: number; prefix: string; repost?: string; repost_active?: boolean } | null;
   suggestion: string;
   issued: number;
-  codes: { code: string; name: string; created_at: string }[];
+  codes: (RefCode & { notify: boolean })[];
   /** ни у кого на сайте ещё нет бонуса — подсказка «будете первым» */
   nobodyYet?: boolean;
 };
@@ -130,28 +131,13 @@ export function ReferralEditor({ lang, initial, suggestion, issued: issued0, cod
                   <input value={prefix} onChange={(e) => (setPrefix(clean(e.target.value)), dirty())} className="field mt-1.5 bg-white font-mono uppercase tracking-wider" />
                   <span className="mt-1 block text-[13px] text-muted">{t.prefixHint(`${prefix || "ANNA"}-7K2`)}</span>
                 </label>
-                <div>
-                  <p className="text-[14px] font-semibold">{t.codes}</p>
-                  {codes.length === 0 ? (
-                    <p className="mt-1 text-[13px] text-muted">{t.noCodes}</p>
-                  ) : (
-                    <ul className="mt-2 divide-y divide-line text-[14px]">
-                      {codes.map((c) => (
-                        <li key={c.code} className="flex flex-wrap justify-between gap-2 py-1.5">
-                          <span className="font-mono font-semibold tracking-wider">{c.code}</span>
-                          <span className="text-muted">
-                            {t.from} {c.name} · {new Date(c.created_at).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU")}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
               </div>
             )}
           </div>
         )}
       </div>
+
+      {(active || codes.length > 0) && <RefCodes lang={lang} codes={codes} hasReward={!!reward.trim()} />}
 
       {/* За репост */}
       <div className="mt-3 rounded-2xl bg-cream p-4">

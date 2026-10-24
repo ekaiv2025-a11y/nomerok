@@ -10,11 +10,33 @@ import { reviewToken } from "@/lib/signed";
 import { botLink } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { MY } from "@/lib/my-text";
+import { getOffer, referralsOfChat } from "@/lib/referral-db";
 import { href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { CloseRequestButton, LogoutButton, MyFavs } from "@/components/MyClient";
 
 export const dynamic = "force-dynamic";
+
+const REFS = {
+  ru: {
+    title: "Мои рекомендации",
+    wait: "Ждём, когда друг обратится к специалисту и назовёт этот код.",
+    used: (r: string) => (r ? `✅ Друг пришёл! Ваш бонус: ${r}. Назовите специалисту этот код, чтобы получить его.` : "✅ Друг пришёл — спасибо за рекомендацию!"),
+    done: "🎁 Бонус получен.",
+  },
+  en: {
+    title: "My recommendations",
+    wait: "Waiting for your friend to contact the specialist and name this code.",
+    used: (r: string) => (r ? `✅ Your friend came! Your bonus: ${r}. Tell the specialist this code to get it.` : "✅ Your friend came — thanks for the recommendation!"),
+    done: "🎁 Bonus received.",
+  },
+  ka: {
+    title: "ჩემი რეკომენდაციები",
+    wait: "ველოდებით, როცა მეგობარი მიმართავს სპეციალისტს და დაასახელებს კოდს.",
+    used: (r: string) => (r ? `✅ მეგობარი მოვიდა! თქვენი ბონუსი: ${r}. მისაღებად უთხარით სპეციალისტს ეს კოდი.` : "✅ მეგობარი მოვიდა — მადლობა რეკომენდაციისთვის!"),
+    done: "🎁 ბონუსი მიღებულია.",
+  },
+} as const;
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = await langOf(params);
@@ -44,6 +66,8 @@ export default async function MyPage({ params, searchParams }: LangParams & { se
 
   const [requests, masters] = await Promise.all([listClientRequests(chatId).catch(() => []), listPublishedMasters().catch(() => [])]);
   const responses = await listResponsesFor(requests.map((r) => r.id)).catch(() => []);
+  const myRefs = await referralsOfChat(chatId).catch(() => []);
+  const refRows = await Promise.all(myRefs.map(async (x) => ({ x, offer: await getOffer(x.master_id).catch(() => null) })));
   const byId = new Map(masters.map((m) => [m.id, m]));
   const fmt = (iso: string) => new Date(iso).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long" });
 
@@ -138,6 +162,32 @@ export default async function MyPage({ params, searchParams }: LangParams & { se
             </div>
           ))}
         </div>
+      )}
+
+      {refRows.length > 0 && (
+        <>
+          <h2 className="mt-10 text-[19px] font-bold">🎁 {REFS[lang].title}</h2>
+          <ul className="mt-3 space-y-2">
+            {refRows.map(({ x, offer }) => {
+              const m = masters.find((mm) => mm.id === x.master_id);
+              return (
+                <li key={x.code} className="rounded-2xl border border-[#f0d58a] bg-[#fffaf0] p-4">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-mono text-[15px] font-bold tracking-wider">{x.code}</span>
+                    {m && (
+                      <Link href={href(lang, `/master/${m.slug}`)} className="text-[14px] font-semibold text-brand hover:underline">
+                        {m.name}
+                      </Link>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-[14px]">
+                    {x.reward_at ? REFS[lang].done : x.used_at ? REFS[lang].used(offer?.reward ?? "") : REFS[lang].wait}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
 
       <h2 className="mt-10 text-[19px] font-bold">❤️ {t.favs}</h2>

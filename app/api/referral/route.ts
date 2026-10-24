@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       const { sendTo, escapeHtml } = await import("@/lib/telegram");
       await sendTo(
         full.tg_chat_id,
-        `🎁 <b>${escapeHtml(name)}</b> рекомендует вас другу.\nКод: <code>${r.ref.code}</code>\n\nЕсли новый клиент назовёт этот код — дайте ему бонус, который вы указали в кабинете.`,
+        `🎁 <b>${escapeHtml(name)}</b> рекомендует вас другу.\nКод: <code>${r.ref.code}</code>\n\nЕсли новый клиент назовёт этот код — дайте ему бонус, который вы указали, и нажмите «✅ Друг пришёл» в кабинете → «🚀 Продвижение». Мы сообщим ${escapeHtml(name)}, что ему положен бонус.`,
       ).catch(() => null);
     }
   }

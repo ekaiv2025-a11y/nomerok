@@ -21,7 +21,7 @@ export type Offer = {
   repost?: string;
   repost_active?: boolean;
 };
-export type Referral = { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null };
+export type Referral = { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null; reward_at?: string | null };
 
 export const LIMITS = [5, 10, 20, 50, 0] as const; // 0 — без ограничения
 
@@ -154,7 +154,14 @@ export async function issueCode(masterId: string, name: string, chatId: number |
   const codes = await listCodes(masterId);
   const nm = name.trim().slice(0, 40);
   const same = codes.find((x) => (chatId && x.chat_id === chatId) || x.name.toLowerCase() === nm.toLowerCase());
-  if (same) return { ref: same, fresh: false };
+  if (same) {
+    // вошёл после того, как взял код, — привязываем код к нему, чтобы прислать уведомление о бонусе
+    if (chatId && !same.chat_id) {
+      await patchReferral(same.code, { chat_id: chatId }).catch(() => null);
+      same.chat_id = chatId;
+    }
+    return { ref: same, fresh: false };
+  }
   const sb = supabase();
   for (let i = 0; i < 5; i++) {
     const ref: Referral = { code: `${s.offer.prefix}-${tail()}`, master_id: masterId, name: nm, chat_id: chatId, created_at: new Date().toISOString(), used_at: null };
@@ -177,4 +184,39 @@ export async function issueCode(masterId: string, name: string, chatId: number |
 /** Для кабинета: последние коды. */
 export async function recentCodes(masterId: string, limit = 30): Promise<Referral[]> {
   return (await listCodes(masterId)).slice(0, limit);
+}
+
+async function patchReferral(code: string, p: Partial<Referral>): Promise<void> {
+  const sb = supabase();
+  if (sb) {
+    check(await sb.from("referrals").update(p).eq("code", code));
+    return;
+  }
+  const d = await readLocal();
+  d.referrals = (d.referrals ?? []).map((x) => (x.code === code ? { ...x, ...p } : x));
+  await writeLocal(d);
+}
+
+/**
+ * Кабинет специалиста: отметить код.
+ * used — друг пришёл (рекомендателю уходит уведомление «вам положен бонус»), rewarded — бонус рекомендателю выдан, undo — снять отметки.
+ */
+export async function markReferral(masterId: string, code: string, action: "used" | "rewarded" | "undo"): Promise<Referral | null> {
+  const r = await findCode(code);
+  if (!r || r.master_id !== masterId) return null;
+  const now = new Date().toISOString();
+  const p: Partial<Referral> = action === "used" ? { used_at: r.used_at ?? now } : action === "rewarded" ? { used_at: r.used_at ?? now, reward_at: now } : { used_at: null, reward_at: null };
+  await patchReferral(r.code, p);
+  return { ...r, ...p };
+}
+
+/** «Мои заявки»: коды, которые человек брал для друзей. */
+export async function referralsOfChat(chatId: number): Promise<Referral[]> {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("referrals").select("*").eq("chat_id", chatId).order("created_at", { ascending: false }).limit(50);
+    return r.error ? [] : (r.data as Referral[]);
+  }
+  if (dbMode() === "none") return [];
+  return ((await readLocal()).referrals ?? []).filter((x) => x.chat_id === chatId).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }

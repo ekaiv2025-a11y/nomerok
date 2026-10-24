@@ -123,6 +123,7 @@ export async function healthCheck() {
           ["0031 недвижимость", "listings", "tg_key"],
           ["0032 вход по почте, Google, Facebook", "accounts", "num"],
           ["0033 бонус за репост", "referral_offers", "repost"],
+          ["0035 бонус рекомендателю", "referrals", "reward_at"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -171,7 +172,7 @@ type LocalData = {
   referral_offers?: import("./referral-db").Offer[];
   posts?: import("./posts-db").Post[];
   places?: import("./places").Place[];
-  referrals?: { code: string; master_id: string; name: string; chat_id: number | null; created_at: string; used_at: string | null }[];
+  referrals?: import("./referral-db").Referral[];
 };
 const LOCAL_FILE = path.join(process.cwd(), ".data", "db.json");
 

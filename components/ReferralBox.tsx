@@ -6,6 +6,34 @@ import { BONUS } from "@/lib/bonus-text";
 import type { Locale } from "@/lib/i18n/config";
 import { REF_TEXT } from "@/lib/referral-text";
 
+const HOW = {
+  ru: (friend: string, reward: string) => [
+    "Получите личный код и отправьте ссылку другу.",
+    `Друг обращается к специалисту и называет код — получает: ${friend}.`,
+    reward ? `Специалист отмечает, что друг пришёл, — мы сообщим вам. Ваш бонус: ${reward}. Чтобы получить его, назовите специалисту свой код.` : "Специалист увидит, что клиента привели вы.",
+  ],
+  en: (friend: string, reward: string) => [
+    "Get your personal code and send the link to a friend.",
+    `Your friend contacts the specialist and names the code — they get: ${friend}.`,
+    reward ? `The specialist marks that your friend came — we'll notify you. Your bonus: ${reward}. To get it, tell the specialist your code.` : "The specialist will see that you referred the client.",
+  ],
+  ka: (friend: string, reward: string) => [
+    "მიიღეთ პირადი კოდი და გაუგზავნეთ ბმული მეგობარს.",
+    `მეგობარი მიმართავს სპეციალისტს და ასახელებს კოდს — იღებს: ${friend}.`,
+    reward ? `სპეციალისტი აღნიშნავს, რომ მეგობარი მოვიდა — შეგატყობინებთ. თქვენი ბონუსი: ${reward}. მისაღებად უთხარით სპეციალისტს თქვენი კოდი.` : "სპეციალისტი დაინახავს, რომ კლიენტი თქვენ მოიყვანეთ.",
+  ],
+} as const;
+const LOGIN = {
+  ru: { text: "Войдите на сайт до получения кода — тогда мы сообщим вам, когда друг придёт и бонус будет ваш.", btn: "Войти" },
+  en: { text: "Sign in before getting the code — then we'll let you know when your friend comes and the bonus is yours.", btn: "Sign in" },
+  ka: { text: "შედით საიტზე კოდის მიღებამდე — შეგატყობინებთ, როცა მეგობარი მოვა და ბონუსი თქვენი იქნება.", btn: "შესვლა" },
+} as const;
+const KEEP = {
+  ru: "Это и ваш код: назовите его специалисту, чтобы получить свой бонус.",
+  en: "It's your code too: tell it to the specialist to get your bonus.",
+  ka: "ეს თქვენი კოდიცაა: უთხარით სპეციალისტს თქვენი ბონუსის მისაღებად.",
+} as const;
+
 /** Профиль: «🎁 Бонус за рекомендацию» — условия и кнопка «Порекомендовать другу» (личный код + ссылка). */
 export function ReferralBox({
   lang,
@@ -19,6 +47,7 @@ export function ReferralBox({
   repost = null,
   url = "",
   card = null,
+  signedIn = false,
 }: {
   lang: Locale;
   slug: string;
@@ -35,6 +64,8 @@ export function ReferralBox({
   url?: string;
   /** картинка для сторис */
   card?: string | null;
+  /** вошёл на сайт — сможем прислать уведомление о бонусе */
+  signedIn?: boolean;
 }) {
   const t = REF_TEXT[lang];
   const bt = BONUS[lang];
@@ -87,6 +118,22 @@ export function ReferralBox({
         )}
       </ul>
       {left !== null && <p className="mt-1 text-[13px] text-muted">{t.left(left)}</p>}
+      <ol className="mt-3 space-y-1.5 text-[13px] leading-snug text-[#5a4410]">
+        {HOW[lang](friend, reward).map((x, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#fdf3dc] text-[11px] font-bold">{i + 1}</span>
+            <span>{x}</span>
+          </li>
+        ))}
+      </ol>
+      {reward && !signedIn && (
+        <p className="mt-3 rounded-xl bg-white p-3 text-[13px] leading-snug">
+          🔔 {LOGIN[lang].text}{" "}
+          <a href={`/${lang}/login?as=client&next=${encodeURIComponent(`/${lang}/master/${slug}`)}`} className="font-semibold text-brand underline">
+            {LOGIN[lang].btn}
+          </a>
+        </p>
+      )}
 
       {!open && !res && (
         <button type="button" onClick={() => setOpen(true)} className="btn-primary mt-4 h-11 px-5">
@@ -110,6 +157,7 @@ export function ReferralBox({
           <p className="text-[14px]">
             {t.codeIs} <b className="rounded-lg bg-white px-2 py-0.5 font-mono text-[16px] tracking-wider">{res.code}</b>
           </p>
+          {reward && <p className="text-[13px] text-[#5a4410]">{KEEP[lang]}</p>}
           <p className="text-[14px] text-muted">{t.send}</p>
           <div className="break-all rounded-xl border border-line bg-white p-3 text-[13px]">{res.url}</div>
           <div className="flex flex-wrap gap-2">

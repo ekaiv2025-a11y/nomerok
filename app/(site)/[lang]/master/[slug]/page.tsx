@@ -382,6 +382,7 @@ export default async function MasterPage({ params }: Props) {
               reward={bonus.offer.reward}
               left={bonus.left}
               defaultName={me?.tgName}
+              signedIn={!!me}
               hasRef={bonus.ref}
               repost={bonus.repost ? bonus.offer.repost : null}
               url={m.short ? `${SITE_URL}/${m.short}` : `${SITE_URL}/${lang}/master/${m.slug}`}

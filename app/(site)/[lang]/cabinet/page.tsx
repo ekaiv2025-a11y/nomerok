@@ -414,7 +414,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             initial={refStatus?.offer ?? null}
             nobodyYet={nobodyYet}
             issued={refStatus?.issued ?? 0}
-            codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at }))}
+            codes={refCodes.map((c) => ({ code: c.code, name: c.name, created_at: c.created_at, used_at: c.used_at, reward_at: c.reward_at ?? null, notify: !!c.chat_id }))}
             suggestion={transliterate(m.name.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12) || "NOMEROK"}
           />
           <ProfileCards
