@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getPlace, importPlaces, updatePlace } from "@/lib/places-db";
+import { getPlace, importOsmCity, importPlaces, updatePlace } from "@/lib/places-db";
+import { OSM_GROUPS, type OsmGroup } from "@/lib/osm-import";
+import { cityLabel, isCity } from "@/lib/cities";
 import { PLACE_CATS, type Place } from "@/lib/places";
 import { normalizePhone } from "@/lib/phone";
 
@@ -16,6 +18,25 @@ export async function importPlacesAction() {
     msg = `✓ Импорт: добавлено ${r.added}, обновлено ${r.updated}, без изменений ${r.skipped}`;
   } catch (e) {
     msg = `⚠️ ${e instanceof Error ? e.message : "Ошибка импорта"}`;
+  }
+  revalidatePath("/admin/places");
+  redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);
+}
+
+/** Полезные контакты города из OpenStreetMap: медицина, госуслуги и нотариусы, образование. */
+export async function importOsmAction(fd: FormData) {
+  await requireAdmin();
+  const city = String(fd.get("city") ?? "");
+  const groups = fd.getAll("g").map(String).filter((g): g is OsmGroup => g in OSM_GROUPS);
+  let msg: string;
+  if (!isCity(city) || !groups.length) msg = "⚠️ Выберите город и хотя бы одну группу";
+  else {
+    try {
+      const r = await importOsmCity(city, groups);
+      msg = `✓ ${cityLabel(city, "ru")}: найдено в OpenStreetMap ${r.found} · новых ${r.added} · дополнено ${r.updated} (из них совпали с уже имеющимися ${r.merged}) · без изменений ${r.skipped}`;
+    } catch (e) {
+      msg = `⚠️ ${e instanceof Error ? e.message : "Ошибка загрузки"}`;
+    }
   }
   revalidatePath("/admin/places");
   redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);

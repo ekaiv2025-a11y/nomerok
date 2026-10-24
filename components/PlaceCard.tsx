@@ -3,6 +3,7 @@ import { href } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/config";
 import { formatPhone } from "@/lib/phone";
 import { placeAddr, placeCat, placeDesc, placeName, type Place } from "@/lib/places";
+import { cityLabel } from "@/lib/cities";
 import { PlaceThumb } from "./PlaceThumb";
 
 /** Карточка места в списке / подборке. */
@@ -25,6 +26,7 @@ export function PlaceCard({ p, lang, n, wide }: { p: Place; lang: Locale; n?: nu
         </Link>
         <p className="mt-0.5 text-[13px] text-muted">
           {p.sub || c.label[lang]}
+          {p.city && p.city !== "batumi" && !(addr ?? "").startsWith(cityLabel(p.city, lang)) ? ` · ${cityLabel(p.city, lang)}` : ""}
           {addr ? ` · ${addr.replace(/^Батуми,\s*/, "")}` : ""}
         </p>
         {tags.length > 0 && (

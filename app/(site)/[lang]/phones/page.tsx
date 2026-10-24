@@ -7,6 +7,10 @@ import { categoryPlural } from "@/lib/categories";
 import { Fragment } from "react";
 import { NOTARIES, NOTARY_TEXT, notaryHours } from "@/lib/notaries";
 import type { Locale } from "@/lib/i18n/config";
+import { CITIES } from "@/lib/cities";
+import { placeCityCounts } from "@/lib/places-db";
+
+export const revalidate = 3600;
 
 const fmtDial = (p: string) => p.replace(/[^\d+]/g, "");
 
@@ -63,6 +67,13 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 export default async function PhonesPage({ params }: LangParams) {
   const lang = await langOf(params);
   const t = PH[lang];
+  const byCity = await placeCityCounts().catch(() => ({}) as Record<string, number>);
+  const cities = CITIES.filter((c) => byCity[c.id]);
+  const OC = {
+    ru: { title: "Клиники, Дом юстиции и нотариусы во всех городах", health: "🏥 Медицина", pub: "🏛 Госуслуги и нотариусы" },
+    en: { title: "Clinics, Public Service Halls and notaries in every city", health: "🏥 Health", pub: "🏛 Public services" },
+    ka: { title: "კლინიკები, იუსტიციის სახლი და ნოტარიუსები ყველა ქალაქში", health: "🏥 მედიცინა", pub: "🏛 საჯარო სერვისები" },
+  }[lang];
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <h1 className="text-[26px] font-bold sm:text-[32px]">📞 {t.h1}</h1>
@@ -84,6 +95,22 @@ export default async function PhonesPage({ params }: LangParams) {
           </a>
         ))}
       </div>
+
+      {cities.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-line bg-white p-4">
+          <h2 className="text-[16px] font-bold">{OC.title}</h2>
+          <div className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
+            {cities.map((c) => (
+              <p key={c.id} className="text-[14px]">
+                <b>{c.label[lang]}:</b>{" "}
+                <Link href={href(lang, `/places/c/health?city=${c.id}`)} className="text-brand hover:underline">{OC.health}</Link>
+                {" · "}
+                <Link href={href(lang, `/places/c/public?city=${c.id}`)} className="text-brand hover:underline">{OC.pub}</Link>
+              </p>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Навигация по разделам */}
       <nav className="mt-6 flex flex-wrap gap-2">

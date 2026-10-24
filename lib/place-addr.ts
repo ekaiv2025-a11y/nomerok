@@ -72,7 +72,7 @@ const EN_TYPES: Record<string, string> = {
 const SKIP = new Set(["batumi", "georgia", "adjara", "ajara", "city", "n", "no", "#", "of", "the"]);
 
 function fromLat(a0: string): string {
-  const a = a0.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "").replace(/\b(Batumi|Georgia|Adjara|Ajara)\b,?/gi, "").replace(/\b\d{4}\b(?=\s*,|\s*$)/g, "");
+  const a = a0.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "").replace(/\b(Batumi|Tbilisi|Kutaisi|Rustavi|Kobuleti|Zugdidi|Poti|Gori|Telavi|Borjomi|Georgia|Adjara|Ajara)\b,?/gi, "").replace(/\b\d{4}\b(?=\s*,|\s*$)/g, "");
   return a
     .split(",")
     .map((p) => p.trim())
@@ -98,7 +98,8 @@ function fromLat(a0: string): string {
     .join(", ");
 }
 
-export function toRussianAddress(a: string | null | undefined): string | null {
+/** Адрес по-русски с городом впереди («Батуми, ул. …»). city — по-русски, по умолчанию Батуми. */
+export function toRussianAddress(a: string | null | undefined, city = "Батуми"): string | null {
   if (!a) return null;
   const s = a.trim();
   if (/[А-Яа-яЁё]/.test(s)) return s.split(/\s*\/\s*(?=[A-Za-z])/)[0];
@@ -108,7 +109,7 @@ export function toRussianAddress(a: string | null | undefined): string | null {
   else return null;
   r = r.replace(/\s+/g, " ").replace(/^[\s,]+|[\s,]+$/g, "");
   if (!/[А-Яа-я]{3}/.test(r)) return null;
-  return /^батуми/i.test(r) ? r : `Батуми, ${r}`;
+  return r.toLowerCase().startsWith(city.toLowerCase()) ? r : `${city}, ${r}`;
 }
 
 /** Грузинское название русскими буквами (без падежей). */

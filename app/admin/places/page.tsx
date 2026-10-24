@@ -4,11 +4,14 @@ import { isAdmin } from "@/lib/admin-auth";
 import { PLACE_CATS, placeCat } from "@/lib/places";
 import { PLACES_PAGE, adminPlaceStats, listPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
-import { enrichPlacesAction, geocodePlacesAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
+import { enrichPlacesAction, geocodePlacesAction, importOsmAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
 import { pendingPlaceReviews } from "@/lib/place-reviews-db";
-import { getPlace } from "@/lib/places-db";
+import { getPlace, placeCityCounts } from "@/lib/places-db";
+import { CITIES } from "@/lib/cities";
+import { OSM_GROUPS } from "@/lib/osm-import";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 type SP = { q?: string; cat?: string; status?: string; page?: string; msg?: string };
 
@@ -20,6 +23,7 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
   const [stats, res] = await Promise.all([adminPlaceStats(), listPlaces({ q: sp.q, cat: sp.cat || undefined, page, admin: { status } })]);
   const pages = Math.ceil(res.total / PLACES_PAGE);
   const pend = await pendingPlaceReviews().catch(() => []);
+  const byCity = await placeCityCounts();
   const pendPlaces = await Promise.all(pend.map((r) => getPlace(r.place_id).catch(() => null)));
   const qs = (p: number) => `/admin/places?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(sp.cat ? { cat: sp.cat } : {}), ...(sp.status ? { status: sp.status } : {}), page: String(p) })}`;
   return (
@@ -64,6 +68,27 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
         </div>
       </form>
 
+      <form action={importOsmAction} className="mt-3 rounded-2xl border-2 border-[#cfe2f3] bg-white p-4 text-[13px]">
+        <b>🏛 Полезные контакты городов — из OpenStreetMap</b>
+        <p className="mt-1 text-muted">
+          Клиники, больницы, аптеки, Дом юстиции, мэрии, нотариусы, полиция, школы и садики. Один город за нажатие (до 1–2 минут). Если такое место уже есть рядом с похожим названием — новая карточка не создаётся, в старую дописываются пустые поля. Повторять можно: новые объекты добавятся, ваши правки не тронутся. Телефоны в OpenStreetMap есть не у всех — потом дополните их выгрузкой ниже (выберите город и раздел).
+        </p>
+        <p className="mt-1 text-muted">Сейчас мест по городам: {CITIES.map((c) => `${c.label.ru} ${byCity[c.id] ?? 0}`).join(" · ")}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <select name="city" defaultValue="tbilisi" className="field h-10 w-auto py-0">
+            {CITIES.map((c) => (
+              <option key={c.id} value={c.id}>{c.label.ru}</option>
+            ))}
+          </select>
+          {Object.entries(OSM_GROUPS).map(([id, g]) => (
+            <label key={id} className="flex items-center gap-1.5">
+              <input type="checkbox" name="g" value={id} defaultChecked={id !== "education"} /> {g.label}
+            </label>
+          ))}
+        </div>
+        <button className="btn-primary mt-2 h-9 px-4 text-[13px]">⬇️ Загрузить город</button>
+      </form>
+
       <div className="mt-3 rounded-2xl bg-white p-4 text-[13px]">
         <b>Проверка и дополнение (сайты, соцсети, описания)</b>
         <p className="mt-1 text-muted">1) Скачайте пачку ещё не проверенных мест → 2) отдайте её ассистенту вместе с заданием → 3) загрузите сюда его CSV-результат. Проверенные места в следующую пачку не попадают — поэтому каждый раз начинайте «с № 1».</p>
@@ -71,6 +96,12 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
           <select name="cat" defaultValue={sp.cat ?? "food"} className="field h-10 w-auto py-0">
             {PLACE_CATS.map((c) => (
               <option key={c.id} value={c.id}>{c.emoji} {c.label.ru}</option>
+            ))}
+          </select>
+          <select name="city" defaultValue="" className="field h-10 w-auto py-0">
+            <option value="">Все города</option>
+            {CITIES.map((c) => (
+              <option key={c.id} value={c.id}>{c.label.ru}</option>
             ))}
           </select>
           <label className="flex items-center gap-1">с № <input name="from" defaultValue="1" type="number" min={1} className="field h-10 w-20 py-0" /></label>

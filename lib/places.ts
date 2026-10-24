@@ -1,6 +1,7 @@
 /* «Места» — общие типы, категории и подписи (можно и на сервере, и в браузере). */
 import type { Locale } from "./i18n/config";
 import { georgianToRussian, toRussianAddress } from "./place-addr";
+import { cityIn, cityLabel } from "./cities";
 
 export type Place = {
   id: string;
@@ -51,6 +52,7 @@ export const PLACE_CATS: { id: string; emoji: string; label: L3 }[] = [
   { id: "stay", emoji: "🏨", label: { ru: "Отели и жильё", en: "Hotels & stays", ka: "სასტუმროები" } },
   { id: "groceries", emoji: "🛒", label: { ru: "Продукты и напитки", en: "Groceries & drinks", ka: "სურსათი და სასმელი" } },
   { id: "beauty", emoji: "💅", label: { ru: "Красота и уход", en: "Beauty & care", ka: "სილამაზე" } },
+  { id: "public", emoji: "🏛", label: { ru: "Госуслуги и нотариусы", en: "Public services & notaries", ka: "საჯარო სერვისები და ნოტარიუსები" } },
   { id: "health", emoji: "🏥", label: { ru: "Медицина и аптеки", en: "Health & pharmacies", ka: "მედიცინა და აფთიაქები" } },
   { id: "education", emoji: "🎓", label: { ru: "Образование", en: "Education", ka: "განათლება" } },
   { id: "kids", emoji: "🧸", label: { ru: "Детские товары", en: "Kids", ka: "საბავშვო" } },
@@ -80,7 +82,7 @@ export const PLACE_CATS: { id: string; emoji: string; label: L3 }[] = [
 /** Цвет раздела для обложек без фото: [светлый, насыщенный]. */
 const TONES: Record<string, [string, string]> = {
   food: ["#fde7d4", "#f6b98a"], stay: ["#dcebfa", "#9cc6ee"], groceries: ["#e6f4d9", "#a9d68a"], beauty: ["#fbe1ec", "#f0a9c6"], health: ["#e0f2ef", "#8fd0c4"],
-  education: ["#e8e4fb", "#b5a8ef"], kids: ["#fff1cf", "#f7d06e"], clothes: ["#f3e1f6", "#d6a6e2"], shops: ["#f1ece2", "#d5c3a0"], electronics: ["#dfe9f3", "#9db7d3"],
+  public: ["#e4ebf3", "#9fb6d0"], education: ["#e8e4fb", "#b5a8ef"], kids: ["#fff1cf", "#f7d06e"], clothes: ["#f3e1f6", "#d6a6e2"], shops: ["#f1ece2", "#d5c3a0"], electronics: ["#dfe9f3", "#9db7d3"],
   repair: ["#e7ebee", "#aab8c3"], home: ["#efe7dc", "#cfb594"], auto: ["#e3e7ea", "#9fadb7"], culture: ["#f7e0f0", "#e1a2cf"], sport: ["#dff4ea", "#8fd4b2"],
   tourism: ["#dff2f7", "#8ccbdc"], events: ["#fde3e3", "#f3a5a5"], realty: ["#e5edf5", "#a7bed6"], finance: ["#e6efe6", "#a8c8a8"], business: ["#e8e8ee", "#b0b0c4"],
   pets: ["#f6ecdf", "#e0bf92"], flowers: ["#fce4ec", "#f2a7bf"], hobby: ["#ece6f7", "#c2b0e6"], delivery: ["#f1ebe1", "#d2bd98"], coworking: ["#e2edf7", "#a3c1e0"],
@@ -101,8 +103,8 @@ export function placeDesc(p: Pick<Place, "desc_ru" | "desc_en">, lang: Locale): 
   return lang === "ru" ? p.desc_ru || null : p.desc_en || p.desc_ru || null;
 }
 /** Адрес на языке страницы: для русской версии — русский вариант, если есть. */
-export function placeAddr(p: Pick<Place, "addr" | "addr_ru">, lang: Locale): string | null {
-  if (lang === "ru") return p.addr_ru || toRussianAddress(p.addr) || p.addr || null;
+export function placeAddr(p: Pick<Place, "addr" | "addr_ru"> & { city?: string | null }, lang: Locale): string | null {
+  if (lang === "ru") return p.addr_ru || toRussianAddress(p.addr, cityLabel(p.city ?? "batumi", "ru")) || p.addr || null;
   return p.addr || p.addr_ru || null;
 }
 
@@ -124,7 +126,8 @@ export function placeSummary(p: Place, lang: Locale, catLabel: string): string {
   const parts: string[] = [];
   const kind = (p.sub || catLabel).toLowerCase();
   const addr = placeAddr(p, lang);
-  parts.push(`${kind[0].toUpperCase()}${kind.slice(1)} в Батуми${addr ? ` по адресу: ${addr.replace(/^Батуми,\s*/, "")}` : ""}.`);
+  const cityRu = cityLabel(p.city ?? "batumi", "ru");
+  parts.push(`${kind[0].toUpperCase()}${kind.slice(1)} ${cityIn(p.city ?? "batumi", "ru")}${addr ? ` по адресу: ${addr.replace(new RegExp(`^${cityRu},\\s*`), "")}` : ""}.`);
   const cuisine = (p.tags ?? []).filter((t) => /кухня|шашлык|суши|пицца|бургеры|шаурма|морепродукты/.test(t));
   if (cuisine.length) parts.push(`Кухня: ${cuisine.join(", ")}.`);
   if (p.hours) parts.push(`Часы работы: ${prettyHours(p.hours, lang)}.`);
@@ -149,6 +152,13 @@ export function prettyHours(h: string, lang: Locale): string {
     .replace(/;\s*/g, " · ");
 }
 
+/** Заголовок раздела «Места» для города или всей Грузии. */
+export function placesH1(lang: Locale, city?: string | null): string {
+  if (!city) return lang === "ru" ? "Места Грузии" : lang === "ka" ? "საქართველოს ადგილები" : "Places in Georgia";
+  const l = cityLabel(city, lang);
+  return lang === "ru" ? `Места ${l}` : lang === "ka" ? `${l.replace(/ი$/, "")}ის ადგილები` : `Places in ${l}`;
+}
+
 export const PT: Record<Locale, Record<string, string>> = {
   ru: {
     nav: "Места",
@@ -160,9 +170,10 @@ export const PT: Record<Locale, Record<string, string>> = {
     noReviews: "Отзывов пока нет. Были здесь? Расскажите, как всё прошло — это поможет другим.",
     reviewHow: "Отзыв оставляется через Telegram — так мы защищаемся от накруток. Публикуем после проверки.",
     noLinks: "Сайта и соцсетей у нас пока нет. Знаете их? Подскажите — добавим.",
-    title: "Места Батуми: кафе, сервисы, магазины",
-    h1: "Места Батуми",
-    lead: "Адреса, телефоны, сайты и соцсети заведений и организаций города. Ищите по названию или выбирайте раздел.",
+    title: "Места Грузии: клиники, госуслуги, нотариусы, кафе, сервисы",
+    h1: "Места Грузии",
+    allCities: "Все города",
+    lead: "Адреса, телефоны, сайты и часы работы: клиники и аптеки, Дом юстиции и нотариусы, школы, кафе, сервисы и магазины. Выберите город и раздел или ищите по названию.",
     search: "Название, услуга или улица…",
     find: "Найти",
     found: "Найдено",
@@ -199,9 +210,10 @@ export const PT: Record<Locale, Record<string, string>> = {
     noReviews: "No reviews yet. Been here? Tell others how it went.",
     reviewHow: "Reviews are left via Telegram to prevent fakes, and published after a check.",
     noLinks: "We don't have a website or social links yet. Know them? Tell us.",
-    title: "Places in Batumi: cafés, services, shops",
-    h1: "Places in Batumi",
-    lead: "Addresses, phones, websites and social links of the city's venues and businesses. Search by name or pick a category.",
+    title: "Places in Georgia: clinics, public services, notaries, cafés, shops",
+    h1: "Places in Georgia",
+    allCities: "All cities",
+    lead: "Addresses, phones, websites and hours: clinics and pharmacies, Public Service Halls and notaries, schools, cafés, services and shops. Pick a city and a category or search by name.",
     search: "Name, service or street…",
     find: "Search",
     found: "Found",
@@ -238,9 +250,10 @@ export const PT: Record<Locale, Record<string, string>> = {
     noReviews: "შეფასებები ჯერ არ არის. ყოფილხართ აქ? გაგვიზიარეთ.",
     reviewHow: "შეფასება Telegram-ით ტოვდება — ასე ვიცავთ ყალბი შეფასებებისგან.",
     noLinks: "საიტი და სოციალური ქსელები ჯერ არ გვაქვს. იცით? მოგვწერეთ.",
-    title: "ბათუმის ადგილები: კაფეები, სერვისები, მაღაზიები",
-    h1: "ბათუმის ადგილები",
-    lead: "ქალაქის დაწესებულებების მისამართები, ტელეფონები, საიტები და სოციალური ქსელები.",
+    title: "საქართველოს ადგილები: კლინიკები, საჯარო სერვისები, ნოტარიუსები, კაფეები",
+    h1: "საქართველოს ადგილები",
+    allCities: "ყველა ქალაქი",
+    lead: "კლინიკები და აფთიაქები, იუსტიციის სახლი და ნოტარიუსები, სკოლები, კაფეები და სერვისები — მისამართები, ტელეფონები და საათები.",
     search: "სახელი, მომსახურება ან ქუჩა…",
     find: "ძებნა",
     found: "ნაპოვნია",

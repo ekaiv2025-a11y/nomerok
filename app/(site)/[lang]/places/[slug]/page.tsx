@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cityLabel } from "@/lib/cities";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = placeName(p, lang);
   const a0 = placeAddr(p, lang);
   const desc = placeDesc(p, lang) ?? `${p.sub || c.label[lang]}${a0 ? `, ${a0}` : ""}. ${PT[lang].h1}.`;
-  const base = pageMeta(lang, `/places/${p.slug}`, `${name} — ${p.sub || c.label[lang]}, Батуми`, desc.slice(0, 160));
+  const base = pageMeta(lang, `/places/${p.slug}`, `${name} — ${p.sub || c.label[lang]}, ${cityLabel(p.city ?? "batumi", lang)}`, desc.slice(0, 160));
   return placeIndexable(p) ? base : { ...base, robots: { index: false, follow: true } };
 }
 
@@ -76,7 +77,7 @@ export default async function PlacePage({ params }: Props) {
   const TT = TEAM_T[lang];
   const inTeam = !!specId && team.some((m) => m.id === specId);
   const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
-  const mapQuery = encodeURIComponent([name, addr ?? "", "Batumi"].filter(Boolean).join(", "));
+  const mapQuery = encodeURIComponent([name, addr ?? "", cityLabel(p.city ?? "batumi", "en")].filter(Boolean).join(", "));
   const gmaps = p.lat != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
   const ymaps = p.lat != null ? `https://yandex.ru/maps/?pt=${p.lng},${p.lat}&z=17&l=map&text=${encodeURIComponent(name)}` : `https://yandex.ru/maps/?text=${mapQuery}`;
   const socials = [...(p.ig ? [p.ig] : []), ...(p.socials ?? []).filter((u) => u !== p.ig)];
@@ -88,7 +89,7 @@ export default async function PlacePage({ params }: Props) {
     ...(desc ? { description: desc } : {}),
     url: `${SITE_URL}/${lang}/places/${p.slug}`,
     ...(p.phones?.[0] ? { telephone: p.phones[0] } : {}),
-    ...(addr ? { address: { "@type": "PostalAddress", streetAddress: addr, addressLocality: "Batumi", addressCountry: "GE" } } : {}),
+    ...(addr ? { address: { "@type": "PostalAddress", streetAddress: addr, addressLocality: cityLabel(p.city ?? "batumi", "en"), addressCountry: "GE" } } : {}),
     ...(p.lat != null ? { geo: { "@type": "GeoCoordinates", latitude: p.lat, longitude: p.lng } } : {}),
     ...(socials.length || p.site ? { sameAs: [...(p.site ? [p.site] : []), ...socials] } : {}),
     ...(reviews.length ? { aggregateRating: { "@type": "AggregateRating", ratingValue: avg.toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } } : {}),

@@ -21,7 +21,7 @@ function matches(p: Place, q: string) {
 const rank = (p: Place) => (p.owner_verified_at ? 0 : 2) + (p.desc_ru || p.desc_en ? 0 : 1);
 const qSafe = (q: string) => q.replace(/[%,()*\\]/g, " ").trim().slice(0, 60);
 
-export async function listPlaces(opts: { cat?: string; q?: string; page?: number; subs?: string[]; tag?: string; admin?: { status?: string } }): Promise<{ items: Place[]; total: number }> {
+export async function listPlaces(opts: { cat?: string; city?: string; q?: string; page?: number; subs?: string[]; tag?: string; admin?: { status?: string } }): Promise<{ items: Place[]; total: number }> {
   const page = Math.max(1, opts.page ?? 1);
   const q = qSafe(opts.q ?? "");
   const status = opts.admin ? opts.admin.status : "published";
@@ -30,6 +30,7 @@ export async function listPlaces(opts: { cat?: string; q?: string; page?: number
     let req = sb.from("places").select("*", { count: "exact" });
     if (status) req = req.eq("status", status);
     if (opts.cat) req = req.eq("cat", opts.cat);
+    if (opts.city) req = req.eq("city", opts.city);
     if (opts.subs?.length) req = req.in("sub", opts.subs);
     if (opts.tag) req = req.contains("tags", [opts.tag]);
     if (q) req = req.or(["name", "name_en", "name_ka", "sub", "addr", "addr_ru"].map((c) => `${c}.ilike.%${q}%`).join(","));
@@ -42,32 +43,88 @@ export async function listPlaces(opts: { cat?: string; q?: string; page?: number
     return { items: (r.data as Place[]) ?? [], total: r.count ?? 0 };
   }
   let all = (await localAll()).filter(
-    (p) => (!status || p.status === status) && (!opts.cat || p.cat === opts.cat) && (!opts.subs?.length || opts.subs.includes(p.sub ?? "")) && (!opts.tag || (p.tags ?? []).includes(opts.tag)) && (!q || matches(p, q)),
+    (p) => (!status || p.status === status) && (!opts.cat || p.cat === opts.cat) && (!opts.city || (p.city ?? "batumi") === opts.city) && (!opts.subs?.length || opts.subs.includes(p.sub ?? "")) && (!opts.tag || (p.tags ?? []).includes(opts.tag)) && (!q || matches(p, q)),
   );
   all = all.sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
   return { items: all.slice((page - 1) * PAGE, page * PAGE), total: all.length };
 }
 export const PLACES_PAGE = PAGE;
 
-let countsCache: { at: number; v: Record<string, number> } | null = null;
-/** Сколько опубликованных мест в каждом разделе (кэш 10 минут). */
-export async function placeCounts(): Promise<Record<string, number>> {
-  if (countsCache && Date.now() - countsCache.at < 600_000) return countsCache.v;
+const countsCache = new Map<string, { at: number; v: Record<string, number> }>();
+/** Сколько опубликованных мест в каждом разделе — во всех городах или в одном (кэш 10 минут). */
+export async function placeCounts(city?: string): Promise<Record<string, number>> {
+  const key = city ?? "";
+  const hit = countsCache.get(key);
+  if (hit && Date.now() - hit.at < 600_000) return hit.v;
   const { PLACE_CATS } = await import("./places");
   const sb = supabase();
   const v: Record<string, number> = {};
   if (sb) {
     await Promise.all(
       PLACE_CATS.map(async (c) => {
-        const r = await sb.from("places").select("id", { count: "exact", head: true }).eq("status", "published").eq("cat", c.id);
-        v[c.id] = r.error ? 0 : r.count ?? 0;
+        let r = sb.from("places").select("id", { count: "exact", head: true }).eq("status", "published").eq("cat", c.id);
+        if (city) r = r.eq("city", city);
+        const x = await r;
+        v[c.id] = x.error ? 0 : x.count ?? 0;
       }),
     );
   } else {
-    for (const p of await localAll()) if (p.status === "published") v[p.cat] = (v[p.cat] ?? 0) + 1;
+    for (const p of await localAll()) if (p.status === "published" && (!city || (p.city ?? "batumi") === city)) v[p.cat] = (v[p.cat] ?? 0) + 1;
   }
-  countsCache = { at: Date.now(), v };
+  countsCache.set(key, { at: Date.now(), v });
   return v;
+}
+
+const cityCache: { at: number; v: Record<string, number> } = { at: 0, v: {} };
+/** Сколько опубликованных мест в каждом городе (кэш 10 минут). */
+export async function placeCityCounts(): Promise<Record<string, number>> {
+  if (Date.now() - cityCache.at < 600_000) return cityCache.v;
+  const { CITY_IDS } = await import("./cities");
+  const sb = supabase();
+  const v: Record<string, number> = {};
+  if (sb) {
+    await Promise.all(
+      CITY_IDS.map(async (c) => {
+        const r = await sb.from("places").select("id", { count: "exact", head: true }).eq("status", "published").eq("city", c);
+        v[c] = r.error ? 0 : r.count ?? 0;
+      }),
+    );
+  } else {
+    for (const p of await localAll()) if (p.status === "published") v[p.city ?? "batumi"] = (v[p.city ?? "batumi"] ?? 0) + 1;
+  }
+  Object.assign(cityCache, { at: Date.now(), v });
+  return v;
+}
+
+/** Загрузить полезные контакты города из OpenStreetMap. Похожие места рядом не дублируем — дополняем. */
+export async function importOsmCity(city: string, groups: import("./osm-import").OsmGroup[]): Promise<{ found: number; added: number; updated: number; skipped: number; merged: number }> {
+  const { fetchOverpass, osmToRows, matchExisting } = await import("./osm-import");
+  const rows = osmToRows(await fetchOverpass(city, groups), city);
+  type Lite = Pick<Place, "id" | "slug" | "name" | "name_en" | "name_ka" | "lat" | "lng" | "cat">;
+  let existing: Lite[] = [];
+  const sb = supabase();
+  if (sb) {
+    for (let from = 0; ; from += 1000) {
+      const r = await sb.from("places").select("id,slug,name,name_en,name_ka,lat,lng,cat").eq("city", city).in("cat", ["health", "public", "education", "business", "delivery", "services"]).order("id").range(from, from + 999);
+      if (r.error) break;
+      existing = existing.concat((r.data as Lite[]) ?? []);
+      if ((r.data ?? []).length < 1000) break;
+    }
+  } else existing = (await localAll()).filter((p) => (p.city ?? "batumi") === city);
+  const ids = new Set(existing.map((p) => p.id));
+  let merged = 0;
+  const final = rows.map((r) => {
+    if (ids.has(r.id)) return r;
+    const m = matchExisting(r, existing);
+    if (!m) return r;
+    merged++;
+    const prev = existing.find((p) => p.id === m)!;
+    // в существующую карточку — только контакты; раздел и название не меняем
+    return { ...r, id: prev.id, slug: prev.slug, cat: prev.cat, name: prev.name };
+  });
+  const res = await importPlaces(final);
+  cityCache.at = 0;
+  return { found: rows.length, merged, ...res };
 }
 
 export async function getPlaceBySlug(slug: string): Promise<Place | null> {
@@ -150,13 +207,15 @@ export async function updatePlace(id: string, patch: Partial<Place>): Promise<vo
   if (sb) {
     const r = await sb.from("places").update({ ...patch, updated_at: now }).eq("id", id);
     if (r.error) throw new Error(r.error.message);
-    countsCache = null;
+    countsCache.clear();
+  cityCache.at = 0;
     return;
   }
   const d = await readLocal();
   d.places = (d.places ?? []).map((p) => (p.id === id ? { ...p, ...patch, updated_at: now } : p));
   await writeLocal(d);
-  countsCache = null;
+  countsCache.clear();
+  cityCache.at = 0;
 }
 
 /** Место, которое этот Telegram сейчас подтверждает (нажал «Это моё заведение» в последний час). */
@@ -170,7 +229,7 @@ export async function placeClaimedBy(chatId: number): Promise<Place | null> {
   return (await localAll()).find((p) => p.claim_chat_id === chatId && (p.claim_at ?? "") >= since) ?? null;
 }
 
-const DATA_FIELDS = ["name", "name_en", "name_ka", "cat", "sub", "addr", "addr_ru", "tags", "lat", "lng", "phones", "site", "ig", "socials", "email", "hours", "desc_ru", "desc_en", "src", "links", "area", "checked"] as const;
+const DATA_FIELDS = ["name", "name_en", "name_ka", "cat", "sub", "addr", "addr_ru", "tags", "lat", "lng", "phones", "site", "ig", "socials", "email", "hours", "desc_ru", "desc_en", "src", "links", "area", "city", "checked"] as const;
 
 const isEmpty = (v: unknown) => v == null || v === "" || (Array.isArray(v) && v.length === 0);
 const georgianOnly = (s: string) => /[\u10A0-\u10FF]/.test(s) && !/[A-Za-zА-Яа-яЁё]/.test(s);
@@ -222,7 +281,7 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
   const now = new Date().toISOString();
   const clean = rows.map((r) => {
     const o: Record<string, unknown> = { id: r.id, slug: r.slug };
-    for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" || k === "tags" ? [] : k === "area" ? "batumi" : null);
+    for (const k of DATA_FIELDS) o[k] = (r as Record<string, unknown>)[k] ?? (k === "phones" || k === "socials" || k === "links" || k === "tags" ? [] : k === "area" || k === "city" ? (r.city ?? r.area ?? "batumi") : null);
     if (r.dup_of) o.dup_of = r.dup_of;
     return { row: o, status: r.status ?? "published", force: !!(r as { force?: boolean }).force };
   });
@@ -277,7 +336,8 @@ export async function importPlaces(rows: (Partial<Place> & { id: string; slug: s
     d.places = [...map.values()];
     await writeLocal(d);
   }
-  countsCache = null;
+  countsCache.clear();
+  cityCache.at = 0;
   return { added, updated, skipped };
 }
 
