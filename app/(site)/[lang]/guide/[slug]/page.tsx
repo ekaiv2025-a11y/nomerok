@@ -182,6 +182,44 @@ export default async function ArticlePage({ params }: Props) {
               </div>
             );
           }
+          if ("spot" in b) {
+            const e = b.spot;
+            const mapQ = e.lat != null && e.lng != null ? `${e.lat},${e.lng}` : encodeURIComponent(`${e.name}, ${e.address}`);
+            return (
+              <div key={i} className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+                {e.opened && <p className="text-[13px] font-semibold uppercase tracking-wide text-brand">🆕 {e.opened}</p>}
+                <p className="mt-1 text-[18px] font-bold leading-snug">{e.name}</p>
+                <p className="mt-1 text-[15px] text-[#3a3935]">{linkify(e.what)}</p>
+                <p className="mt-2 text-[14px]">
+                  📍 {e.address}{" "}
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${mapQ}`} target="_blank" rel="noopener noreferrer nofollow" className="whitespace-nowrap text-brand underline">
+                    на карте
+                  </a>
+                </p>
+                {(e.hours || e.price) && (
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-[13px]">
+                    {e.hours && <span className="rounded-full bg-cream px-2.5 py-1">🕘 {e.hours}</span>}
+                    {e.price && <span className="rounded-full bg-brand-soft px-2.5 py-1 font-semibold text-brand-dark">{e.price}</span>}
+                  </div>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2 text-[14px]">
+                  {e.site && (
+                    <a href={e.site} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-9 px-4 text-[13px]">
+                      Сайт
+                    </a>
+                  )}
+                  {e.ig && (
+                    <a href={e.ig} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-9 px-4 text-[13px]">
+                      Instagram
+                    </a>
+                  )}
+                  <a href={e.src} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex h-9 items-center text-[13px] text-muted underline">
+                    Источник
+                  </a>
+                </div>
+              </div>
+            );
+          }
           if ("img" in b)
             return (
               <figure key={i} className="overflow-hidden rounded-2xl bg-cream">

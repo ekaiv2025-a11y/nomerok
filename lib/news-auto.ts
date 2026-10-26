@@ -8,7 +8,7 @@ import AUTO from "./news/auto.json";
 export type AutoNews = {
   slug: string;
   date: string; // YYYY-MM-DD
-  rubric: "news" | "events" | "travel" | "life";
+  rubric: "news" | "events" | "travel" | "life" | "picks";
   emoji?: string;
   title: string;
   description: string;
@@ -31,7 +31,7 @@ export const AUTO_NEWS: Article[] = (AUTO as unknown as AutoNews[])
     slug: n.slug,
     date: n.date,
     rubric: n.rubric,
-    emoji: n.emoji || (n.rubric === "events" ? "🎟️" : n.rubric === "travel" ? "🧭" : n.rubric === "life" ? "🌴" : "📰"),
+    emoji: n.emoji || (n.rubric === "events" ? "🎟️" : n.rubric === "travel" ? "🧭" : n.rubric === "life" ? "🌴" : n.rubric === "picks" ? "✨" : "📰"),
     title: n.title,
     h1: n.title,
     description: n.description,

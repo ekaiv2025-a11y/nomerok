@@ -17,6 +17,7 @@ export type Block =
   | { map: { name: string; lat: number; lng: number; note?: string }[] } // карта с пронумерованными точками (туристические статьи)
   | { img: string; alt: string; credit: string; license: string; source: string } // фото со свободной лицензией (Wikimedia Commons)
   | { event: AfishaEvent } // событие афиши: где, когда, сколько стоит, где купить
+  | { spot: NewSpot } // новое место в подборке «Что открылось»
   | { phones: true };
 
 /** Событие в афише. Цена и ссылки — только из источника. */
@@ -33,6 +34,21 @@ export type AfishaEvent = {
   buy?: string; // ссылка на покупку (tkt.ge, biletebi.ge, сайт площадки)
   info?: string; // страница события
   note?: string; // «опоздавших не пускают», «уточняйте адрес»
+};
+
+/** Новое место для подборки «Что открылось». Всё — только из источника (src). */
+export type NewSpot = {
+  name: string;
+  what: string; // что это: «кофейня со своей обжаркой», «парк с детской площадкой»
+  address: string; // с городом
+  opened?: string; // «октябрь 2026», «с 18 октября»
+  hours?: string;
+  price?: string; // «кофе от 6 ₾» — только если есть в источнике
+  site?: string;
+  ig?: string;
+  src: string; // ссылка на источник, где сказано об открытии
+  lat?: number;
+  lng?: number;
 };
 
 /** Рубрики журнала. */

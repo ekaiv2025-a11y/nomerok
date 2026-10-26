@@ -8,7 +8,7 @@ const errors = [];
 const slugs = new Set();
 const urls = new Map();
 const BANNED = /(лучш(ий|ие|ая)\s+мастер|провер(енные|ены)\s+(мастера|специалисты|документы)|whatsapp|ватсап)/i;
-const BLOCK_KEYS = ["h2", "p", "list", "tip", "cta", "link", "map", "img", "event"];
+const BLOCK_KEYS = ["h2", "p", "list", "tip", "cta", "link", "map", "img", "event", "spot"];
 const LICENSE = /^(CC BY(-SA)? [0-9.]+|CC0|Public domain|Общественное достояние)/i;
 const CITY_IDS = ["batumi", "tbilisi", "kutaisi", "rustavi", "kobuleti", "zugdidi", "poti", "gori", "telavi", "borjomi"];
 const today = new Date(Date.now() + 4 * 3600_000).toISOString().slice(0, 10); // дата по Тбилиси
@@ -27,7 +27,7 @@ for (const [i, n] of list.entries()) {
   if (slugs.has(n.slug)) errors.push(`${at}: повтор slug`);
   slugs.add(n.slug);
   if (n.date && (!/^\d{4}-\d{2}-\d{2}$/.test(n.date) || n.date > today)) errors.push(`${at}: неверная дата ${n.date}`);
-  if (!["news", "events", "travel", "life"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel или life`);
+  if (!["news", "events", "travel", "life", "picks"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel, life или picks`);
   if (n.title && n.title.length > 110) errors.push(`${at}: заголовок длиннее 110 знаков`);
   if (n.description && (n.description.length < 60 || n.description.length > 200)) errors.push(`${at}: description 60–200 знаков`);
   if (!Array.isArray(n.body) || n.body.length < 3) errors.push(`${at}: body — минимум 3 блока`);
@@ -46,8 +46,8 @@ for (const [i, n] of list.entries()) {
     }
   const text = JSON.stringify(n);
   if (BANNED.test(text)) errors.push(`${at}: запрещённые слова (лучшие мастера / проверенные / WhatsApp)`);
-  const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
-  const minWords = n.rubric === "travel" ? 1200 : n.rubric === "life" ? 350 : 120;
+  const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : b.spot ? [b.spot.name, b.spot.what, b.spot.address].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
+  const minWords = n.rubric === "travel" ? 1200 : n.rubric === "life" ? 350 : n.rubric === "picks" ? 250 : 120;
   if (words < minWords) errors.push(`${at}: слишком коротко (${words} слов, нужно от ${minWords})`);
   for (const b of n.body ?? []) {
     if ("map" in b) {
@@ -67,6 +67,17 @@ for (const [i, n] of list.entries()) {
       if (!e?.title || !e?.when || !e?.venue || !e?.address) errors.push(`${at}: у события ${nm} нужны title, when, venue и address`);
       if (!e?.buy && !e?.info) errors.push(`${at}: у события ${nm} нужна ссылка buy (где купить) или info (страница события)`);
       for (const u of [e?.buy, e?.info]) if (u && !/^https:\/\/\S+$/.test(u)) errors.push(`${at}: у события ${nm} ссылка должна начинаться с https://`);
+    }
+  }
+  if (n.rubric === "picks") {
+    const sp = (n.body ?? []).filter((b) => "spot" in b).map((b) => b.spot);
+    if (sp.length < 5) errors.push(`${at}: в подборке нужно минимум 5 блоков spot (сейчас ${sp.length})`);
+    for (const e of sp) {
+      const nm = `«${e?.name}»`;
+      if (!e?.name || !e?.what || !e?.address) errors.push(`${at}: у места ${nm} нужны name, what и address`);
+      if (!/^https:\/\/\S+$/.test(e?.src ?? "")) errors.push(`${at}: у места ${nm} нужна ссылка src на источник (https://)`);
+      for (const u of [e?.site, e?.ig]) if (u && !/^https:\/\/\S+$/.test(u)) errors.push(`${at}: у места ${nm} ссылки должны начинаться с https://`);
+      if (e?.lat != null && !(e.lat > 41 && e.lat < 43.7 && e.lng > 39.9 && e.lng < 46.8)) errors.push(`${at}: у места ${nm} координаты вне Грузии`);
     }
   }
   if (n.rubric === "travel") {

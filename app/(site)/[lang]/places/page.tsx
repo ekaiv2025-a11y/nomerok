@@ -33,7 +33,8 @@ export default async function PlacesPage({ params, searchParams }: Props) {
   // полезные разделы — первыми
   const FIRST = ["health", "public", "education"];
   const cats = [...PLACE_CATS].sort((a, b) => Number(FIRST.includes(b.id)) - Number(FIRST.includes(a.id)) || FIRST.indexOf(a.id) - FIRST.indexOf(b.id));
-  const picks = lang === "ru" && (!city || city === "batumi") ? (await journalArticles()).filter((a) => a.rubric === "picks").slice(0, 6) : [];
+  // подборки: для выбранного города — его подборки (старые подборки без города — про Батуми)
+  const picks = lang === "ru" ? (await journalArticles()).filter((a) => a.rubric === "picks" && (!city || (a.city ?? "batumi") === city)).slice(0, 6) : [];
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <h1 className="text-[28px] font-bold sm:text-[36px]">📍 {placesH1(lang, city)}</h1>
