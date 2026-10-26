@@ -1,13 +1,15 @@
 import "server-only";
 import { dbMode, readLocal, supabase, writeLocal } from "./db";
 
-type Local = { article_views?: { slug: string; visitor: string; day: string }[]; article_counts?: Record<string, number> };
+type Local = { article_views?: { slug: string; visitor: string; day: string; source?: string; created_at?: string }[]; article_counts?: Record<string, number> };
 
 /** Отметить просмотр статьи (один посетитель — один раз в день). */
-export async function trackArticleView(slug: string, visitor: string): Promise<void> {
+export async function trackArticleView(slug: string, visitor: string, source = ""): Promise<void> {
   const sb = supabase();
   if (sb) {
-    await sb.rpc("track_article_view", { p_slug: slug, p_visitor: visitor });
+    const r = await sb.rpc("track_article_view", { p_slug: slug, p_visitor: visitor, p_source: source });
+    // миграция 0039 ещё не выполнена — старая функция без источника
+    if (r.error) await sb.rpc("track_article_view", { p_slug: slug, p_visitor: visitor });
     return;
   }
   if (dbMode() === "none") return;
@@ -15,7 +17,7 @@ export async function trackArticleView(slug: string, visitor: string): Promise<v
   const day = new Date().toISOString().slice(0, 10);
   d.article_views ??= [];
   if (d.article_views.some((v) => v.slug === slug && v.visitor === visitor && v.day === day)) return;
-  d.article_views.push({ slug, visitor, day });
+  d.article_views.push({ slug, visitor, day, source, created_at: new Date().toISOString() });
   d.article_counts = { ...(d.article_counts ?? {}), [slug]: (d.article_counts?.[slug] ?? 0) + 1 };
   await writeLocal(d as never);
 }

@@ -127,6 +127,7 @@ export async function healthCheck() {
           ["0036 параметры объявлений", "listings", "rank_at"],
           ["0037 шаблоны объявлений", "listing_templates", "data"],
           ["0038 перевод анкет", "master_translations", "data"],
+          ["0039 статистика журнала", "article_views", "source"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

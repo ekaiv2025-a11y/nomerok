@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { trackArticleView } from "@/lib/article-views";
+import { sourceOf } from "@/lib/site-stats";
 import { visitorId } from "@/lib/request-info";
 import { isAdmin } from "@/lib/admin-auth";
 
@@ -11,6 +12,10 @@ export async function POST(req: Request) {
   const slug = typeof body?.slug === "string" ? body.slug : "";
   if (!/^[a-z0-9-]{2,90}$/.test(slug) || BOTS.test(req.headers.get("user-agent") ?? "")) return NextResponse.json({ ok: true });
   if (await isAdmin()) return NextResponse.json({ ok: true });
-  await trackArticleView(slug, await visitorId()).catch(() => null);
+  // откуда пришли на статью: Google, Telegram… или «внутри сайта» (перешли с другой страницы NomerOk)
+  const host = new URL(req.url).hostname.replace(/^www\./, "");
+  const ref = typeof body?.ref === "string" ? body.ref : "";
+  const s = sourceOf(ref, typeof body?.utm === "string" ? body.utm : "", host);
+  await trackArticleView(slug, await visitorId(), s === "прямой заход" && ref ? "внутри сайта" : s).catch(() => null);
   return NextResponse.json({ ok: true });
 }

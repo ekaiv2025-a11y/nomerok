@@ -5,6 +5,9 @@ import { getStats } from "@/lib/stats-db";
 import { adminListMasters } from "@/lib/db";
 import { siteSummary } from "@/lib/site-stats";
 import { joinFunnel } from "@/lib/join-starts";
+import { journalStats } from "@/lib/article-stats";
+import { journalArticles } from "@/lib/journal";
+import { RUBRICS } from "@/lib/articles";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +22,16 @@ const ROWS = [
 export default async function StatsPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");
   const period = Math.min(90, Math.max(7, Number((await searchParams).d) || 30));
-  const [{ days, top }, masters, site, jf] = await Promise.all([getStats(period), adminListMasters(), siteSummary(period), joinFunnel(period)]);
+  const [{ days, top }, masters, site, jf, js, arts] = await Promise.all([getStats(period), adminListMasters(), siteSummary(period), joinFunnel(period), journalStats(period).catch(() => null), journalArticles().catch(() => [])]);
+  const art = new Map(arts.map((a) => [a.slug, a]));
+  const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
+  // по рубрикам: сколько статей вышло за период и сколько их читали
+  const sinceDay = new Date(Date.now() - period * 86400_000).toISOString().slice(0, 10);
+  const byRubric = Object.entries(RUBRICS).map(([id, r]) => {
+    const pub = arts.filter((a) => a.rubric === id && a.date >= sinceDay).length;
+    const rows = (js?.rows ?? []).filter((x) => art.get(x.slug)?.rubric === id);
+    return { id, label: `${r.emoji} ${r.label}`, pub, views: rows.reduce((s, x) => s + x.views, 0), search: rows.reduce((s, x) => s + x.search, 0) };
+  }).filter((x) => x.pub || x.views);
   const srcMax = Math.max(1, ...site.sources.map((s) => s.n));
   const name = new Map(masters.map((m) => [m.id, m]));
   const sum = (k: (typeof ROWS)[number]["key"]) => days.reduce((s, d) => s + d[k], 0);
@@ -150,6 +162,75 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
           </tbody>
         </table>
       </div>
+
+      {js && (
+        <div className="rounded-2xl bg-white p-4">
+          <h2 className="text-[17px] font-bold">📰 Журнал: кто читает статьи</h2>
+          <p className="mt-1 text-[12px] text-muted">Один человек — одна статья в день. Источник записываем с 26.10.2026; Google начинает приводить людей на новые статьи обычно через 2–8 недель после публикации.</p>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {[
+              ["Прочтений", js.views, ""],
+              ["Читателей", js.readers, ""],
+              ["Из Google/Яндекса", js.fromSearch, pct(js.fromSearch, js.views)],
+              ["Пришли на сайт через статью", js.entries, `${pct(js.entries, js.siteVisitors)} всех посетителей`],
+              ["После статьи открыли специалиста", js.toProfiles, `${pct(js.toProfiles, js.readers)} читателей · контакты: ${js.toContacts}`],
+            ].map(([l, n, h]) => (
+              <div key={String(l)} className="rounded-xl bg-cream p-3">
+                <p className="text-[12px] text-muted">{l}</p>
+                <p className="text-[22px] font-bold">{n}</p>
+                {h && <p className="text-[11px] text-muted">{h}</p>}
+              </div>
+            ))}
+          </div>
+          {js.sources.length > 0 && (
+            <p className="mt-3 text-[13px]">
+              <b>Откуда пришли на статьи:</b> {js.sources.map((x) => `${x.source} ${x.n}`).join(" · ")}
+            </p>
+          )}
+          {byRubric.length > 0 && (
+            <table className="mt-3 w-full text-[13px]">
+              <thead className="text-left text-muted">
+                <tr><th className="py-1">Рубрика</th><th className="py-1 text-right">вышло статей</th><th className="py-1 text-right">прочтений</th><th className="py-1 text-right">на статью</th><th className="py-1 text-right">из поиска</th></tr>
+              </thead>
+              <tbody>
+                {byRubric.map((r) => (
+                  <tr key={r.id} className="border-t border-line">
+                    <td className="py-1.5">{r.label}</td>
+                    <td className="py-1.5 text-right">{r.pub}</td>
+                    <td className="py-1.5 text-right">{r.views}</td>
+                    <td className="py-1.5 text-right">{r.pub ? (r.views / r.pub).toFixed(1) : "—"}</td>
+                    <td className="py-1.5 text-right">{r.search}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <table className="mt-4 w-full text-[13px]">
+            <thead className="text-left text-muted">
+              <tr><th className="py-1">Статья (топ-30)</th><th className="py-1 text-right">прочт.</th><th className="py-1 text-right">поиск</th><th className="py-1 text-right">соцсети</th><th className="py-1 text-right">вход</th><th className="py-1 text-right">→ спец.</th></tr>
+            </thead>
+            <tbody>
+              {js.rows.slice(0, 30).map((r) => (
+                <tr key={r.slug} className="border-t border-line">
+                  <td className="py-1.5 pr-2">
+                    <a href={`/ru/guide/${r.slug}`} target="_blank" className="hover:text-brand">{art.get(r.slug)?.h1 ?? r.slug}</a>
+                    {art.get(r.slug) && <span className="text-muted"> · {art.get(r.slug)!.date}</span>}
+                  </td>
+                  <td className="py-1.5 text-right">{r.views}</td>
+                  <td className="py-1.5 text-right">{r.search}</td>
+                  <td className="py-1.5 text-right">{r.social}</td>
+                  <td className="py-1.5 text-right">{r.entry}</td>
+                  <td className="py-1.5 text-right">{r.toProfiles}</td>
+                </tr>
+              ))}
+              {js.rows.length === 0 && (
+                <tr><td colSpan={6} className="py-3 text-muted">Пока нет прочтений за этот период.</td></tr>
+              )}
+            </tbody>
+          </table>
+          <p className="mt-2 text-[12px] text-muted">«Вход» — человек пришёл на сайт сразу на эту статью. «→ спец.» — после статьи в тот же день открыл профиль специалиста. Позиции и показы в Google — в Google Search Console (search.google.com/search-console → Эффективность).</p>
+        </div>
+      )}
 
       <p className="text-[13px] text-muted">
         Здесь — действия на сайте из нашей базы. Общая посещаемость всех страниц (главная, откуда пришли, страны, телефоны/компьютеры) — в Vercel: vercel.com → проект nomerok → вкладка <b>Analytics</b>.
