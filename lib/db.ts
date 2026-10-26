@@ -372,8 +372,9 @@ export async function takenLast30(): Promise<Map<string, number>> {
 
 export async function listPublishedMasters(): Promise<PublicMaster[]> {
   // Кто на паузе (в отпуске) — в каталоге не показываем
-  const taken = await takenLast30().catch(() => new Map<string, number>());
-  const real = (await withRatings(await listPublishedFromDb()))
+  // запросы к базе — параллельно, а не по очереди (быстрее открывается главная)
+  const [taken, base] = await Promise.all([takenLast30().catch(() => new Map<string, number>()), listPublishedFromDb()]);
+  const real = (await withRatings(base))
     .filter((m) => !m.away)
     .map((m) => (taken.has(m.id) ? { ...m, taken30: taken.get(m.id) } : m))
     .map((m) => ({ m, s: rankScore(m) + rotation(m.id) }))
@@ -410,10 +411,12 @@ export async function getPublishedMasterBySlug(slug: string): Promise<PublicMast
 /** Средняя оценка и число опубликованных отзывов. Если таблицы отзывов ещё нет — просто без оценок. */
 async function withRatings(list: PublicMaster[]): Promise<PublicMaster[]> {
   const { reviewStats } = await import("./reviews-db");
-  const stats = await reviewStats().catch(() => new Map<string, { sum: number; n: number }>());
   // 🎁 бонус за рекомендацию — значок в карточке
   const { mastersWithBonus } = await import("./referral-db");
-  const bonus = await mastersWithBonus().catch(() => new Map<string, { kind: "ref" | "repost"; text: string }>());
+  const [stats, bonus] = await Promise.all([
+    reviewStats().catch(() => new Map<string, { sum: number; n: number }>()),
+    mastersWithBonus().catch(() => new Map<string, { kind: "ref" | "repost"; text: string }>()),
+  ]);
   return list.map((m) => {
     const st = stats.get(m.id);
     const b = bonus.has(m.id) ? { bonus: true, bonusText: bonus.get(m.id)!.text, bonusKind: bonus.get(m.id)!.kind } : {};

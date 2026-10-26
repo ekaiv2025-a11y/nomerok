@@ -13,6 +13,8 @@ const LICENSE_OK = /^(cc0|cc[- ]by(-sa)? \d(\.\d)?|public domain|pd)/i;
 const BAD_TITLE = /\b(map|karte|flag|coat of arms|logo|emblem|seal|plan|scheme|diagram|chart|graph|stamp|banknote|signature|icon)\b|\.(svg|png|gif|tif)$/i;
 
 const mem = new Map<string, Promise<CommonsPhoto | null | undefined>>();
+// Commons не ответил — 10 минут вообще не обращаемся (иначе каждая страница ждёт таймаут)
+let downUntil = 0;
 
 const strip = (html: string) =>
   html
@@ -72,10 +74,14 @@ async function search(q: string): Promise<CommonsPhoto | null | undefined> {
     origin: "*",
   });
   try {
-    const r = await fetch(`${API}?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(3500), next: { revalidate: 7 * 86400 } });
-    if (!r.ok) return undefined;
+    const r = await fetch(`${API}?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(2500), next: { revalidate: 7 * 86400 } });
+    if (!r.ok) {
+      downUntil = Date.now() + 10 * 60_000;
+      return undefined;
+    }
     return pickPhoto(await r.json());
   } catch {
+    downUntil = Date.now() + 10 * 60_000;
     return undefined;
   }
 }
@@ -84,6 +90,7 @@ async function search(q: string): Promise<CommonsPhoto | null | undefined> {
 export function commonsPhoto(q: string | null | undefined): Promise<CommonsPhoto | null | undefined> {
   const key = String(q ?? "").trim().slice(0, 120);
   if (!key) return Promise.resolve(null);
+  if (!mem.has(key) && Date.now() < downUntil) return Promise.resolve(undefined);
   if (!mem.has(key)) {
     const p = search(key);
     mem.set(key, p);
