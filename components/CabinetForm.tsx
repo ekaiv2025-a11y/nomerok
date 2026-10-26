@@ -6,6 +6,7 @@ import { posStyle } from "@/lib/photo-pos";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2 } from "lucide-react";
+import { SUBCATS } from "@/lib/subcats";
 import { CATEGORIES, LANGUAGES, PRICE_UNITS, categoryLabel, languageLabel, unitLabel } from "@/lib/categories";
 import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
 import { WhereFields, type WhereValue } from "./WhereFields";
@@ -33,8 +34,16 @@ type Initial = {
   city: string;
   links: MasterLinks;
   extra_categories: string[];
+  /** уточнения «направление:вид», например photo:interior */
+  subcats: string[];
   where: WhereValue;
 };
+
+const SUB_T = {
+  ru: { title: (c: string) => `Что именно вы делаете — ${c.toLowerCase()}`, hint: "Отметьте всё подходящее: это видно под вашим именем, и клиенты находят вас по этим фильтрам в каталоге." },
+  en: { title: (c: string) => `What exactly you do — ${c}`, hint: "Tick everything that fits: it shows under your name and clients find you by these filters." },
+  ka: { title: (c: string) => `კონკრეტულად რას აკეთებთ — ${c}`, hint: "მონიშნეთ ყველაფერი შესაბამისი: ჩანს სახელის ქვეშ და კლიენტები ამ ფილტრებით გპოულობენ." },
+} as const;
 
 const MAIN_CAT = {
   ru: { label: "Основное направление", hint: "Показывается под именем и определяет раздел каталога. Если вы в нескольких — остальные отметьте ниже." },
@@ -57,6 +66,9 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
   const fileRef = useRef<HTMLInputElement>(null);
   const [extra, setExtra] = useState<string[]>(initial.extra_categories ?? []);
   const [mainCat, setMainCat] = useState(initial.category);
+  const [subs, setSubs] = useState<string[]>(initial.subcats ?? []);
+  const toggleSub = (key: string) => setSubs((cur) => (cur.includes(key) ? cur.filter((x) => x !== key) : [...cur, key]));
+  const subCats = [mainCat, ...extra.filter((c) => c !== mainCat)].filter((c) => SUBCATS[c]?.length);
   const [where, setWhere] = useState<WhereValue>(initial.where);
   const [city, setCity] = useState(initial.city || "batumi");
   function toggleExtra(id: string) {
@@ -115,6 +127,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           whatsapp: f.get("whatsapp") === "on",
           category: mainCat,
           extra_categories: extra.filter((c) => c !== mainCat),
+          subcats: subs.filter((k) => subCats.includes(k.split(":")[0])),
           city: f.get("city"),
           links: readLinkFields(f),
           ...where,
@@ -277,6 +290,32 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         </div>
         {errors.extra_categories && <p className="mt-1 text-[13px] text-danger">{errors.extra_categories}</p>}
       </fieldset>
+      {subCats.map((c) => (
+        <fieldset key={c}>
+          <legend className="text-[14px] font-semibold">
+            {SUB_T[lang].title(categoryLabel(c, lang))} <span className="font-normal text-muted">{opt}</span>
+          </legend>
+          <p className="mt-0.5 text-[13px] leading-snug text-muted">{SUB_T[lang].hint}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {SUBCATS[c].map((sc) => {
+              const key = `${c}:${sc.id}`;
+              const on = subs.includes(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => toggleSub(key)}
+                  aria-pressed={on}
+                  className={`rounded-full border px-3 py-1.5 text-[13px] ${on ? "border-brand bg-brand-soft font-semibold text-brand-dark" : "border-line hover:border-brand"}`}
+                >
+                  {on ? "✓ " : ""}
+                  {sc.label[lang]}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ))}
       {message && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{message}</p>}
       <button type="submit" disabled={state === "saving"} className="btn-primary h-12 w-full">
         {state === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}

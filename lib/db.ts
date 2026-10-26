@@ -128,6 +128,7 @@ export async function healthCheck() {
           ["0037 шаблоны объявлений", "listing_templates", "data"],
           ["0038 перевод анкет", "master_translations", "data"],
           ["0039 статистика журнала", "article_views", "source"],
+          ["0040 уточнения направлений", "masters", "subcats"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -266,6 +267,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     seen_days: seenDays((m as { last_active_at?: string | null }).last_active_at),
     slots: cleanSlots((m as { slots?: unknown }).slots),
     short: (m as { short?: string | null }).short ?? null,
+    subcats: Array.isArray((m as { subcats?: unknown }).subcats) ? ((m as { subcats: string[] }).subcats) : [],
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -294,7 +296,8 @@ const COLUMNS_0009 = COLUMNS_0007 + ",city";
 const PUBLIC_COLUMNS = COLUMNS_0009 + ",links";
 /** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
 const COLUMNS_0017 = PUBLIC_COLUMNS + ",short,slots";
-const COLUMN_SETS = [COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMNS_0040 = COLUMNS_0017 + ",subcats";
+const COLUMN_SETS = [COLUMNS_0040, COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {

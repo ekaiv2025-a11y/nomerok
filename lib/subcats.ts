@@ -26,11 +26,17 @@ export const SUBCATS: Record<string, Sub[]> = {
     { id: "deal", label: { ru: "Сопровождение сделок", en: "Deal support", ka: "გარიგების მხარდაჭერა" }, re: /сопровожд|сделк|юридическ\S* провер|оформлени|нотари|deal|closing|legal check|გარიგ/i },
   ],
   photo: [
-    { id: "interior", label: { ru: "Интерьерная съёмка", en: "Interior photography", ka: "ინტერიერის ფოტოგრაფია" }, re: /интерьер|недвижимост|квартир|архитектур|отел[ья]|airbnb|interior|real estate|architect|ინტერიერ|უძრავ/i },
-    { id: "wedding", label: { ru: "Свадьбы и события", en: "Weddings & events", ka: "ქორწილები და ღონისძიებები" }, re: /свад|венчан|lovestory|love story|праздник|мероприят|event|wedding|ქორწილ/i },
-    { id: "portrait", label: { ru: "Портреты и семья", en: "Portraits & family", ka: "პორტრეტი და ოჯახი" }, re: /портрет|семейн|детск\S* фото|фотосесси|portrait|family|photoshoot|პორტრეტ|ფოტოსესი/i },
-    { id: "product", label: { ru: "Предметная и для бизнеса", en: "Product & business", ka: "საგნობრივი და ბიზნესისთვის" }, re: /предметн|каталог|товар|еда|food|product|reklam|реклам|ecommerce|მარკეტპლეის|პროდუქტ/i },
-    { id: "video", label: { ru: "Видеосъёмка и монтаж", en: "Video & editing", ka: "ვიდეო და მონტაჟი" }, re: /видео|монтаж|reels|рилс|дрон|аэросъ[её]м|video|drone|editing|ვიდეო|მონტაჟ/i },
+    { id: "interior", label: { ru: "Интерьерная съёмка", en: "Interior photography", ka: "ინტერიერის ფოტოგრაფია" }, re: /интерьер|недвижимост|архитектур|airbnb|interior|real estate|architect|ინტერიერ|უძრავ/i },
+    { id: "reportage", label: { ru: "Репортажная съёмка", en: "Reportage & events", ka: "რეპორტაჟული გადაღება" }, re: /репортаж|мероприят|корпоратив|конференц|праздник|event|reportage|კორპორატ|ღონისძიებ|რეპორტაჟ/i },
+    { id: "wedding", label: { ru: "Свадебная съёмка", en: "Weddings", ka: "საქორწილო გადაღება" }, re: /свад|венчан|love ?story|wedding|ქორწილ/i },
+    { id: "portrait", label: { ru: "Портретная съёмка", en: "Portraits", ka: "პორტრეტული გადაღება" }, re: /портрет|фотосесси|portrait|photoshoot|პორტრეტ|ფოტოსესი/i },
+    { id: "family", label: { ru: "Семейная и детская", en: "Family & kids", ka: "საოჯახო და საბავშვო" }, re: /семейн|детск\S* (фото|съ[её]м)|новорожд|беременн|newborn|family|maternity|საოჯახო|ახალშობილ/i },
+    { id: "product", label: { ru: "Предметная съёмка", en: "Product photography", ka: "საგნობრივი გადაღება" }, re: /предметн|каталог|товар|маркетплейс|product|ecommerce|პროდუქტ/i },
+    { id: "food", label: { ru: "Фуд-съёмка", en: "Food photography", ka: "კერძების გადაღება" }, re: /фуд|food|блюд|ресторан\S* (меню|съ[её]м)|კერძ/i },
+    { id: "fashion", label: { ru: "Fashion и лукбуки", en: "Fashion & lookbooks", ka: "ფეშენი" }, re: /fashion|лукбук|lookbook|модел\S* (съ[её]м|тест)|ფეშენ/i },
+    { id: "drone", label: { ru: "Аэросъёмка (дрон)", en: "Drone / aerial", ka: "აეროგადაღება (დრონი)" }, re: /дрон|аэросъ[её]м|квадрокоптер|drone|aerial|დრონ/i },
+    { id: "video", label: { ru: "Видеосъёмка", en: "Videography", ka: "ვიდეოგადაღება" }, re: /видеосъ[её]м|видеограф|reels|рилс|клип|videograph|video|ვიდეო/i },
+    { id: "editing", label: { ru: "Монтаж и обработка", en: "Editing & retouch", ka: "მონტაჟი და დამუშავება" }, re: /монтаж|ретуш|обработк\S* фото|цветокоррекц|editing|retouch|color grading|მონტაჟ|რეტუშ/i },
   ],
   fitness: [
     { id: "gym", label: { ru: "Фитнес", en: "Fitness", ka: "ფიტნესი" }, re: /фитнес|тренаж?[её]рн|персональн\w* тренир|похуд|набор\w* масс|кроссфит|функционал|fitness|gym|workout|crossfit|ფიტნეს/i },
@@ -42,13 +48,16 @@ export const SUBCATS: Record<string, Sub[]> = {
   ],
 };
 
-type M = { category: string; extra_categories?: string[]; services?: string; about?: string; name?: string };
+type M = { category: string; extra_categories?: string[]; services?: string; about?: string; name?: string; subcats?: string[] };
 
 /** Уточнения для направления cat у специалиста (по порядку списка). */
 export function subcatsOf(m: M, cat: string = m.category): string[] {
   const list = SUBCATS[cat];
   if (!list) return [];
   if (m.category !== cat && !(m.extra_categories ?? []).includes(cat)) return [];
+  // Специалист выбрал сам — берём его выбор; иначе угадываем по тексту анкеты
+  const chosen = (m.subcats ?? []).map((x) => (x.includes(":") ? x : `${m.category}:${x}`)).filter((x) => x.startsWith(`${cat}:`)).map((x) => x.slice(cat.length + 1));
+  if (chosen.length) return list.filter((s) => chosen.includes(s.id)).map((s) => s.id);
   const text = `${m.name ?? ""}\n${m.services ?? ""}\n${m.about ?? ""}`;
   return list.filter((s) => s.re.test(text)).map((s) => s.id);
 }

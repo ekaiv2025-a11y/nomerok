@@ -1,3 +1,4 @@
+import { subcatsOf } from "@/lib/subcats";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -358,6 +359,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
               city: m.city ?? "batumi",
               links: m.links ?? {},
               extra_categories: m.extra_categories ?? [],
+              // уточнения: выбранные специалистом или (если не выбирал) угаданные по тексту — их он и видит сейчас в каталоге
+              subcats: [m.category, ...(m.extra_categories ?? [])].flatMap((c) => subcatsOf(m, c).map((id) => `${c}:${id}`)),
               where: {
                 work_mode: m.work_mode ?? "at_client",
                 service_area: m.service_area ?? "",

@@ -11,6 +11,7 @@ import { getDict } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
+import { SUBCATS } from "@/lib/subcats";
 
 /** Сохранение профиля из кабинета специалиста. */
 export async function POST(req: Request) {
@@ -49,6 +50,14 @@ export async function POST(req: Request) {
       place_lng: needsPlace ? Math.round(lng * 1e6) / 1e6 : null,
     };
   }
+  // Уточнения («photo:interior»): только для основного и дополнительных направлений
+  const cats = [mainCat, ...(Array.isArray(body.extra_categories) ? extra : m.extra_categories ?? [])];
+  const subcats = Array.isArray(body.subcats)
+    ? [...new Set((body.subcats as unknown[]).map(String))].filter((k) => {
+        const [c, id] = k.split(":");
+        return cats.includes(c) && !!SUBCATS[c]?.some((x) => x.id === id);
+      }).slice(0, 20)
+    : null;
   if (extra.length > MAX_EXTRA_CATEGORIES) return NextResponse.json({ ok: false, fields: { extra_categories: getDict(lang).cabinet.extraMax } }, { status: 422 });
   // Телефон: специалист может сам исправить. Новый номер — снимаем «Номер подтверждён»,
   // но если Telegram уже подключён, заявки продолжают приходить (tg_verified_at).
@@ -74,6 +83,7 @@ export async function POST(req: Request) {
     telegram: d.telegram,
     whatsapp: d.whatsapp,
     ...(mainCat !== m.category ? { category: mainCat } : {}),
+    ...(subcats ? { subcats } : {}),
     ...(Array.isArray(body.extra_categories) ? { extra_categories: extra } : {}),
     ...(where ? where : {}),
     ...(isCity(body.city) ? { city: body.city } : {}),

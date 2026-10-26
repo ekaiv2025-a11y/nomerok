@@ -62,6 +62,8 @@ export type Master = {
   /** короткая ссылка nomerok.ge/<short> */
   short?: string | null;
   slots?: { d: string; t: string }[];
+  /** Уточнения направлений, выбранные специалистом (id из lib/subcats) — если пусто, определяются по тексту */
+  subcats?: string[];
   /** Получать ли новые заявки своей категории */
   notify_requests: boolean;
   /** Дополнительные направления (до 3), по ним тоже приходят заявки */
@@ -127,7 +129,7 @@ export type PublicMaster = Pick<
   | "work_hours"
   | "city"
   | "links"
-> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number; bonus?: boolean; bonusText?: string; bonusKind?: "ref" | "repost"; taken30?: number; /** имя в оригинале, если показали транслитом */ name_orig?: string; /** анкета переведена автоматически с этого языка */ tr_from?: Locale };
+> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number; bonus?: boolean; bonusText?: string; bonusKind?: "ref" | "repost"; taken30?: number; subcats?: string[]; /** имя в оригинале, если показали транслитом */ name_orig?: string; /** анкета переведена автоматически с этого языка */ tr_from?: Locale };
 
 export type MasterContacts = {
   phone: string;
