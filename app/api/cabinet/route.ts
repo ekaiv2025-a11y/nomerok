@@ -25,9 +25,11 @@ export async function POST(req: Request) {
   const parsed = cabinetSchema(lang).safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false, fields: firstErrors(parsed.error) }, { status: 422 });
   const d = parsed.data;
+  // Основное направление можно сменить самому (например, выбрал по ошибке)
+  const mainCat = typeof body.category === "string" && (CATEGORY_IDS as readonly string[]).includes(body.category) ? body.category : m.category;
   // Дополнительные направления: только существующие, не основное, не больше 3
   const extra = Array.isArray(body.extra_categories)
-    ? [...new Set((body.extra_categories as unknown[]).map(String))].filter((c) => (CATEGORY_IDS as readonly string[]).includes(c) && c !== m.category && c !== "other")
+    ? [...new Set((body.extra_categories as unknown[]).map(String))].filter((c) => (CATEGORY_IDS as readonly string[]).includes(c) && c !== mainCat && c !== "other")
     : [];
   // Где работает: режим, районы, часы, точка на карте (только в пределах Грузии)
   let where: Record<string, unknown> | null = null;
@@ -71,6 +73,7 @@ export async function POST(req: Request) {
     price_unit: d.price_unit,
     telegram: d.telegram,
     whatsapp: d.whatsapp,
+    ...(mainCat !== m.category ? { category: mainCat } : {}),
     ...(Array.isArray(body.extra_categories) ? { extra_categories: extra } : {}),
     ...(where ? where : {}),
     ...(isCity(body.city) ? { city: body.city } : {}),

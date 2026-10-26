@@ -25,6 +25,13 @@ export const SUBCATS: Record<string, Sub[]> = {
     { id: "commercial", label: { ru: "Коммерческая", en: "Commercial", ka: "კომერციული" }, re: /коммерч|офис|помещени|склад|commercial|office|retail|კომერც/i },
     { id: "deal", label: { ru: "Сопровождение сделок", en: "Deal support", ka: "გარიგების მხარდაჭერა" }, re: /сопровожд|сделк|юридическ\S* провер|оформлени|нотари|deal|closing|legal check|გარიგ/i },
   ],
+  photo: [
+    { id: "interior", label: { ru: "Интерьерная съёмка", en: "Interior photography", ka: "ინტერიერის ფოტოგრაფია" }, re: /интерьер|недвижимост|квартир|архитектур|отел[ья]|airbnb|interior|real estate|architect|ინტერიერ|უძრავ/i },
+    { id: "wedding", label: { ru: "Свадьбы и события", en: "Weddings & events", ka: "ქორწილები და ღონისძიებები" }, re: /свад|венчан|lovestory|love story|праздник|мероприят|event|wedding|ქორწილ/i },
+    { id: "portrait", label: { ru: "Портреты и семья", en: "Portraits & family", ka: "პორტრეტი და ოჯახი" }, re: /портрет|семейн|детск\S* фото|фотосесси|portrait|family|photoshoot|პორტრეტ|ფოტოსესი/i },
+    { id: "product", label: { ru: "Предметная и для бизнеса", en: "Product & business", ka: "საგნობრივი და ბიზნესისთვის" }, re: /предметн|каталог|товар|еда|food|product|reklam|реклам|ecommerce|მარკეტპლეის|პროდუქტ/i },
+    { id: "video", label: { ru: "Видеосъёмка и монтаж", en: "Video & editing", ka: "ვიდეო და მონტაჟი" }, re: /видео|монтаж|reels|рилс|дрон|аэросъ[её]м|video|drone|editing|ვიდეო|მონტაჟ/i },
+  ],
   fitness: [
     { id: "gym", label: { ru: "Фитнес", en: "Fitness", ka: "ფიტნესი" }, re: /фитнес|тренаж?[её]рн|персональн\w* тренир|похуд|набор\w* масс|кроссфит|функционал|fitness|gym|workout|crossfit|ფიტნეს/i },
     { id: "yoga", label: { ru: "Йога и пилатес", en: "Yoga & pilates", ka: "იოგა და პილატესი" }, re: /йог|пилатес|стретчинг|растяжк|yoga|pilates|stretch|იოგ/i },

@@ -36,6 +36,12 @@ type Initial = {
   where: WhereValue;
 };
 
+const MAIN_CAT = {
+  ru: { label: "Основное направление", hint: "Показывается под именем и определяет раздел каталога. Если вы в нескольких — остальные отметьте ниже." },
+  en: { label: "Main category", hint: "Shown under your name and decides your catalog section. Add others below." },
+  ka: { label: "ძირითადი მიმართულება", hint: "ჩანს სახელის ქვეშ და განსაზღვრავს კატალოგის განყოფილებას. დანარჩენი მონიშნეთ ქვემოთ." },
+} as const;
+
 export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: string; initial: Initial }) {
   const d = getDict(lang);
   const t = d.cabinet;
@@ -50,6 +56,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
   const [message, setMessage] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [extra, setExtra] = useState<string[]>(initial.extra_categories ?? []);
+  const [mainCat, setMainCat] = useState(initial.category);
   const [where, setWhere] = useState<WhereValue>(initial.where);
   const [city, setCity] = useState(initial.city || "batumi");
   function toggleExtra(id: string) {
@@ -106,7 +113,8 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           languages: f.getAll("languages"),
           telegram: f.get("telegram"),
           whatsapp: f.get("whatsapp") === "on",
-          extra_categories: extra,
+          category: mainCat,
+          extra_categories: extra.filter((c) => c !== mainCat),
           city: f.get("city"),
           links: readLinkFields(f),
           ...where,
@@ -229,16 +237,27 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
       </Field>
       <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} city={city} />
       <LinkFields lang={lang} initial={initial.links} />
+      <label className="block">
+        <span className="text-[14px] font-semibold">{MAIN_CAT[lang].label}</span>
+        <span className="mt-0.5 block text-[13px] leading-snug text-muted">{MAIN_CAT[lang].hint}</span>
+        <select value={mainCat} onChange={(e) => (setMainCat(e.target.value), setExtra((cur) => cur.filter((c) => c !== e.target.value)))} className="field mt-1.5">
+          {CATEGORIES.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label[lang]}
+            </option>
+          ))}
+        </select>
+      </label>
       <fieldset>
         <legend className="text-[14px] font-semibold">
           {t.extraTitle} <span className="font-normal text-muted">{opt}</span>
         </legend>
         <p className="mt-0.5 text-[13px] leading-snug text-muted">{t.extraHint}</p>
         <p className="mt-2 text-[13px]">
-          {categoryLabel(initial.category, lang)} · <b>{extra.length}/{MAX_EXTRA_CATEGORIES}</b>
+          {categoryLabel(mainCat, lang)} · <b>{extra.length}/{MAX_EXTRA_CATEGORIES}</b>
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {CATEGORIES.filter((c) => c.id !== initial.category && c.id !== "other").map((c) => {
+          {CATEGORIES.filter((c) => c.id !== mainCat && c.id !== "other").map((c) => {
             const on = extra.includes(c.id);
             const disabled = !on && extra.length >= MAX_EXTRA_CATEGORIES;
             return (
