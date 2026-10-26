@@ -47,7 +47,7 @@ for (const [i, n] of list.entries()) {
   const text = JSON.stringify(n);
   if (BANNED.test(text)) errors.push(`${at}: запрещённые слова (лучшие мастера / проверенные / WhatsApp)`);
   const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : b.spot ? [b.spot.name, b.spot.what, b.spot.address].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
-  const minWords = n.rubric === "travel" ? 1200 : n.rubric === "life" ? 350 : n.rubric === "picks" ? 250 : 120;
+  const minWords = n.rubric === "travel" || n.kind === "guide" ? 1200 : n.rubric === "life" ? 350 : n.rubric === "picks" ? 250 : 120;
   if (words < minWords) errors.push(`${at}: слишком коротко (${words} слов, нужно от ${minWords})`);
   for (const b of n.body ?? []) {
     if ("map" in b) {
@@ -79,6 +79,11 @@ for (const [i, n] of list.entries()) {
       for (const u of [e?.site, e?.ig]) if (u && !/^https:\/\/\S+$/.test(u)) errors.push(`${at}: у места ${nm} ссылки должны начинаться с https://`);
       if (e?.lat != null && !(e.lat > 41 && e.lat < 43.7 && e.lng > 39.9 && e.lng < 46.8)) errors.push(`${at}: у места ${nm} координаты вне Грузии`);
     }
+  }
+  if (n.kind === "guide") {
+    if (!Array.isArray(n.faq) || n.faq.length < 5) errors.push(`${at}: в гайде «Жизнь в Грузии» нужно минимум 5 вопросов в faq`);
+    if ((n.sources ?? []).length < 3) errors.push(`${at}: в гайде нужно минимум 3 источника`);
+    if (!(n.body ?? []).some((b) => "h2" in b)) errors.push(`${at}: в гайде нужны подзаголовки h2`);
   }
   if (n.rubric === "travel") {
     if (!(n.body ?? []).some((b) => "map" in b && b.map.length >= 3)) errors.push(`${at}: в статье «Куда поехать» нужна карта минимум с 3 точками`);

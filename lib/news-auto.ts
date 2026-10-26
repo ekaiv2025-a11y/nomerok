@@ -22,6 +22,8 @@ export type AutoNews = {
   photo?: { q: string; alt?: string };
   cats?: string[];
   hidden?: boolean;
+  /** большой SEO-гайд «Жизнь в Грузии» (scripts/life-bot.md) */
+  kind?: "guide";
   faq?: { q: string; a: string }[];
 };
 
