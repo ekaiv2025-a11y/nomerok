@@ -1,3 +1,4 @@
+import { portfolioSections } from "@/lib/portfolio";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -201,7 +202,12 @@ export default async function MasterPage({ params, searchParams }: Props) {
               <h2 className="text-[18px] font-bold">
                 {t.portfolio} <span className="font-normal text-muted">{m.portfolio.length}</span>
               </h2>
-              <Gallery items={m.portfolio} />
+              <Gallery
+                items={m.portfolio}
+                sections={portfolioSections(m, lang)}
+                allLabel={lang === "ru" ? "Все" : lang === "ka" ? "ყველა" : "All"}
+                moreText={lang === "ru" ? "Показать все ({n})" : lang === "ka" ? "ყველას ნახვა ({n})" : "Show all ({n})"}
+              />
             </section>
           )}
 

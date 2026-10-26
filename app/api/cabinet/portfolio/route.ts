@@ -5,10 +5,15 @@ import { uploadImage } from "@/lib/reviews-db";
 import { currentSpecialistId } from "@/lib/spec-auth";
 import { getDict, isLocale } from "@/lib/i18n";
 import type { PortfolioItem } from "@/lib/types";
+import { portfolioLimit, portfolioSections } from "@/lib/portfolio";
+
+const secOk = (m: { category: string; extra_categories?: string[] | null }, v: unknown) => {
+  const id = String(v ?? "");
+  return id && portfolioSections(m, "ru").some((x) => x.id === id) ? id : undefined;
+};
 
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 const MAX_FILE = 5 * 1024 * 1024;
-const MAX_PORTFOLIO_ITEMS = 12;
 
 async function me(lang: "ru" | "en" | "ka") {
   const id = await currentSpecialistId();
@@ -33,14 +38,15 @@ export async function POST(req: Request) {
   const r = await me(lang);
   if (r.error) return r.error;
   const items = Array.isArray(r.m.portfolio) ? r.m.portfolio : [];
-  if (items.length >= MAX_PORTFOLIO_ITEMS) return NextResponse.json({ ok: false, error: t.portfolioFull }, { status: 400 });
+  if (items.length >= portfolioLimit(r.m)) return NextResponse.json({ ok: false, error: t.portfolioFull.replace("12", String(portfolioLimit(r.m))) }, { status: 400 });
   const file = form?.get("photo");
   if (!(file instanceof Blob) || !TYPES[file.type]) return NextResponse.json({ ok: false, error: t.photoType }, { status: 400 });
   if (file.size > MAX_FILE) return NextResponse.json({ ok: false, error: t.photoSize }, { status: 400 });
   try {
     const url = await uploadImage(`portfolio/${r.m.id}`, file, TYPES[file.type]);
     const caption = String(form?.get("caption") ?? "").trim().slice(0, 120);
-    return save(r.m.id, [...items, { url, caption }]);
+    const sec = secOk(r.m, form?.get("sec"));
+    return save(r.m.id, [...items, { url, caption, ...(sec ? { sec } : {}) }]);
   } catch (e) {
     console.error("[portfolio]", e);
     return NextResponse.json({ ok: false, error: t.photoError }, { status: 500 });
@@ -54,7 +60,12 @@ export async function PATCH(req: Request) {
   const r = await me(lang);
   if (r.error) return r.error;
   const items = [...(r.m.portfolio ?? [])];
-  if (Number.isInteger(body?.index) && items[body.index]) {
+  if (Number.isInteger(body?.index) && items[body.index] && "sec" in (body ?? {})) {
+    const sec = secOk(r.m, body.sec);
+    const { sec: _old, ...rest } = items[body.index];
+    void _old;
+    items[body.index] = sec ? { ...rest, sec } : rest;
+  } else if (Number.isInteger(body?.index) && items[body.index]) {
     items[body.index] = { ...items[body.index], caption: String(body.caption ?? "").trim().slice(0, 120) };
   } else if (Number.isInteger(body?.from) && Number.isInteger(body?.to) && items[body.from] && body.to >= 0 && body.to < items.length) {
     const [x] = items.splice(body.from, 1);

@@ -15,6 +15,9 @@ function kindOf(url: string): LinkKind {
   if (/facebook\.com|fb\.com|fb\.me/i.test(url)) return "facebook";
   if (/tiktok\.com/i.test(url)) return "tiktok";
   if (/youtube\.com|youtu\.be/i.test(url)) return "youtube";
+  if (/behance\.net/i.test(url)) return "behance";
+  if (/pinterest\./i.test(url)) return "pinterest";
+  if (/drive\.google|dropbox\.com|flickr\.com|500px\.com|vimeo\.com|pixieset|portfoliobox|adobe\.com|myportfolio|format\.com|tilda\.ws/i.test(url)) return "portfolio";
   return "website";
 }
 

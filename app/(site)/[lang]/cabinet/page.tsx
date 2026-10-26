@@ -1,3 +1,4 @@
+import { portfolioLimit, portfolioSections } from "@/lib/portfolio";
 import { subcatsOf } from "@/lib/subcats";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -372,7 +373,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             }}
           />
           <div className="mt-8">
-            <PortfolioEditor lang={lang} initial={Array.isArray(m.portfolio) ? m.portfolio : []} />
+            <PortfolioEditor lang={lang} initial={Array.isArray(m.portfolio) ? m.portfolio : []} max={portfolioLimit(m)} sections={portfolioSections(m, lang)} />
           </div>
           <div className="mt-8">
             <DocumentsEditor lang={lang} initial={myDocs} />

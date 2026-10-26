@@ -1,4 +1,4 @@
-import { linkLabel, LINK_KINDS, type LinkKind, type MasterLinks } from "@/lib/links";
+import { linkLabel, LINK_KINDS, PORTFOLIO_KINDS, type LinkKind, type MasterLinks } from "@/lib/links";
 import type { Locale } from "@/lib/i18n";
 
 import { TgContactButton } from "./TgContactButton";
@@ -8,19 +8,19 @@ export const LINK_TEXT: Record<Locale, { title: string; hint: string; placeholde
     title: "Соцсети и сайт",
     hint: "Клиенты смогут посмотреть больше ваших работ. Можно вставить ссылку или @имя.",
     placeholder: "@имя или ссылка",
-    names: { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", tg_channel: "Telegram-канал", website: "Сайт" },
+    names: { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", tg_channel: "Telegram-канал", website: "Сайт", portfolio: "Портфолио (Google Диск, сайт, Vimeo…)", behance: "Behance", pinterest: "Pinterest" },
   },
   en: {
     title: "Social media & website",
     hint: "Clients can see more of your work. Paste a link or @username.",
     placeholder: "@username or link",
-    names: { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", tg_channel: "Telegram channel", website: "Website" },
+    names: { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", tg_channel: "Telegram channel", website: "Website", portfolio: "Portfolio (Google Drive, site, Vimeo…)", behance: "Behance", pinterest: "Pinterest" },
   },
   ka: {
     title: "სოციალური ქსელები და საიტი",
     hint: "კლიენტები მეტ ნამუშევარს ნახავენ. ჩასვით ბმული ან @სახელი.",
     placeholder: "@სახელი ან ბმული",
-    names: { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", tg_channel: "Telegram არხი", website: "საიტი" },
+    names: { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", tg_channel: "Telegram არხი", website: "საიტი", portfolio: "პორტფოლიო (Google Drive, საიტი, Vimeo…)", behance: "Behance", pinterest: "Pinterest" },
   },
 };
 
@@ -68,6 +68,32 @@ const STYLE: Record<LinkKind, { bg: string; icon: React.ReactNode }> = {
       </svg>
     ),
   },
+  portfolio: {
+    bg: "#e0a526",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <circle cx="9" cy="10" r="1.6" />
+        <path d="M21 16l-5-5-8 8" />
+      </svg>
+    ),
+  },
+  behance: {
+    bg: "#1769ff",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+        <path d="M8.2 11.4c.9-.4 1.4-1.1 1.4-2.1C9.6 7.3 8.1 6.5 6.1 6.5H2v11h4.3c2.2 0 4-.9 4-3.1 0-1.4-.7-2.6-2.1-3zM4.4 8.4h1.5c.7 0 1.4.2 1.4 1s-.5 1.1-1.2 1.1H4.4V8.4zm1.8 7.2H4.4v-2.8h1.9c.9 0 1.5.4 1.5 1.4s-.7 1.4-1.6 1.4zM15.8 9c-2.4 0-4 1.8-4 4.2 0 2.5 1.5 4.2 4 4.2 1.9 0 3.1-.8 3.7-2.6h-1.9c-.2.6-.9.9-1.7.9-1.1 0-1.8-.7-1.8-1.9h5.5c.2-2.6-1.2-4.8-3.8-4.8zm-1.7 3.4c.1-1 .7-1.6 1.7-1.6s1.5.6 1.6 1.6h-3.3zM13.8 6.8h4.3v1.1h-4.3z" />
+      </svg>
+    ),
+  },
+  pinterest: {
+    bg: "#E60023",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+        <path d="M12 2a10 10 0 00-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.5 1.8-2.5.9 0 1.3.6 1.3 1.4 0 .9-.5 2.1-.8 3.3-.2 1 .5 1.8 1.5 1.8 1.8 0 3.2-1.9 3.2-4.6 0-2.4-1.7-4.1-4.2-4.1-2.8 0-4.5 2.1-4.5 4.4 0 .9.3 1.8.7 2.3.1.1.1.2.1.3l-.3 1.1c0 .2-.2.2-.4.1-1.3-.6-2.1-2.5-2.1-4 0-3.3 2.4-6.3 6.9-6.3 3.6 0 6.4 2.6 6.4 6 0 3.6-2.3 6.5-5.4 6.5-1.1 0-2.1-.6-2.4-1.2l-.7 2.5c-.2.9-.9 2.1-1.3 2.8A10 10 0 1012 2z" />
+      </svg>
+    ),
+  },
   website: {
     bg: "#1f6b4f",
     icon: (
@@ -112,14 +138,16 @@ export function SocialLinks({ links, lang, tgMasterId }: { links: MasterLinks; l
 }
 
 /** Поля ввода ссылок (анкета, кабинет). Имена полей: link_instagram, link_facebook, … */
-export function LinkFields({ lang, initial = {} }: { lang: Locale; initial?: MasterLinks }) {
+export function LinkFields({ lang, initial = {}, creative = false }: { lang: Locale; initial?: MasterLinks; creative?: boolean }) {
   const t = LINK_TEXT[lang];
+  // ссылки на портфолио — только для творческих направлений; у остальных сохраняем то, что было
+  const shown = LINK_KINDS.filter((k) => creative || !(PORTFOLIO_KINDS as readonly string[]).includes(k) || initial[k]);
   return (
     <fieldset>
       <legend className="text-[14px] font-semibold">{t.title}</legend>
       <p className="mt-0.5 text-[13px] leading-snug text-muted">{t.hint}</p>
       <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        {LINK_KINDS.map((k) => (
+        {shown.map((k) => (
           <label key={k} className="flex items-center gap-2 rounded-xl border border-line bg-white pl-2 focus-within:border-brand">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white" style={{ background: STYLE[k].bg }} title={t.names[k]}>
               {STYLE[k].icon}
@@ -127,13 +155,16 @@ export function LinkFields({ lang, initial = {} }: { lang: Locale; initial?: Mas
             <input
               name={`link_${k}`}
               defaultValue={initial[k] ?? ""}
-              placeholder={k === "website" ? "example.ge" : `${t.names[k]}: ${t.placeholder}`}
+              placeholder={k === "website" ? "example.ge" : k === "portfolio" ? t.names.portfolio : `${t.names[k]}: ${t.placeholder}`}
               autoCapitalize="off"
               className="h-11 min-w-0 flex-1 bg-transparent pr-3 text-[16px] outline-none sm:text-[15px]"
             />
           </label>
         ))}
       </div>
+      {LINK_KINDS.filter((k) => !shown.includes(k)).map((k) => (
+        <input key={k} type="hidden" name={`link_${k}`} defaultValue={initial[k] ?? ""} />
+      ))}
     </fieldset>
   );
 }

@@ -7,7 +7,12 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { PortfolioItem } from "@/lib/types";
 
 /** Фото работ: сетка превью + просмотр на весь экран (стрелки, свайп, Esc). */
-export function Gallery({ items }: { items: PortfolioItem[] }) {
+export function Gallery({ items: all, sections = [], allLabel = "Все", moreText = "Показать все ({n})" }: { items: PortfolioItem[]; sections?: { id: string; label: string }[]; allLabel?: string; moreText?: string }) {
+  // разделы портфолио (интерьеры, репортажи…) — только те, где есть фото
+  const secs = sections.map((x) => ({ ...x, n: all.filter((it) => it.sec === x.id).length })).filter((x) => x.n > 0);
+  const [sec, setSec] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const items = sec ? all.filter((it) => it.sec === sec) : all;
   const [open, setOpen] = useState<number | null>(null);
   const [touchX, setTouchX] = useState<number | null>(null);
   const go = useCallback((d: number) => setOpen((i) => (i == null ? i : (i + d + items.length) % items.length)), [items.length]);
@@ -27,9 +32,22 @@ export function Gallery({ items }: { items: PortfolioItem[] }) {
     };
   }, [open, go]);
 
-  const shown = items.slice(0, 12);
+  const shown = showAll ? items : items.slice(0, 12);
+  const chip = (on: boolean) => `whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${on ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink"}`;
   return (
     <>
+      {secs.length > 0 && (
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
+          <button type="button" className={chip(!sec)} onClick={() => (setSec(null), setShowAll(false))}>
+            {allLabel} <span className="opacity-60">{all.length}</span>
+          </button>
+          {secs.map((x) => (
+            <button key={x.id} type="button" className={chip(sec === x.id)} onClick={() => (setSec(x.id), setShowAll(false))}>
+              {x.label} <span className="opacity-60">{x.n}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
         {shown.map((it, i) => (
           <button key={it.url} type="button" onClick={() => setOpen(i)} className="group relative aspect-square overflow-hidden rounded-xl bg-cream">
@@ -37,6 +55,11 @@ export function Gallery({ items }: { items: PortfolioItem[] }) {
           </button>
         ))}
       </div>
+      {!showAll && items.length > 12 && (
+        <button type="button" onClick={() => setShowAll(true)} className="btn-ghost mt-3 h-10 px-4 text-[14px]">
+          {moreText.replace("{n}", String(items.length))}
+        </button>
+      )}
       {open != null && items[open] && (
         <div
           className="fixed inset-0 z-[1000] flex flex-col bg-black/90"

@@ -5,7 +5,8 @@ export type MasterStatus = "pending" | "published" | "hidden" | "rejected";
 export type RequestStatus = "new" | "sent" | "taken" | "in_work" | "done" | "spam";
 
 export type WorkMode = "at_client" | "at_place" | "both" | "online";
-export type PortfolioItem = { url: string; caption: string };
+/** Фото работы; sec — раздел портфолио (вид работ из lib/subcats, например «interior»). */
+export type PortfolioItem = { url: string; caption: string; sec?: string };
 export type DocKind = "diploma" | "certificate" | "license" | "other";
 export type DocStatus = "pending" | "verified" | "rejected";
 /** Документ специалиста. path — путь в закрытом хранилище (открывается по временной ссылке). */

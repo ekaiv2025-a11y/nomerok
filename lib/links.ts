@@ -1,22 +1,27 @@
 /** Ссылки специалиста: соцсети, Telegram-канал, сайт. Храним готовые адреса https://… */
 
-export const LINK_KINDS = ["instagram", "facebook", "tiktok", "youtube", "tg_channel", "website"] as const;
+export const LINK_KINDS = ["instagram", "facebook", "tiktok", "youtube", "tg_channel", "website", "portfolio", "behance", "pinterest"] as const;
+/** Ссылки на портфолио — показываем в анкете тем, у кого творческое направление (фото, видео, дизайн, хендмейд). */
+export const PORTFOLIO_KINDS = ["portfolio", "behance", "pinterest"] as const;
+export const CREATIVE_CATS = ["photo", "art", "it", "repair", "furniture", "beauty", "food", "music"];
 export type LinkKind = (typeof LINK_KINDS)[number];
 export type MasterLinks = Partial<Record<LinkKind, string>>;
 
-const HOSTS: Record<Exclude<LinkKind, "website">, { re: RegExp; make: (h: string) => string }> = {
+const HOSTS: Record<Exclude<LinkKind, "website" | "portfolio">, { re: RegExp; make: (h: string) => string }> = {
   instagram: { re: /(?:instagram\.com|instagr\.am)\/([A-Za-z0-9._]+)/i, make: (h) => `https://instagram.com/${h}` },
   facebook: { re: /(?:facebook\.com|fb\.com|fb\.me)\/([A-Za-z0-9.\-/?=_]+)/i, make: (h) => `https://facebook.com/${h}` },
   tiktok: { re: /tiktok\.com\/@?([A-Za-z0-9._]+)/i, make: (h) => `https://www.tiktok.com/@${h}` },
   youtube: { re: /(?:youtube\.com|youtu\.be)\/(.+)/i, make: (h) => `https://youtube.com/${h.startsWith("@") || h.includes("/") ? h : "@" + h}` },
   tg_channel: { re: /(?:t\.me|telegram\.me)\/([A-Za-z0-9_+]+)/i, make: (h) => `https://t.me/${h}` },
+  behance: { re: /behance\.net\/([A-Za-z0-9._-]+)/i, make: (h) => `https://www.behance.net/${h}` },
+  pinterest: { re: /pinterest\.[a-z.]+\/([A-Za-z0-9._-]+)/i, make: (h) => `https://www.pinterest.com/${h}` },
 };
 
 /** Превращает то, что ввёл человек (@name, name, ссылку), в нормальную ссылку. Пусто/мусор — null. */
 export function normalizeLink(kind: LinkKind, raw: unknown): string | null {
   const v = String(raw ?? "").trim().slice(0, 200);
   if (!v) return null;
-  if (kind === "website") {
+  if (kind === "website" || kind === "portfolio") {
     const withProto = /^https?:\/\//i.test(v) ? v : `https://${v}`;
     try {
       const u = new URL(withProto);
@@ -52,6 +57,7 @@ export function linkLabel(kind: LinkKind, url: string, lang: keyof typeof OPEN =
   try {
     const u = new URL(url);
     if (kind === "website") return u.hostname.replace(/^www\./, "");
+    if (kind === "portfolio") return (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "").slice(0, 40);
     const path = u.pathname.replace(/^\/+|\/+$/g, "");
     const first = path.split("/")[0];
     // Служебные адреса (facebook.com/share/…, profile.php?id=…, youtube.com/channel/…) — имени в них нет

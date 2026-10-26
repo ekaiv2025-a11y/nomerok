@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2 } from "lucide-react";
 import { SUBCATS } from "@/lib/subcats";
+import { CREATIVE_CATS } from "@/lib/links";
 import { CATEGORIES, LANGUAGES, PRICE_UNITS, categoryLabel, languageLabel, unitLabel } from "@/lib/categories";
 import { MAX_EXTRA_CATEGORIES } from "@/lib/availability";
 import { WhereFields, type WhereValue } from "./WhereFields";
@@ -249,7 +250,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
         <input name="telegram" defaultValue={initial.telegram ? "@" + initial.telegram : ""} className={fc(errors.telegram)} autoCapitalize="off" />
       </Field>
       <WhereFields lang={lang} value={where} onChange={setWhere} error={errors.place} city={city} />
-      <LinkFields lang={lang} initial={initial.links} />
+      <LinkFields lang={lang} initial={initial.links} creative={[mainCat, ...extra].some((c) => CREATIVE_CATS.includes(c))} />
       <label className="block">
         <span className="text-[14px] font-semibold">{MAIN_CAT[lang].label}</span>
         <span className="mt-0.5 block text-[13px] leading-snug text-muted">{MAIN_CAT[lang].hint}</span>
