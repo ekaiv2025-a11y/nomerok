@@ -2,10 +2,13 @@ import "server-only";
 import { dbMode, readLocal, supabase, writeLocal } from "./db";
 import { PLACE_CATS } from "./places";
 import { CITY_IDS } from "./cities";
+import STATIC from "@/data/place-cat-texts.json";
 
 /*
  * SEO-тексты разделов «Мест»: для пары «город + раздел» (или «all» — все города).
- * Готовит внешний ассистент по заданию «Задание — тексты разделов мест.txt», загружается в админке одним JSON-файлом.
+ * Готовит внешний ассистент по заданию «Задание — тексты разделов мест.txt».
+ * Два способа добавить: загрузить JSON в админке (хранится в базе) или положить в data/place-cat-texts.json (в коде).
+ * Если для раздела есть и то и другое — берётся версия из админки.
  */
 export type CatText = {
   city: string; // batumi | tbilisi | … | all
@@ -24,6 +27,7 @@ let cache: { at: number; map: Map<string, CatText> } | null = null;
 async function all(): Promise<Map<string, CatText>> {
   if (cache && Date.now() - cache.at < 300_000) return cache.map;
   const map = new Map<string, CatText>();
+  for (const r of parseCatTexts(STATIC).rows) map.set(r.key, r.data);
   const sb = supabase();
   if (sb) {
     const r = await sb.from("place_cat_texts").select("key,data");
@@ -43,8 +47,8 @@ export async function catText(cat: string, city?: string | null): Promise<CatTex
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-/** Проверить и сохранить файл с текстами. Возвращает отчёт. */
-export async function importCatTexts(json: unknown): Promise<{ saved: number; errors: string[] }> {
+/** Проверить файл с текстами: годные строки и ошибки. */
+export function parseCatTexts(json: unknown): { rows: { key: string; data: CatText; updated_at: string }[]; errors: string[] } {
   const list = Array.isArray(json) ? json : Array.isArray((json as { items?: unknown })?.items) ? (json as { items: unknown[] }).items : null;
   if (!list) throw new Error("Нужен JSON-массив текстов (см. задание)");
   const errors: string[] = [];
@@ -74,6 +78,12 @@ export async function importCatTexts(json: unknown): Promise<{ saved: number; er
     if (/лучш(ий|ие|ая|ее) |проверенн|whatsapp/i.test(text)) return errors.push(`${at}: запрещённые слова («лучшие», «проверенные», WhatsApp)`);
     rows.push({ key: keyOf(city, cat), data: { city, cat, title: str(o.title, 90) || undefined, description: str(o.description, 200) || undefined, intro, body, faq }, updated_at: now });
   });
+  return { rows, errors };
+}
+
+/** Проверить и сохранить файл с текстами. Возвращает отчёт. */
+export async function importCatTexts(json: unknown): Promise<{ saved: number; errors: string[] }> {
+  const { rows, errors } = parseCatTexts(json);
   const sb = supabase();
   if (sb && rows.length) {
     const r = await sb.from("place_cat_texts").upsert(rows, { onConflict: "key" });
