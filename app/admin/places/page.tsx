@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { PLACE_CATS, placeCat } from "@/lib/places";
 import { PLACES_PAGE, adminPlaceStats, listPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
-import { enrichPlacesAction, geocodePlacesAction, importOsmAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
+import { catTextsAction, enrichPlacesAction, geocodePlacesAction, importOsmAction, importPlacesAction, placeReviewStatusAction, togglePlaceAction } from "./actions";
 import { pendingPlaceReviews } from "@/lib/place-reviews-db";
 import { getPlace, placeCityCounts } from "@/lib/places-db";
 import { CITIES } from "@/lib/cities";
@@ -113,6 +113,14 @@ export default async function AdminPlaces({ searchParams }: { searchParams: Prom
           <button className="btn-primary h-10 px-4">⬆️ Загрузить результат</button>
         </form>
       </div>
+
+      <form action={catTextsAction} className="mt-3 rounded-2xl bg-white p-4 text-[13px]">
+        <b>📝 Тексты разделов (SEO)</b> — JSON-файл от ассистента по заданию «Задание — тексты разделов мест». Вступление показывается над списком раздела, статья и вопросы — под ним. Повторная загрузка того же раздела и города заменяет текст.
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input type="file" name="file" accept=".json,application/json" required className="text-[13px]" />
+          <button className="btn-primary h-10 px-4">⬆️ Загрузить тексты</button>
+        </div>
+      </form>
 
       <form action={geocodePlacesAction} className="mt-3 rounded-2xl bg-white p-4 text-[13px]">
         <b>📍 Точки на карте</b> — найти координаты по адресу для мест, у которых их нет (до 40 мест за нажатие, ~40 секунд). Нужны, чтобы место было на карте и в подборках.

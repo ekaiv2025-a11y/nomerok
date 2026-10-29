@@ -5,6 +5,7 @@ import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { FOOD_KINDS, FOOD_TAGS, PLACE_CATS, PT, placesH1 } from "@/lib/places";
 import { PlaceCityChips } from "@/components/PlaceCityChips";
+import { catText } from "@/lib/place-cat-texts";
 import { cityIn, isCity } from "@/lib/cities";
 import SUBS from "@/data/place-subs.json";
 import { PLACES_PAGE, listPlaces, placeCityCounts } from "@/lib/places-db";
@@ -21,8 +22,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!isLocale(lang) || !c) return {};
   const sp = await searchParams;
   const city = isCity(sp.city) ? sp.city : undefined;
-  const title = `${c.label[lang]} ${city ? cityIn(city, lang) : ""} — ${placesH1(lang, city)}`.replace(/\s+—/, " —");
-  const base = pageMeta(lang, `/places/c/${cat}`, title, `${c.label[lang]}: ${PT[lang].lead}`);
+  const tx = lang === "ru" ? await catText(cat, city) : null;
+  const title = tx?.title || `${c.label[lang]} ${city ? cityIn(city, lang) : ""} — ${placesH1(lang, city)}`.replace(/\s+—/, " —");
+  const base = pageMeta(lang, `/places/c/${cat}`, title, tx?.description || `${c.label[lang]}: ${PT[lang].lead}`);
   return sp.q || sp.kind || sp.sub || sp.tag || Number(sp.page) > 1 ? { ...base, robots: { index: false, follow: true } } : base;
 }
 
@@ -53,6 +55,7 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
     return href(lang, `/places/c/${cat}${qs ? `?${qs}` : ""}`);
   };
   const chip = (on: boolean) => `whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${on ? "border-brand bg-brand text-white" : "border-line bg-white hover:border-brand"}`;
+  const tx = lang === "ru" && !sp.q && page === 1 ? await catText(cat, city) : null;
   const genericSubs = !isFood && lang === "ru" ? ((SUBS as Record<string, string[]>)[cat] ?? []) : [];
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -65,6 +68,7 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
       <p className="mt-1 text-[14px] text-muted">
         {t.found}: {total}
       </p>
+      {tx?.intro && <p className="mt-3 max-w-3xl text-[16px] leading-relaxed text-[#3a3935]">{tx.intro}</p>}
       <div className="mt-4 max-w-2xl">
         <PlaceSearch lang={lang} q={sp.q} cat={cat} city={city} />
       </div>
@@ -116,6 +120,35 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
             </Link>
           )}
         </nav>
+      )}
+      {tx && (
+        <article className="mt-10 max-w-3xl space-y-4 text-[16px] leading-relaxed text-[#2a2925]">
+          {tx.body.map((b, i) =>
+            "h2" in b ? (
+              <h2 key={i} className="pt-2 text-[21px] font-bold text-ink">{b.h2}</h2>
+            ) : "p" in b ? (
+              <p key={i}>{b.p}</p>
+            ) : (
+              <ul key={i} className="list-disc space-y-1.5 pl-6 marker:text-brand">
+                {b.list.map((x, j) => <li key={j}>{x}</li>)}
+              </ul>
+            ),
+          )}
+          {tx.faq && tx.faq.length > 0 && (
+            <>
+              <h2 className="pt-2 text-[21px] font-bold text-ink">Частые вопросы</h2>
+              <div className="divide-y divide-line rounded-2xl border border-line bg-white">
+                {tx.faq.map((f) => (
+                  <div key={f.q} className="p-4">
+                    <p className="font-semibold">{f.q}</p>
+                    <p className="mt-1 text-[15px] text-[#3a3935]">{f.a}</p>
+                  </div>
+                ))}
+              </div>
+              <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: tx.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) }} />
+            </>
+          )}
+        </article>
       )}
       <p className="mt-10 text-[12px] text-muted">
         {t.data}: © OpenStreetMap contributors (ODbL), Overture Maps Foundation. {t.stale}

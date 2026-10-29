@@ -124,6 +124,25 @@ export async function enrichPlacesAction(fd: FormData) {
   redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);
 }
 
+/** Тексты разделов «Мест» (JSON от ассистента). */
+export async function catTextsAction(fd: FormData) {
+  await requireAdmin();
+  const file = fd.get("file");
+  let msg: string;
+  if (!(file instanceof File) || !file.size) msg = "⚠️ Выберите JSON-файл с текстами";
+  else {
+    try {
+      const { importCatTexts } = await import("@/lib/place-cat-texts");
+      const r = await importCatTexts(JSON.parse(await file.text()));
+      msg = `✓ Текстов разделов сохранено: ${r.saved}${r.errors.length ? ` · пропущено ${r.errors.length}: ${r.errors.slice(0, 3).join("; ")}` : ""}`;
+    } catch (e) {
+      msg = `⚠️ ${e instanceof SyntaxError ? "Файл — не JSON. Попросите ассистента прислать именно JSON по формату из задания" : e instanceof Error ? e.message : "Ошибка"}`;
+    }
+  }
+  revalidatePath("/admin/places");
+  redirect(`/admin/places?msg=${encodeURIComponent(msg)}`);
+}
+
 export async function placeReviewStatusAction(fd: FormData) {
   await requireAdmin();
   const { setPlaceReviewStatus } = await import("@/lib/place-reviews-db");
