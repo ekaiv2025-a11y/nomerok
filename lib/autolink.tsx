@@ -69,9 +69,9 @@ const RULES: Rule[] = [
 const MD = /\[([^\]\n]{1,120})\]\(((?:\/[\w\-/?=&#.%]*)|(?:https:\/\/[^\s)]+))\)/g;
 const linkCls = "font-medium text-brand underline decoration-brand/40 underline-offset-2 hover:decoration-brand";
 
-export function makeLinker(selfHref: string) {
+export function makeLinker(selfHref: string, opts: { auto?: boolean } = {}) {
   const used = new Set<string>([selfHref]);
-  let auto = 0;
+  let auto = opts.auto === false ? MAX_AUTO : 0;
   let key = 0;
 
   function autoLink(text: string): ReactNode[] {

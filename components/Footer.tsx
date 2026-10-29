@@ -40,6 +40,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/recommend">{SOCIAL[lang].recLink}</L>
             <L to="/phones">{PH[lang].nav}</L>
             <L to="/places">📍 {PT[lang].nav}</L>
+            {lang === "ru" && <L to="/georgia">🗺 Путеводитель по Грузии</L>}
             <L to="/realty">🏠 {{ ru: "Недвижимость", en: "Real estate", ka: "უძრავი ქონება" }[lang]}</L>
             {lang === "ru" && <L to="/guide">Журнал</L>}
           </ul>
