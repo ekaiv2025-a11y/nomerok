@@ -6,6 +6,7 @@ import { pageMeta } from "@/lib/i18n/page";
 import { FOOD_KINDS, FOOD_TAGS, PLACE_CATS, PT, placesH1 } from "@/lib/places";
 import { PlaceCityChips } from "@/components/PlaceCityChips";
 import { catText } from "@/lib/place-cat-texts";
+import { Linkified } from "@/components/Linkified";
 import { cityIn, isCity } from "@/lib/cities";
 import SUBS from "@/data/place-subs.json";
 import { PLACES_PAGE, listPlaces, placeCityCounts } from "@/lib/places-db";
@@ -68,7 +69,7 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
       <p className="mt-1 text-[14px] text-muted">
         {t.found}: {total}
       </p>
-      {tx?.intro && <p className="mt-3 max-w-3xl text-[16px] leading-relaxed text-[#3a3935]">{tx.intro}</p>}
+      {tx?.intro && <p className="mt-3 max-w-3xl text-[16px] leading-relaxed text-[#3a3935]"><Linkified text={tx.intro} /></p>}
       <div className="mt-4 max-w-2xl">
         <PlaceSearch lang={lang} q={sp.q} cat={cat} city={city} />
       </div>
@@ -127,10 +128,10 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
             "h2" in b ? (
               <h2 key={i} className="pt-2 text-[21px] font-bold text-ink">{b.h2}</h2>
             ) : "p" in b ? (
-              <p key={i}>{b.p}</p>
+              <p key={i}><Linkified text={b.p} /></p>
             ) : (
               <ul key={i} className="list-disc space-y-1.5 pl-6 marker:text-brand">
-                {b.list.map((x, j) => <li key={j}>{x}</li>)}
+                {b.list.map((x, j) => <li key={j}><Linkified text={x} /></li>)}
               </ul>
             ),
           )}
@@ -141,7 +142,7 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
                 {tx.faq.map((f) => (
                   <div key={f.q} className="p-4">
                     <p className="font-semibold">{f.q}</p>
-                    <p className="mt-1 text-[15px] text-[#3a3935]">{f.a}</p>
+                    <p className="mt-1 text-[15px] text-[#3a3935]"><Linkified text={f.a} /></p>
                   </div>
                 ))}
               </div>
