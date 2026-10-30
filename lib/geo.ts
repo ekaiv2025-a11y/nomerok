@@ -1,5 +1,6 @@
 import type { Block } from "./articles";
 import BATUMI from "@/data/geo/batumi.json";
+import TBILISI from "@/data/geo/tbilisi.json";
 
 /*
  * «Грузия» — энциклопедия городов и регионов (как путеводитель, но с упором на жизнь здесь).
@@ -32,7 +33,7 @@ export type GeoPage = {
   updated: string;
 };
 
-export const GEO: GeoPage[] = [BATUMI as unknown as GeoPage];
+export const GEO: GeoPage[] = [BATUMI as unknown as GeoPage, TBILISI as unknown as GeoPage];
 export const geoPage = (id: string) => GEO.find((g) => g.id === id) ?? null;
 
 export const MONTHS = [
