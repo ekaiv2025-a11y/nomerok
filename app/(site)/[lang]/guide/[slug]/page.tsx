@@ -270,7 +270,7 @@ export default async function ArticlePage({ params }: Props) {
               </Link>
             );
           return (
-            <Link key={i} href={href(lang, `/services/${b.cat}`)} className="flex items-center justify-between gap-3 rounded-2xl bg-brand px-5 py-4 text-[16px] font-semibold text-white hover:bg-brand-dark">
+            <Link key={i} href={href(lang, cityOk && cityOk !== "batumi" ? `/?city=${cityOk}&cat=${b.cat}` : `/services/${b.cat}`)} className="flex items-center justify-between gap-3 rounded-2xl bg-brand px-5 py-4 text-[16px] font-semibold text-white hover:bg-brand-dark">
               {b.cta} <span aria-hidden>→</span>
             </Link>
           );

@@ -27,7 +27,7 @@ for (const [i, n] of list.entries()) {
   if (slugs.has(n.slug)) errors.push(`${at}: повтор slug`);
   slugs.add(n.slug);
   if (n.date && (!/^\d{4}-\d{2}-\d{2}$/.test(n.date) || n.date > today)) errors.push(`${at}: неверная дата ${n.date}`);
-  if (!["news", "events", "travel", "life", "picks"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel, life или picks`);
+  if (!["news", "events", "travel", "life", "picks", "home", "family", "health", "pros"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel, life, picks, home, family, health или pros`);
   if (n.title && n.title.length > 110) errors.push(`${at}: заголовок длиннее 110 знаков`);
   if (n.description && (n.description.length < 60 || n.description.length > 200)) errors.push(`${at}: description 60–200 знаков`);
   if (!Array.isArray(n.body) || n.body.length < 3) errors.push(`${at}: body — минимум 3 блока`);
@@ -84,6 +84,7 @@ for (const [i, n] of list.entries()) {
     if (!Array.isArray(n.faq) || n.faq.length < 5) errors.push(`${at}: в гайде «Жизнь в Грузии» нужно минимум 5 вопросов в faq`);
     if ((n.sources ?? []).length < 3) errors.push(`${at}: в гайде нужно минимум 3 источника`);
     if (!(n.body ?? []).some((b) => "h2" in b)) errors.push(`${at}: в гайде нужны подзаголовки h2`);
+    if (["home", "family", "health", "pros"].includes(n.rubric) && !(n.body ?? []).some((b) => "cta" in b)) errors.push(`${at}: в SEO-статье нужна ссылка cta в каталог`);
   }
   if (n.rubric === "travel") {
     if (!(n.body ?? []).some((b) => "map" in b && b.map.length >= 3)) errors.push(`${at}: в статье «Куда поехать» нужна карта минимум с 3 точками`);
