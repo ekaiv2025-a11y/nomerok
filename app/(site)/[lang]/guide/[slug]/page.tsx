@@ -224,13 +224,17 @@ export default async function ArticlePage({ params }: Props) {
             return (
               <figure key={i} className="overflow-hidden rounded-2xl bg-cream">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={b.img} alt={b.alt} loading="lazy" className="w-full object-cover" />
-                <figcaption className="px-4 py-2 text-[12px] text-muted">
-                  {b.alt}. Фото: {b.credit},{" "}
-                  <a href={b.source} target="_blank" rel="noopener noreferrer nofollow" className="underline">
-                    {b.license}
-                  </a>
-                </figcaption>
+                <img src={b.img.split("#")[0]} alt={b.alt} loading="lazy" className="w-full object-cover" />
+                {b.license ? (
+                  <figcaption className="px-4 py-2 text-[12px] text-muted">
+                    {b.alt}. Фото: {b.credit},{" "}
+                    <a href={b.source} target="_blank" rel="noopener noreferrer nofollow" className="underline">
+                      {b.license}
+                    </a>
+                  </figcaption>
+                ) : b.alt ? (
+                  <figcaption className="px-4 py-2 text-[13px] text-muted">{b.alt}</figcaption>
+                ) : null}
               </figure>
             );
           if ("places" in b) {

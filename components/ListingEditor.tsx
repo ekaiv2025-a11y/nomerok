@@ -27,6 +27,7 @@ import {
 } from "@/lib/realty";
 import { CITIES, cityLabel } from "@/lib/cities";
 import { Map } from "./map/Map";
+import { DropZone } from "./DropZone";
 import type { Locale } from "@/lib/i18n";
 
 const T = {
@@ -635,6 +636,7 @@ export function ListingEditor({
       </Section>
 
       <Section id="le-photos" title={`${t.s2} · ${photos.length}/${MAX_PHOTOS}`} hint={t.s2hint}>
+        <DropZone onFiles={(f) => addFiles(f)} label={lang === "ka" ? "გაუშვით — ავტვირთავთ" : lang === "en" ? "Drop to upload" : "Отпустите — загрузим фото"}>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {photos.map((u, i) => (
             <div key={u} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-cream">
@@ -676,6 +678,7 @@ export function ListingEditor({
             </button>
           )}
         </div>
+        </DropZone>
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       </Section>
 

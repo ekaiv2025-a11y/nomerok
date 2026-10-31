@@ -130,6 +130,7 @@ export async function healthCheck() {
           ["0039 статистика журнала", "article_views", "source"],
           ["0040 уточнения направлений", "masters", "subcats"],
           ["0041 тексты разделов мест", "place_cat_texts", "data"],
+          ["0042 кэш фото Commons", "commons_cache", "q"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

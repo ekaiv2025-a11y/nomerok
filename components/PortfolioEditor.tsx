@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Loader2, Plus, Trash2 } from "lucide-react";
 import { getDict, type Locale } from "@/lib/i18n";
 import { resizeImage } from "@/lib/image-resize";
 import type { PortfolioItem } from "@/lib/types";
+import { DropZone } from "./DropZone";
 
 const ST = {
   ru: { newSec: "Раздел для новых фото:", none: "Без раздела", hint: "Разложите работы по разделам — на странице клиенты переключают их, как вкладки. Ссылки на полное портфолио (Google Диск, Behance, сайт) — в анкете, блок «Соцсети и сайт»." },
@@ -57,6 +58,7 @@ export function PortfolioEditor({ lang, initial, max: MAX = 12, sections = [] }:
   }
 
   return (
+    <DropZone onFiles={(f) => add(f)} label={lang === "ka" ? "გაუშვით — ავტვირთავთ" : lang === "en" ? "Drop to upload" : "Отпустите — загрузим фото"}>
     <section className="rounded-2xl border border-line p-5">
       <h2 className="text-[18px] font-bold">
         {t.portfolioTitle} <span className="font-normal text-muted">{items.length}/{MAX}</span>
@@ -143,5 +145,6 @@ export function PortfolioEditor({ lang, initial, max: MAX = 12, sections = [] }:
       {err && <p className="mt-2 text-[13px] text-danger">{err}</p>}
       <input ref={input} type="file" multiple accept="image/*" className="hidden" onChange={(e) => add(e.target.files)} />
     </section>
+    </DropZone>
   );
 }

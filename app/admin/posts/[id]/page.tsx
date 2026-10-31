@@ -15,7 +15,8 @@ const HELP = `Как оформлять текст:
 • ## Заголовок — подзаголовок
 • - пункт — список (или 1. пункт — нумерованный)
 • ! текст — важная подсказка (жёлтая плашка)
-• @места: адрес1, адрес2 — карточки мест для подборки (адрес — конец ссылки nomerok.ge/ru/places/…)`;
+• @места: адрес1, адрес2 — карточки мест для подборки (адрес — конец ссылки nomerok.ge/ru/places/…)
+• @фото: ссылка | подпись — фото в этом месте статьи (кнопка «↳ в текст» у фото ниже или просто перетащите фото в поле текста)`;
 
 export default async function EditPost({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; err?: string }> }) {
   if (!(await isAdmin())) redirect("/admin/login");

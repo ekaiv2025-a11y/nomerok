@@ -1,4 +1,5 @@
 import "server-only";
+import { supabase } from "./db";
 
 /*
  * Фото к новостям из Wikimedia Commons — только со свободной лицензией (CC0, CC BY, CC BY-SA, public domain).
@@ -13,8 +14,48 @@ const LICENSE_OK = /^(cc0|cc[- ]by(-sa)? \d(\.\d)?|public domain|pd)/i;
 const BAD_TITLE = /\b(map|karte|flag|coat of arms|logo|emblem|seal|plan|scheme|diagram|chart|graph|stamp|banknote|signature|icon)\b|\.(svg|png|gif|tif)$/i;
 
 const mem = new Map<string, Promise<CommonsPhoto | null | undefined>>();
-// Commons не ответил — 10 минут вообще не обращаемся (иначе каждая страница ждёт таймаут)
+// Commons не ответил — какое-то время не обращаемся (иначе каждая страница ждёт таймаут)
 let downUntil = 0;
+// Не больше 3 запросов к Commons одновременно — иначе при холодном старте он отвечает «слишком много запросов»
+let running = 0;
+const queue: (() => void)[] = [];
+async function slot<T>(fn: () => Promise<T>): Promise<T> {
+  if (running >= 3) await new Promise<void>((r) => queue.push(r));
+  running++;
+  try {
+    return await fn();
+  } finally {
+    running--;
+    queue.shift()?.();
+  }
+}
+
+/* Найденное храним в базе (commons_cache): обложки не зависят от того, ответит ли Commons прямо сейчас. */
+let saved: { at: number; map: Map<string, { data: CommonsPhoto | null; checked_at: string }> } | null = null;
+let savedLoading: Promise<void> | null = null;
+async function loadSaved() {
+  if (saved && Date.now() - saved.at < 10 * 60_000) return;
+  savedLoading ??= (async () => {
+    const map = new Map<string, { data: CommonsPhoto | null; checked_at: string }>();
+    const sb = supabase();
+    if (sb) {
+      for (let from = 0; from < 20000; from += 1000) {
+        const r = await sb.from("commons_cache").select("q,data,checked_at").range(from, from + 999);
+        if (r.error) break;
+        for (const x of r.data as { q: string; data: CommonsPhoto | null; checked_at: string }[]) map.set(x.q, x);
+        if (r.data.length < 1000) break;
+      }
+    }
+    saved = { at: Date.now(), map };
+  })().finally(() => (savedLoading = null));
+  await savedLoading;
+}
+function persist(q: string, data: CommonsPhoto | null) {
+  const row = { q, data, checked_at: new Date().toISOString() };
+  saved?.map.set(q, row);
+  const sb = supabase();
+  if (sb) void sb.from("commons_cache").upsert(row, { onConflict: "q" }).then(() => null, () => null);
+}
 
 const strip = (html: string) =>
   html
@@ -74,14 +115,16 @@ async function search(q: string): Promise<CommonsPhoto | null | undefined> {
     origin: "*",
   });
   try {
-    const r = await fetch(`${API}?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(2500), next: { revalidate: 7 * 86400 } });
+    const r = await slot(() => fetch(`${API}?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(6000), next: { revalidate: 7 * 86400 } }));
     if (!r.ok) {
-      downUntil = Date.now() + 10 * 60_000;
+      downUntil = Date.now() + (r.status === 429 ? 60_000 : 5 * 60_000);
       return undefined;
     }
-    return pickPhoto(await r.json());
+    const photo = pickPhoto(await r.json());
+    persist(q, photo);
+    return photo;
   } catch {
-    downUntil = Date.now() + 10 * 60_000;
+    downUntil = Date.now() + 2 * 60_000;
     return undefined;
   }
 }
@@ -90,9 +133,15 @@ async function search(q: string): Promise<CommonsPhoto | null | undefined> {
 export function commonsPhoto(q: string | null | undefined): Promise<CommonsPhoto | null | undefined> {
   const key = String(q ?? "").trim().slice(0, 120);
   if (!key) return Promise.resolve(null);
-  if (!mem.has(key) && Date.now() < downUntil) return Promise.resolve(undefined);
   if (!mem.has(key)) {
-    const p = search(key);
+    const p = (async () => {
+      await loadSaved().catch(() => null);
+      const hit = saved?.map.get(key);
+      // нашли раньше — берём из базы; «ничего не нашлось» перепроверяем раз в месяц
+      if (hit && (hit.data || Date.now() - Date.parse(hit.checked_at) < 30 * 86400_000)) return hit.data;
+      if (Date.now() < downUntil) return undefined;
+      return search(key);
+    })();
     mem.set(key, p);
     // ошибку сети не запоминаем — в следующий раз попробуем снова
     p.then((v) => v === undefined && mem.delete(key));

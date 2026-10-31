@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { DropZone } from "./DropZone";
 import { splitPhoto, withY } from "@/lib/photo-pos";
 import { resizeImage } from "@/lib/image-resize";
 
@@ -50,23 +51,66 @@ export function AdminPostPhotos({ initial, hint, cover = true }: { initial: stri
   const [busy, setBusy] = useState(0);
   const [err, setErr] = useState("");
 
-  async function add(files: FileList | null) {
-    if (!files) return;
+  async function add(files: FileList | null): Promise<string[]> {
+    if (!files) return [];
     setErr("");
+    const urls: string[] = [];
     for (const f of Array.from(files).slice(0, 20)) {
       setBusy((n) => n + 1);
       try {
         const fd = new FormData();
         fd.append("file", await resizeImage(f, 1600, 0.85));
         const j = await fetch("/api/admin/upload", { method: "POST", body: fd }).then((r) => r.json());
-        if (j.ok) setList((l) => [...l, j.url]);
-        else setErr(j.error || "Не удалось загрузить");
+        if (j.ok) {
+          setList((l) => [...l, j.url]);
+          urls.push(j.url);
+        } else setErr(j.error || "Не удалось загрузить");
       } catch {
         setErr("Нет связи — попробуйте ещё раз");
       }
       setBusy((n) => n - 1);
     }
+    return urls;
   }
+
+  // Вставить фото в текст статьи там, где стоит курсор (поле «Текст» на этой же странице)
+  const body = () => document.querySelector<HTMLTextAreaElement>('textarea[name="body"]');
+  function insertInText(url: string, at?: number) {
+    const ta = body();
+    if (!ta) return;
+    const pos = at ?? ta.selectionStart ?? ta.value.length;
+    const line = `\n\n@фото: ${url.split("#")[0]} | \n\n`;
+    ta.value = (ta.value.slice(0, pos).replace(/\s*$/, "") + line + ta.value.slice(pos).replace(/^\s*/, "")).replace(/^\n+/, "");
+    const caret = ta.value.indexOf(line.trim()) + line.trim().length;
+    ta.focus();
+    ta.setSelectionRange(caret, caret);
+  }
+  // Перетащили фото прямо в поле текста — загружаем и вставляем в это место
+  const [hasBody, setHasBody] = useState(false);
+  const addRef = useRef(add);
+  addRef.current = add;
+  useEffect(() => {
+    const ta = body();
+    if (!ta) return;
+    setHasBody(true);
+    const over = (e: DragEvent) => {
+      if (Array.from(e.dataTransfer?.types ?? []).includes("Files")) e.preventDefault();
+    };
+    const drop = async (e: DragEvent) => {
+      const files = e.dataTransfer?.files;
+      if (!files?.length) return;
+      e.preventDefault();
+      const pos = ta.selectionStart ?? ta.value.length;
+      const urls = await addRef.current(files);
+      [...urls].reverse().forEach((u) => insertInText(u, pos));
+    };
+    ta.addEventListener("dragover", over);
+    ta.addEventListener("drop", drop);
+    return () => {
+      ta.removeEventListener("dragover", over);
+      ta.removeEventListener("drop", drop);
+    };
+  }, []);
   const move = (i: number, d: number) =>
     setList((l) => {
       const n = [...l];
@@ -77,7 +121,7 @@ export function AdminPostPhotos({ initial, hint, cover = true }: { initial: stri
     });
 
   return (
-    <div>
+    <DropZone onFiles={(f) => void add(f)}>
       <input type="hidden" name="photos" value={JSON.stringify(list)} />
       {list.length > 0 && (
         <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -87,7 +131,12 @@ export function AdminPostPhotos({ initial, hint, cover = true }: { initial: stri
               <img src={u} alt="" className="aspect-[4/3] w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/50 px-1 py-0.5 text-[12px] text-white">
                 <button type="button" onClick={() => move(i, -1)} aria-label="Левее">◀</button>
-                <button type="button" onClick={() => setList((l) => l.filter((x) => x !== u))}>✕ убрать</button>
+                <button type="button" onClick={() => setList((l) => l.filter((x) => x !== u))}>✕</button>
+                {hasBody && (
+                  <button type="button" onClick={() => insertInText(u)} title="Вставить фото в текст там, где стоит курсор">
+                    ↳ в текст
+                  </button>
+                )}
                 <button type="button" onClick={() => move(i, 1)} aria-label="Правее">▶</button>
               </div>
             </div>
@@ -100,7 +149,7 @@ export function AdminPostPhotos({ initial, hint, cover = true }: { initial: stri
         <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
       </label>
       {err && <p className="mt-1 text-[13px] text-danger">{err}</p>}
-      <p className="mt-1 text-[12px] text-muted">{hint ?? "Можно выбрать сразу несколько. Покажутся галереей после текста. Порядок — стрелками."}</p>
-    </div>
+      <p className="mt-1 text-[12px] text-muted">{hint ?? "Можно выбрать сразу несколько или перетащить мышью сюда. Первое фото — обложка. Остальные покажутся галереей после текста, а нажмите «↳ в текст» — и фото встанет в статью там, где стоит курсор. Можно и сразу перетащить фото в поле текста."}</p>
+    </DropZone>
   );
 }

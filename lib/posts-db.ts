@@ -65,7 +65,13 @@ export function parsePostBody(text: string): Block[] {
       list = [];
     };
     for (const l of lines) {
-      if (/^@(места|places)\s*:/i.test(l)) {
+      if (/^@(фото|photo)\s*:/i.test(l)) {
+        // фото внутри статьи: «@фото: ссылка | подпись»
+        flush();
+        const [url, ...cap] = l.replace(/^@(фото|photo)\s*:/i, "").split("|");
+        const u = url.trim();
+        if (/^https:\/\//.test(u)) out.push({ img: u, alt: cap.join("|").trim(), credit: "", license: "", source: "" });
+      } else if (/^@(места|places)\s*:/i.test(l)) {
         flush();
         out.push({ places: l.replace(/^@(места|places)\s*:/i, "").split(/[,\s]+/).map((x) => x.trim().replace(/^.*\/places\//, "")).filter(Boolean) });
       } else if (/^#{2,3}\s+/.test(l)) {
@@ -107,7 +113,8 @@ export function postToArticle(p: Post): Article {
     body: [...parsePostBody(p.body), ...(p.cats?.[0] ? [{ cta: `${categoryPlural(p.cats[0], "ru")} на NomerOk — фото работ, цены, отзывы`, cat: p.cats[0] } as Block] : [])],
     // Обложка: отдельное фото или первое из галереи
     cover: p.cover_url || p.photos?.[0] || null,
-    photos: p.cover_url ? (p.photos ?? []) : (p.photos ?? []).slice(1),
+    // в галерею в конце — только фото, которые не вставлены в текст через @фото
+    photos: (p.cover_url ? (p.photos ?? []) : (p.photos ?? []).slice(1)).filter((u) => !p.body.includes(u.split("#")[0])),
     source: p.source_url ? { name: p.source_name || new URL(p.source_url).hostname, url: p.source_url } : null,
   };
 }
