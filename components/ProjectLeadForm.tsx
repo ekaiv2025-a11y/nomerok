@@ -27,7 +27,6 @@ export function ProjectLeadForm({ project, projectName, city }: { project?: stri
         rooms: f.get("rooms"),
         goal: f.get("goal"),
         comment: f.get("comment"),
-        consent: f.get("consent") === "on",
         website: f.get("website"),
       }),
     }).catch(() => null);
@@ -101,10 +100,6 @@ export function ProjectLeadForm({ project, projectName, city }: { project?: stri
       </div>
       <textarea name="comment" maxLength={600} rows={2} placeholder="Пожелания: район, вид на море, срок сдачи, рассрочка…" className="field w-full rounded-xl px-3 py-2.5 text-[15px]" />
       <input name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
-      <label className="flex items-start gap-2 text-[13px] leading-snug text-muted">
-        <input type="checkbox" name="consent" required className="mt-0.5 h-4 w-4 shrink-0 accent-[#1f6b4f]" />
-        <span>Согласен(на), что NomerOk передаст мой контакт партнёрскому агентству недвижимости, чтобы со мной связались по этой заявке.</span>
-      </label>
       {err && <p className="text-[14px] font-medium text-[#b42318]">{err}</p>}
       <button disabled={state === "sending"} className="btn-primary h-12 w-full text-[16px] disabled:opacity-60">
         {state === "sending" ? "Отправляем…" : mode === "this" && project ? "Узнать цены и планировки" : "Подобрать варианты"}

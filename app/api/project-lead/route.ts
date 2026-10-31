@@ -17,7 +17,6 @@ export async function POST(req: Request) {
   const contact = s(b.contact, 80);
   if (name.length < 2) return NextResponse.json({ error: "Укажите имя" }, { status: 400 });
   if (!/(\d[\s\-()]*){7,}|@[\w]{4,}|t\.me\/[\w]{4,}/.test(contact)) return NextResponse.json({ error: "Укажите телефон или Telegram (@имя)" }, { status: 400 });
-  if (b.consent !== true) return NextResponse.json({ error: "Нужно согласие на передачу контакта агентству" }, { status: 400 });
   const v = await visitorId();
   if (!rateLimit("plead:" + v, 5, 60 * 60 * 1000)) return NextResponse.json({ error: "Слишком много заявок. Попробуйте позже." }, { status: 429 });
   const p = typeof b.project === "string" ? projectBySlug(b.project) : null;
