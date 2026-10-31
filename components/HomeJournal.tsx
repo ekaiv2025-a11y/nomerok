@@ -49,6 +49,7 @@ const PROMO = [
   { to: "/georgia", emoji: "🗺️", title: "Путеводитель по Грузии", text: "Города, районы, погода по месяцам, что посмотреть" },
   { to: "/places", emoji: "🏥", title: "Полезные контакты", text: "Клиники, нотариусы, городские службы — адреса и телефоны" },
   { to: "/guide?r=life", emoji: "🏠", title: "Жизнь в Грузии", text: "Аренда, налоги, банки, документы — по шагам" },
+  { to: "/novostroyki", emoji: "🏗️", title: "Новостройки", text: "Жилые комплексы Грузии: цены, сроки сдачи, застройщики" },
 ];
 
 export async function HomeJournal({ lang }: { lang: Locale }) {
@@ -79,7 +80,7 @@ export async function HomeJournal({ lang }: { lang: Locale }) {
       )}
 
       {/* Разделы-справочники */}
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {PROMO.map((x) => (
           <Link key={x.to} href={href(lang, x.to)} className="group flex items-start gap-3 rounded-2xl border border-line bg-cream p-4 transition hover:border-brand sm:p-5">
             <span className="text-[30px] leading-none" aria-hidden>

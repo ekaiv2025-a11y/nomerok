@@ -27,7 +27,7 @@ for (const [i, n] of list.entries()) {
   if (slugs.has(n.slug)) errors.push(`${at}: повтор slug`);
   slugs.add(n.slug);
   if (n.date && (!/^\d{4}-\d{2}-\d{2}$/.test(n.date) || n.date > today)) errors.push(`${at}: неверная дата ${n.date}`);
-  if (!["news", "events", "travel", "life", "picks", "home", "family", "health", "pros"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel, life, picks, home, family, health или pros`);
+  if (!["news", "events", "travel", "life", "picks", "home", "family", "health", "pros", "build"].includes(n.rubric)) errors.push(`${at}: rubric должен быть news, events, travel, life, picks, home, family, health, pros или build`);
   if (n.title && n.title.length > 110) errors.push(`${at}: заголовок длиннее 110 знаков`);
   if (n.description && (n.description.length < 60 || n.description.length > 200)) errors.push(`${at}: description 60–200 знаков`);
   if (!Array.isArray(n.body) || n.body.length < 3) errors.push(`${at}: body — минимум 3 блока`);

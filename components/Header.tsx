@@ -100,6 +100,7 @@ export function Header({ lang }: { lang: Locale }) {
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
     { href: href(lang, "/places"), label: "📍 " + PT[lang].nav },
+    ...(lang === "ru" ? [{ href: href(lang, "/novostroyki"), label: "🏗 Новостройки" }] : []),
     { href: href(lang, "/realty"), label: "🏠 " + { ru: "Недвижимость", en: "Real estate", ka: "უძრავი ქონება" }[lang] },
     { href: href(lang, "/phones"), label: "📞 " + PH[lang].nav },
     ...(lang === "ru" ? [{ href: href(lang, "/guide"), label: "📰 Журнал" }] : []),

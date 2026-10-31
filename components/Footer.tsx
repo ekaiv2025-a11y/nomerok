@@ -41,6 +41,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/phones">{PH[lang].nav}</L>
             <L to="/places">📍 {PT[lang].nav}</L>
             {lang === "ru" && <L to="/georgia">🗺 Путеводитель по Грузии</L>}
+            {lang === "ru" && <L to="/novostroyki">🏗 Новостройки Грузии</L>}
             <L to="/realty">🏠 {{ ru: "Недвижимость", en: "Real estate", ka: "უძრავი ქონება" }[lang]}</L>
             {lang === "ru" && <L to="/guide">Журнал</L>}
           </ul>

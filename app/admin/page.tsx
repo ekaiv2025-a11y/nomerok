@@ -103,6 +103,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <Link href="/admin/posts" className="btn-ghost h-10 text-[14px]">📰 Журнал</Link>
           <Link href="/admin/places" className="btn-ghost h-10 text-[14px]">📍 Места</Link>
           <Link href="/admin/realty" className="btn-ghost h-10 text-[14px]">🏠 Недвижимость</Link>
+          <Link href="/admin/projects" className="btn-ghost h-10 text-[14px]">🏗 Новостройки</Link>
           <Link href="/admin/masters/new" className="btn-primary h-10 text-[14px]">+ Добавить специалиста</Link>
           <form action={logout}><button className="btn-ghost h-10 text-[14px]">Выйти</button></form>
         </div>

@@ -62,6 +62,7 @@ export const RUBRICS = {
   family: { label: "Дети, семья, питомцы", emoji: "🧸", bg: "from-[#fdf1e4] to-[#f8dfc2]" },
   health: { label: "Здоровье и красота", emoji: "🌿", bg: "from-[#f3ecfb] to-[#e2d4f5]" },
   pros: { label: "Специалистам", emoji: "🧑‍🔧", bg: "from-[#fff6dc] to-[#fbe6a6]" },
+  build: { label: "Новостройки", emoji: "🏗️", bg: "from-[#eef0f3] to-[#d6dde8]" },
 } as const;
 export type Rubric = keyof typeof RUBRICS;
 
