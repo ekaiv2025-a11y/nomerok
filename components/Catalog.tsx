@@ -16,9 +16,9 @@ import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
 import { detectIntent } from "@/lib/search-intent";
 
 const F = {
-  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить", more: (n: number) => `Ещё ${n}`, less: "Свернуть", bonus: "С бонусом" },
-  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset", more: (n: number) => `${n} more`, less: "Show less", bonus: "With a bonus" },
-  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება", more: (n: number) => `კიდევ ${n}`, less: "აკეცვა", bonus: "ბონუსით" },
+  ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить", more: (n: number) => `Ещё ${n}`, less: "Свернуть", bonus: "С бонусом", showMore: (n: number) => `Показать ещё (${n})` },
+  en: { where: "Where", any: "Any format", atClient: "Comes to you", atPlace: "At their place", online: "Online", lang: "Any language", price: "With price", sort: "Default", reviews: "With reviews", cheap: "Cheapest first", reset: "Reset", more: (n: number) => `${n} more`, less: "Show less", bonus: "With a bonus", showMore: (n: number) => `Show more (${n})` },
+  ka: { where: "სად", any: "ნებისმიერი", atClient: "გამოძახებით", atPlace: "თავისთან", online: "ონლაინ", lang: "ნებისმიერი ენა", price: "ფასით", sort: "ნაგულისხმევი", reviews: "შეფასებებით", cheap: "ჯერ იაფი", reset: "გასუფთავება", more: (n: number) => `კიდევ ${n}`, less: "აკეცვა", bonus: "ბონუსით", showMore: (n: number) => `მეტის ნახვა (${n})` },
 } as const;
 const LANG_OPTS: [string, string][] = [["Грузинский", "ქართ. / KA"], ["Русский", "Рус. / RU"], ["Английский", "Eng / EN"], ["Украинский", "Укр. / UA"], ["Турецкий", "Türk / TR"]];
 
@@ -103,6 +103,12 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     if (sort === "cheap") return [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9));
     return list;
   }, [masters, cat, sub, q, intents, fMode, fLang, fPrice, fBonus, sort]);
+  // Показываем по 16 карточек — страница не тянет сразу всех специалистов
+  const PAGE = 16;
+  const [limit, setLimit] = useState(PAGE);
+  useEffect(() => setLimit(PAGE), [cat, sub, q, fMode, fLang, fPrice, fBonus, sort, city]);
+  const shown = filtered.slice(0, limit);
+  const rest = filtered.length - shown.length;
   // Запоминаем, что искали (через 1.5 с после ввода) — админ видит, каких специалистов не хватает
   useEffect(() => {
     const query = q.trim();
@@ -296,14 +302,19 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
         </div>
       ) : filtered.length > 0 ? (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {filtered.map((m) => (
+          {shown.map((m) => (
             <MasterCard key={m.id} m={m} lang={lang} />
           ))}
-          <Link href={requestHref} className="col-span-2 flex flex-col justify-center rounded-2xl border border-dashed border-brand/40 bg-brand-soft p-5 sm:col-span-1 transition hover:border-brand">
+          {rest > 0 && (
+            <button onClick={() => setLimit((l) => l + PAGE)} className="col-span-2 flex h-12 items-center justify-center rounded-2xl border border-line bg-white text-[15px] font-semibold transition hover:border-ink sm:col-span-3 lg:col-span-4">
+              {F[lang].showMore(Math.min(rest, PAGE))} · {shown.length}/{filtered.length}
+            </button>
+          )}
+          {rest === 0 && <Link href={requestHref} className="col-span-2 flex flex-col justify-center rounded-2xl border border-dashed border-brand/40 bg-brand-soft p-5 sm:col-span-1 transition hover:border-brand">
             <p className="font-semibold text-brand-dark">{t.notFoundTitle}</p>
             <p className="mt-1 text-[14px] text-[#3d5a4c]">{t.notFoundText}</p>
             <span className="mt-3 text-[14px] font-semibold text-brand">{t.notFoundCta}</span>
-          </Link>
+          </Link>}
         </div>
       ) : (
         <div className="mt-6 rounded-2xl border border-dashed border-line bg-cream px-5 py-10 text-center">
