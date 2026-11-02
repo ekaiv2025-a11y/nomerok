@@ -69,6 +69,32 @@ function Recenter({ at }: { at: [number, number] | null }) {
   return null;
 }
 
+/** Компактная карточка специалиста: фото слева, имя, направление, бонус, цена. */
+function MiniCard({ p }: { p: MapPoint }) {
+  const c = p.card!;
+  return (
+    <span style={{ display: "flex", gap: 10, alignItems: "flex-start", width: 240, whiteSpace: "normal", textAlign: "left" }}>
+      {p.photo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={p.photo} alt="" style={{ width: 56, height: 56, borderRadius: 12, objectFit: "cover", flex: "none" }} />
+      ) : (
+        <span style={{ width: 56, height: 56, borderRadius: 12, background: "#e7f2ec", color: "#1f6b4f", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 18, flex: "none" }}>{(p.title ?? "?").slice(0, 2).toUpperCase()}</span>
+      )}
+      <span style={{ minWidth: 0 }}>
+        <b style={{ display: "block", fontSize: 14, lineHeight: 1.25, color: "#1c1b18" }}>
+          {p.title} {c.verified && <span style={{ color: "#1f6b4f" }}>✔</span>}
+        </b>
+        <span style={{ display: "block", fontSize: 12, color: "#6b6a65", marginTop: 1 }}>
+          {c.cat}
+          {c.rating ? ` · ${c.rating}` : ""}
+        </span>
+        {c.bonus && <span style={{ display: "block", marginTop: 4, background: "#fdf3dc", color: "#6b4f12", borderRadius: 6, padding: "2px 6px", fontSize: 11.5, fontWeight: 600, lineHeight: 1.3 }}>🎁 {c.bonus}</span>}
+        <b style={{ display: "block", fontSize: 12.5, marginTop: 4, color: "#1c1b18" }}>{c.price}</b>
+      </span>
+    </span>
+  );
+}
+
 export default function LeafletMap({
   points = [],
   height = 320,
@@ -81,6 +107,8 @@ export default function LeafletMap({
   /** Режим выбора точки: клик по карте или перетаскивание метки */
   editable?: { value: [number, number] | null; onChange: (lat: number, lng: number) => void; focus?: [number, number] | null };
 }) {
+  // телефон/планшет: наведения нет — карточка по нажатию
+  const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
   const center: [number, number] = editable?.value ?? (points[0] ? [points[0].lat, points[0].lng] : BATUMI);
   return (
     <div style={{ height }} className="relative isolate z-0 overflow-hidden rounded-2xl border border-line">
@@ -97,37 +125,20 @@ export default function LeafletMap({
               position={[p.lat, p.lng]}
               icon={p.label != null ? numbered(p.label) : p.card?.bonus ? bonusPin : pin}
               zIndexOffset={p.card?.bonus ? 500 : 0}
-              // карточка специалиста открывается уже при наведении (на телефоне — по нажатию)
-              eventHandlers={p.card ? { mouseover: (e) => (e.target as L.Marker).openPopup() } : undefined}
+              // компьютер: наведение — маленькая карточка, щелчок — сразу анкета; телефон: нажатие — карточка с кнопкой
+              eventHandlers={p.card && p.href && !touch ? { click: () => (window.location.href = p.href!) } : undefined}
             >
-              {p.title && !p.card && (
-                <Tooltip direction="top" offset={p.label != null ? [0, -14] : [0, -40]} opacity={1}>
-                  <b>{p.title}</b>
+              {p.title && (!p.card || !touch) && (
+                <Tooltip direction="top" offset={p.label != null ? [0, -14] : [0, -40]} opacity={1} className={p.card ? "nm-tip" : undefined}>
+                  {p.card ? <MiniCard p={p} /> : <b>{p.title}</b>}
                 </Tooltip>
               )}
-              {p.title && (
-                <Popup minWidth={230} maxWidth={260}>
+              {p.title && (!p.card || touch) && (
+                <Popup minWidth={220} maxWidth={260} closeButton={false}>
                   {p.card ? (
                     <a href={p.href} style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-                      {p.photo && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.photo} alt="" style={{ width: "100%", height: 130, borderRadius: 12, objectFit: "cover", display: "block" }} />
-                      )}
-                      <b style={{ display: "block", fontSize: 15, marginTop: 8, lineHeight: 1.25 }}>
-                        {p.title} {p.card.verified && <span style={{ color: "#1f6b4f" }}>✔</span>}
-                      </b>
-                      <span style={{ display: "block", fontSize: 12.5, color: "#6b6a65", marginTop: 2 }}>
-                        {p.card.cat}
-                        {p.card.rating ? ` · ${p.card.rating}` : ""}
-                      </span>
-                      {p.card.bonus && (
-                        <span style={{ display: "block", marginTop: 6, background: "#fdf3dc", color: "#6b4f12", borderRadius: 8, padding: "4px 8px", fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>🎁 {p.card.bonus}</span>
-                      )}
-                      {p.subtitle && <span style={{ display: "block", fontSize: 12, color: "#6b6a65", marginTop: 6 }}>📍 {p.subtitle}</span>}
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
-                        <b style={{ fontSize: 13 }}>{p.card.price}</b>
-                        <span style={{ background: "#1f6b4f", color: "#fff", borderRadius: 999, padding: "5px 11px", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>{p.card.cta} →</span>
-                      </span>
+                      <MiniCard p={p} />
+                      <span style={{ display: "block", marginTop: 8, textAlign: "center", background: "#1f6b4f", color: "#fff", borderRadius: 999, padding: "6px 11px", fontSize: 12.5, fontWeight: 700 }}>{p.card.cta} →</span>
                     </a>
                   ) : (
                     <a href={p.href} style={{ display: "flex", gap: 10, alignItems: "center", textDecoration: "none", color: "inherit", minWidth: 180 }}>
