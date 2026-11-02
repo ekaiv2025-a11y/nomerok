@@ -18,7 +18,7 @@ export default async function OrdersPage({ params, searchParams }: LangParams & 
   const lang = await langOf(params);
   const t = ORD[lang];
   const { cat } = await searchParams;
-  const all = await listOrders().catch(() => []);
+  const all = (await listOrders().catch(() => [])).filter((o) => o.status !== "done");
   const cats = [...new Set(all.map((o) => o.category))].filter((c) => CATEGORIES.some((x) => x.id === c));
   const list = cat ? all.filter((o) => o.category === cat) : all;
   return (

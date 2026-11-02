@@ -6,7 +6,8 @@ import { href, type Locale } from "@/lib/i18n";
 
 /** Главная: последние заказы — видно, что сервис живой. */
 export async function LatestOrders({ lang }: { lang: Locale }) {
-  const list = (await listOrders().catch(() => [])).slice(0, 4);
+  // закрытые не показываем — только те, что ещё ищут
+  const list = (await listOrders().catch(() => [])).filter((o) => o.status !== "done").slice(0, 4);
   if (list.length === 0) return null;
   const t = ORD[lang];
   return (
