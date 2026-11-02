@@ -1,5 +1,311 @@
 [
   {
+    "slug": "zhk-highlands-by-alliance-goderdzi",
+    "name": "Highlands by Alliance",
+    "place": "Годерзи (Хуло, Аджария)",
+    "district": "Горнолыжный курорт Годерзи",
+    "address": "курорт Годерзи, район Занкеби, муниципалитет Хуло",
+    "developer": "Alliance Group",
+    "developerSlug": "alliance-group",
+    "status": "building",
+    "completion": "по данным geoln.com — декабрь 2025 (актуальный срок уточняйте)",
+    "price": {
+      "perM2": 1950,
+      "from": 71857,
+      "date": "ноябрь 2026",
+      "src": "https://geoln.com/georgia/khulo/highlands-alliance"
+    },
+    "floors": "3",
+    "features": [
+      "около 60 м до канатной дороги",
+      "2027 м над уровнем моря",
+      "3 корпуса",
+      "рассрочка 36 месяцев",
+      "чёрный каркас"
+    ],
+    "lead": "Highlands by Alliance — комплекс апартаментов в альпийском стиле на горнолыжном курорте Годерзи в горной Аджарии, примерно в 60 метрах от канатной дороги. Строит Alliance Group, по данным geoln.com — от 1950 долларов за м² и с рассрочкой на 36 месяцев.",
+    "body": [
+      {
+        "h2": "О комплексе"
+      },
+      {
+        "p": "Highlands by Alliance — проект Alliance Group на курорте Годерзи, на высоте около 2027 метров над уровнем моря. Компания называет его комплексом альпийского типа: три невысоких корпуса — A, B и C — на общем подиуме, внутри квартиры-лофты. Это уже второй горный проект компании на Годерзи после отеля Alliance Resort."
+      },
+      {
+        "p": "Комплекс задуман как курортный: при нём работает собственный отель, а владельцы квартир могут жить в них сами или сдавать отдыхающим. Активные продажи застройщик анонсировал осенью 2023 года в материале BM.ge."
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Годерзи — курорт в муниципалитете Хуло, на перевале между Аджарией и Самцхе-Джавахети, примерно в 100 км от Батуми. Снег здесь лежит с ноября по апрель, на склонах есть трассы для новичков, среднего уровня и сложные. Летом курорт работает для пеших и экотуристов."
+      },
+      {
+        "list": [
+          "нижняя станция канатной дороги — около 60 м",
+          "высота — около 2027 м над уровнем моря",
+          "Батуми — около 100 км по горной дороге",
+          "рядом — супермаркет и рестораны курорта"
+        ]
+      },
+      {
+        "h2": "Квартиры и отделка"
+      },
+      {
+        "p": "Квартиры начинаются примерно от 37 м². Дом монолитный, жильё передают в «чёрном каркасе» — без штукатурки, стяжки и чистовой отделки, поэтому к цене стоит прибавить ремонт. Число квартир и полный список планировок в открытых источниках не опубликованы."
+      },
+      {
+        "list": [
+          "бассейн, спа и фитнес",
+          "ресторан",
+          "детская площадка",
+          "парковка",
+          "ресепшн и охрана"
+        ]
+      },
+      {
+        "h2": "Цены и условия покупки"
+      },
+      {
+        "p": "По данным geoln.com на ноябрь 2026 года, цена — от 1950 долларов за м², квартиры — примерно от 71 900 долларов (в другом разделе той же страницы — от 70 200). Застройщик предлагает 10% первого взноса и внутреннюю беспроцентную рассрочку на 36 месяцев — те же условия называла и новогодняя акция Alliance Group в конце 2023 года. Возможна ипотека в банке-партнёре."
+      },
+      {
+        "h2": "Сроки"
+      },
+      {
+        "p": "На geoln.com срок окончания указан как декабрь 2025 года, но фото хода стройки застройщик туда не выкладывает. Сдан ли уже каждый корпус, лучше уточнить по заявке и проверить по выписке из публичного реестра."
+      },
+      {
+        "h2": "Застройщик"
+      },
+      {
+        "p": "Alliance Group работает в Грузии с 2005 года. Компания построила в Батуми Alliance Palace и Alliance Privilege, строит Alliance Centropolis с отелем Hyatt Centric и Alliance Renaissance в Кобулети. Подробнее — на [странице застройщика Alliance Group](/ru/novostroyki/z/alliance-group)."
+      },
+      {
+        "tip": "На что смотреть при покупке на горном курорте: сколько месяцев в году реально работает подъёмник, кто и за сколько обслуживает дом зимой (уборка снега, отопление), как оформлена квартира — жильё или гостиничный номер, и какой срок сдачи записан в договоре."
+      }
+    ],
+    "faq": [
+      {
+        "q": "Где находится Highlands by Alliance?",
+        "a": "На горнолыжном курорте Годерзи в муниципалитете Хуло (Аджария), около 60 м от канатной дороги, на высоте около 2027 м."
+      },
+      {
+        "q": "Сколько стоит квартира в Highlands by Alliance?",
+        "a": "По данным geoln.com на ноябрь 2026 года — от 1950 долларов за м², квартиры примерно от 71 900 долларов. Точные цены — по заявке."
+      },
+      {
+        "q": "Есть ли рассрочка в Highlands by Alliance?",
+        "a": "Да: 10% первого взноса и беспроцентная рассрочка на 36 месяцев от застройщика."
+      },
+      {
+        "q": "Кто застройщик Highlands by Alliance?",
+        "a": "Alliance Group — компания, которая с 2005 года строит в Батуми, Кобулети, Тбилиси и на Годерзи."
+      },
+      {
+        "q": "Когда сдача Highlands by Alliance?",
+        "a": "На geoln.com указан декабрь 2025 года; актуальное состояние корпусов уточняйте у застройщика."
+      }
+    ],
+    "sources": [
+      {
+        "name": "geoln.com",
+        "url": "https://geoln.com/georgia/khulo/highlands-alliance"
+      },
+      {
+        "name": "BM.ge — Alliance Group о курортной недвижимости",
+        "url": "https://bm.ge/en/news/recreational-real-estate-as-a-savvy-investment-alliance-groups-opinion"
+      },
+      {
+        "name": "Entrepreneur Georgia — условия покупки, декабрь 2023",
+        "url": "https://www.entrepreneur.com/ka/business-news/daitsqe-tseli-akhali/467638"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://geoln.com/uploads/building_photos/92e44a7d5b95479aa7f6daaacb416f9a.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/khulo/highlands-alliance"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/92b39a9e04c04a2699c6b2d9fbf38344.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/khulo/highlands-alliance"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/d3d88f37d61241e2bf8d8d7e66644fb6.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/khulo/highlands-alliance"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/f0a750f5a37640d4811967a98b08f6ed.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/khulo/highlands-alliance"
+      }
+    ],
+    "photo": {
+      "q": "Goderdzi ski resort",
+      "alt": "Курорт Годерзи"
+    },
+    "added": "2026-11-02",
+    "updated": "2026-11-02"
+  },
+  {
+    "slug": "zhk-alliance-highline-tbilisi",
+    "name": "Alliance Highline",
+    "city": "tbilisi",
+    "district": "Ваке",
+    "address": "просп. Михаила Тамарашвили, 8 (в материалах застройщика — просп. Чавчавадзе, 49б)",
+    "developer": "Alliance Group",
+    "developerSlug": "alliance-group",
+    "status": "building",
+    "completion": "блоки A и B — IV квартал 2026, блок C (отель) — IV квартал 2027",
+    "price": {
+      "perM2": 5750,
+      "date": "ноябрь 2026",
+      "src": "https://korter.ge/en/alliance-highline-tbilisi"
+    },
+    "floors": "26–40",
+    "features": [
+      "Ваке",
+      "3 башни",
+      "отель Wyndham Garden",
+      "квартиры с ремонтом",
+      "потолки 3 м",
+      "рассрочка"
+    ],
+    "lead": "Alliance Highline — комплекс из трёх башен Alliance Group в тбилисском районе Ваке: две жилые башни и отель Wyndham Garden. Стройка началась в 2019 году; по данным korter.ge, жилые блоки сдадут в IV квартале 2026 года, гостиничный — в IV квартале 2027-го.",
+    "body": [
+      {
+        "h2": "О комплексе"
+      },
+      {
+        "p": "Alliance Highline — первый тбилисский проект Alliance Group. Комплекс состоит из трёх башен: в блоке A 40 этажей, в блоке B — 33, в блоке C, где разместится отель, — 26 (в сводной таблице korter.ge цифры немного другие). Самая высокая башня отдана под жильё, в двух других — апартаменты и гостиница."
+      },
+      {
+        "p": "Отель и часть апартаментов будет вести Wyndham Garden — бренд Wyndham Hotel Group. Объём инвестиций в проект застройщик оценивал более чем в 75 млн долларов. Первоначально окончание планировали на 2019 год, сейчас сроки сдвинуты на 2026–2027 годы."
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Комплекс стоит в Ваке, у выезда на скоростную трассу, недалеко от проспекта Чавчавадзе. В адресе есть расхождение: на korter.ge — проспект Михаила Тамарашвили, 8, в материалах застройщика на Property Georgia — проспект Чавчавадзе, 49б. Рядом стадион имени Михаила Месхи, большой парк, бассейны, фитнес-клубы, банки, кафе и магазины, остановка автобуса."
+      },
+      {
+        "h2": "Квартиры и отделка"
+      },
+      {
+        "p": "Сейчас на korter.ge в продаже 43 студии площадью от 32,5 до 43,9 м²; в общей таблице проекта встречаются квартиры до 80 м². Квартиры сдаются с ремонтом «под ключ», высота потолков — 3 м. В блоке A пять лифтов, в блоке B — четыре."
+      },
+      {
+        "p": "Владелец может жить в квартире сам, сдавать её самостоятельно или отдать в управление международной гостиничной компании. Застройщик предлагает дизайн, мебель и оборудование под ключ за отдельную плату."
+      },
+      {
+        "list": [
+          "крытый бассейн",
+          "фитнес-центр и спа",
+          "ресторан и лаунж",
+          "сад и магазины",
+          "подземный паркинг (3–4 уровня)",
+          "ресепшн, консьерж, охрана и видеонаблюдение",
+          "уборка и обслуживание общих зон",
+          "резервный источник электроэнергии"
+        ]
+      },
+      {
+        "h2": "Цены и условия покупки"
+      },
+      {
+        "p": "По данным korter.ge на ноябрь 2026 года, цена — от 5750 долларов за м², цены студий — по запросу. Рассрочка от застройщика: 20% первого взноса и беспроцентный срок до трёх лет (на Property Georgia раньше указывали 15% взноса и 30 месяцев). Есть скидка при полной оплате, ипотека TBC Bank и других банков-партнёров."
+      },
+      {
+        "h2": "Ход строительства"
+      },
+      {
+        "p": "Работы на всех трёх блоках начались в I квартале 2019 года. Последние фото стройки на korter.ge — за май 2023 года, поэтому текущее состояние башен лучше уточнить у застройщика."
+      },
+      {
+        "h2": "Застройщик"
+      },
+      {
+        "p": "Alliance Group работает с 2005 года, в Батуми построила Alliance Palace и Alliance Privilege, сейчас строит там Alliance Centropolis. Подробнее — на [странице застройщика Alliance Group](/ru/novostroyki/z/alliance-group)."
+      },
+      {
+        "tip": "На что смотреть при покупке апартаментов в гостиничном комплексе: какой срок сдачи именно у вашего блока, кто управляет номером и сколько берёт за это, можно ли жить в квартире круглый год, и как она записана в реестре — как жилое или нежилое помещение."
+      }
+    ],
+    "faq": [
+      {
+        "q": "Когда сдача ЖК Alliance Highline?",
+        "a": "По данным korter.ge на ноябрь 2026 года, блоки A и B — IV квартал 2026 года, гостиничный блок C — IV квартал 2027 года."
+      },
+      {
+        "q": "Сколько стоит квартира в ЖК Alliance Highline?",
+        "a": "От 5750 долларов за м² (korter.ge, ноябрь 2026). Цены конкретных студий — по запросу или по заявке."
+      },
+      {
+        "q": "Где находится Alliance Highline?",
+        "a": "В Тбилиси, в районе Ваке: проспект Михаила Тамарашвили, 8 (в материалах застройщика — проспект Чавчавадзе, 49б)."
+      },
+      {
+        "q": "Есть ли рассрочка в ЖК Alliance Highline?",
+        "a": "Да: 20% первого взноса и беспроцентная рассрочка до трёх лет. Есть ипотека TBC Bank."
+      },
+      {
+        "q": "Какой отель будет в Alliance Highline?",
+        "a": "Wyndham Garden — бренд Wyndham Hotel Group."
+      }
+    ],
+    "sources": [
+      {
+        "name": "korter.ge",
+        "url": "https://korter.ge/en/alliance-highline-tbilisi"
+      },
+      {
+        "name": "Property Georgia",
+        "url": "https://propertygeorgia.ge/en/projects/alliance-highline-alliance-group"
+      },
+      {
+        "name": "Property Georgia — о старте проекта, 2017",
+        "url": "https://propertygeorgia.ge/en/news/premium-new-development-tbilisi-alliance-group"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/9520.jpg",
+        "credit": "застройщик Alliance Group",
+        "src": "https://korter.ge/en/alliance-highline-tbilisi",
+        "kind": "exterior",
+        "caption": "Три башни комплекса"
+      },
+      {
+        "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2018-12/6.jpg?itok=NBjCoj6v",
+        "credit": "застройщик Alliance Group",
+        "src": "https://propertygeorgia.ge/en/projects/alliance-highline-alliance-group",
+        "kind": "exterior"
+      },
+      {
+        "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2017-06/19181855_1050018235129451_1809585000_o_0.jpg?itok=tQHahZ_u",
+        "credit": "застройщик Alliance Group",
+        "src": "https://propertygeorgia.ge/en/projects/alliance-highline-alliance-group",
+        "kind": "exterior"
+      },
+      {
+        "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/%E1%83%B0%E1%83%90%E1%83%98%E1%83%9A%E1%83%90%E1%83%98%E1%83%9C%E1%83%98-%E1%83%98%E1%83%9C%E1%83%A2%E1%83%94%E1%83%A0-3_0.jpg?itok=IELQkZom",
+        "credit": "застройщик Alliance Group",
+        "src": "https://propertygeorgia.ge/en/projects/alliance-highline-alliance-group",
+        "kind": "interior",
+        "caption": "Интерьер (визуализация)"
+      }
+    ],
+    "photo": {
+      "q": "Vake Tbilisi Chavchavadze Avenue",
+      "alt": "Проспект Чавчавадзе в Ваке"
+    },
+    "added": "2026-11-02",
+    "updated": "2026-11-02"
+  },
+  {
     "slug": "zhk-grand-avenue-archi-tbilisi",
     "name": "Grand Avenue by Archi",
     "city": "tbilisi",
@@ -417,7 +723,7 @@
     "price": {
       "perM2": 1860,
       "from": 65484,
-      "date": "октябрь 2026",
+      "date": "ноябрь 2026",
       "src": "https://korter.ge/en/alliance-renaissance-kobuleti"
     },
     "floors": "28–44",
@@ -544,107 +850,153 @@
       {
         "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/42404.jpg",
         "credit": "застройщик Alliance Group",
-        "src": "https://korter.ge/en/alliance-renaissance-kobuleti"
+        "src": "https://korter.ge/en/alliance-renaissance-kobuleti",
+        "kind": "exterior"
       }
-    ]
+    ],
+    "developerSlug": "alliance-group"
   },
   {
     "slug": "zhk-alliance-centropolis-batumi",
     "name": "Alliance Centropolis",
     "city": "batumi",
     "district": "Проспект Руставели, у моря",
-    "address": "просп. Шота Руставели (в источниках — дом 52 или 63)",
+    "address": "просп. Шота Руставели, 52 (в описании проекта — 63)",
     "developer": "Alliance Group",
     "status": "building",
     "completion": "блоки B и C — IV квартал 2028, блок A — IV квартал 2029",
     "price": {
       "perM2": 3085,
-      "date": "октябрь 2026",
+      "date": "ноябрь 2026",
       "src": "https://korter.ge/en/alliance-centropolis-batumi"
     },
     "floors": "48–55",
     "features": [
       "около 50 м до моря",
-      "3 башни",
+      "3 башни, 48–55 этажей",
+      "отель Hyatt Centric",
+      "World Trade Center Batumi",
       "3 уровня подземного паркинга",
-      "бассейн и спа",
       "белый каркас",
       "рассрочка"
     ],
-    "lead": "Alliance Centropolis — комплекс из трёх высотных башен компании Alliance Group на проспекте Руставели в Батуми, почти у самого пляжа. Кроме квартир, в проекте отель, выставочный центр World Trade Center, торговая и офисная части. Стройка идёт с 2020 года, сдача по данным korter.ge — с IV квартала 2028 года.",
+    "lead": "Alliance Centropolis — три высотные башни Alliance Group на проспекте Руставели в Батуми, примерно в 50 метрах от пляжа. В одном комплексе — квартиры, отель Hyatt Centric, выставочный центр World Trade Center Batumi, торговая и офисная части. Стройка идёт с 2020 года; по данным korter.ge на ноябрь 2026 года, башни B и C сдадут в IV квартале 2028-го, башню A — в IV квартале 2029-го.",
     "body": [
       {
         "h2": "О комплексе"
       },
       {
-        "p": "Alliance Centropolis — один из самых крупных строящихся проектов на побережье Аджарии. Это три башни — A, B и C — на общем подиуме. По данным korter.ge, в башнях A и C по 48 этажей, в башне B — 55. Дома монолитно-каркасные."
+        "p": "Alliance Centropolis — самый большой проект компании Alliance Group и один из крупнейших строящихся комплексов на побережье Аджарии. Три башни — A, B и C — стоят на общем подиуме. По данным korter.ge, в башнях A и C по 48 этажей, в башне B — 55. В других источниках встречается округлённое «три башни примерно по 50 этажей»."
       },
       {
-        "p": "Помимо апартаментов, в комплексе запланированы отель международного бренда категории «пять звёзд», казино, выставочный центр World Trade Center, бизнес-центр и торговый центр класса A. В интервью BM.ge представитель застройщика оценивал стоимость всего проекта в 400 млн долларов, а площадь — примерно в полмиллиона квадратных метров."
+        "p": "Участок — больше 18 000 м². Общую площадь всех помещений застройщик оценивал примерно в 500 000 м², а стоимость проекта — около 400 млн долларов (интервью руководителя отдела развития бизнеса Alliance Group телеканалу BM.ge). В агентских объявлениях встречается и цифра 520 млн."
       },
       {
-        "p": "Стройку начали в I квартале 2020 года. Раньше компания называла сроком окончания 2026 год, сейчас на korter.ge указаны IV квартал 2028 года для башен B и C и IV квартал 2029 года для башни A. На портале выложены фото хода работ, последние — за октябрь 2026 года."
+        "p": "Квартиры — только часть комплекса. В подиуме и нижних этажах запланированы отель Hyatt Centric Boulevard Batumi на 180 номеров (в том числе 14 люксов), выставочный центр World Trade Center Batumi — первый такой в регионе, бизнес-центр, торговый центр, казино, рестораны, кинотеатр и развлекательный центр. Выставочные площади застройщик называет способом заполнить комплекс людьми и зимой, вне пляжного сезона."
       },
       {
-        "h2": "Расположение и что рядом"
+        "h2": "Архитектура и материалы"
       },
       {
-        "p": "Комплекс стоит на проспекте Руставели — главной улице вдоль моря. В адресах есть расхождение: в карточке korter.ge — дом 52, в описании — дом 63. До пляжа, по данным портала, около 50 метров. Рядом Батумский бульвар и центр города; больше о районах — в нашем [путеводителе по Батуми](/ru/georgia/batumi)."
+        "p": "Дома строят по монолитно-каркасной технологии, на усиленном железобетонном фундаменте: Батуми — сейсмоактивная зона, и для высоток это важно. Фасады — с витражным остеклением, окна в квартирах панорамные, с энергосберегающими стеклопакетами. Из большинства квартир видно море или горы — в зависимости от стороны и башни."
       },
       {
-        "list": [
-          "зона отдыха около 10 000 м²",
-          "подземный паркинг в три уровня (застройщик заявляет 1000 машиномест)",
-          "бассейн, спа, фитнес-центр",
-          "рестораны, бары, лаунж",
-          "развлекательный центр и кинотеатр",
-          "охрана, видеонаблюдение, консьерж и ресепшн"
-        ]
+        "p": "Высота потолков в квартирах — 2,75 м (korter.ge; на geoln.com указано 2,80 м). В башнях пассажирские и грузовые лифты, в доме подведены электричество, вода, канализация и пожарная сигнализация. Под комплексом — подземный паркинг в три уровня примерно на 1000 машин, на этажи паркинга можно спуститься на лифте."
       },
       {
         "h2": "Квартиры и отделка"
       },
       {
-        "p": "В продаже студии примерно от 31 м², одно-, двух- и трёхкомнатные квартиры — до 113 м² (по планировкам korter.ge; в разных разделах портала диапазоны площадей немного отличаются). Высота потолков — 2,75 м."
+        "p": "В продаже студии, квартиры с одной спальней, двух- и трёхкомнатные. По планировкам на korter.ge студии занимают примерно 32–35 м², квартиры с одной спальней — 50–56 м², двухкомнатные — 50–78 м², трёхкомнатные — до 113 м². На geoln.com студии начинаются от 28,75 м², так что самые маленькие варианты стоит уточнять отдельно."
       },
       {
-        "p": "Квартиры продают в «белом каркасе»: стены оштукатурены, стяжка сделана, коммуникации подведены, но чистовой отделки нет. Ремонт делается отдельно."
+        "p": "Квартиры передают в «белом каркасе»: стены оштукатурены, сделана стяжка, подведены коммуникации и установлены окна, но нет чистовой отделки, сантехники и кухни. Ремонт покупатель делает сам или заказывает у застройщика — о том, сколько это стоит, мы писали в статье [сколько стоит ремонт квартиры в Батуми](/ru/guide/skolko-stoit-remont-kvartiry-batumi-2026)."
+      },
+      {
+        "p": "Часть комплекса работает как апарт-отель: владелец может жить в квартире сам или сдавать её через управляющую компанию. Условия управления и стоимость обслуживания застройщик сообщает при покупке."
+      },
+      {
+        "h2": "Инфраструктура комплекса"
+      },
+      {
+        "list": [
+          "отель Hyatt Centric Boulevard Batumi с рестораном, лобби-баром, фитнесом, спа и залом для мероприятий около 550 м²",
+          "выставочный центр World Trade Center Batumi",
+          "бизнес-центр и торговый центр",
+          "бассейны, спа, фитнес и йога",
+          "кинотеатр, боулинг и развлекательный центр",
+          "конференц-зал, банкетный зал, коворкинг",
+          "зона отдыха около 10 000 м² с дорожками и освещением",
+          "ресепшн, консьерж, круглосуточная охрана и видеонаблюдение",
+          "услуги уборки и обслуживания для владельцев"
+        ]
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Комплекс стоит в начале проспекта Руставели — главной улицы вдоль моря, на первой линии. В адресах есть расхождение: в карточке korter.ge — дом 52, в описании проекта — дом 63. Рядом стоят другие высотки Alliance Group — Alliance Palace и Alliance Privilege. Подробнее о районах города — в нашем [путеводителе по Батуми](/ru/georgia/batumi)."
+      },
+      {
+        "list": [
+          "пляж — около 50 м",
+          "парк и озеро Ардагани с поющими фонтанами — около 350 м",
+          "остановка автобусов 10, 10A и 17 — около 360 м",
+          "аквариум, дельфинарий, зоопарк, Batumi Mall и Carrefour — 5–10 минут пешком",
+          "нижняя станция канатной дороги «Арго», морской порт и старый автовокзал — около 3 км",
+          "центральный автовокзал и вокзал Батуми-Пассажирский — около 6 км",
+          "аэропорт Батуми — около 12–15 минут на машине"
+        ]
       },
       {
         "h2": "Цены и условия покупки"
       },
       {
-        "p": "По данным korter.ge на конец октября 2026 года, цена — от 3085 долларов за м². Цены на конкретные квартиры на портале не опубликованы: их называют по запросу у застройщика или по заявке."
+        "p": "По данным korter.ge на ноябрь 2026 года, цена — от 3085 долларов за м². На geoln.com указано «от 3175 долларов за м²» и минимальная квартира примерно за 95 000 долларов. Для сравнения: на старте продаж в 2020 году первым покупателям предлагали около 1300 долларов за м². Цены конкретных квартир застройщик называет по запросу — их можно узнать по заявке внизу страницы."
       },
       {
-        "p": "Застройщик предлагает рассрочку. В источниках условия расходятся: в описании проекта — 20% первого взноса и беспроцентная рассрочка до 48 месяцев, в калькуляторе korter.ge — от 5% взноса на срок до 5 лет. Ипотеку на квартиры в комплексе выдаёт TBC Bank. Точные условия на сегодня лучше получить письменно."
+        "p": "Застройщик предлагает внутреннюю рассрочку, но её условия в разных источниках расходятся и часто меняются с акциями. Базовый вариант из описания проекта — 20% первого взноса и беспроцентная рассрочка до 48 месяцев. В калькуляторе korter.ge — взнос от 5% и срок до 5 лет; в новогодней акции конца 2023 года студии продавали без первого взноса на 60 месяцев. Есть скидка при полной оплате и ипотека TBC Bank. Актуальные условия лучше получить письменно и сверить с договором."
+      },
+      {
+        "h2": "Ход строительства"
+      },
+      {
+        "p": "Работы начались в I квартале 2020 года. Раньше застройщик называл срок окончания 2026 год, сейчас на korter.ge — IV квартал 2028 года для башен B и C и IV квартал 2029 года для башни A. Ход стройки снимают с 16 точек, последние фото — за октябрь 2026 года."
       },
       {
         "h2": "Застройщик"
       },
       {
-        "p": "Alliance Group работает с 2008 года. По данным korter.ge, в Батуми у компании также проекты Alliance Palace и Alliance Privilege, в Кобулети — Alliance Renaissance, в Тбилиси — Alliance Highline."
+        "p": "Alliance Group работает на рынке Грузии с 2005 года и построила в Батуми башни Alliance Palace (отель Courtyard by Marriott) и Alliance Privilege, а также строит Alliance Renaissance в Кобулети, Alliance Highline в Тбилиси и Highlands by Alliance на курорте Годерзи. Подробнее — на [странице застройщика Alliance Group](/ru/novostroyki/z/alliance-group)."
       },
       {
-        "tip": "На что смотреть при покупке в высотке на первой линии Батуми: в какой башне квартира и какой срок сдачи именно у неё, что записано в договоре о штрафах за задержку, сколько будут стоить обслуживание и управление комплексом, и как квартира оформлена — как жильё или как апартамент в гостиничной части."
+        "tip": "На что смотреть при покупке в высотке на первой линии Батуми: в какой башне квартира и какой срок сдачи записан именно для неё, есть ли в договоре штрафы за задержку, сколько будут стоить обслуживание и управление, как квартира оформлена — как жильё или как апартамент в гостиничной части, и есть ли у участка разрешение на строительство в публичном реестре (napr.gov.ge)."
       }
     ],
     "faq": [
       {
         "q": "Когда сдача ЖК Alliance Centropolis?",
-        "a": "По данным korter.ge на октябрь 2026 года, башни B и C планируют сдать в IV квартале 2028 года, башню A — в IV квартале 2029 года. Раньше застройщик называл 2026 год."
+        "a": "По данным korter.ge на ноябрь 2026 года, башни B и C планируют сдать в IV квартале 2028 года, башню A — в IV квартале 2029 года. Раньше застройщик называл 2026 год."
       },
       {
         "q": "Сколько стоит квартира в ЖК Alliance Centropolis?",
-        "a": "На октябрь 2026 года — от 3085 долларов за м² (korter.ge). Цены конкретных квартир — по запросу у застройщика или по заявке."
+        "a": "На ноябрь 2026 года — от 3085 долларов за м² (korter.ge). Минимальная квартира, по данным geoln.com, — около 95 000 долларов. Цены конкретных квартир — по запросу у застройщика или по заявке."
       },
       {
-        "q": "Кто застройщик ЖК Alliance Centropolis?",
-        "a": "Alliance Group — компания, работающая с 2008 года. В Батуми у неё также проекты Alliance Palace и Alliance Privilege."
+        "q": "Какие планировки в ЖК Alliance Centropolis?",
+        "a": "Студии примерно от 29 до 35 м², квартиры с одной спальней — 47–56 м², двухкомнатные — 50–78 м², трёхкомнатные — до 113 м². Все в белом каркасе."
       },
       {
         "q": "Есть ли рассрочка в ЖК Alliance Centropolis?",
-        "a": "Да. В описании проекта — 20% первого взноса и беспроцентная рассрочка до 48 месяцев; на korter.ge встречается и вариант от 5% на срок до 5 лет. Есть ипотека TBC Bank."
+        "a": "Да. Базовый вариант — 20% первого взноса и беспроцентная рассрочка до 48 месяцев; по акциям встречаются варианты от 0–5% на срок до 60 месяцев. Есть ипотека TBC Bank."
+      },
+      {
+        "q": "Кто застройщик ЖК Alliance Centropolis?",
+        "a": "Alliance Group — компания, работающая в Грузии с 2005 года. В Батуми она построила Alliance Palace и Alliance Privilege."
+      },
+      {
+        "q": "Какой отель будет в Alliance Centropolis?",
+        "a": "Hyatt Centric Boulevard Batumi на 180 номеров — договор об управлении с Hyatt подписан в 2021 году. Кроме отеля, в комплексе будет выставочный центр World Trade Center Batumi."
       },
       {
         "q": "Сколько этажей в Alliance Centropolis?",
@@ -657,12 +1009,28 @@
         "url": "https://korter.ge/en/alliance-centropolis-batumi"
       },
       {
+        "name": "Property Georgia",
+        "url": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+      },
+      {
+        "name": "geoln.com",
+        "url": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      },
+      {
+        "name": "Neginski (фото и описание инфраструктуры)",
+        "url": "https://neginski.com/properties/alliance-centropolice"
+      },
+      {
         "name": "BM.ge — интервью о сроках и стоимости проекта",
         "url": "https://bm.ge/en/news/construction-of-alliance-centropolis-to-be-completed-in-2026/123223"
       },
       {
-        "name": "Property Georgia",
-        "url": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+        "name": "Property Georgia — Hyatt Centric в Батуми",
+        "url": "https://propertygeorgia.ge/en/media/news/1130-hyatt-centric-enter-georgia"
+      },
+      {
+        "name": "Entrepreneur Georgia — условия рассрочки, декабрь 2023",
+        "url": "https://www.entrepreneur.com/ka/business-news/daitsqe-tseli-akhali/467638"
       }
     ],
     "photo": {
@@ -673,19 +1041,173 @@
     "updated": "2026-11-02",
     "images": [
       {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/42379.jpg",
+        "credit": "застройщик Alliance Group",
+        "src": "https://korter.ge/en/alliance-centropolis-batumi",
+        "kind": "exterior",
+        "caption": "Три башни на общем подиуме, проспект Руставели"
+      },
+      {
         "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/%E1%83%AA%E1%83%94%E1%83%9C%E1%83%A2%E1%83%A0%E1%83%9D%E1%83%9E%E1%83%9D%E1%83%9A%E1%83%98%E1%83%A1%E1%83%98--1_0.jpg?itok=kN-dYvWW",
         "credit": "застройщик Alliance Group",
-        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis",
+        "kind": "exterior"
       },
       {
         "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/%E1%83%AA%E1%83%94%E1%83%9C%E1%83%A2%E1%83%A0%E1%83%9D%E1%83%9E%E1%83%9D%E1%83%9A%E1%83%98%E1%83%A1%E1%83%98--2_0.jpg?itok=MbLaSq2R",
         "credit": "застройщик Alliance Group",
-        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis",
+        "kind": "exterior"
       },
       {
         "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/8%20%E1%83%A0%E1%83%94%E1%83%A5_0.jpg?itok=jB3QRfk_",
         "credit": "застройщик Alliance Group",
-        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis",
+        "kind": "exterior"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/aero360/548/1.jpg",
+        "credit": "korter.ge, аэросъёмка",
+        "src": "https://korter.ge/en/alliance-centropolis-batumi",
+        "kind": "view",
+        "caption": "Аэросъёмка стройплощадки, осень 2023"
+      },
+      {
+        "url": "https://neginski.com/img/asset/bWVkaWEvYmF0dW1pL3Byb2VrdHkvYWxsaWFuY2UtY2VudHJvcG9saWNlL3Bvb2wuMGRiMTg3Mi53ZWJw?w=720&fm=webp&q=84&h=620&fit=crop_focal&s=0bad7c9d431349ffac4f88a16da06747",
+        "credit": "застройщик Alliance Group",
+        "src": "https://neginski.com/properties/alliance-centropolice",
+        "kind": "interior",
+        "caption": "Бассейн (визуализация)"
+      },
+      {
+        "url": "https://neginski.com/img/asset/bWVkaWEvYmF0dW1pL3Byb2VrdHkvYWxsaWFuY2UtY2VudHJvcG9saWNlL2NpbmVtYS5jMzE0ZjMwLndlYnA?w=1200&fm=webp&q=84&h=840&fit=crop_focal&s=a720340fd66e8a97acaf7f4cb30e82ce",
+        "credit": "застройщик Alliance Group",
+        "src": "https://neginski.com/properties/alliance-centropolice",
+        "kind": "interior",
+        "caption": "Кинозал (визуализация)"
+      },
+      {
+        "url": "https://neginski.com/img/asset/bWVkaWEvYmF0dW1pL3Byb2VrdHkvYWxsaWFuY2UtY2VudHJvcG9saWNlL2VudGVydGFpbm1lbnQuODAyYTRkNS53ZWJw?w=1200&fm=webp&q=84&h=840&fit=crop_focal&s=5febdc453ba9778e01925dad55a1f051",
+        "credit": "застройщик Alliance Group",
+        "src": "https://neginski.com/properties/alliance-centropolice",
+        "kind": "interior",
+        "caption": "Развлекательный центр (визуализация)"
+      },
+      {
+        "url": "https://neginski.com/img/asset/bWVkaWEvYmF0dW1pL3Byb2VrdHkvYWxsaWFuY2UtY2VudHJvcG9saWNlL2JhbHJvb20uMzljOTFjNy53ZWJw?w=1200&fm=webp&q=84&h=840&fit=crop_focal&s=3fc5ff1253c8045ca21c7df716d72a35",
+        "credit": "застройщик Alliance Group",
+        "src": "https://neginski.com/properties/alliance-centropolice",
+        "kind": "interior",
+        "caption": "Банкетный зал (визуализация)"
+      },
+      {
+        "url": "https://neginski.com/img/asset/bWVkaWEvYmF0dW1pL3Byb2VrdHkvYWxsaWFuY2UtY2VudHJvcG9saWNlL2NvbmZlcmVuY2UuZjViYTNiZS53ZWJw?w=1200&fm=webp&q=84&h=840&fit=crop_focal&s=361c0ba22606f51d2df33142d6ad68c1",
+        "credit": "застройщик Alliance Group",
+        "src": "https://neginski.com/properties/alliance-centropolice",
+        "kind": "interior",
+        "caption": "Конференц-зал (визуализация)"
+      },
+      {
+        "url": "https://neginski.com/img/asset/bWVkaWEvYmF0dW1pL3Byb2VrdHkvYWxsaWFuY2UtY2VudHJvcG9saWNlL2Nvd29ya2luZy41NGZhN2UxLndlYnA?w=1200&fm=webp&q=84&h=840&fit=crop_focal&s=c0b7c93d85ebb5fb7270b3258a5fe726",
+        "credit": "застройщик Alliance Group",
+        "src": "https://neginski.com/properties/alliance-centropolice",
+        "kind": "interior",
+        "caption": "Коворкинг (визуализация)"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/bbe9ec8348f34cf08e86d41b7e8ab8f9.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/f3f381626290428e82a97fc63cbe16f1.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/c4b7221f016049b685b86480df7c9c1a.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/319e8db0235c488995b74fd197dfa50b.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/67ca40b8a4594d0f92b5097264a580d3.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/21f38e9da8354316b0d7fa09b619ebac.large.webp",
+        "credit": "застройщик Alliance Group",
+        "src": "https://geoln.com/georgia/batumi/alliance-centropolis"
+      }
+    ],
+    "developerSlug": "alliance-group",
+    "units_table": [
+      {
+        "type": "Студия",
+        "area": "29–35 м²",
+        "note": "белый каркас"
+      },
+      {
+        "type": "1 спальня",
+        "area": "47–56 м²",
+        "note": "белый каркас"
+      },
+      {
+        "type": "2 комнаты",
+        "area": "50–78 м²",
+        "note": "белый каркас"
+      },
+      {
+        "type": "3 комнаты",
+        "area": "64–113 м²",
+        "note": "белый каркас"
+      }
+    ],
+    "amenities": [
+      "Отель Hyatt Centric Boulevard Batumi (180 номеров)",
+      "Выставочный центр World Trade Center Batumi",
+      "Бизнес-центр и торговый центр",
+      "Бассейны, спа и фитнес-центр",
+      "Кинотеатр и развлекательный центр",
+      "Рестораны, бар, лаунж",
+      "Конференц-зал, банкетный зал, коворкинг",
+      "Зона отдыха около 10 000 м²",
+      "Подземный паркинг в 3 уровня (около 1000 мест)",
+      "Ресепшн, консьерж, охрана, видеонаблюдение",
+      "Пассажирские и грузовые лифты"
+    ],
+    "payment": [
+      "Беспроцентная рассрочка до 48 месяцев при первом взносе 20% (описание проекта на korter.ge и geoln.com)",
+      "В калькуляторе korter.ge — взнос от 5% и срок до 5 лет",
+      "Агентские объявления (realting.com) указывают рассрочку до 60 месяцев с финальным платежом 30%",
+      "Скидка при оплате всей суммы сразу (geoln.com)",
+      "Ипотека TBC Bank"
+    ],
+    "progress": [
+      {
+        "date": "октябрь 2026",
+        "text": "На korter.ge выложены свежие фото стройки с 16 точек съёмки. Срок сдачи: башни B и C — IV квартал 2028, башня A — IV квартал 2029."
+      },
+      {
+        "date": "осень 2023",
+        "text": "Аэросъёмка 360° стройплощадки (korter.ge)."
+      },
+      {
+        "date": "2023",
+        "text": "В интервью BM.ge застройщик сообщал, что продано около половины квартир, а завершить крупнейшую часть проекта планировалось в 2026 году."
+      },
+      {
+        "date": "февраль 2021",
+        "text": "Подписан договор с Hyatt об управлении отелем Hyatt Centric Boulevard Batumi на 180 номеров в составе комплекса."
+      },
+      {
+        "date": "I квартал 2020",
+        "text": "Начало строительства всех трёх башен."
       }
     ]
   },
