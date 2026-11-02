@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ClipboardList, Search } from "lucide-react";
 import { Catalog } from "@/components/Catalog";
+import { seoCategoryIds } from "@/lib/seo-categories";
 import { SetupNotice } from "@/components/SetupNotice";
 import { listPublishedMasters } from "@/lib/db";
 import { getDict, href } from "@/lib/i18n";
@@ -64,7 +65,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
         </Link>
       </section>
       {!broken && <BonusStrip lang={lang} masters={masters} />}
-      {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} />}
+      {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} catPages={seoCategoryIds()} />}
       {!broken && <LatestOrders lang={lang} />}
       <HomeJournal lang={lang} />
     </>

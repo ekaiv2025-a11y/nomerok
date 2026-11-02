@@ -12,10 +12,23 @@ import { seoCategoryIds, seoText } from "@/lib/seo-categories";
 import { MasterCard, priceText } from "@/components/MasterCard";
 import { SITE_URL } from "@/lib/site";
 import { DISTRICTS } from "@/lib/districts";
+import { Catalog } from "@/components/Catalog";
+import { Map as MapView } from "@/components/map/Map";
+import { cityIn, cityOf } from "@/lib/cities";
+
+/* Где клиент обычно приходит к специалисту — для них показываем карту «Где принимают». */
+const MAP_CATS = new Set(["beauty", "massage", "dentist", "doctor", "vet", "psychologist", "fitness", "tutor", "languages", "music", "speech", "photo", "food", "art", "lawyer", "accountant", "translator", "realtor", "appliances", "furniture"]);
+const MAP_T = { ru: "Где принимают", en: "Where they receive clients", ka: "სად იღებენ" } as const;
+const MAP_NOTE = { ru: "Показаны специалисты, которые указали адрес, где принимают клиентов. Нажмите на точку — откроется анкета.", en: "Specialists who listed an address where they see clients. Tap a pin to open the profile.", ka: "ნაჩვენებია სპეციალისტები, რომლებმაც მიუთითეს მისამართი. დააჭირეთ წერტილს — გაიხსნება ანკეტა." } as const;
+const OTHER_LEAD = {
+  ru: (c: string) => `Специалисты ${c}: фото работ, цены и отзывы. Пишите напрямую или оставьте заявку — свободные откликнутся сами.`,
+  en: (c: string) => `Specialists ${c}: work photos, prices and reviews. Contact directly or post a request — those who are free will respond.`,
+  ka: (c: string) => `სპეციალისტები ${c}: ნამუშევრების ფოტოები, ფასები და შეფასებები. დაუკავშირდით პირდაპირ ან დატოვეთ განაცხადი.`,
+} as const;
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ lang: string; cat: string }> };
+type Props = { params: Promise<{ lang: string; cat: string }>; searchParams: Promise<{ city?: string }> };
 const DIST_LABEL = { ru: "По районам:", en: "By area:", ka: "უბნების მიხედვით:" } as const;
 
 const L: Record<
@@ -68,26 +81,35 @@ const L: Record<
   },
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang, cat } = await params;
   if (!isLocale(lang)) return {};
   const t = seoText(cat, lang);
   if (!t) return {};
+  const city = cityOf((await searchParams).city);
+  if (city !== "batumi") {
+    const h = `${categoryPlural(cat, lang)} ${cityIn(city, lang)}`;
+    return pageMeta(lang, `/services/${cat}?city=${city}`, `${h} — NomerOk`, OTHER_LEAD[lang](cityIn(city, lang)));
+  }
   return pageMeta(lang, `/services/${cat}`, t.title, t.description);
 }
 
-export default async function ServicePage({ params }: Props) {
+export default async function ServicePage({ params, searchParams }: Props) {
   const { lang, cat } = await params;
+  const city = cityOf((await searchParams).city);
+  const batumi = city === "batumi";
   if (!isLocale(lang)) notFound();
   const t = seoText(cat, lang);
   if (!t) notFound();
   const l = L[lang];
 
   const all = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
-  const masters = all.filter(
-    // Страницы услуг пока только про Батуми
-    (m) => m.city === "batumi" && (m.category === cat || m.extra_categories.includes(cat)),
-  );
+  const masters = all.filter((m) => (m.city ?? "batumi") === city && (m.category === cat || m.extra_categories.includes(cat)));
+  const mapPoints = MAP_CATS.has(cat)
+    ? masters
+        .filter((m) => m.place_lat != null && m.place_lng != null && (m.work_mode === "at_place" || m.work_mode === "both"))
+        .map((m) => ({ lat: m.place_lat!, lng: m.place_lng!, title: m.name, subtitle: m.place_address || undefined, href: href(lang, `/master/${m.slug}`), photo: m.photo_url }))
+    : [];
   // Цена «от» — только по настоящим специалистам, примеры не считаем
   const priced = masters
     .filter((m) => !m.demo && m.category === cat && m.price_from != null)
@@ -104,14 +126,14 @@ export default async function ServicePage({ params }: Props) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
-      {
+      ...(batumi ? [{
         "@type": "FAQPage",
         mainEntity: faq.map((f) => ({
           "@type": "Question",
           name: f.q,
           acceptedAnswer: { "@type": "Answer", text: f.a },
         })),
-      },
+      }] : []),
       {
         "@type": "BreadcrumbList",
         itemListElement: [
@@ -133,7 +155,8 @@ export default async function ServicePage({ params }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16 pt-5 sm:px-6 sm:pt-8">
+    <>
+    <div className="mx-auto max-w-6xl px-4 pt-5 sm:px-6 sm:pt-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -146,53 +169,39 @@ export default async function ServicePage({ params }: Props) {
       </nav>
 
       <h1 className="mt-4 text-[28px] font-bold leading-tight sm:text-[38px]">
-        {t.h1}
+        {batumi ? t.h1 : `${categoryPlural(cat, lang)} ${cityIn(city, lang)}`}
       </h1>
       <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-[#3a3935]">
-        {t.lead}
+        {batumi ? t.lead : OTHER_LEAD[lang](cityIn(city, lang))}
       </p>
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Link href={requestHref} className="btn-primary h-11">
-          {l.request}
-        </Link>
-      </div>
+    </div>
 
-      {masters.length > 0 ? (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {masters.map((m) => (
-            <MasterCard key={m.id} m={m} lang={lang} />
-          ))}
-        </div>
-      ) : (
-        <p className="mt-8 rounded-2xl border border-dashed border-line bg-cream p-6 text-center text-[15px] text-muted">
-          {l.empty}
-        </p>
+    {/* Каталог с поиском, уточнениями и фильтрами — как на главной, направление уже выбрано */}
+    <div className="mt-6">
+      <Catalog masters={all} lang={lang} city={city} pageCat={cat} catPages={seoCategoryIds()} />
+    </div>
+
+    <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+      {mapPoints.length >= 2 && (
+        <section className="mt-10">
+          <h2 className="text-[20px] font-bold">📍 {MAP_T[lang]}</h2>
+          <p className="mt-1 text-[14px] text-muted">{MAP_NOTE[lang]}</p>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-white p-2">
+            <MapView height={420} points={mapPoints} />
+          </div>
+        </section>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center gap-2 text-[14px]">
+      {batumi && (<div className="mt-6 flex flex-wrap items-center gap-2 text-[14px]">
         <span className="text-muted">{DIST_LABEL[lang]}</span>
         {DISTRICTS.map((d) => (
           <Link key={d.id} href={href(lang, `/services/${cat}/${d.id}`)} className="rounded-full border border-line bg-white px-3 py-1 hover:border-ink">
             {d.name[lang]}
           </Link>
         ))}
-      </div>
+      </div>)}
 
-      {masters.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-dashed border-brand/40 bg-brand-soft p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <p className="font-semibold text-brand-dark">{l.notFound}</p>
-            <p className="mt-1 text-[14px] text-[#3d5a4c]">{l.notFoundText}</p>
-          </div>
-          <Link
-            href={requestHref}
-            className="btn-primary mt-3 h-11 shrink-0 sm:mt-0"
-          >
-            {l.request}
-          </Link>
-        </div>
-      )}
-
+      {batumi && (<>
       <div className="mt-12 grid gap-10 lg:grid-cols-2">
         <section>
           <h2 className="text-[20px] font-bold">{t.servicesTitle}</h2>
@@ -286,6 +295,8 @@ export default async function ServicePage({ params }: Props) {
         </section>
       )}
 
+      </>)}
+
       {related.length > 0 && (
         <section className="mt-12">
           <h2 className="text-[20px] font-bold">{l.other}</h2>
@@ -313,5 +324,6 @@ export default async function ServicePage({ params }: Props) {
         </section>
       )}
     </div>
+    </>
   );
 }

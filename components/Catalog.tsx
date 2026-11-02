@@ -24,7 +24,11 @@ const LANG_OPTS: [string, string][] = [["Грузинский", "ქართ. /
 
 const INTENT_HINT = { ru: "Похоже, вам нужен:", en: "Looks like you need:", ka: "როგორც ჩანს, გჭირდებათ:" } as const;
 
-export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[]; lang: Locale; city: CityId }) {
+/**
+ * pageCat — каталог стоит на странице направления (/services/<cat>): оно выбрано сразу.
+ * catPages — у каких направлений есть своя страница: чипы ведут на неё (отдельная страница с SEO-текстом), остальные фильтруют на месте.
+ */
+export function Catalog({ masters: all, lang, city, pageCat, catPages = [] }: { masters: PublicMaster[]; lang: Locale; city: CityId; pageCat?: string; catPages?: string[] }) {
   const t = getDict(lang).catalog;
   const router = useRouter();
   // Город: показываем специалистов выбранного города; в списке — Батуми и города, где уже кто-то есть
@@ -35,7 +39,9 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
     return c;
   }, [all]);
   const cities = CITIES.filter((c) => c.id === "batumi" || c.id === city || cityCounts[c.id]);
-  const [cat, setCat] = useState<string>("all");
+  const [cat, setCat] = useState<string>(pageCat ?? "all");
+  const cityQ = city !== "batumi" ? `?city=${city}` : "";
+  const pageHref = (c: string) => (c === "all" ? `/${lang}${cityQ}#masters` : catPages.includes(c) ? `/${lang}/services/${c}${cityQ}#masters` : null);
   // Ссылка вида nomerok.ge/ru?cat=plumber сразу открывает нужное направление (удобно для баннеров и чатов)
   useEffect(() => {
     const c = new URLSearchParams(window.location.search).get("cat");
@@ -193,7 +199,10 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
           <MapPin className="h-4 w-4 text-brand" aria-hidden />
           <select
             value={city}
-            onChange={(e) => router.push(e.target.value === "batumi" ? `/${lang}#masters` : `/${lang}?city=${e.target.value}#masters`)}
+            onChange={(e) => {
+              const q = e.target.value === "batumi" ? "" : `?city=${e.target.value}`;
+              router.push(pageCat ? `/${lang}/services/${pageCat}${q}#masters` : `/${lang}${q}#masters`);
+            }}
             className="h-full bg-transparent pr-1 outline-none"
             aria-label="City"
           >
@@ -209,12 +218,12 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
 
       {visibleCats.length > 1 && (
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
-          <Chip active={cat === "all"} onClick={() => chooseCat("all")}>
+          <Chip active={cat === "all"} onClick={() => chooseCat("all")} href={pageCat ? pageHref("all") : null}>
             <CategoryIcon id="all" className={ICO} />
             {t.all} · {masters.length}
           </Chip>
           {shownCats.map((c) => (
-            <Chip key={c.id} active={cat === c.id} onClick={() => chooseCat(c.id)}>
+            <Chip key={c.id} active={cat === c.id} onClick={() => chooseCat(c.id)} href={c.id === pageCat ? null : pageHref(c.id)}>
               <CategoryIcon id={c.id} className={ICO} />
               {c.plural[lang]} <span className="opacity-60">{counts[c.id]}</span>
             </Chip>
@@ -331,14 +340,19 @@ export function Catalog({ masters: all, lang, city }: { masters: PublicMaster[];
 
 const ICO = "h-4 w-4 shrink-0 opacity-70";
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ active, onClick, children, href: to }: { active: boolean; onClick: () => void; children: React.ReactNode; href?: string | null }) {
+  const cls = `inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
+    active ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink"
+  }`;
+  // У направления есть своя страница — обычная ссылка (её видят и поисковики)
+  if (to)
+    return (
+      <Link href={to} className={cls}>
+        {children}
+      </Link>
+    );
   return (
-    <button
-      onClick={onClick}
-      className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
-        active ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink"
-      }`}
-    >
+    <button onClick={onClick} className={cls}>
       {children}
     </button>
   );
