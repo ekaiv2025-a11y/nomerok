@@ -9,6 +9,7 @@ import TELAVI from "@/data/geo/telavi.json";
 import BORJOMI from "@/data/geo/borjomi.json";
 import BAKURIANI from "@/data/geo/bakuriani.json";
 import GUDAURI from "@/data/geo/gudauri.json";
+import STEPANTSMINDA from "@/data/geo/stepantsminda.json";
 
 /*
  * «Грузия» — энциклопедия городов и регионов (как путеводитель, но с упором на жизнь здесь).
@@ -41,7 +42,7 @@ export type GeoPage = {
   updated: string;
 };
 
-export const GEO: GeoPage[] = [BATUMI as unknown as GeoPage, TBILISI as unknown as GeoPage, KUTAISI as unknown as GeoPage, KOBULETI as unknown as GeoPage, MTSKHETA as unknown as GeoPage, SIGNAGI as unknown as GeoPage, TELAVI as unknown as GeoPage, BORJOMI as unknown as GeoPage, BAKURIANI as unknown as GeoPage, GUDAURI as unknown as GeoPage];
+export const GEO: GeoPage[] = [BATUMI as unknown as GeoPage, TBILISI as unknown as GeoPage, KUTAISI as unknown as GeoPage, KOBULETI as unknown as GeoPage, MTSKHETA as unknown as GeoPage, SIGNAGI as unknown as GeoPage, TELAVI as unknown as GeoPage, BORJOMI as unknown as GeoPage, BAKURIANI as unknown as GeoPage, GUDAURI as unknown as GeoPage, STEPANTSMINDA as unknown as GeoPage];
 export const geoPage = (id: string) => GEO.find((g) => g.id === id) ?? null;
 
 export const MONTHS = [
