@@ -25,14 +25,17 @@ def trim(src, dst):
     return dur(dst)
 
 
-def main(vdir):
+def main(vdir, only=None, suffix="voice"):
     env = dict(os.environ, NODE_PATH="/home/claude/.npm-global/lib/node_modules")
     for name, (starts, tlen, key) in SCENES.items():
+        if only and name not in only:
+            continue
         tmp = tempfile.mkdtemp()
         lines = []
         for i in range(4):
             p = os.path.join(tmp, f"l{i}.wav")
-            lines.append((p, trim(os.path.join(vdir, f"{name}-{i + 1}.mp3"), p)))
+            src = next(os.path.join(vdir, f"{name}-{i + 1}.{e}") for e in ("mp3", "wav", "m4a") if os.path.exists(os.path.join(vdir, f"{name}-{i + 1}.{e}")))
+            lines.append((p, trim(src, p)))
         tpl_bounds = starts + [tlen]
         knots, out_t, voice_at = [[0, 0]], 0.0, []
         for i in range(4):
@@ -61,7 +64,7 @@ def main(vdir):
         ])
         audio = os.path.join(tmp, "mix.m4a")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-i", mpath, "-filter_complex", fc, "-map", "[a]", "-c:a", "aac", "-b:a", "192k", audio], check=True)
-        final = os.path.join(OUT, f"nomerok-{name}-voice.mp4")
+        final = os.path.join(OUT, f"nomerok-{name}-{suffix}.mp4")
         part = final + ".part.mp4"
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", video, "-i", audio, "-map", "0:v", "-map", "1:a", "-c", "copy", "-shortest", "-movflags", "+faststart", part], check=True)
         os.replace(part, final)
@@ -70,4 +73,5 @@ def main(vdir):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    # python3 brand/reels_voiced.py <папка> [reel-clients-2,reel-life] [суффикс имени файла]
+    main(sys.argv[1], sys.argv[2].split(",") if len(sys.argv) > 2 else None, sys.argv[3] if len(sys.argv) > 3 else "voice")
