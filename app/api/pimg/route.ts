@@ -2,8 +2,11 @@ import { ALLOWED_IMAGES } from "@/lib/projects";
 
 /** Фото ЖК от застройщика: только ссылки из data/projects.json, ответ кешируется на месяц (Vercel CDN). */
 export async function GET(req: Request) {
-  const u = new URL(req.url).searchParams.get("u") ?? "";
+  const sp = new URL(req.url).searchParams;
+  let u = sp.get("u") ?? "";
   if (!ALLOWED_IMAGES.has(u)) return new Response("not found", { status: 404 });
+  // для карточек в списке — уменьшенная копия (у korter.ge есть готовая 1280×960)
+  if (sp.get("s") === "1") u = u.replace("/buildings-v2/2560x1920/", "/buildings-v2/1280x960/");
   try {
     const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (NomerOk.ge)", Referer: new URL(u).origin + "/" }, signal: AbortSignal.timeout(10000), next: { revalidate: 30 * 86400 } });
     const type = r.headers.get("content-type") ?? "";

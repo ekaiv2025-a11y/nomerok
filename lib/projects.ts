@@ -66,5 +66,5 @@ export function priceLine(p: Project): string | null {
 export const projectPlace = (p: Project, label: (id: string) => string) => p.place || (p.city ? label(p.city) : "Грузия");
 
 /** Картинку застройщика отдаём через свой адрес (/api/pimg): не ломается, если сайт застройщика запрещает чужие ссылки, и кешируется. */
-export const pimg = (url: string) => `/api/pimg?u=${encodeURIComponent(url)}`;
+export const pimg = (url: string, small = false) => `/api/pimg?u=${encodeURIComponent(url)}${small ? "&s=1" : ""}`;
 export const ALLOWED_IMAGES = new Set(PROJECTS.flatMap((p) => (p.images ?? []).map((i) => i.url)));

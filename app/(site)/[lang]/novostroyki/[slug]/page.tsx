@@ -95,8 +95,13 @@ export default async function ProjectPage({ params }: Props) {
         <div className="min-w-0">
           {gallery ? (
             <div className="mb-6">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={gallery.urls[0]} alt={`ЖК ${p.name}`} className="mb-2 aspect-[4/3] w-full rounded-2xl border border-line bg-cream object-cover sm:aspect-[3/2]" />
+              {/* Фото целиком, без обрезки: по бокам — размытая копия того же фото */}
+              <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded-2xl bg-ink sm:aspect-[16/10]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={gallery.urls[0]} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={gallery.urls[0]} alt={`ЖК ${p.name}`} className="relative h-full w-full object-contain" />
+              </div>
               {gallery.urls.length > 1 && <Gallery items={gallery.urls.slice(1).map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />}
               {gallery.credit && <p className="mt-1 text-[12px] text-muted">Фото и визуализации: {gallery.credit}</p>}
             </div>
@@ -115,12 +120,18 @@ export default async function ProjectPage({ params }: Props) {
             </figure>
           )}
           <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
-            {facts.map(([k, v]) => (
-              <div key={k} className={`bg-white p-3.5 ${k === "Где" ? "col-span-full" : ""}`}>
-                <dt className="text-[12px] text-muted">{k}</dt>
-                <dd className="mt-0.5 text-[15px] font-semibold leading-snug">{v}</dd>
-              </div>
-            ))}
+            {facts.map(([k, v], i) => {
+              // последняя короткая плашка растягивается до конца ряда — без серых пустых клеток
+              const n = facts.filter(([x]) => x !== "Где").length;
+              const last = k !== "Где" && i === n - 1;
+              const span = last ? `${n % 2 === 1 ? "col-span-2" : ""} ${n % 3 === 1 ? "sm:col-span-3" : n % 3 === 2 ? "sm:col-span-2" : "sm:col-span-1"}` : "";
+              return (
+                <div key={k} className={`bg-white p-3.5 ${k === "Где" ? "col-span-full" : span}`}>
+                  <dt className="text-[12px] text-muted">{k}</dt>
+                  <dd className="mt-0.5 text-[15px] font-semibold leading-snug">{v}</dd>
+                </div>
+              );
+            })}
           </dl>
           {p.price && (
             <p className="mt-2 text-[12px] text-muted">

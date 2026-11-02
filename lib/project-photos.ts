@@ -16,7 +16,7 @@ export async function projectPhotos(wait = 1200): Promise<Map<string, CommonsPho
   const out = new Map<string, CommonsPhoto>();
   for (const [slug, m] of own) if (m.photos[0]) out.set(slug, { url: m.photos[0], credit: m.credit ?? "NomerOk", license: "", source: "", title: "own" });
   // фото застройщика из data/projects.json
-  for (const p of PROJECTS) if (!out.has(p.slug) && p.images?.[0]) out.set(p.slug, { url: pimg(p.images[0].url), credit: p.images[0].credit, license: "", source: p.images[0].src, title: "dev" });
+  for (const p of PROJECTS) if (!out.has(p.slug) && p.images?.[0]) out.set(p.slug, { url: pimg(p.images[0].url, true), credit: p.images[0].credit, license: "", source: p.images[0].src, title: "dev" });
   const found = new Map<string, CommonsPhoto[]>();
   const all = [...new Set(PROJECTS.flatMap(queries))].map((q) => commonsPhotos(q).then((l) => (l ? found.set(q, l) : null)).catch(() => null));
   await Promise.race([Promise.all(all), new Promise((r) => setTimeout(r, wait))]);
