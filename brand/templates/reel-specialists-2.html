@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><link rel="stylesheet" href="reel2.css"></head><body>
+<div class="sc" id="s1" style="justify-content:center">
+ <div class="big" style="font-size:100px">Вы сантехник,<br>репетитор или<br><span class="hl">мастер маникюра?</span></div>
+ <div class="sub" id="s1b">Клиенты Батуми и всей Грузии ищут специалистов на NomerOk</div>
+</div>
+<div class="sc" id="s2">
+ <div class="h">Анкета —<br><span class="hl">за 3 минуты</span></div>
+ <div style="margin-top:40px">
+  <div class="step" id="p1"><b>1</b><span>Нажмите <span style="color:var(--tg);font-weight:800">«Через Telegram»</span> на nomerok.ge/join</span></div>
+  <div class="step" id="p2"><b>2</b><span>Добавьте фото работ, услуги и цены</span></div>
+  <div class="step" id="p3"><b>3</b><span>Заявки клиентов приходят вам в Telegram</span></div>
+ </div>
+</div>
+<div class="sc" id="s3">
+ <div class="h">Новая заявка —<br><span class="hl">сразу в Telegram</span></div>
+ <div class="tg">
+  <div class="bot"><i>N</i>NomerOk.ge <span style="font-weight:400;color:var(--mut);font-size:30px">бот в Telegram</span></div>
+  <div class="msg" id="m1" style="margin-top:30px">📋 <b>Новая заявка · Сантехник · Батуми</b><br><br>Поменять смеситель на кухне. Сегодня после 16:00.</div>
+  <div id="m2" style="margin-top:14px"><div class="msg" style="text-align:center;font-weight:800;color:#fff;background:var(--g);border-radius:22px;padding:26px">✋ Откликнуться</div></div>
+ </div>
+ <div id="s3b" class="sub" style="text-align:center">Без комиссии и посредников</div>
+</div>
+<div class="sc on-g end" id="s4">
+ <div class="logo" id="lg"><span class="mk">N</span><span>Nomer<span class="ok">Ok</span><span class="tld">.ge</span></span></div>
+ <div class="tl" id="t4">Клиенты сами найдут<br><span style="color:var(--a)">ваш номер</span></div>
+ <div class="btn y url" id="b4">nomerok.ge/join</div>
+</div>
+<script src="reel-common.js"></script><script>
+const $=id=>document.getElementById(id);
+window.DURATION=15;
+window.render=function(t){
+ show($('s1'),t,0,.5,3.3,3.7,0); show($('s1b'),t,1.2,1.8);
+ show($('s2'),t,3.5,4,7.7,8.1); show($('p1'),t,4.3,4.8,0,0,50); show($('p2'),t,5.2,5.7,0,0,50); show($('p3'),t,6.1,6.6,0,0,50);
+ show($('s3'),t,7.9,8.4,11.5,11.9); show($('m1'),t,8.7,9.2,0,0,40); show($('m2'),t,9.4,9.8,0,0,30);
+ const p=prog(t,10.1,10.35)-prog(t,10.35,10.6); $('m2').firstElementChild.style.transform=`scale(${1-p*0.06})`;
+ show($('s3b'),t,10.3,10.8);
+ show($('s4'),t,11.7,12.1,0,0,0); show($('lg'),t,12,12.5,0,0,40); show($('t4'),t,12.4,13,0,0,40); show($('b4'),t,13,13.5,0,0,30);
+};
+window.render(0);
+</script></body></html>

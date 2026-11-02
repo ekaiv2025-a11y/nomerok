@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><link rel="stylesheet" href="reel2.css"></head><body>
+<div class="sc" id="s1" style="justify-content:center">
+ <div class="big">Нужен<br><span class="hl">мастер?</span></div>
+ <div class="chips" id="ch"><span class="chip">🔧 Сантехник</span><span class="chip">💡 Электрик</span><span class="chip">💅 Маникюр</span><span class="chip">📚 Репетитор</span><span class="chip">🧸 Няня</span><span class="chip">🧹 Уборка</span><span class="chip">❄️ Кондиционеры</span></div>
+</div>
+<div class="sc" id="s2">
+ <div class="h">Опишите задачу —<br><span class="hl">это бесплатно</span></div>
+ <div class="phone">
+  <div style="font-size:36px" class="logo"><span class="mk">N</span><span>Nomer<span class="ok">Ok</span><span class="tld">.ge</span></span></div>
+  <div class="lbl">Кто нужен?</div><div class="fld">💡 Электрик</div>
+  <div class="lbl">Что нужно сделать?</div><div class="fld" id="typed" style="min-height:240px"></div>
+  <div class="btn" id="send" style="width:100%;font-size:42px;margin-top:34px;padding:30px">Разместить заявку</div>
+ </div>
+</div>
+<div class="sc" id="s3">
+ <div class="h">Свободные специалисты<br><span class="hl">откликнутся сами</span></div>
+ <div class="tg">
+  <div class="bot"><i>N</i>NomerOk.ge <span style="font-weight:400;color:var(--mut);font-size:30px">бот в Telegram</span></div>
+  <div class="msg" id="m1" style="margin-top:30px">✋ <b>Электрик откликнулся на вашу заявку</b><br><br>Его телефон — в этом сообщении. Договаривайтесь напрямую.</div>
+  <div style="display:flex;gap:14px;margin-top:14px" id="m2"><div class="msg" style="flex:1;text-align:center;font-weight:800;color:var(--g);border-radius:22px;padding:26px">👤 Профиль</div><div class="msg" style="flex:1;text-align:center;font-weight:800;color:var(--g);border-radius:22px;padding:26px">📞 Позвонить</div></div>
+ </div>
+ <div id="s3b" class="sub" style="text-align:center">Без посредников и наценок</div>
+</div>
+<div class="sc on-g end" id="s4">
+ <div class="logo" id="lg"><span class="mk">N</span><span>Nomer<span class="ok">Ok</span><span class="tld">.ge</span></span></div>
+ <div class="tl" id="t4">Разместите заявку —<br><span style="color:var(--a)">мастера ответят</span></div>
+ <div class="btn y url" id="b4">nomerok.ge/request</div>
+</div>
+<script src="reel-common.js"></script><script>
+const $=id=>document.getElementById(id);
+window.DURATION=15;
+window.render=function(t){
+ show($('s1'),t,0,.4,3.3,3.7,0); [...$('ch').children].forEach((c,i)=>show(c,t,.6+i*.2,1+i*.2,0,0,40));
+ show($('s2'),t,3.5,4,7.7,8.1); typeText($('typed'),t,4.5,6.6,'Снять два светильника и поменять лампочки. В выходные.');
+ const p=prog(t,6.9,7.15)-prog(t,7.15,7.4); $('send').style.transform=`scale(${1-p*0.06})`; $('send').style.background=t>7&&t<7.8?'#174f3b':'';
+ show($('s3'),t,7.9,8.4,11.5,11.9); show($('m1'),t,8.7,9.2,0,0,40); show($('m2'),t,9.3,9.7,0,0,30); show($('s3b'),t,10,10.5);
+ show($('s4'),t,11.7,12.1,0,0,0); show($('lg'),t,12,12.5,0,0,40); show($('t4'),t,12.4,13,0,0,40); show($('b4'),t,13,13.5,0,0,30);
+};
+window.render(0);
+</script></body></html>
