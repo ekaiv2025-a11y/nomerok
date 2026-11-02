@@ -5,7 +5,7 @@
 [x] Сколько стоит ремонт квартиры в Тбилиси: цены за м² и сроки | tbilisi | repair | home | skolko-stoit-remont-kvartiry-tbilisi-2026
 [x] Сантехник в Батуми: цены на вызов и работы, как найти | batumi | plumber | home | santehnik-batumi-ceny-2026
 [x] Сантехник в Тбилиси: сколько стоит вызов и основные работы | tbilisi | plumber | home | santehnik-tbilisi-ceny-2026
-[ ] Электрик в Батуми: цены на работы и как не нарваться на халтуру | batumi | electrician | home
+[x] Электрик в Батуми: цены на работы и как не нарваться на халтуру | batumi | electrician | home | elektrik-batumi-ceny-2026
 [ ] Электрик в Тбилиси: цены на вызов, проводку, розетки | tbilisi | electrician | home
 [ ] Уборка квартиры в Батуми: цены на генеральную и после ремонта | batumi | cleaning | home
 [ ] Клининг в Тбилиси: сколько стоит уборка квартиры | tbilisi | cleaning | home
