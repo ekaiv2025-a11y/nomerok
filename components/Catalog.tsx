@@ -8,6 +8,7 @@ import { Map, type MapPoint } from "./map/Map";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
 import { MasterCard } from "./MasterCard";
+import { masterPoint } from "./map/master-point";
 import { useRouter } from "next/navigation";
 import { CITIES, type CityId } from "@/lib/cities";
 import { MapPin } from "lucide-react";
@@ -143,14 +144,7 @@ export function Catalog({ masters: all, lang, city, pageCat, catPages = [] }: { 
 
   const mapPoints: MapPoint[] = filtered
     .filter((m) => m.place_lat != null && m.place_lng != null && (m.work_mode === "at_place" || m.work_mode === "both"))
-    .map((m) => ({
-      lat: m.place_lat!,
-      lng: m.place_lng!,
-      title: m.name,
-      subtitle: `${categoryLabel(m.category, lang)}${m.place_address ? " · " + m.place_address : ""}`,
-      href: href(lang, `/master/${m.slug}`),
-      photo: m.photo_url,
-    }));
+    .map((m) => masterPoint(m, lang));
   const reqCat = cat !== "all" ? cat : intents[0]?.cat;
   const requestHref = href(
     lang,

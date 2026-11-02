@@ -14,6 +14,7 @@ import { SITE_URL } from "@/lib/site";
 import { DISTRICTS } from "@/lib/districts";
 import { Catalog } from "@/components/Catalog";
 import { Map as MapView } from "@/components/map/Map";
+import { masterPoint } from "@/components/map/master-point";
 import { cityIn, cityOf } from "@/lib/cities";
 
 /* Где клиент обычно приходит к специалисту — для них показываем карту «Где принимают». */
@@ -108,7 +109,7 @@ export default async function ServicePage({ params, searchParams }: Props) {
   const mapPoints = MAP_CATS.has(cat)
     ? masters
         .filter((m) => m.place_lat != null && m.place_lng != null && (m.work_mode === "at_place" || m.work_mode === "both"))
-        .map((m) => ({ lat: m.place_lat!, lng: m.place_lng!, title: m.name, subtitle: m.place_address || undefined, href: href(lang, `/master/${m.slug}`), photo: m.photo_url }))
+        .map((m) => masterPoint(m, lang))
     : [];
   // Цена «от» — только по настоящим специалистам, примеры не считаем
   const priced = masters
