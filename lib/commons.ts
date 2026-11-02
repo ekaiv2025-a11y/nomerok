@@ -13,7 +13,10 @@ const UA = "NomerOk.ge/1.0 (https://nomerok.ge/ru/contacts) news covers";
 const LICENSE_OK = /^(cc0|cc[- ]by(-sa)? \d(\.\d)?|public domain|pd)/i;
 const BAD_TITLE = /\b(map|karte|flag|coat of arms|logo|emblem|seal|plan|scheme|diagram|chart|graph|stamp|banknote|signature|icon)\b|\.(svg|png|gif|tif)$/i;
 
-const mem = new Map<string, Promise<CommonsPhoto | null | undefined>>();
+// Ищем по запросу несколько подходящих фото, чтобы у разных статей с похожим запросом обложки не повторялись
+const mem = new Map<string, Promise<CommonsPhoto[] | undefined>>();
+type Saved = CommonsPhoto | { list: CommonsPhoto[] } | null;
+const listOf = (d: Saved): CommonsPhoto[] | null => (d && "list" in d ? d.list : null);
 // Commons не ответил — какое-то время не обращаемся (иначе каждая страница ждёт таймаут)
 let downUntil = 0;
 // Не больше 3 запросов к Commons одновременно — иначе при холодном старте он отвечает «слишком много запросов»
@@ -31,18 +34,18 @@ async function slot<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 /* Найденное храним в базе (commons_cache): обложки не зависят от того, ответит ли Commons прямо сейчас. */
-let saved: { at: number; map: Map<string, { data: CommonsPhoto | null; checked_at: string }> } | null = null;
+let saved: { at: number; map: Map<string, { data: Saved; checked_at: string }> } | null = null;
 let savedLoading: Promise<void> | null = null;
 async function loadSaved() {
   if (saved && Date.now() - saved.at < 10 * 60_000) return;
   savedLoading ??= (async () => {
-    const map = new Map<string, { data: CommonsPhoto | null; checked_at: string }>();
+    const map = new Map<string, { data: Saved; checked_at: string }>();
     const sb = supabase();
     if (sb) {
       for (let from = 0; from < 20000; from += 1000) {
         const r = await sb.from("commons_cache").select("q,data,checked_at").range(from, from + 999);
         if (r.error) break;
-        for (const x of r.data as { q: string; data: CommonsPhoto | null; checked_at: string }[]) map.set(x.q, x);
+        for (const x of r.data as { q: string; data: Saved; checked_at: string }[]) map.set(x.q, x);
         if (r.data.length < 1000) break;
       }
     }
@@ -50,7 +53,7 @@ async function loadSaved() {
   })().finally(() => (savedLoading = null));
   await savedLoading;
 }
-function persist(q: string, data: CommonsPhoto | null) {
+function persist(q: string, data: Saved) {
   const row = { q, data, checked_at: new Date().toISOString() };
   saved?.map.set(q, row);
   const sb = supabase();
@@ -80,6 +83,12 @@ type Page = { title: string; index?: number; imageinfo?: ImgInfo[] };
 
 /** Выбрать подходящее фото из ответа Commons (отдельно — чтобы проверить без сети). */
 export function pickPhoto(json: unknown): CommonsPhoto | null {
+  return pickPhotos(json, 1)[0] ?? null;
+}
+
+/** Все подходящие фото из ответа Commons (до max), по порядку релевантности. */
+export function pickPhotos(json: unknown, max = 8): CommonsPhoto[] {
+  const out: CommonsPhoto[] = [];
   const pages = Object.values(((json as { query?: { pages?: Record<string, Page> } })?.query?.pages ?? {}) as Record<string, Page>).sort(
     (a, b) => (a.index ?? 99) - (b.index ?? 99),
   );
@@ -94,20 +103,21 @@ export function pickPhoto(json: unknown): CommonsPhoto | null {
     const license = strip(meta.LicenseShortName?.value ?? "");
     if (!LICENSE_OK.test(license)) continue;
     const credit = strip(meta.Artist?.value ?? meta.Credit?.value ?? "").slice(0, 120) || "Wikimedia Commons";
-    return { url: ii.thumburl, credit, license, source: ii.descriptionurl, title: p.title.replace(/^File:/, "") };
+    out.push({ url: ii.thumburl, credit, license, source: ii.descriptionurl, title: p.title.replace(/^File:/, "") });
+    if (out.length >= max) break;
   }
-  return null;
+  return out;
 }
 
-/** null — подходящего фото нет; undefined — Commons не ответил (дальше не пробуем, чтобы страница не ждала). */
-async function search(q: string): Promise<CommonsPhoto | null | undefined> {
+/** [] — подходящего фото нет; undefined — Commons не ответил (дальше не пробуем, чтобы страница не ждала). */
+async function search(q: string): Promise<CommonsPhoto[] | undefined> {
   const params = new URLSearchParams({
     action: "query",
     format: "json",
     generator: "search",
     gsrnamespace: "6",
     gsrsearch: `${q} filetype:bitmap`,
-    gsrlimit: "15",
+    gsrlimit: "30",
     prop: "imageinfo",
     iiprop: "url|size|mime|extmetadata",
     iiurlwidth: "1280",
@@ -120,33 +130,42 @@ async function search(q: string): Promise<CommonsPhoto | null | undefined> {
       downUntil = Date.now() + (r.status === 429 ? 60_000 : 5 * 60_000);
       return undefined;
     }
-    const photo = pickPhoto(await r.json());
-    persist(q, photo);
-    return photo;
+    const list = pickPhotos(await r.json());
+    persist(q, { list });
+    return list;
   } catch {
     downUntil = Date.now() + 2 * 60_000;
     return undefined;
   }
 }
 
-/** Фото по запросу (английские слова: место, здание, предмет). null — ничего подходящего. */
-export function commonsPhoto(q: string | null | undefined): Promise<CommonsPhoto | null | undefined> {
+/** Подходящие фото по запросу (английские слова: место, здание, предмет). [] — ничего; undefined — Commons не ответил. */
+export function commonsPhotos(q: string | null | undefined): Promise<CommonsPhoto[] | undefined> {
   const key = String(q ?? "").trim().slice(0, 120);
-  if (!key) return Promise.resolve(null);
+  if (!key) return Promise.resolve([]);
   if (!mem.has(key)) {
     const p = (async () => {
       await loadSaved().catch(() => null);
       const hit = saved?.map.get(key);
+      const list = hit ? listOf(hit.data) : null;
       // нашли раньше — берём из базы; «ничего не нашлось» перепроверяем раз в месяц
-      if (hit && (hit.data || Date.now() - Date.parse(hit.checked_at) < 30 * 86400_000)) return hit.data;
-      if (Date.now() < downUntil) return undefined;
-      return search(key);
+      if (list && (list.length || Date.now() - Date.parse(hit!.checked_at) < 30 * 86400_000)) return list;
+      // старая запись (одно фото) — ищем заново несколько; если Commons недоступен — отдаём то одно
+      const old = hit?.data && !("list" in hit.data) ? [hit.data as CommonsPhoto] : null;
+      if (hit && !old && !list && Date.now() - Date.parse(hit.checked_at) < 30 * 86400_000) return [];
+      if (Date.now() < downUntil) return old ?? undefined;
+      return (await search(key)) ?? old ?? undefined;
     })();
     mem.set(key, p);
     // ошибку сети не запоминаем — в следующий раз попробуем снова
     p.then((v) => v === undefined && mem.delete(key));
   }
   return mem.get(key)!;
+}
+
+/** Одно фото по запросу (первое подходящее). null — ничего подходящего. */
+export function commonsPhoto(q: string | null | undefined): Promise<CommonsPhoto | null | undefined> {
+  return commonsPhotos(q).then((l) => (l === undefined ? undefined : (l[0] ?? null)));
 }
 
 /** Запасное фото города, если к новости ничего не нашлось. */
