@@ -9,6 +9,8 @@ import DATA from "@/data/projects.json";
  * Чужие фото и тексты объявлений не копируем.
  */
 export type ProjectStatus = "presale" | "building" | "done";
+export type ImageKind = "exterior" | "interior" | "view" | "plan" | "progress";
+export const IMAGE_KIND: Record<ImageKind, string> = { exterior: "Снаружи", interior: "Внутри", view: "Вид", plan: "Планировки", progress: "Ход стройки" };
 
 export type Project = {
   slug: string; // ru-латиница: zhk-orbi-city-batumi
@@ -33,8 +35,19 @@ export type Project = {
   body: Block[];
   faq?: { q: string; a: string }[];
   sources: { name: string; url: string }[];
-  /** фото и рендеры самого ЖК от застройщика (застройщики разрешают публикацию — им нужна реклама): прямые ссылки на картинки, первое — обложка */
-  images?: { url: string; credit: string; src: string }[];
+  /** фото и рендеры самого ЖК от застройщика (застройщики разрешают публикацию — им нужна реклама): прямые ссылки на картинки, первое — обложка.
+   *  kind: exterior (снаружи), interior (внутри, лобби, бассейн), view (вид), plan (планировка), progress (ход стройки) */
+  images?: { url: string; credit: string; src: string; kind?: ImageKind; caption?: string }[];
+  /** id застройщика в data/developers.json — тогда есть ссылка на его страницу */
+  developerSlug?: string;
+  /** квартиры: тип, площадь, цена от (с источником в price.src) */
+  units_table?: { type: string; area?: string; priceFrom?: number; note?: string }[];
+  /** что есть в комплексе: бассейн, фитнес, паркинг… */
+  amenities?: string[];
+  /** условия покупки: рассрочка, первый взнос, ипотека — как пишет застройщик */
+  payment?: string[];
+  /** ход строительства по датам */
+  progress?: { date: string; text: string }[];
   /** запасная обложка с Wikimedia Commons (вид района, улицы) — по-английски */
   photo?: { q: string; alt?: string };
   updated: string; // YYYY-MM-DD

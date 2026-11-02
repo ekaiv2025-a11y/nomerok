@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMeta } from "@/lib/i18n/page";
-import { PROJECTS, PROJECT_STATUS, pimg, fmtMoney, priceLine, projectBySlug, projectPlace } from "@/lib/projects";
+import { IMAGE_KIND, PROJECTS, PROJECT_STATUS, pimg, type ImageKind, fmtMoney, priceLine, projectBySlug, projectPlace } from "@/lib/projects";
 import { cityIn, cityLabel } from "@/lib/cities";
 import { GeoBlocks } from "@/components/geo/GeoBlocks";
 import { ProjectLeadForm } from "@/components/ProjectLeadForm";
@@ -12,6 +12,7 @@ import { projectPhotos } from "@/lib/project-photos";
 import { allProjectMedia } from "@/lib/project-media";
 import { Gallery } from "@/components/Gallery";
 import { SITE_URL } from "@/lib/site";
+import { developerBySlug } from "@/lib/developers";
 
 export const revalidate = 86400;
 
@@ -40,11 +41,21 @@ export default async function ProjectPage({ params }: Props) {
   // то же фото, что в списке (у каждого ЖК своё)
   const own = (await allProjectMedia().catch(() => null))?.get(p.slug);
   // свои фото (админка) → фото застройщика → вид района
-  const gallery = own?.photos.length ? { urls: own.photos, credit: own.credit } : p.images?.length ? { urls: p.images.map((i) => pimg(i.url)), credit: [...new Set(p.images.map((i) => i.credit))].join(", ") } : null;
+  const gallery = own?.photos.length
+    ? { urls: own.photos, credit: own.credit, items: own.photos.slice(1).map((url) => ({ url, caption: "" })) }
+    : p.images?.length
+      ? {
+          urls: p.images.map((i) => pimg(i.url)),
+          credit: [...new Set(p.images.map((i) => i.credit))].join(", "),
+          items: p.images.slice(1).map((i) => ({ url: pimg(i.url), caption: i.caption ?? "", sec: i.kind ?? "exterior" })),
+        }
+      : null;
+  const kinds = (Object.keys(IMAGE_KIND) as ImageKind[]).map((id) => ({ id, label: IMAGE_KIND[id] }));
+  const dev = p.developerSlug ? developerBySlug(p.developerSlug) : null;
   const photo = gallery ? null : ((await projectPhotos().catch(() => null))?.get(p.slug) ?? (await geoPhoto(p.photo?.q, Date.now() + 1200)));
   const c = p.price?.currency ?? "USD";
-  const facts: [string, string][] = [
-    ["Застройщик", p.developer],
+  const facts: [string, React.ReactNode][] = [
+    ["Застройщик", dev ? <Link href={`/ru/novostroyki/z/${dev.slug}`} className="text-brand underline-offset-2 hover:underline">{p.developer} →</Link> : p.developer],
     ["Статус", st.label],
     ...(p.completion ? ([["Срок сдачи", p.completion]] as [string, string][]) : []),
     ...(p.price?.perM2 ? ([["Цена за м²", `от ${fmtMoney(p.price.perM2, c)}`]] as [string, string][]) : []),
@@ -102,7 +113,7 @@ export default async function ProjectPage({ params }: Props) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={gallery.urls[0]} alt={`ЖК ${p.name}`} className="relative h-full w-full object-contain" />
               </div>
-              {gallery.urls.length > 1 && <Gallery items={gallery.urls.slice(1).map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />}
+              {gallery.items.length > 0 && <Gallery items={gallery.items} sections={kinds} allLabel="Все фото" moreText="Все фото ({n})" />}
               {gallery.credit && <p className="mt-1 text-[12px] text-muted">Фото и визуализации: {gallery.credit}</p>}
             </div>
           ) : null}
@@ -152,6 +163,79 @@ export default async function ProjectPage({ params }: Props) {
             </div>
           )}
 
+          {p.units_table && p.units_table.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-[22px] font-bold">Квартиры и цены</h2>
+              <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-white">
+                <table className="w-full text-left text-[15px]">
+                  <thead className="bg-cream text-[13px] text-muted">
+                    <tr>
+                      <th className="px-4 py-2.5 font-semibold">Тип</th>
+                      <th className="px-4 py-2.5 font-semibold">Площадь</th>
+                      <th className="px-4 py-2.5 font-semibold">Цена от</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {p.units_table.map((u) => (
+                      <tr key={u.type + (u.area ?? "")}>
+                        <td className="px-4 py-2.5 font-semibold">
+                          {u.type}
+                          {u.note && <span className="block text-[12px] font-normal text-muted">{u.note}</span>}
+                        </td>
+                        <td className="px-4 py-2.5">{u.area ?? "—"}</td>
+                        <td className="px-4 py-2.5">{u.priceFrom ? fmtMoney(u.priceFrom, c) : "по запросу"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {p.amenities && p.amenities.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-[22px] font-bold">В комплексе</h2>
+              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                {p.amenities.map((a) => (
+                  <li key={a} className="flex gap-2 rounded-xl bg-white px-3.5 py-2.5 text-[15px] ring-1 ring-line">
+                    <span className="text-brand">✓</span>
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {p.payment && p.payment.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-[22px] font-bold">Условия покупки</h2>
+              <ul className="mt-3 space-y-2 text-[15px]">
+                {p.payment.map((x) => (
+                  <li key={x} className="flex gap-2">
+                    <span className="text-brand">•</span>
+                    {x}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[12px] text-muted">Условия могут меняться — точные уточняйте по заявке.</p>
+            </section>
+          )}
+
+          {p.progress && p.progress.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-[22px] font-bold">Ход строительства</h2>
+              <ol className="mt-3 space-y-3 border-l-2 border-brand/30 pl-5">
+                {p.progress.map((x) => (
+                  <li key={x.date + x.text} className="relative">
+                    <span className="absolute -left-[27px] top-1.5 h-3 w-3 rounded-full bg-brand" />
+                    <p className="text-[13px] font-semibold text-brand-dark">{x.date}</p>
+                    <p className="text-[15px] text-[#3a3935]">{x.text}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
           <div className="mt-8">
             <GeoBlocks blocks={p.body} self={`/ru/novostroyki/${p.slug}`} cityQuery={p.city} />
           </div>
@@ -180,7 +264,7 @@ export default async function ProjectPage({ params }: Props) {
           )}
 
           <section className="mt-8 text-[13px] leading-relaxed text-muted">
-            <p>Описание составлено редакцией NomerOk по открытым источникам{p.updated ? `, проверено ${p.updated}` : ""}. Это не реклама и не оферта застройщика.</p>
+            <p>Описание составлено редакцией NomerOk по материалам застройщика и открытым источникам{p.updated ? `, проверено ${p.updated}` : ""}. Это не официальный сайт застройщика и не оферта.</p>
             <p className="mt-1">
               Источники:{" "}
               {p.sources.map((s, i) => (

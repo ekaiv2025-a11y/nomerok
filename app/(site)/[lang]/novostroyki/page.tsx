@@ -11,6 +11,8 @@ import { ProjectLeadForm } from "@/components/ProjectLeadForm";
 import { Map } from "@/components/map/Map";
 import { projectPhotos } from "@/lib/project-photos";
 import type { CommonsPhoto } from "@/lib/commons";
+import { ProjectCard } from "@/components/ProjectCard";
+import { DEVELOPERS, projectsOf } from "@/lib/developers";
 
 export const revalidate = 3600;
 
@@ -81,6 +83,19 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
         <p className="mt-6 rounded-2xl border border-dashed border-line bg-cream px-5 py-8 text-center text-[15px] text-muted">Здесь пока нет описанных комплексов — раздел пополняется каждый день. Оставьте заявку ниже, и вам подберут варианты.</p>
       )}
 
+      {DEVELOPERS.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-[22px] font-bold">Застройщики</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {DEVELOPERS.map((d) => (
+              <Link key={d.slug} href={`/ru/novostroyki/z/${d.slug}`} className="rounded-full border border-line bg-white px-4 py-2 text-[14px] font-semibold hover:border-brand">
+                {d.name} <span className="font-normal text-muted">· {projectsOf(d).length}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {points.length > 1 && (
         <section className="mt-10">
           <h2 className="text-[22px] font-bold">На карте</h2>
@@ -123,38 +138,5 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
       )}
       <p className="mt-8 text-[12px] leading-relaxed text-muted">Описания составлены редакцией NomerOk по открытым источникам: сайты застройщиков, korter.ge, новости. Цены и сроки указаны на дату проверки и могут измениться — точные условия уточняйте у застройщика или агентства.</p>
     </div>
-  );
-}
-
-function ProjectCard({ p, photo }: { p: Project; photo?: CommonsPhoto }) {
-  const st = PROJECT_STATUS[p.status];
-  const price = priceLine(p);
-  return (
-    <Link href={`/ru/novostroyki/${p.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand">
-      <span className="relative block aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#eef0f3] to-[#d6dde8]">
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo.url} alt={p.photo?.alt ?? `Район ЖК ${p.name}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-[50%_35%] transition duration-300 group-hover:scale-[1.03]" />
-        ) : (
-          <span className="absolute inset-0 grid place-items-center text-[48px]" aria-hidden>
-            🏗️
-          </span>
-        )}
-        <span className={`absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${st.cls}`}>{st.label}</span>
-        {photo && photo.title !== "dev" && photo.title !== "own" && p.photo?.alt && <span className="absolute bottom-2 right-2 rounded-full bg-ink/60 px-2 py-0.5 text-[11px] text-white">{p.photo.alt}</span>}
-      </span>
-      <span className="flex flex-1 flex-col p-4 sm:p-5">
-      <span className="flex items-center gap-2 text-[12px]">
-        <span className="text-muted">📍 {[projectPlace(p, label), p.district].filter(Boolean).join(", ")}</span>
-      </span>
-      <span className="mt-2 block text-[18px] font-bold leading-snug group-hover:text-brand">ЖК {p.name}</span>
-      <span className="mt-0.5 block text-[13px] text-muted">{p.developer}</span>
-      <span className="mt-2 line-clamp-2 block text-[14px] text-[#3a3935]">{p.lead}</span>
-      <span className="mt-auto flex flex-wrap gap-x-3 gap-y-1 pt-3 text-[13px]">
-        {price && <b>{price}</b>}
-        {p.completion && <span className="text-muted">Сдача: {p.completion}</span>}
-      </span>
-      </span>
-    </Link>
   );
 }

@@ -9,6 +9,7 @@ import { indexablePlaces, placeCounts } from "@/lib/places-db";
 import { indexableListings } from "@/lib/realty-db";
 import { GEO, MONTHS } from "@/lib/geo";
 import { PROJECTS } from "@/lib/projects";
+import { DEVELOPERS } from "@/lib/developers";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/ru/georgia`, priority: 0.8 },
     { url: `${SITE_URL}/ru/novostroyki`, priority: 0.8 },
     ...PROJECTS.map((p) => ({ url: `${SITE_URL}/ru/novostroyki/${p.slug}`, priority: 0.7, lastModified: p.updated })),
+    ...DEVELOPERS.map((d) => ({ url: `${SITE_URL}/ru/novostroyki/z/${d.slug}`, priority: 0.7, lastModified: d.updated })),
     ...GEO.flatMap((g) => [
       { url: `${SITE_URL}/ru/georgia/${g.id}`, priority: 0.8, lastModified: g.updated },
       ...(g.climate ? [{ url: `${SITE_URL}/ru/georgia/${g.id}/weather`, priority: 0.6 }, ...MONTHS.map((m) => ({ url: `${SITE_URL}/ru/georgia/${g.id}/weather/${m.slug}`, priority: 0.6 }))] : []),

@@ -5,7 +5,7 @@ import { CITIES } from "@/lib/cities";
 import { track } from "@/lib/track";
 
 /** Заявка по новостройкам: «узнать про этот ЖК» или «подобрать вариант». Уходит владельцу сайта, он передаёт партнёрскому агентству. */
-export function ProjectLeadForm({ project, projectName, city }: { project?: string; projectName?: string; city?: string }) {
+export function ProjectLeadForm({ project, projectName, city, note, compact }: { project?: string; projectName?: string; city?: string; note?: string; compact?: boolean }) {
   const [mode, setMode] = useState<"this" | "other">(project ? "this" : "other");
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [err, setErr] = useState("");
@@ -27,7 +27,7 @@ export function ProjectLeadForm({ project, projectName, city }: { project?: stri
         budget: f.get("budget"),
         rooms: f.get("rooms"),
         goal: f.get("goal"),
-        comment: f.get("comment"),
+        comment: [note, f.get("comment")].filter(Boolean).join(" · "),
         website: f.get("website"),
       }),
     }).catch(() => null);
@@ -67,7 +67,7 @@ export function ProjectLeadForm({ project, projectName, city }: { project?: stri
           ))}
         </div>
       )}
-      <div className={`grid gap-3 ${project ? "" : "sm:grid-cols-2"}`}>
+      <div className={`grid gap-3 ${project || compact ? "" : "sm:grid-cols-2"}`}>
         <input name="name" required minLength={2} maxLength={80} placeholder="Ваше имя" className={field} autoComplete="name" />
         <input name="contact" required maxLength={80} placeholder="Телефон или Telegram @имя" className={field} autoComplete="tel" />
         {(!project || mode === "other") && (

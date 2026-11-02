@@ -1,6 +1,8 @@
 // Проверка новостроек (data/projects.json): node scripts/check-projects.mjs
 import fs from "node:fs";
 const list = JSON.parse(fs.readFileSync(new URL("../data/projects.json", import.meta.url), "utf8"));
+const devs = JSON.parse(fs.readFileSync(new URL("../data/developers.json", import.meta.url), "utf8"));
+const DEV = new Set(devs.map((d) => d.slug));
 const CITY_IDS = ["batumi", "tbilisi", "kutaisi", "rustavi", "kobuleti", "zugdidi", "poti", "gori", "telavi", "borjomi"];
 const CATS = [...fs.readFileSync(new URL("../lib/categories.ts", import.meta.url), "utf8").matchAll(/\{ id: "([a-z]+)", group/g)].map((m) => m[1]);
 const BLOCK = ["h2", "p", "list", "tip", "cta", "link", "map"];
@@ -27,6 +29,10 @@ for (const [i, p] of (Array.isArray(list) ? list : []).entries()) {
     ok(/^https:\/\//.test(p.price.src ?? ""), `${at}: у цены нужна ссылка src на источник`);
   }
   for (const im of p.images ?? []) ok(/^https:\/\/\S+$/.test(im?.url ?? "") && im.credit && /^https:\/\//.test(im.src ?? ""), `${at}: images — нужны url (https), credit («застройщик …») и src (страница, где взято)`);
+  if (p.developerSlug) ok(DEV.has(p.developerSlug), `${at}: developerSlug «${p.developerSlug}» — нет в data/developers.json`);
+  for (const im of p.images ?? []) ok(!im.kind || ["exterior", "interior", "view", "plan", "progress"].includes(im.kind), `${at}: images.kind — exterior, interior, view, plan или progress`);
+  for (const u of p.units_table ?? []) ok(u.type && (u.priceFrom == null || u.priceFrom > 1000), `${at}: units_table — нужен type, priceFrom числом`);
+  if (p.units_table?.some((u) => u.priceFrom) || p.payment?.length) ok(p.price?.src, `${at}: цены квартир и условия — нужен источник в price.src и дата в price.date`);
   ok(p.photo == null || (p.photo.q && !/[а-яё]/i.test(p.photo.q)), `${at}: photo.q — по-английски`);
   ok(Array.isArray(p.body) && p.body.length >= 4, `${at}: body — минимум 4 блока`);
   for (const b of p.body ?? []) {
@@ -40,8 +46,22 @@ for (const [i, p] of (Array.isArray(list) ? list : []).entries()) {
   ok(Array.isArray(p.faq) && p.faq.length >= 3, `${at}: faq — минимум 3`);
   ok(Array.isArray(p.sources) && p.sources.length >= 2 && p.sources.every((s) => s.name && /^https:\/\//.test(s.url)), `${at}: sources — минимум 2 со ссылками https`);
 }
+// Застройщики
+const dseen = new Set();
+for (const [i, d] of devs.entries()) {
+  const at = `застройщик #${i} ${d?.slug ?? "?"}`;
+  ok(/^[a-z0-9]+(-[a-z0-9]+)*$/.test(d.slug ?? "") && !dseen.has(d.slug), `${at}: slug — латиница через дефис, без повторов`);
+  dseen.add(d.slug);
+  for (const k of ["name", "lead", "updated"]) ok(typeof d[k] === "string" && d[k].trim(), `${at}: нет поля ${k}`);
+  ok(Array.isArray(d.body) && d.body.length >= 3, `${at}: body — минимум 3 блока`);
+  ok(Array.isArray(d.sources) && d.sources.length >= 1 && d.sources.every((s) => /^https:\/\//.test(s.url)), `${at}: sources — ссылки https`);
+  if (d.cover) ok(/^https:\/\//.test(d.cover.url) && d.cover.credit && /^https:\/\//.test(d.cover.src ?? ""), `${at}: cover — url, credit, src`);
+  const text = [d.lead, ...(d.body ?? []).flatMap((b) => [b.p, b.tip, ...(b.list ?? [])])].filter(Boolean).join(" ");
+  ok(!BAD.test(text), `${at}: рекламные слова — убрать`);
+  ok(list.some((p) => p.developerSlug === d.slug), `${at}: нет ни одного ЖК с developerSlug «${d.slug}»`);
+}
 if (errors.length) {
   console.error("❌ Ошибки в data/projects.json:\n" + errors.map((e) => " - " + e).join("\n"));
   process.exit(1);
 }
-console.log(`✅ data/projects.json в порядке: ${list.length} ЖК`);
+console.log(`✅ data/projects.json в порядке: ${list.length} ЖК, застройщиков: ${devs.length}`);

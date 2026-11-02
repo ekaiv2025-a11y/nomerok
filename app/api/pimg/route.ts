@@ -1,10 +1,13 @@
 import { ALLOWED_IMAGES } from "@/lib/projects";
+import { DEVELOPERS } from "@/lib/developers";
+
+const ALLOWED = new Set([...ALLOWED_IMAGES, ...DEVELOPERS.map((d) => d.cover?.url).filter(Boolean) as string[]]);
 
 /** Фото ЖК от застройщика: только ссылки из data/projects.json, ответ кешируется на месяц (Vercel CDN). */
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   let u = sp.get("u") ?? "";
-  if (!ALLOWED_IMAGES.has(u)) return new Response("not found", { status: 404 });
+  if (!ALLOWED.has(u)) return new Response("not found", { status: 404 });
   // для карточек в списке — уменьшенная копия (у korter.ge есть готовая 1280×960)
   if (sp.get("s") === "1") u = u.replace("/buildings-v2/2560x1920/", "/buildings-v2/1280x960/");
   try {
