@@ -5,6 +5,24 @@ import { isAdmin, requireAdmin } from "@/lib/admin-auth";
 import { listProjectLeads, setProjectLeadStatus, type ProjectLead } from "@/lib/project-leads";
 import { projectBySlug, PROJECTS } from "@/lib/projects";
 import { cityLabel } from "@/lib/cities";
+import { allProjectMedia, saveProjectMedia } from "@/lib/project-media";
+import { AdminPostPhotos } from "@/components/AdminPostPhotos";
+
+async function savePhotos(fd: FormData) {
+  "use server";
+  await requireAdmin();
+  const slug = String(fd.get("slug"));
+  if (!projectBySlug(slug)) return;
+  let photos: string[] = [];
+  try {
+    photos = (JSON.parse(String(fd.get("photos") ?? "[]")) as unknown[]).filter((x): x is string => typeof x === "string" && /^https:\/\//.test(x)).slice(0, 20);
+  } catch {}
+  const credit = String(fd.get("credit") ?? "").trim().slice(0, 120) || null;
+  await saveProjectMedia(slug, photos, credit);
+  revalidatePath("/admin/projects");
+  revalidatePath("/ru/novostroyki");
+  revalidatePath(`/ru/novostroyki/${slug}`);
+}
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +38,7 @@ const ST = { new: "🆕 Новая", sent: "📤 Передана", closed: "✅
 
 export default async function AdminProjects() {
   if (!(await isAdmin())) redirect("/admin/login");
-  const leads = await listProjectLeads().catch(() => [] as ProjectLead[]);
+  const [leads, media] = await Promise.all([listProjectLeads().catch(() => [] as ProjectLead[]), allProjectMedia().catch(() => new Map())]);
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Link href="/admin" className="text-[14px] text-muted">← Админка</Link>
@@ -52,6 +70,28 @@ export default async function AdminProjects() {
                 ))}
               </form>
             </div>
+          );
+        })}
+      </div>
+      <h2 className="mt-10 text-[22px] font-bold">📷 Фото жилых комплексов</h2>
+      <p className="mt-1 text-[14px] leading-relaxed text-muted">
+        Загружайте только свои снимки или фото, на которые есть разрешение застройщика или агентства (рендеры и фото с чужих сайтов — нельзя). Первое фото — обложка в списке. В поле «Чьё фото» напишите, например: «застройщик Alliance Group» или «NomerOk». Перетащите фото в рамку или нажмите «Добавить».
+      </p>
+      <div className="mt-4 space-y-2">
+        {PROJECTS.map((p) => {
+          const m = media.get(p.slug);
+          return (
+            <details key={p.slug} className="rounded-2xl bg-white p-4">
+              <summary className="cursor-pointer text-[15px] font-semibold">
+                ЖК {p.name} <span className="font-normal text-muted">· {p.city ? cityLabel(p.city, "ru") : p.place} · {m?.photos.length ? `📷 ${m.photos.length}` : "без фото"}</span>
+              </summary>
+              <form action={savePhotos} className="mt-3 space-y-3">
+                <input type="hidden" name="slug" value={p.slug} />
+                <AdminPostPhotos initial={m?.photos ?? []} cover={false} />
+                <input name="credit" defaultValue={m?.credit ?? ""} placeholder="Чьё фото: «застройщик …» или «NomerOk»" className="field h-10 w-full rounded-xl px-3 text-[14px]" />
+                <button className="btn-primary h-10 px-5 text-[14px]">Сохранить</button>
+              </form>
+            </details>
           );
         })}
       </div>

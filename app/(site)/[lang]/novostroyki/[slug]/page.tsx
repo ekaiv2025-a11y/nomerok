@@ -9,6 +9,8 @@ import { ProjectLeadForm } from "@/components/ProjectLeadForm";
 import { Map } from "@/components/map/Map";
 import { geoPhoto } from "@/lib/geo-photo";
 import { projectPhotos } from "@/lib/project-photos";
+import { allProjectMedia } from "@/lib/project-media";
+import { Gallery } from "@/components/Gallery";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 86400;
@@ -36,7 +38,8 @@ export default async function ProjectPage({ params }: Props) {
   if (lang !== "ru" || !p) notFound();
   const st = PROJECT_STATUS[p.status];
   // то же фото, что в списке (у каждого ЖК своё)
-  const photo = (await projectPhotos().catch(() => null))?.get(p.slug) ?? (await geoPhoto(p.photo?.q, Date.now() + 1200));
+  const own = (await allProjectMedia().catch(() => null))?.get(p.slug);
+  const photo = own?.photos.length ? null : ((await projectPhotos().catch(() => null))?.get(p.slug) ?? (await geoPhoto(p.photo?.q, Date.now() + 1200)));
   const c = p.price?.currency ?? "USD";
   const facts: [string, string][] = [
     ["Застройщик", p.developer],
@@ -88,6 +91,12 @@ export default async function ProjectPage({ params }: Props) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
+          {own?.photos.length ? (
+            <div className="mb-6">
+              <Gallery items={own.photos.map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />
+              {own.credit && <p className="mt-1 text-[12px] text-muted">Фото: {own.credit}</p>}
+            </div>
+          ) : null}
           {photo && (
             <figure className="mb-6 overflow-hidden rounded-2xl border border-line bg-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
