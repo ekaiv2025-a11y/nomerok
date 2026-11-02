@@ -1077,7 +1077,14 @@
       "alt": "Курорт Бакуриани"
     },
     "added": "2026-11-01",
-    "updated": "2026-11-01"
+    "updated": "2026-11-03",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/1280x960/29228.jpg",
+        "credit": "застройщик Crystal Group",
+        "src": "https://korter.ge/en/crystal-loft-bakuriani"
+      }
+    ]
   },
   {
     "slug": "zhk-marshall-gudauri-gudauri",
@@ -1194,7 +1201,14 @@
       "alt": "Курорт Гудаури"
     },
     "added": "2026-11-01",
-    "updated": "2026-11-01"
+    "updated": "2026-11-03",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/1280x960/12214.jpg",
+        "credit": "застройщик Marshall Development",
+        "src": "https://korter.ge/en/marshall-gudauri-gudauri"
+      }
+    ]
   },
   {
     "slug": "zhk-terrassa-bakuriani-bakuriani",
@@ -1312,7 +1326,14 @@
       "alt": "Курорт Бакуриани"
     },
     "added": "2026-11-01",
-    "updated": "2026-11-01"
+    "updated": "2026-11-03",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/1280x960/11652.jpg",
+        "credit": "застройщик Terrassa Group",
+        "src": "https://korter.ge/en/terrassa-bakuriani-bakuriani"
+      }
+    ]
   },
   {
     "slug": "zhk-metropol-ortachala-tbilisi",
@@ -1831,6 +1852,33 @@
       "alt": "Ортачала, Тбилиси"
     },
     "added": "2026-10-31",
-    "updated": "2026-11-02"
+    "updated": "2026-11-03",
+    "images": [
+      {
+        "url": "https://geoln.com/uploads/building_photos/09cc63c0cc4448709e3580b33adee102.large.webp",
+        "credit": "застройщик NEXT",
+        "src": "https://geoln.com/ru/georgia/tbilisi/tbilisi-oriental-by-next"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/32ab43228f1042549cb23584637eb415.large.webp",
+        "credit": "застройщик NEXT",
+        "src": "https://geoln.com/ru/georgia/tbilisi/tbilisi-oriental-by-next"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/4aff944767aa41a5a4a80a35418688c7.large.webp",
+        "credit": "застройщик NEXT",
+        "src": "https://geoln.com/ru/georgia/tbilisi/tbilisi-oriental-by-next"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/b20cadea890840e4909110efb551f4d9.large.webp",
+        "credit": "застройщик NEXT",
+        "src": "https://geoln.com/ru/georgia/tbilisi/tbilisi-oriental-by-next"
+      },
+      {
+        "url": "https://geoln.com/uploads/building_photos/3a5906337e804bdc974517fe287da249.large.webp",
+        "credit": "застройщик NEXT",
+        "src": "https://geoln.com/ru/georgia/tbilisi/tbilisi-oriental-by-next"
+      }
+    ]
   }
 ]
