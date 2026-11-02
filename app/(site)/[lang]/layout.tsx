@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BackToTop } from "@/components/BackToTop";
 import { VisitTracker } from "@/components/VisitTracker";
+import { FunnelTracker } from "@/components/FunnelTracker";
 import { getDict, LOCALES, OG_LOCALE } from "@/lib/i18n";
 import { langOf, type LangParams } from "@/lib/i18n/page";
 import { SITE_NAME } from "@/lib/site";
@@ -30,6 +31,7 @@ export default async function LangLayout({ children, params }: { children: React
       <Footer lang={lang} />
       <BackToTop label={getDict(lang).nav.toTop} />
       <VisitTracker />
+      <FunnelTracker lang={lang} />
     </>
   );
 }

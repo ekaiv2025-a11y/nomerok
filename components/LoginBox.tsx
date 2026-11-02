@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/track";
 import { useState } from "react";
 import { Loader2, Mail } from "lucide-react";
 import { AUTH } from "@/lib/auth-text";
@@ -80,12 +81,12 @@ export function LoginBox({
   return (
     <div className="space-y-2.5">
       {google && (
-        <a href={`/api/auth/google?${q}`} className={`${big} border border-line bg-white text-ink hover:bg-cream`}>
+        <a href={`/api/auth/google?${q}`} data-ev={intent === "join" ? "join_google" : undefined} className={`${big} border border-line bg-white text-ink hover:bg-cream`}>
           <GoogleIcon /> {t.google}
         </a>
       )}
       {facebook && (
-        <a href={`/api/auth/facebook?${q}`} className={`${big} bg-[#1877F2] text-white hover:bg-[#166fe0]`}>
+        <a href={`/api/auth/facebook?${q}`} data-ev={intent === "join" ? "join_facebook" : undefined} className={`${big} bg-[#1877F2] text-white hover:bg-[#166fe0]`}>
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
             <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z" />
           </svg>
@@ -106,6 +107,7 @@ export function LoginBox({
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (intent === "join" && step === "email") track("click", "join", { name: "join_email" });
           call(step === "email" ? "send" : "verify");
         }}
         className="space-y-2.5"

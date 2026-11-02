@@ -63,7 +63,7 @@ export function JoinForm({
   const d = getDict(lang);
   const t = d.join;
   const opt = d.form.optional;
-  const { state, errors, message, submit, result } = useSubmit("/api/masters", lang);
+  const { state, errors, message, submit, result } = useSubmit("/api/masters", lang, "join");
 
   // Фото: своё (файл) или аватарка из Telegram
   const [file, setFile] = useState<File | null>(null);
@@ -131,7 +131,7 @@ export function JoinForm({
             </li>
           ))}
         </ol>
-        <a href={tgFastLink} target="_blank" rel="noopener noreferrer" className="btn mt-5 h-12 w-full gap-2 bg-[#229ED9] text-white hover:bg-[#1c89bd]">
+        <a href={tgFastLink} data-ev="join_tg" target="_blank" rel="noopener noreferrer" className="btn mt-5 h-12 w-full gap-2 bg-[#229ED9] text-white hover:bg-[#1c89bd]">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
             <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
           </svg>
@@ -199,7 +199,7 @@ export function JoinForm({
   const defaultLanguage = lang === "ka" ? "Грузинский" : lang === "en" ? "Английский" : "Русский";
 
   return (
-    <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
+    <form onSubmit={onSubmit} data-funnel="join" className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
       {account?.email && !prefill ? (
         <p className="flex flex-wrap items-center gap-2 rounded-2xl bg-brand-soft p-4 text-[15px] font-semibold text-brand-dark">

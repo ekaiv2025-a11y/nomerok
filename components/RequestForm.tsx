@@ -30,7 +30,7 @@ type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; def
 export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, org, me }: Props) {
   const d = getDict(lang);
   const t = d.request;
-  const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
+  const { state, errors, message, submit, result } = useSubmit("/api/requests", lang, "request");
   const [files, setFiles] = useState<File[]>([]);
   const [catSel, setCatSel] = useState<string>("");
   const [desc, setDesc] = useState(defaultText ?? "");
@@ -118,7 +118,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
   const initialCat = CATEGORIES.some((c) => c.id === defaultCategory) ? defaultCategory : "";
 
   return (
-    <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
+    <form onSubmit={onSubmit} data-funnel="request" className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
       <Field label={t.who} error={errors.category}>
         <select name="category" value={catSel || initialCat || ""} onChange={(e) => setCatSel(e.target.value)} className={fc(errors.category)} required>

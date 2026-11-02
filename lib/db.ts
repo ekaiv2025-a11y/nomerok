@@ -132,6 +132,7 @@ export async function healthCheck() {
           ["0041 тексты разделов мест", "place_cat_texts", "data"],
           ["0042 кэш фото Commons", "commons_cache", "q"],
           ["0043 заявки по новостройкам", "project_leads", "mode"],
+          ["0044 действия на сайте", "funnel_events", "sid"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

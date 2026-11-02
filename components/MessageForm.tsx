@@ -17,7 +17,7 @@ export function MessageForm({ lang, master, me, defaultWhen }: Props) {
   const t = d.message;
   const r = d.request;
   const first = master.name.split(" ")[0];
-  const { state, errors, message, submit, result } = useSubmit("/api/requests", lang);
+  const { state, errors, message, submit, result } = useSubmit("/api/requests", lang, "message");
   const [files, setFiles] = useState<File[]>([]);
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -62,7 +62,7 @@ export function MessageForm({ lang, master, me, defaultWhen }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
+    <form onSubmit={onSubmit} data-funnel="message" className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
       <Field label={t.what} hint={r.whatHint} error={errors.description}>
         <textarea name="description" rows={5} className={fc(errors.description)} placeholder={t.whatPlaceholder} required />

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CITIES } from "@/lib/cities";
+import { track } from "@/lib/track";
 
 /** Заявка по новостройкам: «узнать про этот ЖК» или «подобрать вариант». Уходит владельцу сайта, он передаёт партнёрскому агентству. */
 export function ProjectLeadForm({ project, projectName, city }: { project?: string; projectName?: string; city?: string }) {
@@ -32,10 +33,12 @@ export function ProjectLeadForm({ project, projectName, city }: { project?: stri
     }).catch(() => null);
     const j = await r?.json().catch(() => null);
     if (!r?.ok) {
+      track("error", "project", { fields: [/телефон|telegram/i.test(j?.error ?? "") ? "contact" : /имя/i.test(j?.error ?? "") ? "name" : "_form"], msg: j?.error ?? "нет связи" });
       setErr(j?.error ?? "Не получилось отправить. Проверьте интернет и попробуйте ещё раз.");
       setState("idle");
       return;
     }
+    track("done", "project");
     setState("done");
   }
 
@@ -49,7 +52,7 @@ export function ProjectLeadForm({ project, projectName, city }: { project?: stri
 
   const field = "field h-11 w-full rounded-xl px-3 text-[15px]";
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} data-funnel="project" className="space-y-3">
       {project && (
         <div className="grid grid-cols-2 gap-2">
           {(

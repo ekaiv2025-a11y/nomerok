@@ -3,10 +3,11 @@
 import { useRef, useState } from "react";
 import { getDict, type Locale } from "@/lib/i18n";
 import { formatPhone } from "@/lib/phone";
+import { track, type Funnel } from "@/lib/track";
 
 export type SubmitState = "idle" | "sending" | "done" | "error";
 
-export function useSubmit(url: string, lang: Locale) {
+export function useSubmit(url: string, lang: Locale, funnel?: Funnel) {
   const t = getDict(lang).form;
   const [state, setState] = useState<SubmitState>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,11 +27,13 @@ export function useSubmit(url: string, lang: Locale) {
       });
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
+        if (funnel) track("done", funnel);
         setResult(data);
         setState("done");
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
+      if (funnel) track("error", funnel, { fields: data.fields ? Object.keys(data.fields) : ["_form"], msgs: data.fields ? Object.values(data.fields).map(String) : [String(data.error ?? res.status)] });
       if (data.fields) {
         setErrors(data.fields);
         setMessage(t.checkFields);
@@ -41,6 +44,7 @@ export function useSubmit(url: string, lang: Locale) {
       }
       setState("error");
     } catch {
+      if (funnel) track("error", funnel, { fields: ["_net"], msg: "нет связи" });
       setMessage(t.netError);
       setState("error");
     }
