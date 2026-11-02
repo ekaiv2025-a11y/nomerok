@@ -16,11 +16,11 @@ import type { PublicMaster } from "./types";
 const LANGS: Locale[] = ["ru", "ka", "en"];
 const FIELDS = ["services", "about", "credentials", "service_area", "work_hours"] as const;
 type Field = (typeof FIELDS)[number];
-type Texts = Partial<Record<Field, string>> & { caps?: string[] };
+type Texts = Partial<Record<Field, string>> & { caps?: string[]; bonusText?: string };
 export type TrRow = { master_id: string; src: string; hash: string; data: Partial<Record<Locale, Texts>>; updated_at: string };
 
-type Src = Pick<PublicMaster, "id" | Field | "portfolio">;
-const srcTexts = (m: Src): Texts => ({ ...Object.fromEntries(FIELDS.map((f) => [f, m[f] ?? ""])), caps: (m.portfolio ?? []).map((p) => p.caption ?? "") });
+type Src = Pick<PublicMaster, "id" | Field | "portfolio" | "bonusText">;
+const srcTexts = (m: Src): Texts => ({ ...Object.fromEntries(FIELDS.map((f) => [f, m[f] ?? ""])), caps: (m.portfolio ?? []).map((p) => p.caption ?? ""), ...(m.bonusText ? { bonusText: m.bonusText } : {}) });
 const hashOf = (m: Src) => createHash("sha1").update(JSON.stringify(srcTexts(m))).digest("hex").slice(0, 16);
 /** Язык анкеты — по самым длинным полям. */
 const srcLang = (m: Src) => detectLang([m.about, m.services, m.credentials].join(" "));
@@ -70,6 +70,14 @@ export async function translateMaster(m: Src): Promise<TrRow | null> {
       data[to] = { ...Object.fromEntries(FIELDS.map((f, i) => [f, tr[i]])), caps: tr.slice(FIELDS.length) };
     }
   }
+  // Бонус специалист мог написать на другом языке, чем анкету, — переводим его отдельно
+  if (m.bonusText) {
+    const bl = detectLang(m.bonusText);
+    if (bl) for (const to of LANGS.filter((l) => l !== bl)) {
+      const [tr] = await translateMany([m.bonusText], bl, to);
+      if (tr) data[to] = { ...(data[to] ?? {}), bonusText: tr };
+    }
+  }
   const row: TrRow = { master_id: m.id, src: src ?? "", hash, data, updated_at: new Date().toISOString() };
   await saveRow(row);
   return row;
@@ -101,8 +109,11 @@ export function nameFor(name: string, lang: Locale): string {
 }
 
 function apply<T extends PublicMaster>(m: T, lang: Locale, row: TrRow | undefined): T {
+  const fresh = !!row && row.hash === hashOf(m);
+  const bt = fresh && m.bonusText ? row!.data[lang]?.bonusText : undefined;
+  if (bt) m = { ...m, bonusText: bt };
   const name = nameFor(m.name, lang);
-  const t = row && row.hash === hashOf(m) && row.src && row.src !== lang ? row.data[lang] : undefined;
+  const t = fresh && row!.src && row!.src !== lang ? row!.data[lang] : undefined;
   if (!t) return name === m.name ? m : { ...m, name, name_orig: m.name };
   const out = { ...m, name, name_orig: name === m.name ? undefined : m.name, tr_from: row!.src as Locale } as T;
   for (const f of FIELDS) if (t[f] && m[f]) (out as Record<string, unknown>)[f] = t[f];
