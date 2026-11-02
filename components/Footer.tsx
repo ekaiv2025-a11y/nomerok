@@ -42,7 +42,6 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/places">📍 {PT[lang].nav}</L>
             {lang === "ru" && <L to="/georgia">🗺 Путеводитель по Грузии</L>}
             {lang === "ru" && <L to="/novostroyki">🏗 Новостройки Грузии</L>}
-            <L to="/realty">🏠 {{ ru: "Недвижимость", en: "Real estate", ka: "უძრავი ქონება" }[lang]}</L>
             {lang === "ru" && <L to="/guide">Журнал</L>}
           </ul>
         </div>
@@ -52,7 +51,6 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/join">{t.placeProfile}</L>
             <L to="/how#specialists">{t.conditions}</L>
             <L to="/cabinet">{t.cabinet}</L>
-            <L to="/realty/agents">{{ ru: "🏠 Риелторам: объявления", en: "🏠 Agents: listings", ka: "🏠 რიელტორებს: განცხადებები" }[lang]}</L>
             <L to="/org">{{ ru: "🏢 Для клиник, салонов и центров", en: "🏢 For clinics, salons & centres", ka: "🏢 კლინიკებს, სალონებს და ცენტრებს" }[lang]}</L>
           </ul>
         </div>

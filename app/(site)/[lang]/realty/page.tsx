@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { href, type Locale } from "@/lib/i18n";
 import { listListings } from "@/lib/realty-db";
@@ -49,6 +50,8 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
     listPublishedMasters().then((x) => localizeMasters(x, lang)).catch(() => []),
   ]);
   const byId = new Map(masters.map((m) => [m.id, m]));
+  // Раздел объявлений пока скрыт, пока в нём пусто (решение владельца, 03.11.2026): ведём на «Новостройки»
+  if (total === 0 && (await listListings({}).catch(() => ({ total: 1 }))).total === 0) redirect(lang === "ru" ? "/ru/novostroyki" : `/${lang}`);
   const list = items.filter((l) => byId.has(l.master_id));
   const qs = (patch: Partial<SP>) => {
     const p = new URLSearchParams(Object.entries({ ...sp, ...patch }).filter(([, v]) => v) as [string, string][]);

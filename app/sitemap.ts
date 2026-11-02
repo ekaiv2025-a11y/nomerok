@@ -15,7 +15,6 @@ export const dynamic = "force-dynamic";
 const PAGES: { path: string; priority: number }[] = [
   { path: "", priority: 1 },
   { path: "/request", priority: 0.8 },
-  { path: "/realty", priority: 0.7 },
   { path: "/orders", priority: 0.7 },
   { path: "/join", priority: 0.6 },
   { path: "/phones", priority: 0.6 },
