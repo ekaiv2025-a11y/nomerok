@@ -9,6 +9,8 @@ import { journalArticles } from "@/lib/journal";
 import { formatArticleDate } from "@/lib/articles";
 import { ProjectLeadForm } from "@/components/ProjectLeadForm";
 import { Map } from "@/components/map/Map";
+import { projectPhotos } from "@/lib/project-photos";
+import type { CommonsPhoto } from "@/lib/commons";
 
 export const revalidate = 3600;
 
@@ -34,7 +36,8 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
   const list = PROJECTS.filter((p) => (!city || p.city === city) && (!status || p.status === status));
   const cityCounts: Record<string, number> = {};
   for (const p of PROJECTS) if (p.city) cityCounts[p.city] = (cityCounts[p.city] ?? 0) + 1;
-  const news = (await journalArticles().catch(() => [])).filter((a) => a.rubric === "build").slice(0, 6);
+  const [newsAll, photos] = await Promise.all([journalArticles().catch(() => []), projectPhotos().catch(() => new globalThis.Map<string, CommonsPhoto>())]);
+  const news = newsAll.filter((a) => a.rubric === "build").slice(0, 6);
   const points = list.filter((p) => p.coords).map((p) => ({ lat: p.coords![0], lng: p.coords![1], title: p.name, subtitle: [p.district, PROJECT_STATUS[p.status].label].filter(Boolean).join(" · "), href: `/ru/novostroyki/${p.slug}` }));
   const qs = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams(Object.entries({ city, status, ...patch }).filter(([, v]) => v) as [string, string][]);
@@ -71,7 +74,7 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
       {list.length > 0 ? (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((p) => (
-            <ProjectCard key={p.slug} p={p} />
+            <ProjectCard key={p.slug} p={p} photo={photos.get(p.slug)} />
           ))}
         </div>
       ) : (
@@ -123,13 +126,25 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
   );
 }
 
-function ProjectCard({ p }: { p: Project }) {
+function ProjectCard({ p, photo }: { p: Project; photo?: CommonsPhoto }) {
   const st = PROJECT_STATUS[p.status];
   const price = priceLine(p);
   return (
-    <Link href={`/ru/novostroyki/${p.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:border-brand sm:p-5">
+    <Link href={`/ru/novostroyki/${p.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand">
+      <span className="relative block aspect-[16/9] overflow-hidden bg-gradient-to-br from-[#eef0f3] to-[#d6dde8]">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo.url} alt={p.photo?.alt ?? `Район ЖК ${p.name}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+        ) : (
+          <span className="absolute inset-0 grid place-items-center text-[48px]" aria-hidden>
+            🏗️
+          </span>
+        )}
+        <span className={`absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${st.cls}`}>{st.label}</span>
+        {photo && p.photo?.alt && <span className="absolute bottom-2 right-2 rounded-full bg-ink/60 px-2 py-0.5 text-[11px] text-white">{p.photo.alt}</span>}
+      </span>
+      <span className="flex flex-1 flex-col p-4 sm:p-5">
       <span className="flex items-center gap-2 text-[12px]">
-        <span className={`rounded-full px-2 py-0.5 font-semibold ${st.cls}`}>{st.label}</span>
         <span className="text-muted">📍 {[projectPlace(p, label), p.district].filter(Boolean).join(", ")}</span>
       </span>
       <span className="mt-2 block text-[18px] font-bold leading-snug group-hover:text-brand">ЖК {p.name}</span>
@@ -138,6 +153,7 @@ function ProjectCard({ p }: { p: Project }) {
       <span className="mt-auto flex flex-wrap gap-x-3 gap-y-1 pt-3 text-[13px]">
         {price && <b>{price}</b>}
         {p.completion && <span className="text-muted">Сдача: {p.completion}</span>}
+      </span>
       </span>
     </Link>
   );

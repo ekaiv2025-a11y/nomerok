@@ -8,6 +8,7 @@ import { GeoBlocks } from "@/components/geo/GeoBlocks";
 import { ProjectLeadForm } from "@/components/ProjectLeadForm";
 import { Map } from "@/components/map/Map";
 import { geoPhoto } from "@/lib/geo-photo";
+import { projectPhotos } from "@/lib/project-photos";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 86400;
@@ -34,7 +35,8 @@ export default async function ProjectPage({ params }: Props) {
   const p = projectBySlug(slug);
   if (lang !== "ru" || !p) notFound();
   const st = PROJECT_STATUS[p.status];
-  const photo = await geoPhoto(p.photo?.q, Date.now() + 1200);
+  // то же фото, что в списке (у каждого ЖК своё)
+  const photo = (await projectPhotos().catch(() => null))?.get(p.slug) ?? (await geoPhoto(p.photo?.q, Date.now() + 1200));
   const c = p.price?.currency ?? "USD";
   const facts: [string, string][] = [
     ["Застройщик", p.developer],
