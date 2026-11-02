@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { pageMeta } from "@/lib/i18n/page";
-import { DEVELOPERS, developerBySlug, projectsOf } from "@/lib/developers";
+import { developerBySlug, projectsOf } from "@/lib/developers";
 import { PROJECT_STATUS, pimg } from "@/lib/projects";
 import { projectPhotos } from "@/lib/project-photos";
 import { ProjectCard } from "@/components/ProjectCard";
@@ -13,12 +13,9 @@ import { journalArticles } from "@/lib/journal";
 import { formatArticleDate } from "@/lib/articles";
 import { SITE_URL } from "@/lib/site";
 
-export const revalidate = 86400;
+// страница собирается при открытии: застройщиков бот добавляет постоянно
+export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ lang: string; dev: string }> };
-
-export function generateStaticParams() {
-  return DEVELOPERS.map((d) => ({ lang: "ru", dev: d.slug }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, dev } = await params;
@@ -31,7 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DeveloperPage({ params }: Props) {
   const { lang, dev } = await params;
   const d = developerBySlug(dev);
-  if (lang !== "ru" || !d) notFound();
+  // застройщика ещё нет (или другой язык) — ведём в раздел «Новостройки»
+  if (lang !== "ru" || !d) redirect("/ru/novostroyki");
   const list = projectsOf(d);
   const [photos, news] = await Promise.all([projectPhotos().catch(() => new globalThis.Map()), journalArticles().catch(() => [])]);
   const mentions = news.filter((a) => a.rubric === "build" && `${a.title} ${a.lead}`.includes(d.name)).slice(0, 6);
