@@ -92,11 +92,17 @@ export default function LeafletMap({
         {!editable && <FitBounds points={points} />}
         {!editable &&
           points.map((p, i) => (
-            <Marker key={i} position={[p.lat, p.lng]} icon={p.label != null ? numbered(p.label) : p.card?.bonus ? bonusPin : pin} zIndexOffset={p.card?.bonus ? 500 : 0}>
-              {p.title && (
+            <Marker
+              key={i}
+              position={[p.lat, p.lng]}
+              icon={p.label != null ? numbered(p.label) : p.card?.bonus ? bonusPin : pin}
+              zIndexOffset={p.card?.bonus ? 500 : 0}
+              // карточка специалиста открывается уже при наведении (на телефоне — по нажатию)
+              eventHandlers={p.card ? { mouseover: (e) => (e.target as L.Marker).openPopup() } : undefined}
+            >
+              {p.title && !p.card && (
                 <Tooltip direction="top" offset={p.label != null ? [0, -14] : [0, -40]} opacity={1}>
                   <b>{p.title}</b>
-                  {p.card && <span style={{ display: "block", fontSize: 12, color: "#6b6a65" }}>{p.card.tip}</span>}
                 </Tooltip>
               )}
               {p.title && (
