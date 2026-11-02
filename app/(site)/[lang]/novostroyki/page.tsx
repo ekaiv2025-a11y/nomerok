@@ -141,7 +141,7 @@ function ProjectCard({ p, photo }: { p: Project; photo?: CommonsPhoto }) {
           </span>
         )}
         <span className={`absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${st.cls}`}>{st.label}</span>
-        {photo && p.photo?.alt && <span className="absolute bottom-2 right-2 rounded-full bg-ink/60 px-2 py-0.5 text-[11px] text-white">{p.photo.alt}</span>}
+        {photo && photo.title !== "dev" && photo.title !== "own" && p.photo?.alt && <span className="absolute bottom-2 right-2 rounded-full bg-ink/60 px-2 py-0.5 text-[11px] text-white">{p.photo.alt}</span>}
       </span>
       <span className="flex flex-1 flex-col p-4 sm:p-5">
       <span className="flex items-center gap-2 text-[12px]">

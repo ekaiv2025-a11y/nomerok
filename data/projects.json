@@ -130,7 +130,14 @@
       "alt": "Новый бульвар Батуми"
     },
     "added": "2026-11-02",
-    "updated": "2026-11-02"
+    "updated": "2026-11-02",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/38768.jpg",
+        "credit": "застройщик Archi",
+        "src": "https://korter.ge/en/archi-ramada-batumi"
+      }
+    ]
   },
   {
     "slug": "zhk-alliance-renaissance-kobuleti",
@@ -267,7 +274,14 @@
       "alt": "Пляж Кобулети"
     },
     "added": "2026-11-02",
-    "updated": "2026-11-02"
+    "updated": "2026-11-02",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/42404.jpg",
+        "credit": "застройщик Alliance Group",
+        "src": "https://korter.ge/en/alliance-renaissance-kobuleti"
+      }
+    ]
   },
   {
     "slug": "zhk-alliance-centropolis-batumi",
@@ -391,7 +405,24 @@
       "alt": "Высотки на проспекте Руставели в Батуми"
     },
     "added": "2026-11-02",
-    "updated": "2026-11-02"
+    "updated": "2026-11-02",
+    "images": [
+      {
+        "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/%E1%83%AA%E1%83%94%E1%83%9C%E1%83%A2%E1%83%A0%E1%83%9D%E1%83%9E%E1%83%9D%E1%83%9A%E1%83%98%E1%83%A1%E1%83%98--1_0.jpg?itok=kN-dYvWW",
+        "credit": "застройщик Alliance Group",
+        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+      },
+      {
+        "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/%E1%83%AA%E1%83%94%E1%83%9C%E1%83%A2%E1%83%A0%E1%83%9D%E1%83%9E%E1%83%9D%E1%83%9A%E1%83%98%E1%83%A1%E1%83%98--2_0.jpg?itok=MbLaSq2R",
+        "credit": "застройщик Alliance Group",
+        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+      },
+      {
+        "url": "https://api.propertygeorgia.ge/sites/default/files/styles/project_inner/public/2022-06/8%20%E1%83%A0%E1%83%94%E1%83%A5_0.jpg?itok=jB3QRfk_",
+        "credit": "застройщик Alliance Group",
+        "src": "https://propertygeorgia.ge/en/projects/alliance-centropolis"
+      }
+    ]
   },
   {
     "slug": "zhk-calligraphy-towers-batumi",
@@ -533,7 +564,14 @@
       "alt": "Высотки у Нового бульвара в Батуми"
     },
     "added": "2026-11-02",
-    "updated": "2026-11-02"
+    "updated": "2026-11-02",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/1280x960/11931.jpg",
+        "credit": "застройщик Grand Maison",
+        "src": "https://korter.ge/en/calligraphy-towers-batumi"
+      }
+    ]
   },
   {
     "slug": "zhk-rustaveli-17-rustavi",
@@ -1137,7 +1175,14 @@
       "alt": "Ортачала, Тбилиси"
     },
     "added": "2026-10-31",
-    "updated": "2026-11-02"
+    "updated": "2026-11-02",
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/1280x960/29999.jpg",
+        "credit": "застройщик Metropol",
+        "src": "https://korter.ge/en/metropol-ortachala-tbilisi"
+      }
+    ]
   },
   {
     "slug": "zhk-apex-holbrook-tbilisi",

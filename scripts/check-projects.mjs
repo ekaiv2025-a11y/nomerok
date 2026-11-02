@@ -26,6 +26,7 @@ for (const [i, p] of (Array.isArray(list) ? list : []).entries()) {
     ok(typeof p.price.date === "string" && p.price.date.length >= 4, `${at}: у цены нужна дата («ноябрь 2026»)`);
     ok(/^https:\/\//.test(p.price.src ?? ""), `${at}: у цены нужна ссылка src на источник`);
   }
+  for (const im of p.images ?? []) ok(/^https:\/\/\S+$/.test(im?.url ?? "") && im.credit && /^https:\/\//.test(im.src ?? ""), `${at}: images — нужны url (https), credit («застройщик …») и src (страница, где взято)`);
   ok(p.photo == null || (p.photo.q && !/[а-яё]/i.test(p.photo.q)), `${at}: photo.q — по-английски`);
   ok(Array.isArray(p.body) && p.body.length >= 4, `${at}: body — минимум 4 блока`);
   for (const b of p.body ?? []) {

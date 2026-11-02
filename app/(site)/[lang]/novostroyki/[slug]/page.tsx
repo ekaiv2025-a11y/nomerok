@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMeta } from "@/lib/i18n/page";
-import { PROJECTS, PROJECT_STATUS, fmtMoney, priceLine, projectBySlug, projectPlace } from "@/lib/projects";
+import { PROJECTS, PROJECT_STATUS, pimg, fmtMoney, priceLine, projectBySlug, projectPlace } from "@/lib/projects";
 import { cityIn, cityLabel } from "@/lib/cities";
 import { GeoBlocks } from "@/components/geo/GeoBlocks";
 import { ProjectLeadForm } from "@/components/ProjectLeadForm";
@@ -39,7 +39,9 @@ export default async function ProjectPage({ params }: Props) {
   const st = PROJECT_STATUS[p.status];
   // то же фото, что в списке (у каждого ЖК своё)
   const own = (await allProjectMedia().catch(() => null))?.get(p.slug);
-  const photo = own?.photos.length ? null : ((await projectPhotos().catch(() => null))?.get(p.slug) ?? (await geoPhoto(p.photo?.q, Date.now() + 1200)));
+  // свои фото (админка) → фото застройщика → вид района
+  const gallery = own?.photos.length ? { urls: own.photos, credit: own.credit } : p.images?.length ? { urls: p.images.map((i) => pimg(i.url)), credit: [...new Set(p.images.map((i) => i.credit))].join(", ") } : null;
+  const photo = gallery ? null : ((await projectPhotos().catch(() => null))?.get(p.slug) ?? (await geoPhoto(p.photo?.q, Date.now() + 1200)));
   const c = p.price?.currency ?? "USD";
   const facts: [string, string][] = [
     ["Застройщик", p.developer],
@@ -91,10 +93,10 @@ export default async function ProjectPage({ params }: Props) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
-          {own?.photos.length ? (
+          {gallery ? (
             <div className="mb-6">
-              <Gallery items={own.photos.map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />
-              {own.credit && <p className="mt-1 text-[12px] text-muted">Фото: {own.credit}</p>}
+              <Gallery items={gallery.urls.map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />
+              {gallery.credit && <p className="mt-1 text-[12px] text-muted">Фото и визуализации: {gallery.credit}</p>}
             </div>
           ) : null}
           {photo && (

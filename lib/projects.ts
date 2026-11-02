@@ -33,7 +33,9 @@ export type Project = {
   body: Block[];
   faq?: { q: string; a: string }[];
   sources: { name: string; url: string }[];
-  /** обложка с Wikimedia Commons (вид района, улицы) — по-английски */
+  /** фото и рендеры самого ЖК от застройщика (застройщики разрешают публикацию — им нужна реклама): прямые ссылки на картинки, первое — обложка */
+  images?: { url: string; credit: string; src: string }[];
+  /** запасная обложка с Wikimedia Commons (вид района, улицы) — по-английски */
   photo?: { q: string; alt?: string };
   updated: string; // YYYY-MM-DD
   added: string; // YYYY-MM-DD
@@ -62,3 +64,7 @@ export function priceLine(p: Project): string | null {
 }
 
 export const projectPlace = (p: Project, label: (id: string) => string) => p.place || (p.city ? label(p.city) : "Грузия");
+
+/** Картинку застройщика отдаём через свой адрес (/api/pimg): не ломается, если сайт застройщика запрещает чужие ссылки, и кешируется. */
+export const pimg = (url: string) => `/api/pimg?u=${encodeURIComponent(url)}`;
+export const ALLOWED_IMAGES = new Set(PROJECTS.flatMap((p) => (p.images ?? []).map((i) => i.url)));
