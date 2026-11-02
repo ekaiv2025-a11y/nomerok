@@ -95,7 +95,9 @@ export default async function ProjectPage({ params }: Props) {
         <div className="min-w-0">
           {gallery ? (
             <div className="mb-6">
-              <Gallery items={gallery.urls.map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={gallery.urls[0]} alt={`ЖК ${p.name}`} className="mb-2 aspect-[4/3] w-full rounded-2xl border border-line bg-cream object-cover sm:aspect-[3/2]" />
+              {gallery.urls.length > 1 && <Gallery items={gallery.urls.slice(1).map((url) => ({ url, caption: "" }))} moreText="Все фото ({n})" />}
               {gallery.credit && <p className="mt-1 text-[12px] text-muted">Фото и визуализации: {gallery.credit}</p>}
             </div>
           ) : null}

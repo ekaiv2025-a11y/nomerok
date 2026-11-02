@@ -131,10 +131,10 @@ function ProjectCard({ p, photo }: { p: Project; photo?: CommonsPhoto }) {
   const price = priceLine(p);
   return (
     <Link href={`/ru/novostroyki/${p.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand">
-      <span className="relative block aspect-[16/9] overflow-hidden bg-gradient-to-br from-[#eef0f3] to-[#d6dde8]">
+      <span className="relative block aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#eef0f3] to-[#d6dde8]">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo.url} alt={p.photo?.alt ?? `Район ЖК ${p.name}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+          <img src={photo.url} alt={p.photo?.alt ?? `Район ЖК ${p.name}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-[50%_35%] transition duration-300 group-hover:scale-[1.03]" />
         ) : (
           <span className="absolute inset-0 grid place-items-center text-[48px]" aria-hidden>
             🏗️
