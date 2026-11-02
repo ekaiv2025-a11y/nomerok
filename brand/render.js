@@ -23,10 +23,18 @@ fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
     await p.screenshot({ path: out });
   } else {
     const fps = 30;
-    const dur = await p.evaluate(() => window.DURATION);
+    // TIMEMAP (необязательно): растянуть сцены под озвучку. {"dur": 18.2, "knots": [[0,0],[4.1,3.4],…]} — [время в ролике, время в шаблоне]
+    const tm = process.env.TIMEMAP ? JSON.parse(process.env.TIMEMAP) : null;
+    const dur = tm ? tm.dur : await p.evaluate(() => window.DURATION);
+    const toTpl = (t) => {
+      if (!tm) return t;
+      const k = tm.knots;
+      for (let i = 1; i < k.length; i++) if (t <= k[i][0]) return k[i - 1][1] + ((t - k[i - 1][0]) / (k[i][0] - k[i - 1][0])) * (k[i][1] - k[i - 1][1]);
+      return k[k.length - 1][1];
+    };
     const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "frames-"));
-    for (let f = 0; f < dur * fps; f++) {
-      await p.evaluate((t) => window.render(t), f / fps);
+    for (let f = 0; f < Math.round(dur * fps); f++) {
+      await p.evaluate((t) => window.render(t), toTpl(f / fps));
       await p.screenshot({ path: `${dir}/${String(f).padStart(5, "0")}.jpg`, type: "jpeg", quality: 92 });
     }
     execSync(`ffmpeg -y -loglevel error -framerate ${fps} -i ${dir}/%05d.jpg -c:v libx264 -pix_fmt yuv420p -profile:v high -crf 20 -movflags +faststart "${out}"`);
