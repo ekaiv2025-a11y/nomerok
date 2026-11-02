@@ -107,7 +107,18 @@ def music(seconds, key, path):
         w.writeframes((out * 32767).astype(np.int16).tobytes())
 
 
+def fit(src, path, slot):
+    """Готовая фраза (mp3 с голосом Microsoft): если не влезает в сцену — чуть ускоряем, не больше чем в 1,2 раза."""
+    d = dur(src)
+    k = min(1.2, max(1.0, d / (slot - 0.25)))
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-af", f"atempo={k:.3f}", "-ar", "44100", path], check=True)
+    return round(k, 2)
+
+
 def main():
+    import sys
+    # --voice-dir=папка: взять готовые фразы <reel>-<n>.mp3 (голос Дмитрий из «Озвучка роликов.bat»)
+    vdir = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--voice-dir=")), None)
     report = {}
     for name, cfg in REELS.items():
         video = os.path.join(OUT, f"nomerok-{name}.mp4")
@@ -120,7 +131,10 @@ def main():
         rates = []
         for i, (start, end, text) in enumerate(cfg["lines"]):
             p = os.path.join(tmp, f"l{i}.wav")
-            rates.append(synth(text, cfg["voice"], p, end - start))
+            if vdir:
+                rates.append(fit(os.path.join(vdir, f"{name}-{i + 1}.mp3"), p, end - start))
+            else:
+                rates.append(synth(text, cfg["voice"], p, end - start))
             inputs += ["-i", p]
             ms = int(start * 1000)
             filters.append(f"[{i}:a]aresample=44100,adelay={ms}|{ms}[v{i}]")
