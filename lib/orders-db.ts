@@ -39,7 +39,7 @@ export async function listOrders(): Promise<Order[]> {
 export const LIVE_DAYS = 7;
 /** Заявка «живая»: не закрыта, клиент не ответил «договорились / не нужно», ей не больше LIVE_DAYS дней и откликов меньше 3 (дальше специалистам откликаться бессмысленно). */
 export function isLive(o: Order): boolean {
-  if (o.status === "done" || o.status === "spam" || o.outcome) return false;
+  if (o.status === "done" || o.status === "spam" || o.outcome || o.pending_client) return false;
   if (o.responses >= 3) return false;
   return Date.now() - Date.parse(o.created_at) < LIVE_DAYS * 86400000;
 }

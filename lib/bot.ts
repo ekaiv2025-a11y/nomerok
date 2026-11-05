@@ -363,6 +363,10 @@ async function onStart(msg: TgMessage, payload: string) {
     if (!r) return sendTo(chatId, botDict(guessLang(from)).linkInvalid);
     await updateRequest(r.id, { client_tg_chat_id: chatId });
     const b = botDict(r.lang);
+    // Заявка ждала подтверждения клиента — теперь рассылаем специалистам
+    const { activatePending } = await import("./request-dispatch");
+    const activated = await activatePending(r, chatId).catch((e) => (console.error("[activate]", e), false));
+    if (activated) await sendTo(chatId, b.requestConfirmed).catch(() => null);
     return sendTo(chatId, b.clientLinked, [
       ...(r.status === "done" ? [] : [[{ text: b.btnClose, callback_data: `close:${r.id}` }]]),
       [{ text: MY_BTN[r.lang] ?? MY_BTN.ru, url: myLoginUrl(chatId, r.lang, r.name || [from?.first_name, from?.last_name].filter(Boolean).join(" ")) }],

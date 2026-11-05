@@ -163,6 +163,8 @@ export type ClientRequest = {
   direct_checked_at: string | null;
   /** фото от клиента (ссылки) */
   photos?: string[];
+  /** ждёт, пока клиент подключит Telegram или войдёт на сайт — до этого специалистам не рассылается */
+  pending_client?: boolean;
   created_at: string;
 };
 

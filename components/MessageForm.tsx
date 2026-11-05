@@ -27,9 +27,18 @@ export function MessageForm({ lang, master, me, defaultWhen }: Props) {
     return (
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
-        <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
-        <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneText(first)}</p>
-        <TelegramStep title={t.tgTitle} text={t.tgText} button={r.tgBtn} link={result.tgLink} />
+        <h2 className="mt-3 text-xl font-bold">{result.pending ? r.pendingTitle : t.doneTitle}</h2>
+        {!result.pending && <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneText(first)}</p>}
+        {!!result.pending ? (
+          <TelegramStep title={r.pendingTitle} text={r.pendingText} button={r.pendingBtn} link={result.tgLink} />
+        ) : (
+          <TelegramStep title={t.tgTitle} text={t.tgText} button={r.tgBtn} link={result.tgLink} />
+        )}
+        {!!result.pending && typeof result.claim === "string" && (
+          <Link href={href(lang, `/login?as=client&claim=${result.claim}`)} className="btn-ghost mt-3 h-11 w-full gap-2 text-[14px]">
+            📧 {r.pendingAlt}
+          </Link>
+        )}
         {result.linked ? <LinkedNote lang={lang} href={href(lang, "/my")} /> : null}
         <Link href={href(lang, `/master/${master.slug}`)} className="btn-ghost mt-5">
           ← {master.name}

@@ -87,7 +87,12 @@ export async function finishLogin(acc: Account, intent: LoginIntent, lang: strin
   if (claim && /^[\w-]{6,64}$/.test(claim)) {
     const { getRequestByLinkToken, updateRequest } = await import("./db");
     const r = await getRequestByLinkToken(claim).catch(() => null);
-    if (r && !r.client_tg_chat_id) await updateRequest(r.id, { client_tg_chat_id: vid }).catch(() => null);
+    if (r && !r.client_tg_chat_id) {
+      await updateRequest(r.id, { client_tg_chat_id: vid }).catch(() => null);
+      // заявка ждала, пока клиент войдёт, — рассылаем специалистам
+      const { activatePending } = await import("./request-dispatch");
+      await activatePending(r, vid).catch((e) => console.error("[activate]", e));
+    }
   }
   const c = clientCookieValue(vid, acc.name);
   out.push([CLIENT_COOKIE, c.value, { ...base, maxAge: c.maxAge }]);

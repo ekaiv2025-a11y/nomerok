@@ -45,8 +45,8 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
     return (
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-brand" />
-        <h2 className="mt-3 text-xl font-bold">{t.doneTitle}</h2>
-        <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneGeneral}</p>
+        <h2 className="mt-3 text-xl font-bold">{result.pending ? t.pendingTitle : t.doneTitle}</h2>
+        {!result.pending && <p className="mt-2 text-[15px] text-[#3d5a4c]">{t.doneGeneral}</p>}
         {result.held === "specialist" && (
           <p className="mt-3 rounded-xl bg-[#fff8e6] p-3 text-left text-[14px] text-[#5a4a22]">
             {lang === "ru"
@@ -65,10 +65,14 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
             {lang === "ru" ? ", и заявки клиентов будут приходить вам сами." : lang === "ka" ? "." : " and client requests will come to you."}
           </p>
         )}
-        <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
+        {!!result.pending ? (
+          <TelegramStep title={t.pendingTitle} text={t.pendingText} button={t.pendingBtn} link={result.tgLink} />
+        ) : (
+          <TelegramStep title={t.tgTitle} text={t.tgText} button={t.tgBtn} link={result.tgLink} />
+        )}
         {typeof result.claim === "string" && (
           <Link href={href(lang, `/login?as=client&claim=${result.claim}`)} className="btn-ghost mt-3 h-11 w-full gap-2 text-[14px]">
-            📧 {lang === "ru" ? "Получать отклики на почту (или через Google)" : lang === "ka" ? "პასუხების მიღება ელფოსტაზე (ან Google-ით)" : "Get replies by email (or via Google)"}
+            📧 {result.pending ? t.pendingAlt : lang === "ru" ? "Получать отклики на почту (или через Google)" : lang === "ka" ? "პასუხების მიღება ელფოსტაზე (ან Google-ით)" : "Get replies by email (or via Google)"}
           </Link>
         )}
         {result.linked ? <LinkedNote lang={lang} href={href(lang, "/my")} /> : null}
