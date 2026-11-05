@@ -10,7 +10,7 @@ import { Linkified } from "@/components/Linkified";
 import { cityIn, isCity } from "@/lib/cities";
 import SUBS from "@/data/place-subs.json";
 import { PLACES_PAGE, listPlaces, placeCityCounts } from "@/lib/places-db";
-import { PlaceCard } from "@/components/PlaceCard";
+import { PlacesBrowser } from "@/components/PlacesBrowser";
 import { PlaceSearch } from "@/components/PlaceSearch";
 
 export const dynamic = "force-dynamic";
@@ -100,11 +100,7 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
         </div>
       )}
       {items.length === 0 && <p className="mt-4 rounded-2xl bg-white p-4">{t.nothing}</p>}
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
-        {items.map((p) => (
-          <PlaceCard key={p.id} p={p} lang={lang} />
-        ))}
-      </div>
+      {items.length > 0 && <PlacesBrowser items={items} lang={lang} />}
       {pages > 1 && (
         <nav className="mt-6 flex items-center justify-center gap-3 text-[14px]">
           {page > 1 && (

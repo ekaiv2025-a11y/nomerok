@@ -19,12 +19,12 @@ export type MapPoint = {
 };
 
 /** Метка с номером — для подборок (номер совпадает с номером в списке). */
-const numbered = (n: string | number) =>
+const numbered = (n: string | number, on = false) =>
   L.divIcon({
     className: "",
-    html: `<div style="width:30px;height:30px;border-radius:50%;background:#1f6b4f;color:#fff;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font:700 13px/1 system-ui,sans-serif">${String(n).replace(/[^\w]/g, "")}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
+    html: `<div style="width:${on ? 38 : 30}px;height:${on ? 38 : 30}px;border-radius:50%;background:${on ? "#e0a526" : "#1f6b4f"};color:${on ? "#1c1c1a" : "#fff"};border:2.5px solid #fff;box-shadow:0 2px ${on ? 10 : 6}px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font:700 ${on ? 15 : 13}px/1 system-ui,sans-serif">${String(n).replace(/[^\w]/g, "")}</div>`,
+    iconSize: on ? [38, 38] : [30, 30],
+    iconAnchor: on ? [19, 19] : [15, 15],
     popupAnchor: [0, -14],
   });
 
@@ -61,11 +61,13 @@ function Picker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
   return null;
 }
 
-function Recenter({ at }: { at: [number, number] | null }) {
+function Recenter({ at, zoom = 16 }: { at: [number, number] | null; zoom?: number }) {
   const map = useMap();
+  const lat = at?.[0];
+  const lng = at?.[1];
   useEffect(() => {
-    if (at) map.setView(at, Math.max(map.getZoom(), 16));
-  }, [map, at]);
+    if (lat != null && lng != null) map.setView([lat, lng], Math.max(map.getZoom(), zoom), { animate: true });
+  }, [map, lat, lng, zoom]);
   return null;
 }
 
@@ -100,8 +102,16 @@ export default function LeafletMap({
   height = 320,
   editable,
   scrollZoom = true,
+  active = null,
+  focus = null,
+  onSelect,
 }: {
   points?: MapPoint[];
+  /** выбранная метка (номер в списке подсвечивается и карта к ней перемещается) */
+  active?: number | null;
+  /** к какой метке переместить карту */
+  focus?: number | null;
+  onSelect?: (i: number) => void;
   height?: number;
   scrollZoom?: boolean;
   /** Режим выбора точки: клик по карте или перетаскивание метки */
@@ -118,15 +128,16 @@ export default function LeafletMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {!editable && <FitBounds points={points} />}
+        {!editable && focus != null && points[focus] && <Recenter at={[points[focus].lat, points[focus].lng]} zoom={15} />}
         {!editable &&
           points.map((p, i) => (
             <Marker
               key={i}
               position={[p.lat, p.lng]}
-              icon={p.label != null ? numbered(p.label) : p.card?.bonus ? bonusPin : pin}
-              zIndexOffset={p.card?.bonus ? 500 : 0}
+              icon={p.label != null ? numbered(p.label, active === i) : p.card?.bonus ? bonusPin : pin}
+              zIndexOffset={active === i ? 1000 : p.card?.bonus ? 500 : 0}
               // компьютер: наведение — маленькая карточка, щелчок — сразу анкета; телефон: нажатие — карточка с кнопкой
-              eventHandlers={p.card && p.href && !touch ? { click: () => (window.location.href = p.href!) } : undefined}
+              eventHandlers={onSelect ? { click: () => onSelect(i) } : p.card && p.href && !touch ? { click: () => (window.location.href = p.href!) } : undefined}
             >
               {p.title && (!p.card || !touch) && (
                 <Tooltip direction="top" offset={p.label != null ? [0, -14] : [0, -40]} opacity={1} className={p.card ? "nm-tip" : undefined}>
