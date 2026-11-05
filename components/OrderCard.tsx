@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { categoryLabel } from "@/lib/categories";
+import { CATEGORIES, categoryLabel } from "@/lib/categories";
+
+const GROUP_EMOJI: Record<string, string> = { home: "🔧", kids: "📚", health: "🩺", beauty: "💅", business: "💼", other: "✨" };
 import { cityLabel } from "@/lib/cities";
 import { href, type Locale } from "@/lib/i18n";
 import { ORD } from "@/lib/orders-text";
@@ -12,8 +14,9 @@ export function OrderCard({ o, lang, action }: { o: Order; lang: Locale; action?
   const done = o.status === "done";
   const full = o.responses >= 3;
   return (
-    <div className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+    <div className="rounded-2xl border border-line bg-white p-4 transition hover:border-[#cfcabd] hover:shadow-[0_4px_18px_rgba(0,0,0,0.05)] sm:p-5">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream text-[14px]">{GROUP_EMOJI[CATEGORIES.find((c) => c.id === o.category)?.group ?? "other"]}</span>
         <span className="font-semibold text-ink">{categoryLabel(o.category, lang)}</span>
         <span>· {cityLabel(o.city ?? "batumi", lang)}</span>
         <span>· {t.ago(mins)}</span>

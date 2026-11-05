@@ -13,7 +13,7 @@ export const ORD: Record<
 > = {
   ru: {
     stats: (t, a) => `За последние 30 дней: заявок — ${t}, специалисты откликнулись на ${a}.`,
-    steps: ["Опишите задачу — бесплатно, без регистрации", "Специалисты сами откликнутся, обычно в тот же день", "Выбираете сами и договариваетесь напрямую"],
+    steps: ["Опишите задачу — бесплатно, без регистрации", "Заявку получат специалисты нужного направления — свободные откликнутся сами", "Выбираете сами и договариваетесь напрямую"],
     emptyLive: "Сейчас все свежие заявки уже разобрали специалисты. Опишите свою задачу — откликнутся те, кто свободен.",
     nav: "Ищут мастера", title: "Кого ищут сейчас", lead: "Что сейчас ищут клиенты. Контакты клиента видит только специалист, который откликнулся.",
     latest: "Кого ищут сейчас", all: "Все запросы →", empty: "Пока запросов нет — станьте первым: разместите заявку.",
@@ -29,7 +29,7 @@ export const ORD: Record<
   },
   en: {
     stats: (t, a) => `Last 30 days: ${t} requests, specialists responded to ${a}.`,
-    steps: ["Describe the task — free, no sign-up", "Specialists respond themselves, usually the same day", "You choose and agree directly"],
+    steps: ["Describe the task — free, no sign-up", "Specialists in that field get it — those who are free respond", "You choose and agree directly"],
     emptyLive: "All fresh requests have been picked up by specialists. Describe your task — those who are free will respond.",
     nav: "Who's needed", title: "Who clients need now", lead: "What clients are looking for right now. Client contacts are visible only to the specialist who responds.",
     latest: "Who clients need now", all: "All requests →", empty: "No orders yet — be the first: post a request.",
@@ -44,7 +44,7 @@ export const ORD: Record<
   },
   ka: {
     stats: (t, a) => `ბოლო 30 დღე: მოთხოვნები — ${t}, სპეციალისტები გამოეხმაურნენ ${a} მოთხოვნას.`,
-    steps: ["აღწერეთ დავალება — უფასოდ, რეგისტრაციის გარეშე", "სპეციალისტები თავად გამოგეხმაურებიან, ჩვეულებრივ იმავე დღეს", "ირჩევთ თავად და პირდაპირ თანხმდებით"],
+    steps: ["აღწერეთ დავალება — უფასოდ, რეგისტრაციის გარეშე", "მოთხოვნას მიიღებენ ამ სფეროს სპეციალისტები — თავისუფლები გამოგეხმაურებიან", "ირჩევთ თავად და პირდაპირ თანხმდებით"],
     emptyLive: "ახალი მოთხოვნები უკვე აიღეს სპეციალისტებმა. აღწერეთ თქვენი დავალება — თავისუფალი სპეციალისტები გამოგეხმაურებიან.",
     nav: "ვის ეძებენ", title: "ვის ეძებენ ახლა", lead: "რას ეძებენ კლიენტები ახლა. კლიენტის კონტაქტს ხედავს მხოლოდ გამოხმაურებული სპეციალისტი.",
     latest: "ვის ეძებენ ახლა", all: "ყველა მოთხოვნა →", empty: "შეკვეთები ჯერ არ არის.",
