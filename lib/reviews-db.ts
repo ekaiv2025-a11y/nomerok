@@ -198,6 +198,19 @@ export async function listRequestsForFollowup(): Promise<ClientRequest[]> {
   return (await readLocal()).requests.filter((r) => r.created_at >= since && r.client_tg_chat_id);
 }
 
+/** Общие заявки за 7 дней без Telegram у клиента, на которые никто не откликнулся и о которых администратор ещё не предупреждён. */
+export async function listStaleWithoutTg(): Promise<ClientRequest[]> {
+  const since = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
+  const sb = supabase();
+  if (sb) {
+    return check(
+      await sb.from("requests").select("*").gte("created_at", since).is("client_tg_chat_id", null).is("master_id", null).is("followup_at", null).in("status", ["new", "sent"]).limit(200),
+    ) as ClientRequest[];
+  }
+  if (dbMode() === "none") throw new DbNotConfiguredError();
+  return (await readLocal()).requests.filter((r) => r.created_at >= since && !r.client_tg_chat_id && !r.master_id && !r.followup_at && (r.status === "new" || r.status === "sent"));
+}
+
 /** Личные заявки (конкретному специалисту) за последние 7 дней — проверить, ответил ли он. */
 export async function listRequestsForDirectCheck(): Promise<ClientRequest[]> {
   const since = new Date(Date.now() - 7 * 86400 * 1000).toISOString();

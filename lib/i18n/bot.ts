@@ -56,6 +56,8 @@ type BotDict = {
   closedOk: string;
   noResponse: (desc: string) => string;
   btnCatalog: string;
+  noResponsePicks: (desc: string) => string;
+  btnAllIn: (cat: string) => string;
   followupAsk: (desc: string) => string;
   btnDealWith: (name: string) => string;
   btnLater: string;
@@ -157,6 +159,8 @@ const ru: BotDict = {
   closedOk: "Заявка закрыта — специалисты больше её не получат. Понадобится снова — оставьте новую на сайте.",
   noResponse: (desc) => `Пока никто не взял вашу заявку «${desc}». Мы передали её администратору — постараемся найти специалиста. Можно также выбрать самому в каталоге.`,
   btnCatalog: "🔎 Открыть каталог",
+  noResponsePicks: (desc) => `Пока никто не откликнулся на вашу заявку «${desc}». Мы передали её администратору. А пока — специалисты этого направления, им можно написать или позвонить напрямую:`,
+  btnAllIn: (cat) => `🔎 Все: ${cat}`,
   followupAsk: (desc) => `Удалось договориться со специалистом по заявке «${desc}»?`,
   btnDealWith: (name) => `✅ Да, с ${name}`,
   btnLater: "⏳ Ещё решаем",
@@ -273,6 +277,8 @@ const en: BotDict = {
   closedOk: "Request closed — specialists won't receive it anymore. Need help again? Leave a new request on the website.",
   noResponse: (desc) => `No one has taken your request “${desc}” yet. We've passed it to our team and will try to find a specialist. You can also pick one yourself in the catalog.`,
   btnCatalog: "🔎 Open the catalog",
+  noResponsePicks: (desc) => `No one has responded to your request “${desc}” yet. We've passed it to our team. Meanwhile, here are specialists in this field — you can message or call them directly:`,
+  btnAllIn: (cat) => `🔎 All: ${cat}`,
   followupAsk: (desc) => `Did you come to an agreement with a specialist about “${desc}”?`,
   btnDealWith: (name) => `✅ Yes, with ${name}`,
   btnLater: "⏳ Still deciding",
@@ -389,6 +395,8 @@ const ka: BotDict = {
   closedOk: "განაცხადი დაიხურა — სპეციალისტები მას აღარ მიიღებენ. თუ ისევ დაგჭირდებათ — დატოვეთ ახალი საიტზე.",
   noResponse: (desc) => `თქვენი განაცხადი „${desc}“ ჯერ არავის აუღია. გადავეცით ადმინისტრატორს — შევეცდებით სპეციალისტის პოვნას. შეგიძლიათ თავადაც აირჩიოთ კატალოგში.`,
   btnCatalog: "🔎 კატალოგის გახსნა",
+  noResponsePicks: (desc) => `თქვენს განაცხადს „${desc}“ ჯერ არავინ გამოხმაურებია. გადავეცით ადმინისტრატორს. მანამდე — ამ სფეროს სპეციალისტები, შეგიძლიათ პირდაპირ მისწეროთ ან დაურეკოთ:`,
+  btnAllIn: (cat) => `🔎 ყველა: ${cat}`,
   followupAsk: (desc) => `მოახერხეთ სპეციალისტთან შეთანხმება განაცხადზე „${desc}“?`,
   btnDealWith: (name) => `✅ დიახ, ${name}-თან`,
   btnLater: "⏳ ჯერ ვწყვეტთ",

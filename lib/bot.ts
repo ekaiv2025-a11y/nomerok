@@ -19,16 +19,19 @@ import {
   adminListResponses,
   adminListMasters,
   touchActive,
+  listPublishedMasters,
 } from "./db";
 import { daysFromToday, formatDay, isAwayNow, servesCategory, todayTbilisi } from "./availability";
-import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup } from "./reviews-db";
+import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup, listStaleWithoutTg } from "./reviews-db";
 import { reviewToken } from "./signed";
 import { clientLoginToken } from "./client-auth";
 import { sub } from "./sub-text";
 import { cleanSlots, slotLabel, todayTbilisiStr } from "./slots";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
-import { categoryLabel } from "./categories";
+import { categoryLabel, categoryPlural } from "./categories";
+import { seoCategoryIds } from "./seo-categories";
+import { catalogCount } from "./gaps";
 import { formatPhone, normalizePhone, normalizeTelegram, telegramLink } from "./phone";
 import { profileSteps } from "./profile";
 import { SITE_NAME, SITE_URL } from "./site";
@@ -1069,12 +1072,18 @@ export async function runFollowups() {
     // 1. Никто не взял заявку за сутки
     const justRedirected = r.direct_checked_at && now - new Date(r.direct_checked_at).getTime() < 20 * HOUR;
     if ((r.status === "new" || r.status === "sent") && !r.followup_at && age > 20 * HOUR && !justRedirected) {
-      await sendTo(chatId, b.noResponse(short), [
-        [{ text: b.btnCatalog, url: `${siteUrl()}/${r.lang}` }],
+      // Не оставляем клиента с ощущением «тут никого нет»: сразу даём 3–4 анкеты его направления и города
+      const picks = r.master_id ? [] : await picksFor(r);
+      const city = r.city ?? "batumi";
+      const catUrl = seoCategoryIds().includes(r.category) ? `${siteUrl()}/${r.lang}/services/${r.category}${city !== "batumi" ? `?city=${city}` : ""}#masters` : `${siteUrl()}/${r.lang}${city !== "batumi" ? `?city=${city}` : ""}#masters`;
+      const rows = picks.map((m) => [{ text: `👤 ${m.name}${m.rating ? ` · ★${m.rating.toFixed(1)}` : ""}`, url: `${siteUrl()}/${r.lang}/master/${m.slug}` }]);
+      await sendTo(chatId, picks.length ? b.noResponsePicks(short) : b.noResponse(short), [
+        ...rows,
+        [{ text: picks.length ? b.btnAllIn(categoryPlural(r.category, r.lang)) : b.btnCatalog, url: picks.length ? catUrl : `${siteUrl()}/${r.lang}` }],
         [{ text: b.btnClose, callback_data: `close:${r.id}` }],
       ]);
       await updateRequest(r.id, { followup_at: new Date().toISOString() });
-      await notifyAdmin(`⏰ Заявку «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}) за сутки никто не взял — передайте вручную.\n${siteUrl()}/admin`);
+      await notifyAdmin(`⏰ Заявку «${short}» (${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}) за сутки никто не взял — передайте вручную.${await gapNote(r)}\nКлиенту отправлено анкет: ${picks.length}.\n${siteUrl()}/admin`);
       out.noResponse++;
       continue;
     }
@@ -1098,7 +1107,31 @@ export async function runFollowups() {
       out.reviewInvites++;
     }
   }
+  // Клиенты без Telegram: им написать не можем — предупреждаем администратора, чтобы позвонил сам
+  for (const r of await listStaleWithoutTg().catch(() => [])) {
+    if (now - new Date(r.created_at).getTime() <= 20 * HOUR) continue;
+    const short = esc(r.description.slice(0, 60));
+    await notifyAdmin(`⏰ Заявку «${short}» за сутки никто не взял, а Telegram у клиента не подключён — позвоните ему сами: ${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}.${await gapNote(r)}\n${siteUrl()}/admin`);
+    await updateRequest(r.id, { followup_at: new Date().toISOString() });
+    out.noResponse++;
+  }
   return out;
+}
+
+/** До 4 анкет направления и города заявки (порядок как в каталоге: бонусы, потом случайно). */
+async function picksFor(r: ClientRequest) {
+  const city = r.city ?? "batumi";
+  const all = await listPublishedMasters().catch(() => []);
+  return all.filter((m) => !m.demo && (m.city ?? "batumi") === city && servesCategory(m, r.category)).slice(0, 4);
+}
+
+/** Строка для администратора: сколько специалистов есть по направлению заявки. */
+async function gapNote(r: ClientRequest): Promise<string> {
+  const city = r.city ?? "batumi";
+  const [all, recv] = await Promise.all([listPublishedMasters().catch(() => []), listMastersForRequests(r.category, city).catch(() => [])]);
+  const n = catalogCount(all, r.category, city);
+  const head = `\n${esc(categoryLabel(r.category, "ru"))}: в каталоге ${n}, получают заявки ${recv.length}.`;
+  return recv.length === 0 ? `${head}\n🕳 Специалистов, получающих такие заявки, нет — пригласите: ${siteUrl()}/admin/gaps` : head;
 }
 
 /** Отзыв опубликован — сообщаем специалисту и автору. */
