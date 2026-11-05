@@ -6,11 +6,15 @@ export const ORD: Record<
     nav: string; title: string; lead: string; latest: string; all: string; empty: string;
     open: string; responded: (n: number) => string; closed: string; take: string; takeSpec: string; similar: string;
     ago: (min: number) => string; when: string; photo: string;
+    stats: (total: number, answered: number) => string; steps: string[]; emptyLive: string;
     forYou: string; forYouHint: string; forYouEmpty: string; mine: string; mineEmpty: string; direct: string; directEmpty: string;
     client: string; call: string; write: string; took: string; errors: Record<string, string>; subscribeHint: string;
   }
 > = {
   ru: {
+    stats: (t, a) => `За последние 30 дней: заявок — ${t}, специалисты откликнулись на ${a}.`,
+    steps: ["Опишите задачу — бесплатно, без регистрации", "Специалисты сами откликнутся, обычно в тот же день", "Выбираете сами и договариваетесь напрямую"],
+    emptyLive: "Сейчас все свежие заявки уже разобрали специалисты. Опишите свою задачу — откликнутся те, кто свободен.",
     nav: "Ищут мастера", title: "Кого ищут сейчас", lead: "Что сейчас ищут клиенты. Контакты клиента видит только специалист, который откликнулся.",
     latest: "Кого ищут сейчас", all: "Все запросы →", empty: "Пока запросов нет — станьте первым: разместите заявку.",
     open: "Ищут специалиста", responded: (n) => `Откликов: ${n}`, closed: "Закрыта", take: "Откликнуться", takeSpec: "Я специалист — откликнуться", similar: "Нужно то же самое? Разместить заявку",
@@ -24,6 +28,9 @@ export const ORD: Record<
     subscribeHint: "Хотите получать такие запросы сразу в Telegram? Включите «Получать заявки» выше.",
   },
   en: {
+    stats: (t, a) => `Last 30 days: ${t} requests, specialists responded to ${a}.`,
+    steps: ["Describe the task — free, no sign-up", "Specialists respond themselves, usually the same day", "You choose and agree directly"],
+    emptyLive: "All fresh requests have been picked up by specialists. Describe your task — those who are free will respond.",
     nav: "Who's needed", title: "Who clients need now", lead: "What clients are looking for right now. Client contacts are visible only to the specialist who responds.",
     latest: "Who clients need now", all: "All requests →", empty: "No orders yet — be the first: post a request.",
     open: "Looking for a specialist", responded: (n) => `Responses: ${n}`, closed: "Closed", take: "Respond", takeSpec: "I'm a specialist — respond", similar: "Need the same? Post a request",
@@ -36,6 +43,9 @@ export const ORD: Record<
     subscribeHint: "Want such orders in Telegram instantly? Turn on “Receive requests” above.",
   },
   ka: {
+    stats: (t, a) => `ბოლო 30 დღე: მოთხოვნები — ${t}, სპეციალისტები გამოეხმაურნენ ${a} მოთხოვნას.`,
+    steps: ["აღწერეთ დავალება — უფასოდ, რეგისტრაციის გარეშე", "სპეციალისტები თავად გამოგეხმაურებიან, ჩვეულებრივ იმავე დღეს", "ირჩევთ თავად და პირდაპირ თანხმდებით"],
+    emptyLive: "ახალი მოთხოვნები უკვე აიღეს სპეციალისტებმა. აღწერეთ თქვენი დავალება — თავისუფალი სპეციალისტები გამოგეხმაურებიან.",
     nav: "ვის ეძებენ", title: "ვის ეძებენ ახლა", lead: "რას ეძებენ კლიენტები ახლა. კლიენტის კონტაქტს ხედავს მხოლოდ გამოხმაურებული სპეციალისტი.",
     latest: "ვის ეძებენ ახლა", all: "ყველა მოთხოვნა →", empty: "შეკვეთები ჯერ არ არის.",
     open: "ეძებენ სპეციალისტს", responded: (n) => `გამოხმაურება: ${n}`, closed: "დახურულია", take: "გამოხმაურება", takeSpec: "სპეციალისტი ვარ — გამოხმაურება", similar: "იგივე გჭირდებათ? განათავსეთ განაცხადი",
