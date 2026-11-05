@@ -33,7 +33,19 @@ export function Catalog({ masters: all, lang, city, pageCat, catPages = [] }: { 
   const t = getDict(lang).catalog;
   const router = useRouter();
   // Город: показываем специалистов выбранного города; в списке — Батуми и города, где уже кто-то есть
-  const masters = useMemo(() => all.filter((m) => (m.city ?? "batumi") === city), [all, city]);
+  // Страница кешируется на CDN, поэтому порядок перемешиваем у посетителя: бонусы первыми, внутри — случайно,
+  // заполненные анкеты (стоят выше в ответе сервера) в среднем чуть выше. Решение владельца: «постоянный рандом».
+  const [mix, setMix] = useState(0);
+  useEffect(() => setMix(1), []);
+  const masters = useMemo(() => {
+    const list = all.filter((m) => (m.city ?? "batumi") === city);
+    if (!mix) return list;
+    const n = list.length || 1;
+    return list
+      .map((m, i) => ({ m, k: (Number(!!m.bonus) * 1000) - (i / n) * 40 + Math.random() * 120 }))
+      .sort((a, b) => b.k - a.k)
+      .map((x) => x.m);
+  }, [all, city, mix]);
   const cityCounts = useMemo(() => {
     const c: Record<string, number> = {};
     for (const m of all) c[m.city ?? "batumi"] = (c[m.city ?? "batumi"] ?? 0) + 1;

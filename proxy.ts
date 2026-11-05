@@ -33,5 +33,6 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   // Не трогаем админку, API, служебные файлы и всё, что с точкой (картинки, robots.txt, sitemap.xml).
-  matcher: ["/((?!api|admin|_next|.*\\..*).*)"],
+  // Страницы с /ru, /en, /ka тоже не трогаем: proxy на каждом заходе — лишний запуск сервера (лимиты Vercel).
+  matcher: ["/((?!api|admin|_next|ru(?:/|$)|en(?:/|$)|ka(?:/|$)|.*\\..*).*)"],
 };

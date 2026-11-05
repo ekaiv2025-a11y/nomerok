@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { cookies } from "next/headers";
+import { BonusSpecLink } from "@/components/BonusSpecLink";
 import type { PublicMaster } from "@/lib/types";
 import { href, type Locale } from "@/lib/i18n";
 
@@ -36,7 +35,6 @@ const T = {
 /** Главная, над каталогом: короткий блок про бонусы — клиентам кнопка «мастера с бонусом», специалистам — «включить бонус». */
 export async function BonusStrip({ lang, masters }: { lang: Locale; masters: PublicMaster[] }) {
   const t = T[lang];
-  const isSpec = (await cookies()).get("nm_is_spec")?.value === "1";
   const n = masters.filter((m) => m.bonus && !m.demo).length;
   return (
     <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
@@ -54,9 +52,7 @@ export async function BonusStrip({ lang, masters }: { lang: Locale; masters: Pub
         <div className="border-t border-[#f0d58a] pt-3 md:border-0 md:pt-0">
           <p className="text-[13px] font-bold uppercase tracking-wide text-[#8a6a1f]">{t.masters}</p>
           <p className="mt-0.5 text-[13px] leading-snug text-[#5a4410]">{t.mastersText}</p>
-          <Link href={isSpec ? `/${lang}/cabinet?tab=promo#bonus` : href(lang, "/join")} className="mt-2 inline-block text-[13px] font-semibold text-[#6b4f12] underline">
-            {isSpec ? t.on : t.join} →
-          </Link>
+          <BonusSpecLink lang={lang} joinHref={href(lang, "/join")} on={t.on} join={t.join} />
         </div>
       </div>
     </section>
