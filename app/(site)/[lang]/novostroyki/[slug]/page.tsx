@@ -146,11 +146,7 @@ export default async function ProjectPage({ params }: Props) {
           </dl>
           {p.price && (
             <p className="mt-2 text-[12px] text-muted">
-              Цены — по данным{" "}
-              <a href={p.price.src} target="_blank" rel="noopener noreferrer nofollow" className="underline">
-                источника
-              </a>{" "}
-              на {p.price.date}. Актуальные условия уточняйте по заявке.
+              Цены — на {p.price.date}. Актуальные условия уточняйте по заявке.
             </p>
           )}
           {p.features && p.features.length > 0 && (
@@ -265,17 +261,6 @@ export default async function ProjectPage({ params }: Props) {
 
           <section className="mt-8 text-[13px] leading-relaxed text-muted">
             <p>Описание составлено редакцией NomerOk по материалам застройщика и открытым источникам{p.updated ? `, проверено ${p.updated}` : ""}. Это не официальный сайт застройщика и не оферта.</p>
-            <p className="mt-1">
-              Источники:{" "}
-              {p.sources.map((s, i) => (
-                <span key={s.url}>
-                  {i > 0 && ", "}
-                  <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="underline">
-                    {s.name}
-                  </a>
-                </span>
-              ))}
-            </p>
           </section>
         </div>
 

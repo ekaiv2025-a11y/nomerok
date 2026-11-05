@@ -112,17 +112,6 @@ export default async function DeveloperPage({ params }: Props) {
           )}
           <section className="mt-8 text-[13px] leading-relaxed text-muted">
             <p>Описание составлено редакцией NomerOk по материалам застройщика и открытым источникам, проверено {d.updated}. Это не официальный сайт застройщика.</p>
-            <p className="mt-1">
-              Источники:{" "}
-              {d.sources.map((s, i) => (
-                <span key={s.url}>
-                  {i > 0 && ", "}
-                  <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="underline">
-                    {s.name}
-                  </a>
-                </span>
-              ))}
-            </p>
           </section>
         </div>
         <aside className="lg:sticky lg:top-20 lg:self-start">

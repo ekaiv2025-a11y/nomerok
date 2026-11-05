@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function GeoHub({ params }: Props) {
   const { lang } = await params;
   if (lang !== "ru") notFound();
-  const deadline = Date.now() + 1500;
+  const deadline = Date.now() + 3000;
   const photos = await Promise.all(GEO.map((g) => geoPhoto(g.photo.q, deadline)));
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -32,7 +32,7 @@ export default async function GeoHub({ params }: Props) {
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {GEO.map((g, i) => (
           <Link key={g.id} href={href("ru", `/georgia/${g.id}`)} className="group overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand hover:shadow-sm">
-            <div className="aspect-[16/9] bg-[#dfe9ee]">{photos[i] && <img src={photos[i]!.url} alt={g.photo.alt} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />}</div>
+            <div className="aspect-[16/9] bg-[#dfe9ee]"><img src={photos[i]?.url ?? `/api/cover?q=${encodeURIComponent(g.photo.q)}`} alt={g.photo.alt} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" /></div>
             <div className="p-4">
               <p className="text-[19px] font-bold">{g.name}</p>
               {g.region && <p className="text-[13px] text-muted">{g.region}</p>}

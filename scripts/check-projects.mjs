@@ -30,6 +30,8 @@ for (const [i, p] of (Array.isArray(list) ? list : []).entries()) {
   }
   for (const im of p.images ?? []) ok(/^https:\/\/\S+$/.test(im?.url ?? "") && im.credit && /^https:\/\//.test(im.src ?? ""), `${at}: images — нужны url (https), credit («застройщик …») и src (страница, где взято)`);
   if (p.developerSlug) ok(DEV.has(p.developerSlug), `${at}: developerSlug «${p.developerSlug}» — нет в data/developers.json`);
+  // Картинки с водяными знаками чужих сайтов не берём (решение владельца, 06.11.2026)
+  for (const im of p.images ?? []) ok(!/geoln\.com/i.test(im?.url ?? ""), `${at}: images — geoln.com ставит водяной знак, такие фото не берём`);
   for (const im of p.images ?? []) ok(!im.kind || ["exterior", "interior", "view", "plan", "progress"].includes(im.kind), `${at}: images.kind — exterior, interior, view, plan или progress`);
   for (const u of p.units_table ?? []) ok(u.type && (u.priceFrom == null || u.priceFrom > 1000), `${at}: units_table — нужен type, priceFrom числом`);
   if (p.units_table?.some((u) => u.priceFrom) || p.payment?.length) ok(p.price?.src, `${at}: цены квартир и условия — нужен источник в price.src и дата в price.date`);

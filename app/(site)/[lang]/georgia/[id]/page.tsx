@@ -38,7 +38,7 @@ export default async function GeoCityPage({ params }: Props) {
   const { lang, id } = await params;
   const g = geoPage(id);
   if (lang !== "ru" || !g) notFound();
-  const deadline = Date.now() + 1500;
+  const deadline = Date.now() + 3000;
   const siteCity = isCity(g.id) ? g.id : null;
   const [cover, sightPhotos, masters, pc, arts] = await Promise.all([
     geoPhoto(g.photo.q, deadline),
@@ -93,7 +93,7 @@ export default async function GeoCityPage({ params }: Props) {
       {/* шапка */}
       <section className="relative">
         <div className="relative h-[300px] w-full overflow-hidden bg-[#dfe9ee] sm:h-[420px]">
-          {cover && <img src={cover.url} alt={g.photo.alt} className="h-full w-full object-cover" />}
+          <img src={cover ? cover.url : `/api/cover?q=${encodeURIComponent(g.photo.q)}`} alt={g.photo.alt} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-6 text-white sm:px-6 sm:pb-10">
             <nav className="text-[13px] opacity-90">
@@ -115,6 +115,7 @@ export default async function GeoCityPage({ params }: Props) {
             , {cover.license}, Wikimedia Commons
           </p>
         )}
+        {!cover && <p className="mx-auto max-w-6xl px-4 pt-1 text-[11px] text-muted sm:px-6">Фото: Wikimedia Commons</p>}
       </section>
 
       {/* меню разделов */}
@@ -213,7 +214,7 @@ export default async function GeoCityPage({ params }: Props) {
                     const inner = (
                       <>
                         <div className="relative aspect-[16/9] bg-cream">
-                          {ph && <img src={ph.url} alt={s.name} loading="lazy" className="h-full w-full object-cover" />}
+                          {(ph || s.photo) && <img src={ph ? ph.url : `/api/cover?q=${encodeURIComponent(s.photo!)}`} alt={s.name} loading="lazy" className="h-full w-full object-cover" />}
                           <span className="absolute left-2 top-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-brand px-2 text-[13px] font-bold text-white">{k + 1}</span>
                         </div>
                         <div className="p-4">
