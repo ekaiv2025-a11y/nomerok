@@ -18,6 +18,11 @@ import { publicTeamOf } from "@/lib/org-db";
 import { localizeMasters } from "@/lib/translate-db";
 import { MasterCard } from "@/components/MasterCard";
 import { currentSpecialistId } from "@/lib/spec-auth";
+import { listPublishedMasters } from "@/lib/db";
+import { servesCategory } from "@/lib/availability";
+import { categoryPlural } from "@/lib/categories";
+import { seoCategoryIds } from "@/lib/seo-categories";
+import { cityIn } from "@/lib/cities";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +80,16 @@ export default async function PlacePage({ params }: Props) {
     p.owner_verified_at ? publicTeamOf(p.id).then((x) => localizeMasters(x, lang)).catch(() => []) : Promise.resolve([]),
     currentSpecialistId().catch(() => null),
   ]);
+  // Специалисты из нашего каталога по теме места (клиника → врачи, стоматология → стоматологи…)
+  const specCats = relatedSpecCats(p.cat, p.sub);
+  const pcity = p.city ?? "batumi";
+  const specs = specCats.length
+    ? (await listPublishedMasters().catch(() => []))
+        .filter((m) => !m.demo && (m.city ?? "batumi") === pcity && specCats.some((sc) => servesCategory(m, sc)))
+        .slice(0, 3)
+    : [];
+  const specsL = specs.length ? await localizeMasters(specs, lang).catch(() => specs) : [];
+  const tips = lang === "ru" ? (TIPS[p.cat] ?? null) : null;
   const TT = TEAM_T[lang];
   const inTeam = !!specId && team.some((m) => m.id === specId);
   const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
@@ -110,20 +125,22 @@ export default async function PlacePage({ params }: Props) {
       {p.photos?.[0] ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={p.photos[0]} alt={name} className="mt-4 h-56 w-full rounded-2xl object-cover sm:h-72" />
-      ) : (
-        <div
-          aria-hidden
-          className="mt-4 flex h-28 items-center justify-center rounded-2xl sm:h-36"
-          style={{ background: `linear-gradient(135deg, ${placeTone(p.cat)[0]}, ${placeTone(p.cat)[1]})` }}
-        >
-          <span className="text-[56px] drop-shadow-sm sm:text-[72px]">{c.emoji}</span>
+      ) : null}
+      <div className={`flex items-center gap-4 ${p.photos?.[0] ? "mt-4" : "mt-5"}`}>
+        {!p.photos?.[0] && (
+          <span aria-hidden style={{ background: placeTone(p.cat)[0] }} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-[34px] sm:h-20 sm:w-20 sm:text-[42px]">
+            {c.emoji}
+          </span>
+        )}
+        <div className="min-w-0">
+          <h1 translate="no" className="notranslate text-[26px] font-bold leading-tight sm:text-[34px]">{name}</h1>
+          <p className="mt-1 text-[15px] text-muted">
+            {p.sub || c.label[lang]}
+            {addr ? ` · ${addr}` : ""}
+            {altNames.length > 0 && <span className="block text-[13px]">{altNames.join(" · ")}</span>}
+          </p>
         </div>
-      )}
-      <h1 translate="no" className="notranslate mt-3 text-[26px] font-bold leading-tight sm:text-[34px]">{name}</h1>
-      <p className="mt-1 text-[15px] text-muted">
-        {p.sub || c.label[lang]}
-        {altNames.length > 0 && ` · ${altNames.join(" · ")}`}
-      </p>
+      </div>
       {reviews.length > 0 && (
         <a href="#reviews" className="mt-2 inline-flex items-center gap-1.5 text-[15px] font-semibold">
           <span className="text-[#e5a50a]">★</span> {avg.toFixed(1)} <span className="font-normal text-muted">· {reviews.length} {lang === "ru" ? "отз." : ""}</span>
@@ -243,6 +260,40 @@ export default async function PlacePage({ params }: Props) {
         )}
       </section>
 
+      {p.lat != null && p.lng != null && (
+        <section className="mt-4">
+          <Map height={260} points={[{ lat: p.lat, lng: p.lng, title: name }]} />
+        </section>
+      )}
+
+      {tips && (
+        <section className="mt-6 rounded-2xl border border-accent/40 bg-[#fffaf0] p-5">
+          <h2 className="text-[17px] font-bold text-[#5a4410]">💡 {tips.h}</h2>
+          <ul className="mt-2 space-y-1.5 text-[14.5px] leading-relaxed text-[#5a4410]">
+            {tips.list.map((x) => (
+              <li key={x}>• {x}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {specsL.length > 0 && (
+        <section className="mt-6">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h2 className="text-[18px] font-bold">{SPEC_T[lang](categoryPlural(specCats[0], lang).toLowerCase(), cityIn(pcity, lang))}</h2>
+            <Link href={href(lang, seoCategoryIds().includes(specCats[0]) ? `/services/${specCats[0]}${pcity !== "batumi" ? `?city=${pcity}` : ""}` : `/?city=${pcity}&cat=${specCats[0]}#masters`)} className="text-[14px] font-semibold text-brand hover:underline">
+              {SPEC_ALL[lang]} →
+            </Link>
+          </div>
+          <p className="mt-1 text-[13px] text-muted">{SPEC_HINT[lang]}</p>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {specsL.map((m) => (
+              <MasterCard key={m.id} m={m} lang={lang} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {p.owner_verified_at && (
         <section className="mt-6 rounded-2xl border border-line bg-white p-5">
           <h2 className="text-[18px] font-bold">
@@ -277,11 +328,6 @@ export default async function PlacePage({ params }: Props) {
         </section>
       )}
 
-      {p.lat != null && p.lng != null && (
-        <section className="mt-6">
-          <Map height={260} points={[{ lat: p.lat, lng: p.lng, title: name }]} />
-        </section>
-      )}
 
       <section id="reviews" className="mt-8 scroll-mt-24">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -359,3 +405,63 @@ export default async function PlacePage({ params }: Props) {
     </div>
   );
 }
+
+/** Какие направления каталога специалистов связаны с местом. */
+function relatedSpecCats(cat: string, sub?: string | null): string[] {
+  const s = (sub ?? "").toLowerCase();
+  if (cat === "health") return s.includes("стоматолог") ? ["dentist"] : s.includes("аптек") || s.includes("оптик") ? [] : ["doctor", "dentist", "psychologist", "massage"];
+  const map: Record<string, string[]> = {
+    beauty: ["beauty", "massage"],
+    education: ["tutor", "languages", "music"],
+    kids: ["nanny", "tutor"],
+    sport: ["fitness"],
+    pets: ["vet"],
+    public: ["lawyer", "translator"],
+    business: ["accountant", "lawyer"],
+    finance: ["accountant"],
+    realty: ["realtor", "inspection"],
+    repair: ["handyman", "appliances"],
+    electronics: ["appliances", "it"],
+    home: ["repair", "handyman", "plumber", "electrician"],
+    services: ["cleaning", "handyman"],
+    events: ["photo", "food"],
+    media: ["photo", "it"],
+  };
+  return map[cat] ?? [];
+}
+
+const SPEC_T = {
+  ru: (what: string, where: string) => `Частные специалисты: ${what} ${where}`,
+  en: (what: string, where: string) => `Independent specialists: ${what} ${where}`,
+  ka: (what: string, where: string) => `კერძო სპეციალისტები: ${what} ${where}`,
+};
+const SPEC_ALL = { ru: "Все", en: "All", ka: "ყველა" } as const;
+const SPEC_HINT = { ru: "Из каталога NomerOk — пишите и звоните им напрямую.", en: "From the NomerOk catalog — contact them directly.", ka: "NomerOk-ის კატალოგიდან — დაუკავშირდით პირდაპირ." } as const;
+
+/** Короткие полезные советы по типу места (только общие факты, без обещаний о конкретном месте). */
+const TIPS: Record<string, { h: string; list: string[] }> = {
+  health: {
+    h: "Перед визитом",
+    list: [
+      "Позвоните заранее: уточните часы приёма, нужна ли запись и есть ли врач, который говорит по-русски или по-английски.",
+      "Если у вас страховка — спросите, работает ли с ней клиника, и возьмите полис и паспорт.",
+      "Скорая помощь и все экстренные службы в Грузии — 112.",
+    ],
+  },
+  public: {
+    h: "Перед визитом",
+    list: [
+      "Многие услуги Дома юстиции и госорганов можно заказать онлайн на my.gov.ge — проверьте, прежде чем идти.",
+      "Возьмите паспорт. Документы на других языках обычно нужны с переводом и заверением у нотариуса.",
+      "Часы работы и очередь лучше уточнить по телефону: в начале месяца бывает больше людей.",
+    ],
+  },
+  finance: {
+    h: "Полезно знать",
+    list: ["Курс в разных обменниках может заметно отличаться — сравните перед обменом.", "Для открытия счёта в банке нужен паспорт; условия для иностранцев уточняйте в отделении."],
+  },
+  education: {
+    h: "Перед визитом",
+    list: ["Узнайте по телефону, на каком языке идут занятия и есть ли пробный урок.", "Спросите про документы для зачисления: обычно нужны паспорт или свидетельство о рождении ребёнка."],
+  },
+};
