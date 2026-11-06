@@ -25,12 +25,15 @@ const RUBRIC_PHOTO: Record<string, string[]> = {
   travel: ["Svaneti towers", "Kazbegi Gergeti Trinity Church", "Kakheti vineyards", "Signagi town walls", "Vardzia cave monastery", "Martvili canyon"],
   events: ["Tbilisi Opera theatre", "Batumi Drama Theatre", "Tbilisi Philharmonic", "concert stage"],
   picks: ["Tbilisi cafe street", "Batumi cafe", "Tbilisi restaurant interior", "Fabrika Tbilisi"],
+  pros: ["craftsman at work", "person using smartphone", "handshake business meeting", "carpenter workshop", "hairdresser at work", "laptop work desk"],
 };
+// Горы и крепости подходят только к статьям про страну и город; к советам специалистам, ремонту и здоровью — нет (лучше без обложки)
+const GEORGIA_OK = new Set(["news", "life", "travel", "picks", "events", "build", undefined, ""]);
 const GEORGIA_PHOTO = ["Caucasus mountains Kazbegi Georgia", "Tbilisi Narikala fortress", "Batumi Alphabetic Tower", "Kutaisi Bagrati Cathedral", "Mtskheta Jvari monastery", "Gudauri mountains", "Borjomi park", "Ananuri fortress"];
 
 function photoQueries(a: Article): string[] {
   const city = articleCity(a);
-  const list = [a.photoQuery, ARTICLE_PHOTO[a.slug], CAT_PHOTO[a.cats?.[0] ?? ""], city ? CITY_PHOTO_QUERY[city] : null, ...(RUBRIC_PHOTO[a.rubric ?? ""] ?? []), ...GEORGIA_PHOTO];
+  const list = [a.photoQuery, ARTICLE_PHOTO[a.slug], CAT_PHOTO[a.cats?.[0] ?? ""], city ? CITY_PHOTO_QUERY[city] : null, ...(RUBRIC_PHOTO[a.rubric ?? ""] ?? []), ...(GEORGIA_OK.has(a.rubric) ? GEORGIA_PHOTO : [])];
   return [...new Set(list.filter(Boolean) as string[])];
 }
 

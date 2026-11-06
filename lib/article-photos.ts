@@ -29,7 +29,7 @@ export const ARTICLE_PHOTO: Record<string, string> = {
   "gruzinskiy-yazyk-s-nulya": "Georgian alphabet Mkhedruli",
   "kak-vybrat-psihologa": "psychotherapy office armchair",
   "kogda-srochno-k-veterinaru": "veterinarian examining dog",
-  "anketa-specialista-kotoraya-prodaet": "laptop on desk workspace",
+  "anketa-specialista-kotoraya-prodaet": "person using smartphone",
   "kak-prosit-otzyvy": "handshake business",
   "propal-svet-batumi": "power lines electricity pole",
   "net-vody-batumi": "water tap faucet",
