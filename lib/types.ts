@@ -75,6 +75,8 @@ export type Master = {
   /** Последняя активность: бот, кабинет, отклик на заявку */
   last_active_at: string | null;
   inactive_warned_at: string | null;
+  /** сколько напоминаний «как у вас дела?» уже отправлено (0047) */
+  inactive_nudges?: number;
   /** Профиль в архиве — клиенты его не видят */
   archived_at: string | null;
   archived_reason: "inactive" | "missed" | "admin" | null;
@@ -172,7 +174,7 @@ export type RequestResponse = { id: number; request_id: string; master_id: strin
 
 export type NewMaster = Omit<
   Master,
-  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents" | "stats_sent_at" | "city" | "links"
+  "id" | "slug" | "created_at" | "updated_at" | "admin_note" | "tg_chat_id" | "tg_username" | "tg_link_token" | "phone_verified_at" | "notify_requests" | "lang" | "extra_categories" | "is_away" | "away_until" | "last_active_at" | "inactive_warned_at" | "inactive_nudges" | "archived_at" | "archived_reason" | "missed_direct" | "portfolio" | "work_mode" | "place_address" | "place_lat" | "place_lng" | "service_area" | "work_hours" | "documents" | "stats_sent_at" | "city" | "links"
 > & {
   admin_note?: string;
   lang?: Locale;

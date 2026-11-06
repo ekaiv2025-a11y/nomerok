@@ -901,25 +901,57 @@ async function checkDirectMisses(): Promise<number> {
   return n;
 }
 
-/** Месяц без активности — предупреждаем; ещё неделя тишины — архив. */
+/*
+ * Молчащие специалисты. Специалистов мало — не отправляем в архив сразу (решение владельца, 06.11.2026):
+ * 30 дней тишины → «Как у вас дела?» со статистикой и новостями сайта; +14 дней → напоминание;
+ * +14 дней → последнее предупреждение и сигнал администратору (позвонить); +7 дней → архив.
+ * Любое действие специалиста (бот, кабинет, кнопка) обнуляет счётчик — см. touchActive.
+ */
 async function checkInactivity(): Promise<{ warned: number; archived: number }> {
   const out = { warned: 0, archived: 0 };
   const now = Date.now();
+  await restoreInactiveArchivedOnce().catch((e) => console.error("[restore-archived]", e));
   for (const m of await adminListMasters()) {
     if (m.status !== "published" || m.archived_at || isAwayNow(m) || !m.tg_chat_id || !m.last_active_at) continue;
     const idle = now - new Date(m.last_active_at).getTime();
     if (idle < 30 * DAY) continue;
-    if (!m.inactive_warned_at) {
-      const b = botDict(m.lang);
-      await sendTo(m.tg_chat_id, b.inactiveWarn, [[{ text: b.btnStillHere, callback_data: "alive" }]]);
-      await adminUpdateMaster(m.id, { inactive_warned_at: new Date().toISOString() });
+    const b = botDict(m.lang);
+    const stage = m.inactive_warned_at ? Math.max(1, m.inactive_nudges ?? 1) : 0;
+    const since = m.inactive_warned_at ? now - new Date(m.inactive_warned_at).getTime() : Infinity;
+    const buttons = async () => [[{ text: b.btnStillHere, callback_data: "alive" }], [await cabinetButton(m)]];
+    const nudge = async (text: string, n: number) => {
+      await sendTo(m.tg_chat_id!, text, await buttons());
+      await adminUpdateMaster(m.id, { inactive_warned_at: new Date().toISOString(), inactive_nudges: n }).catch(() => adminUpdateMaster(m.id, { inactive_warned_at: new Date().toISOString() }));
       out.warned++;
-    } else if (now - new Date(m.inactive_warned_at).getTime() >= 7 * DAY) {
+    };
+    if (stage === 0) {
+      const { masterStats } = await import("./stats");
+      const st = await masterStats(m.id, 30).catch(() => null);
+      await nudge(b.howAreYou(esc(m.name.split(" ")[0]), st?.views ?? 0, st?.contacts ?? 0), 1);
+    } else if (stage === 1 && since >= 14 * DAY) await nudge(b.howAreYou2, 2);
+    else if (stage === 2 && since >= 14 * DAY) {
+      await nudge(b.inactiveWarn, 3);
+      await notifyAdmin(`☎️ <b>${esc(m.name)}</b> молчит ${Math.round(idle / DAY)} дн. и не ответил(а) на 2 напоминания. Через 7 дней профиль уйдёт в архив — можно позвонить: ${esc(formatPhone(m.phone))}\n${siteUrl()}/admin/masters/${m.id}`);
+    } else if (stage >= 3 && since >= 7 * DAY) {
       await archiveMaster(m, "inactive");
       out.archived++;
     }
   }
   return out;
+}
+
+/** Один раз: возвращаем из архива тех, кого раньше убрали за тишину (по старому правилу «месяц + неделя»), — они пройдут новые напоминания. */
+async function restoreInactiveArchivedOnce() {
+  const { supabase } = await import("./db");
+  const sb = supabase();
+  if (!sb) return;
+  const key = "restore-inactive-archived-2026-11";
+  const seen = await sb.from("_nm_once").select("key").eq("key", key).maybeSingle();
+  if (seen.error || seen.data) return;
+  await sb.from("_nm_once").insert({ key });
+  const back = (await adminListMasters()).filter((m) => m.archived_at && m.archived_reason === "inactive");
+  for (const m of back) await adminUpdateMaster(m.id, { archived_at: null, archived_reason: null, inactive_warned_at: null, inactive_nudges: 0 }).catch(() => adminUpdateMaster(m.id, { archived_at: null, archived_reason: null, inactive_warned_at: null }));
+  if (back.length) await notifyAdmin(`↩️ Вернул(а) из архива ${back.length} анкет(ы), убранных за тишину: ${back.map((m) => esc(m.name)).join(", ")}. Им придёт «Как у вас дела?», архив — только после трёх напоминаний.`);
 }
 
 /** По понедельникам — недельная сводка специалисту: просмотры, контакты, взятые заявки. */

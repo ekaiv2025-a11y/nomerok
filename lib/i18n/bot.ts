@@ -88,6 +88,8 @@ type BotDict = {
   autoResumed: string;
   notSpecialistShort: string;
   inactiveWarn: string;
+  howAreYou: (name: string, views: number, contacts: number) => string;
+  howAreYou2: string;
   btnStillHere: string;
   stillHereOk: string;
   archivedInactive: string;
@@ -138,6 +140,9 @@ const ru: BotDict = {
   statsTipDone: "Так держать! 💪",
   docVerified: (title) => `✅ Документ «${title}» проверен — в профиле появилась отметка «Документы проверены».`,
   docRejected: (title) => `Документ «${title}» скрыт из вашего профиля: его плохо видно или он не подходит. Если есть вопросы — напишите сюда.`,
+  howAreYou: (name, views, contacts) =>
+    `👋 ${name}, здравствуйте! Как у вас дела? Давно вас не было в NomerOk.\n\n${views ? `За месяц вашу анкету посмотрели ${views} раз${contacts ? `, контакты открыли ${contacts}` : ""}.\n\n` : ""}Что у нас нового:\n🎁 Бонус для клиентов — анкеты с бонусом стоят в каталоге первыми\n🗺 Специалисты на карте на страницах направлений\n📋 Лента «Кого ищут сейчас» — свежие заявки клиентов\n✍️ Можно добавить фото работ и цены — так клиенту проще выбрать\n\nВы ещё принимаете заказы? Нажмите «Да» — или загляните в кабинет и обновите анкету. Если сейчас заняты, поставьте паузу: /pause`,
+  howAreYou2: "👋 Напоминаем о себе: ваша анкета на NomerOk всё ещё на сайте, клиенты её видят. Если вы принимаете заказы — нажмите «Да, я на связи», это займёт секунду. Если взяли перерыв — /pause, и анкета подождёт вас.",
   inactiveWarn: "👋 Вы давно не заходили в NomerOk. Вы ещё принимаете заказы? Нажмите кнопку — иначе через 7 дней профиль уйдёт в архив и клиенты перестанут его видеть. Если просто заняты — поставьте паузу: /pause",
   btnStillHere: "✅ Да, я на связи",
   stillHereOk: "Спасибо! Профиль остаётся на сайте.",
@@ -257,6 +262,9 @@ const en: BotDict = {
   statsTipDone: "Keep it up! 💪",
   docVerified: (title) => `✅ Your document “${title}” is verified — your profile now shows “Documents verified”.`,
   docRejected: (title) => `Your document “${title}” was hidden from your profile: it may be unreadable or unsuitable. Any questions — write here.`,
+  howAreYou: (name, views, contacts) =>
+    `👋 Hi ${name}! How are you? We haven't seen you on NomerOk for a while.\n\n${views ? `Your profile was viewed ${views} times this month${contacts ? `, contacts opened ${contacts} times` : ""}.\n\n` : ""}What's new:\n🎁 Client bonus — profiles with a bonus go first in the catalog\n🗺 Specialists on the map on category pages\n📋 “Who is needed now” — a feed of fresh client requests\n✍️ Add work photos and prices — it helps clients choose\n\nAre you still taking orders? Tap “Yes” — or open your dashboard and update your profile. Busy now? Pause: /pause`,
+  howAreYou2: "👋 A quick reminder: your NomerOk profile is still live and clients can see it. If you're taking orders, tap “Yes, I'm here” — it takes a second. Taking a break? /pause and your profile will wait for you.",
   inactiveWarn: "👋 You haven't been active on NomerOk for a while. Are you still taking orders? Tap the button — otherwise in 7 days your profile will be archived and clients won't see it. Just busy? Pause instead: /pause",
   btnStillHere: "✅ Yes, I'm here",
   stillHereOk: "Thanks! Your profile stays on the site.",
@@ -376,6 +384,9 @@ const ka: BotDict = {
   statsTipDone: "ასე გააგრძელეთ! 💪",
   docVerified: (title) => `✅ დოკუმენტი „${title}“ შემოწმებულია — პროფილში გამოჩნდა ნიშანი „დოკუმენტები შემოწმებულია“.`,
   docRejected: (title) => `დოკუმენტი „${title}“ დაიმალა თქვენი პროფილიდან: შესაძლოა ცუდად ჩანს ან არ შეესაბამება. კითხვების შემთხვევაში — მოგვწერეთ აქ.`,
+  howAreYou: (name, views, contacts) =>
+    `👋 ${name}, გამარჯობა! როგორ ხართ? დიდი ხანია NomerOk-ზე არ შემოსულხართ.\n\n${views ? `ამ თვეში თქვენი პროფილი ${views}-ჯერ ნახეს${contacts ? `, კონტაქტი გახსნეს ${contacts}-ჯერ` : ""}.\n\n` : ""}რა არის ახალი:\n🎁 ბონუსი კლიენტებისთვის — ბონუსიანი პროფილები კატალოგში პირველია\n🗺 სპეციალისტები რუკაზე მიმართულებების გვერდებზე\n📋 „ვის ეძებენ ახლა“ — კლიენტების ახალი მოთხოვნები\n✍️ დაამატეთ ნამუშევრების ფოტოები და ფასები\n\nისევ იღებთ შეკვეთებს? დააჭირეთ „დიახ“ — ან გახსენით კაბინეტი და განაახლეთ პროფილი. დაკავებული ხართ? პაუზა: /pause`,
+  howAreYou2: "👋 შეგახსენებთ: თქვენი პროფილი NomerOk-ზე ისევ საიტზეა და კლიენტები მას ხედავენ. თუ შეკვეთებს იღებთ — დააჭირეთ „დიახ, კავშირზე ვარ“. თუ შესვენება გაქვთ — /pause.",
   inactiveWarn: "👋 დიდი ხანია NomerOk-ზე არ შემოსულხართ. ისევ იღებთ შეკვეთებს? დააჭირეთ ღილაკს — წინააღმდეგ შემთხვევაში 7 დღეში პროფილი არქივში გადავა და კლიენტები მას ვეღარ დაინახავენ. თუ უბრალოდ დაკავებული ხართ — ჩართეთ პაუზა: /pause",
   btnStillHere: "✅ დიახ, კავშირზე ვარ",
   stillHereOk: "გმადლობთ! პროფილი საიტზე რჩება.",

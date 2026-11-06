@@ -135,6 +135,7 @@ export async function healthCheck() {
           ["0044 действия на сайте", "funnel_events", "sid"],
           ["0045 фото новостроек", "project_photos", "slug"],
           ["0046 заявка ждёт клиента", "requests", "pending_client"],
+          ["0047 напоминания молчащим", "masters", "inactive_nudges"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
