@@ -1,7 +1,7 @@
 import { clientContact } from "@/lib/client-auth";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getPublishedMasterBySlug } from "@/lib/db";
 import { localizeMaster } from "@/lib/translate-db";
 import { categoryLabel } from "@/lib/categories";
@@ -28,6 +28,8 @@ export default async function MessagePage({ params, searchParams }: Props) {
   if (!isLocale(lang)) notFound();
   const m = await localizeMaster(await getPublishedMasterBySlug(slug), lang);
   if (!m) notFound();
+  // Анкета по данным сайта клиники — личных сообщений нет, запись через клинику
+  if (m.imported) redirect(`/${lang}/master/${slug}`);
   const d = getDict(lang);
   const t = d.message;
   const blocked = m.demo || m.away;

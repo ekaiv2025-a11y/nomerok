@@ -100,6 +100,9 @@ export type Master = {
   documents: MasterDocument[];
   /** Когда отправили недельную сводку в бот */
   stats_sent_at: string | null;
+  /** Анкета составлена редакцией по открытым данным (0048) */
+  source_url?: string | null;
+  imported_at?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -132,7 +135,7 @@ export type PublicMaster = Pick<
   | "work_hours"
   | "city"
   | "links"
-> & { docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number; bonus?: boolean; bonusText?: string; bonusKind?: "ref" | "repost"; taken30?: number; subcats?: string[]; /** имя в оригинале, если показали транслитом */ name_orig?: string; /** анкета переведена автоматически с этого языка */ tr_from?: Locale };
+> & { /** анкету составила редакция по открытым данным (сайт клиники), контакт — клиники */ imported?: boolean; source_url?: string | null; docs_verified: boolean; has_tg: boolean; active?: "today" | "week" | null; seen_days?: number | null; slots?: { d: string; t: string }[]; short?: string | null; away: boolean; verified: boolean; demo: boolean; rating: number | null; reviews: number; bonus?: boolean; bonusText?: string; bonusKind?: "ref" | "repost"; taken30?: number; subcats?: string[]; /** имя в оригинале, если показали транслитом */ name_orig?: string; /** анкета переведена автоматически с этого языка */ tr_from?: Locale };
 
 export type MasterContacts = {
   phone: string;

@@ -136,6 +136,7 @@ export async function healthCheck() {
           ["0045 фото новостроек", "project_photos", "slug"],
           ["0046 заявка ждёт клиента", "requests", "pending_client"],
           ["0047 напоминания молчащим", "masters", "inactive_nudges"],
+          ["0048 анкеты по открытым данным", "masters", "imported_at"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -270,11 +271,14 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     city: m.city ?? "batumi",
     links: withoutPersonalTg(m.links && typeof m.links === "object" ? m.links : {}, (m as { telegram?: string | null }).telegram),
     has_tg: !!(m as { telegram?: string | null }).telegram,
-    active: activeLevel((m as { last_active_at?: string | null }).last_active_at),
-    seen_days: seenDays((m as { last_active_at?: string | null }).last_active_at),
+    // у анкет по сайту клиники «заходил на сайт» не показываем — специалист сам на сайте не был
+    active: (m as { imported_at?: string | null }).imported_at ? null : activeLevel((m as { last_active_at?: string | null }).last_active_at),
+    seen_days: (m as { imported_at?: string | null }).imported_at ? null : seenDays((m as { last_active_at?: string | null }).last_active_at),
     slots: cleanSlots((m as { slots?: unknown }).slots),
     short: (m as { short?: string | null }).short ?? null,
     subcats: Array.isArray((m as { subcats?: unknown }).subcats) ? ((m as { subcats: string[] }).subcats) : [],
+    imported: !!(m as { imported_at?: string | null }).imported_at,
+    source_url: (m as { source_url?: string | null }).source_url ?? null,
     docs_verified: Array.isArray(m.documents) && m.documents.some((d) => d.public && d.status !== "rejected"),
     away: isAwayNow(m),
     verified: !!m.phone_verified_at,
@@ -304,7 +308,8 @@ const PUBLIC_COLUMNS = COLUMNS_0009 + ",links";
 /** Наборы колонок от новых к старым: если какую-то миграцию ещё не выполнили, сайт не падает. */
 const COLUMNS_0017 = PUBLIC_COLUMNS + ",short,slots";
 const COLUMNS_0040 = COLUMNS_0017 + ",subcats";
-const COLUMN_SETS = [COLUMNS_0040, COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMNS_0048 = COLUMNS_0040 + ",source_url,imported_at";
+const COLUMN_SETS = [COLUMNS_0048, COLUMNS_0040, COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {
@@ -342,6 +347,8 @@ export function rankScore(m: PublicMaster): number {
   // Бонус клиентам — заметно выше: клиентам выгодно, а специалист вкладывается в привлечение
   if (m.bonus) s += 60; // = размаху ротации: с бонусом всегда выше похожих анкет без бонуса
   if (m.short) s += 2;
+  // Анкеты, составленные редакцией по сайту клиники, — ниже тех, кого специалист заполнил сам
+  if (m.imported) s -= 30;
   return s;
 }
 

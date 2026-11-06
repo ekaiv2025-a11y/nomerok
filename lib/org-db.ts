@@ -11,7 +11,7 @@ import { transliterate } from "./slug";
  * Организация — это «место» с подтверждённым владельцем (owner_chat_id).
  * Анкету специалиста заполняет только он сам; организация лишь принимает его в команду или убирает.
  */
-export type OrgMember = { place_id: string; master_id: string; status: "pending" | "active"; via: "invite" | "self"; created_at: string };
+export type OrgMember = { place_id: string; master_id: string; status: "pending" | "active"; via: "invite" | "self" | "import"; created_at: string };
 type L = { org_members?: OrgMember[]; places?: Place[] };
 
 const MAX_ORGS_PER_MASTER = 3;

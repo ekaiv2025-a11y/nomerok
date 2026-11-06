@@ -9,6 +9,23 @@ import type { Locale } from "./i18n/config";
 type Sub = { id: string; label: Record<Locale, string>; re: RegExp };
 
 export const SUBCATS: Record<string, Sub[]> = {
+  // Специальности врачей — определяются по тексту анкеты (должность «Кардиолог, эхокардиолог» и т. п.)
+  doctor: [
+    { id: "pediatrician", label: { ru: "Педиатр", en: "Pediatrician", ka: "პედიატრი" }, re: /педиатр|неонатолог|детск\w* врач|pediatric|neonatolog|პედიატრ|ნეონატოლ/i },
+    { id: "gynecologist", label: { ru: "Гинеколог", en: "Gynecologist", ka: "გინეკოლოგი" }, re: /гинеколог|акушер|репродуктолог|маммолог|gynecolog|obstetric|გინეკოლოგ|მეან/i },
+    { id: "cardiologist", label: { ru: "Кардиолог", en: "Cardiologist", ka: "კარდიოლოგი" }, re: /кардиолог|аритмолог|cardiolog|კარდიოლოგ/i },
+    { id: "therapist", label: { ru: "Терапевт, семейный врач", en: "GP", ka: "თერაპევტი" }, re: /терапевт|семейн\w* врач|врач общей практики|интернист|general practitioner|\bGP\b|თერაპევტ|ოჯახის ექიმ/i },
+    { id: "radiologist", label: { ru: "УЗИ, рентген, МРТ", en: "Imaging", ka: "რადიოლოგი" }, re: /радиолог|рентген|узи|ультразвук|мрт|кт\b|сонолог|radiolog|ultrasound|mri|რადიოლოგ|ექოსკოპ/i },
+    { id: "neurologist", label: { ru: "Невролог", en: "Neurologist", ka: "ნევროლოგი" }, re: /невролог|невропатолог|нейрохирург|neurolog|ნევროლოგ/i },
+    { id: "surgeon", label: { ru: "Хирург", en: "Surgeon", ka: "ქირურგი" }, re: /хирург|травматолог|ортопед|уролог|проктолог|surgeon|orthop|urolog|ქირურგ|ტრავმატოლ|ორთოპედ|უროლოგ/i },
+    { id: "ent", label: { ru: "ЛОР", en: "ENT", ka: "ოტორინოლარინგოლოგი" }, re: /лор\b|отоларинголог|оториноларинголог|\bent\b|otolaryng|ოტორინო/i },
+    { id: "eye", label: { ru: "Офтальмолог", en: "Ophthalmologist", ka: "ოფთალმოლოგი" }, re: /офтальмолог|окулист|ophthalmolog|ოფთალმოლოგ/i },
+    { id: "derma", label: { ru: "Дерматолог", en: "Dermatologist", ka: "დერმატოლოგი" }, re: /дерматолог|дерматовенеролог|dermatolog|დერმატოლოგ/i },
+    { id: "endo", label: { ru: "Эндокринолог", en: "Endocrinologist", ka: "ენდოკრინოლოგი" }, re: /эндокринолог|endocrinolog|ენდოკრინოლოგ/i },
+    { id: "gastro", label: { ru: "Гастроэнтеролог", en: "Gastroenterologist", ka: "გასტროენტეროლოგი" }, re: /гастроэнтеролог|гепатолог|эндоскоп|gastroenterolog|გასტროენტეროლოგ/i },
+    { id: "oncologist", label: { ru: "Онколог", en: "Oncologist", ka: "ონკოლოგი" }, re: /онколог|химиотерап|маммолог-онколог|oncolog|ონკოლოგ/i },
+    { id: "lab", label: { ru: "Анализы, лаборатория", en: "Lab", ka: "ლაბორატორია" }, re: /лаборант|лабораторн|патолог|анализ|laborator|patholog|ლაბორატ|პათოლოგ/i },
+  ],
   beauty: [
     { id: "hair", label: { ru: "Парикмахер", en: "Hairdresser", ka: "პარიკმახერი" }, re: /парикмахер|стрижк|стригу|причес|окрашиван|колорист|волос|укладк|кератин|air ?touch|балаяж|шатуш|hair|თმ(ის|ა)/i },
     { id: "nails", label: { ru: "Маникюр и педикюр", en: "Nails", ka: "მანიკიური და პედიკიური" }, re: /маникюр|педикюр|ногт|гель[- ]?лак|nail|manicure|pedicure|მანიკ|პედიკ/i },

@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { orgsOfMaster } from "@/lib/org-db";
-import { placeName } from "@/lib/places";
+import { placeName, placeAddr } from "@/lib/places";
+import { formatPhone } from "@/lib/phone";
 import { adminGetMaster, getPublishedMasterBySlug, listPublishedMasters } from "@/lib/db";
 import { publicDocuments } from "@/lib/documents";
 import { categoryLabel, categoryPlural, languageLabel, MEDICAL_CATEGORIES } from "@/lib/categories";
@@ -166,6 +167,8 @@ export default async function MasterPage({ params, searchParams }: Props) {
                     {d.nav.leaveRequest}
                   </Link>
                 </div>
+              ) : m.imported ? (
+                <ClinicContact m={m} lang={lang} clinic={works[0]?.place ?? null} />
               ) : (
                 <>
                   <ViewTracker masterId={m.id} />
@@ -178,7 +181,7 @@ export default async function MasterPage({ params, searchParams }: Props) {
         </aside>
 
         <div className="order-1">
-          {!m.demo && <RefBanner lang={lang} slug={m.slug} />}
+          {!m.demo && !m.imported && <RefBanner lang={lang} slug={m.slug} />}
           {services.length > 0 && (
             <section>
               <h2 className="text-[18px] font-bold">{t.services}</h2>
@@ -441,6 +444,93 @@ export default async function MasterPage({ params, searchParams }: Props) {
             </Link>
         </section>
       )}
+    </div>
+  );
+}
+const CC = {
+  ru: {
+    title: "Запись через клинику",
+    call: "Позвонить в клинику",
+    page: "Страница клиники",
+    note: "Анкета составлена редакцией NomerOk по открытым данным с сайта клиники",
+    src: "источник",
+    check: "Сведения могут измениться — уточняйте при записи.",
+    you: "Это вы? Напишите нам — подтвердим анкету, дополним или удалим её.",
+    write: "Написать в NomerOk",
+  },
+  en: {
+    title: "Book via the clinic",
+    call: "Call the clinic",
+    page: "Clinic page",
+    note: "This profile was compiled by NomerOk from public information on the clinic's website",
+    src: "source",
+    check: "Details may change — please check when booking.",
+    you: "Is this you? Write to us — we'll confirm, update or remove the profile.",
+    write: "Contact NomerOk",
+  },
+  ka: {
+    title: "ჩაწერა კლინიკის მეშვეობით",
+    call: "კლინიკაში დარეკვა",
+    page: "კლინიკის გვერდი",
+    note: "პროფილი შეადგინა NomerOk-მა კლინიკის საიტის ღია მონაცემებით",
+    src: "წყარო",
+    check: "ინფორმაცია შეიძლება შეიცვალოს — დააზუსტეთ ჩაწერისას.",
+    you: "ეს თქვენ ხართ? მოგვწერეთ — დავადასტურებთ, შევავსებთ ან წავშლით პროფილს.",
+    write: "მოგვწერეთ",
+  },
+} as const;
+
+/** Анкета по данным сайта клиники: записываются через клинику, личных контактов нет. */
+function ClinicContact({ m, lang, clinic }: { m: { source_url?: string | null; place_address: string }; lang: import("@/lib/i18n/config").Locale; clinic: import("@/lib/places").Place | null }) {
+  const t = CC[lang];
+  const phones = (clinic?.phones ?? []).slice(0, 2);
+  const addr = clinic ? placeAddr(clinic, lang) : m.place_address;
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl border border-brand/25 bg-brand-soft p-5">
+        <p className="text-[17px] font-bold text-brand-dark">🏥 {t.title}</p>
+        {clinic && (
+          <p className="mt-1 text-[15px] font-semibold">
+            <Link href={href(lang, `/places/${clinic.slug}`)} className="hover:underline">
+              {placeName(clinic, lang)}
+            </Link>
+          </p>
+        )}
+        {addr && <p className="mt-0.5 text-[13.5px] text-[#2f4a3e]">📍 {addr}</p>}
+        {clinic?.hours && <p className="mt-0.5 text-[13px] text-[#2f4a3e]">🕒 {clinic.hours}</p>}
+        <div className="mt-3 space-y-2">
+          {phones.length > 0 && <p className="text-[13px] font-semibold text-brand-dark">{t.call}:</p>}
+          {phones.map((ph, i) => (
+            <a key={ph} href={`tel:${ph.replace(/[^\d+]/g, "")}`} className={`${i === 0 ? "btn-primary" : "btn-ghost bg-white"} h-11 w-full gap-2 text-[15px]`}>
+              📞 {formatPhone(ph)}
+            </a>
+          ))}
+          {clinic && (
+            <Link href={href(lang, `/places/${clinic.slug}`)} className="block pt-1 text-center text-[14px] font-semibold text-brand hover:underline">
+              {t.page} →
+            </Link>
+          )}
+        </div>
+      </div>
+      <p className="rounded-2xl border border-line bg-white p-4 text-[12.5px] leading-relaxed text-muted">
+        {t.note}
+        {m.source_url && (
+          <>
+            {" "}
+            (
+            <a href={m.source_url} target="_blank" rel="noopener noreferrer nofollow" className="underline">
+              {t.src}
+            </a>
+            )
+          </>
+        )}
+        . {t.check}
+        <br />
+        {t.you}{" "}
+        <Link href={href(lang, "/contacts")} className="font-semibold text-brand underline">
+          {t.write}
+        </Link>
+      </p>
     </div>
   );
 }
