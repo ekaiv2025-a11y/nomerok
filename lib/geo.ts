@@ -14,6 +14,7 @@ import MESTIA from "@/data/geo/mestia.json";
 import ZUGDIDI from "@/data/geo/zugdidi.json";
 import RUSTAVI from "@/data/geo/rustavi.json";
 import POTI from "@/data/geo/poti.json";
+import GORI from "@/data/geo/gori.json";
 
 /*
  * «Грузия» — энциклопедия городов и регионов (как путеводитель, но с упором на жизнь здесь).
@@ -46,7 +47,7 @@ export type GeoPage = {
   updated: string;
 };
 
-export const GEO: GeoPage[] = [BATUMI as unknown as GeoPage, TBILISI as unknown as GeoPage, KUTAISI as unknown as GeoPage, KOBULETI as unknown as GeoPage, MTSKHETA as unknown as GeoPage, SIGNAGI as unknown as GeoPage, TELAVI as unknown as GeoPage, BORJOMI as unknown as GeoPage, BAKURIANI as unknown as GeoPage, GUDAURI as unknown as GeoPage, STEPANTSMINDA as unknown as GeoPage, MESTIA as unknown as GeoPage, ZUGDIDI as unknown as GeoPage, RUSTAVI as unknown as GeoPage, POTI as unknown as GeoPage];
+export const GEO: GeoPage[] = [BATUMI as unknown as GeoPage, TBILISI as unknown as GeoPage, KUTAISI as unknown as GeoPage, KOBULETI as unknown as GeoPage, MTSKHETA as unknown as GeoPage, SIGNAGI as unknown as GeoPage, TELAVI as unknown as GeoPage, BORJOMI as unknown as GeoPage, BAKURIANI as unknown as GeoPage, GUDAURI as unknown as GeoPage, STEPANTSMINDA as unknown as GeoPage, MESTIA as unknown as GeoPage, ZUGDIDI as unknown as GeoPage, RUSTAVI as unknown as GeoPage, POTI as unknown as GeoPage, GORI as unknown as GeoPage];
 export const geoPage = (id: string) => GEO.find((g) => g.id === id) ?? null;
 
 export const MONTHS = [
