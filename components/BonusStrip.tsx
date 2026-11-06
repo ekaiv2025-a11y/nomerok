@@ -33,23 +33,26 @@ const T = {
 } as const;
 
 /** Главная, над каталогом: короткий блок про бонусы — клиентам кнопка «мастера с бонусом», специалистам — «включить бонус». */
-export async function BonusStrip({ lang, masters }: { lang: Locale; masters: PublicMaster[] }) {
+export async function BonusStrip({ lang, masters, city = "batumi" }: { lang: Locale; masters: PublicMaster[]; city?: string }) {
   const t = T[lang];
-  const n = masters.filter((m) => m.bonus && !m.demo).length;
+  // только специалисты выбранного города — в Тбилиси батумские бонусы не нужны
+  const n = masters.filter((m) => m.bonus && !m.demo && (m.city ?? "batumi") === city).length;
   return (
     <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
-      <div className="grid gap-3 rounded-2xl border border-[#f0d58a] bg-[#fffaf0] p-4 md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-5">
+      <div className={`grid gap-3 rounded-2xl border border-[#f0d58a] bg-[#fffaf0] p-4 md:items-center md:gap-5 ${n > 0 ? "md:grid-cols-[1fr_auto_1fr]" : ""}`}>
+        {n > 0 && (
         <div>
           <p className="text-[15px] font-bold leading-snug">{t.clients}</p>
           <p className="mt-0.5 text-[13px] leading-snug text-[#5a4410]">{t.clientsText}</p>
           {n > 0 && (
-            <a href={`/${lang}?bonus=1#masters`} className="btn mt-2 h-9 rounded-full bg-accent px-4 text-[13px] font-semibold text-ink hover:bg-[#cf9620]">
+            <a href={`/${lang}?${city !== "batumi" ? `city=${city}&` : ""}bonus=1#masters`} className="btn mt-2 h-9 rounded-full bg-accent px-4 text-[13px] font-semibold text-ink hover:bg-[#cf9620]">
               {t.show(n)}
             </a>
           )}
         </div>
-        <div className="hidden h-12 w-px bg-[#f0d58a] md:block" aria-hidden />
-        <div className="border-t border-[#f0d58a] pt-3 md:border-0 md:pt-0">
+        )}
+        {n > 0 && <div className="hidden h-12 w-px bg-[#f0d58a] md:block" aria-hidden />}
+        <div className={n > 0 ? "border-t border-[#f0d58a] pt-3 md:border-0 md:pt-0" : ""}>
           <p className="text-[13px] font-bold uppercase tracking-wide text-[#8a6a1f]">{t.masters}</p>
           <p className="mt-0.5 text-[13px] leading-snug text-[#5a4410]">{t.mastersText}</p>
           <BonusSpecLink lang={lang} joinHref={href(lang, "/join")} on={t.on} join={t.join} />

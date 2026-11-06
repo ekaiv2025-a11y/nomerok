@@ -13,14 +13,24 @@ import { getDict, href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { SITE_NAME } from "@/lib/site";
 import type { PublicMaster } from "@/lib/types";
-import { cityIn, cityOf } from "@/lib/cities";
+import { cityIn, cityOf, cityLabel } from "@/lib/cities";
+import { CitySeo } from "@/components/CitySeo";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: LangParams & { searchParams: Promise<{ city?: string }> }): Promise<Metadata> {
   const lang = await langOf(params);
   const t = getDict(lang).meta;
-  return pageMeta(lang, "/", t.title(SITE_NAME), t.description);
+  const city = cityOf((await searchParams).city);
+  if (city === "batumi") return pageMeta(lang, "/", t.title(SITE_NAME), t.description);
+  // Отдельный заголовок и описание для каждого города — чтобы поиск показывал страницу по запросу «мастер в Тбилиси»
+  const l = cityLabel(city, lang);
+  const META = {
+    ru: [`Специалисты ${cityIn(city, "ru")}: мастера, репетиторы, врачи — ${SITE_NAME}`, `Каталог частных специалистов ${cityIn(city, "ru")}: ремонт, уборка, красота, репетиторы, врачи. Цены, фото работ и отзывы. Пишите напрямую или оставьте заявку.`],
+    en: [`Specialists ${cityIn(city, "en")}: repairs, tutors, doctors — ${SITE_NAME}`, `Catalog of independent specialists ${cityIn(city, "en")}: repairs, cleaning, beauty, tutors, doctors. Prices, photos and reviews.`],
+    ka: [`სპეციალისტები — ${l} | ${SITE_NAME}`, `კერძო სპეციალისტების კატალოგი ${cityIn(city, "ka")}: ფასები, ნამუშევრები, შეფასებები.`],
+  } as const;
+  return pageMeta(lang, `/?city=${city}`, META[lang][0], META[lang][1]);
 }
 
 export default async function Home({ params, searchParams }: LangParams & { searchParams: Promise<{ city?: string }> }) {
@@ -64,9 +74,10 @@ export default async function Home({ params, searchParams }: LangParams & { sear
           {t.specialistCta}
         </Link>
       </section>
-      {!broken && <BonusStrip lang={lang} masters={masters} />}
+      {!broken && <BonusStrip lang={lang} masters={masters} city={city} />}
       {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} catPages={seoCategoryIds()} />}
       {!broken && <LatestOrders lang={lang} />}
+      {!broken && <CitySeo lang={lang} city={city} masters={masters} cats={seoCategoryIds()} />}
       <HomeJournal lang={lang} />
     </>
   );
