@@ -1,3 +1,4 @@
+import { SUBCATS, subcatsOf } from "@/lib/subcats";
 import { upcomingEvents } from "@/lib/events-db";
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
@@ -61,6 +62,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       DISTRICTS.filter((d) => masters.some((m) => !m.demo && m.city === "batumi" && (m.category === c || m.extra_categories.includes(c)) && servesDistrict(m, d) === "exact")).flatMap((d) =>
         entry(`/services/${c}/${d.id}`, 0.6),
       ),
+    ),
+    // подразделы («Сборка мебели», «Педиатр») — только там, где есть настоящие анкеты в Батуми
+    ...seoCategoryIds().flatMap((c) =>
+      (SUBCATS[c] ?? []).filter((s) => masters.some((m) => !m.demo && (m.city ?? "batumi") === "batumi" && subcatsOf(m, c).includes(s.id))).flatMap((s) => entry(`/services/${c}/${s.id}`, 0.7)),
     ),
     ...masters.filter((m) => !m.demo).flatMap((m) => entry(`/master/${m.slug}`, 0.7, m.updated_at)),
   ];

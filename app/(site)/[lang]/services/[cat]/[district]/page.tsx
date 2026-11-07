@@ -1,3 +1,4 @@
+import { SubPage, isSubcat, subMetadata } from "./sub-page";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,7 +13,7 @@ import { MasterCard } from "@/components/MasterCard";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ lang: string; cat: string; district: string }> };
+type Props = { params: Promise<{ lang: string; cat: string; district: string }>; searchParams?: Promise<{ city?: string }> };
 
 const L: Record<Locale, { title: (c: string, d: string) => string; desc: (c: string, d: string) => string; lead: (c: string, d: string) => string; home: string; city: string; others: string; request: string; empty: string; exact: string; comes: string }> = {
   ru: {
@@ -48,7 +49,10 @@ async function load(cat: string, districtId: string, lang: Locale = "ru") {
   return { d, exact, city };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  // /services/<cat>/<подраздел> — своя страница («Сборка мебели», «Педиатр»)
+  const pp = await params;
+  if (isSubcat(pp.cat, pp.district)) return subMetadata({ params, searchParams });
   const { lang, cat, district } = await params;
   if (!isLocale(lang) || !seoText(cat, lang)) return {};
   const r = await load(cat, district, lang);
@@ -61,7 +65,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function DistrictPage({ params }: Props) {
+export default async function DistrictPage({ params, searchParams }: Props) {
+  const pp = await params;
+  if (isSubcat(pp.cat, pp.district)) return SubPage({ params, searchParams });
   const { lang, cat, district } = await params;
   if (!isLocale(lang)) notFound();
   if (!seoText(cat, lang)) notFound();

@@ -15,9 +15,20 @@ const LANG_SHORT: Record<string, string> = { Русский: "RU", Грузин�
 import { getDict, href, type Locale } from "@/lib/i18n";
 import type { PublicMaster } from "@/lib/types";
 
-export function priceText(m: Pick<PublicMaster, "price_from" | "price_unit">, lang: Locale) {
+/** Подписи прайса на карточке и в анкете. */
+export const PL = {
+  ru: { from: (n: number) => `от ${n} ₾`, deal: "по договорённости", more: (n: number) => `+ ещё ${n} ${n % 10 === 1 && n % 100 !== 11 ? "услуга" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "услуги" : "услуг"}`, title: "Цены на услуги" },
+  en: { from: (n: number) => `from ${n} ₾`, deal: "negotiable", more: (n: number) => `+ ${n} more`, title: "Prices" },
+  ka: { from: (n: number) => `${n} ₾-დან`, deal: "შეთანხმებით", more: (n: number) => `+ კიდევ ${n}`, title: "ფასები" },
+} as const;
+
+export function priceText(m: Pick<PublicMaster, "price_from" | "price_unit"> & { price_list?: PublicMaster["price_list"] }, lang: Locale) {
   const t = getDict(lang).card;
-  if (m.price_from == null) return t.byAgreement;
+  if (m.price_from == null) {
+    // общей цены нет, но есть прайс — показываем самую низкую цену «от»
+    const min = Math.min(...(m.price_list ?? []).map((x) => x.from ?? Infinity));
+    return Number.isFinite(min) ? PL[lang].from(min) : t.byAgreement;
+  }
   return t.from(m.price_from, unitLabel(m.price_unit, lang));
 }
 
@@ -28,6 +39,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const summary = cardSummary(m.services, m.about);
   const mode = !atPlace ? MODE[m.work_mode === "both" ? "at_client" : m.work_mode]?.[lang] : null;
   const langs = (m.languages ?? []).map((l) => LANG_SHORT[l]).filter(Boolean);
+  const prices = m.price_list ?? [];
   // Вертикальная карточка: фото сверху, ниже — кто это, чем занимается и цена. Вся карточка ведёт в профиль.
   return (
     <div
@@ -73,7 +85,21 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             <span className="font-normal"> · {m.bonusKind === "repost" ? { ru: "за репост", en: "for a repost", ka: "რეპოსტისთვის" }[lang] : { ru: "другу по рекомендации", en: "for a referred friend", ka: "მეგობარს რეკომენდაციით" }[lang]}</span>
           </p>
         )}
-        {summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>}
+        {prices.length > 0 ? (
+          // Прайс: первые 3 строки «услуга — от …» — клиент сразу видит, сколько стоит его задача
+          <ul className="mt-2 space-y-0.5 text-[12.5px] leading-snug">
+            {prices.slice(0, 3).map((x, i) => (
+              <li key={i} className="flex items-baseline gap-1.5">
+                <span className="min-w-0 truncate text-[#3a3935]">{x.name}</span>
+                <span className="grow border-b border-dotted border-line" aria-hidden />
+                <span className="shrink-0 font-semibold">{x.from == null ? PL[lang].deal : PL[lang].from(x.from)}</span>
+              </li>
+            ))}
+            {prices.length > 3 && <li className="text-[12px] text-brand">{PL[lang].more(prices.length - 3)}</li>}
+          </ul>
+        ) : (
+          summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>
+        )}
         {(atPlace || mode || langs.length > 0) && (
           <div className="mt-2 flex max-h-[22px] flex-wrap gap-1 overflow-hidden sm:max-h-none">
             {atPlace && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {m.place_address?.trim() || t.atPlace}</span>}
@@ -81,7 +107,8 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             {langs.length > 0 && <span className="hidden rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted sm:inline">🗣 {langs.join(" · ")}</span>}
           </div>
         )}
-        <div className={`mt-auto pt-2.5 sm:pt-3 ${m.price_from == null ? "text-[13px] text-muted" : "text-[14px] font-semibold"}`}>{priceText(m, lang)}</div>
+        {/* общую цену показываем, если она есть или если прайса нет */}
+        {(m.price_from != null || prices.length === 0) && <div className={`mt-auto pt-2.5 sm:pt-3 ${m.price_from == null ? "text-[13px] text-muted" : "text-[14px] font-semibold"}`}>{priceText(m, lang)}</div>}
       </Link>
     </div>
   );

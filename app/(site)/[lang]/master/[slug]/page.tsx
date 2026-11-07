@@ -23,7 +23,7 @@ import { ContactReveal } from "@/components/ContactReveal";
 import { StickyContactBar } from "@/components/StickyContactBar";
 import { ViewTracker } from "@/components/ViewTracker";
 import { ShareButtons } from "@/components/ShareButtons";
-import { DemoBadge, MasterCard, VerifiedBadge, priceText } from "@/components/MasterCard";
+import { DemoBadge, MasterCard, PL, VerifiedBadge, priceText } from "@/components/MasterCard";
 import { RatingLine, Stars } from "@/components/Stars";
 import { formatDay } from "@/lib/availability";
 import { Gallery } from "@/components/Gallery";
@@ -182,6 +182,19 @@ export default async function MasterPage({ params, searchParams }: Props) {
 
         <div className="order-1">
           {!m.demo && !m.imported && <RefBanner lang={lang} slug={m.slug} />}
+          {(m.price_list ?? []).length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-[18px] font-bold">{PL[lang].title}</h2>
+              <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-white">
+                {m.price_list!.map((x, i) => (
+                  <li key={i} className="flex items-baseline justify-between gap-4 px-4 py-2.5 text-[15px]">
+                    <span>{x.name}</span>
+                    <span className="shrink-0 font-semibold">{x.from == null ? PL[lang].deal : PL[lang].from(x.from)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {services.length > 0 && (
             <section>
               <h2 className="text-[18px] font-bold">{t.services}</h2>

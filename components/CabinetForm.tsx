@@ -1,5 +1,7 @@
 "use client";
 
+import { PriceListEditor } from "./PriceListEditor";
+
 /* eslint-disable @next/next/no-img-element */
 import { PhotoPositioner } from "./PhotoPositioner";
 import { posStyle } from "@/lib/photo-pos";
@@ -19,6 +21,7 @@ import { getDict, type Locale } from "@/lib/i18n";
 import { Field, fc } from "./form-kit";
 
 type Initial = {
+  price_list?: import("@/lib/price-list").PriceItem[];
   name: string;
   services: string;
   about: string;
@@ -123,6 +126,13 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           experience_years: num("experience_years"),
           price_from: num("price_from"),
           price_unit: f.get("price_unit"),
+          price_list: (() => {
+            try {
+              return JSON.parse(String(f.get("price_list") ?? "[]"));
+            } catch {
+              return [];
+            }
+          })(),
           languages: f.getAll("languages"),
           telegram: f.get("telegram"),
           whatsapp: f.get("whatsapp") === "on",
@@ -230,6 +240,7 @@ export function CabinetForm({ lang, phone, initial }: { lang: Locale; phone: str
           </select>
         </Field>
       </div>
+      <PriceListEditor initial={initial.price_list} lang={lang} />
       <fieldset>
         <legend className="text-[14px] font-semibold">{j.languages}</legend>
         <div className="mt-2 flex flex-wrap gap-2">

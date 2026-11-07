@@ -138,6 +138,7 @@ export async function healthCheck() {
           ["0047 напоминания молчащим", "masters", "inactive_nudges"],
           ["0048 анкеты по открытым данным", "masters", "imported_at"],
           ["0049 афиша", "events", "slug"],
+          ["0050 прайс специалиста", "masters", "price_list"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -256,6 +257,7 @@ function toPublic(m: Master | PublicRow): PublicMaster {
     languages: m.languages,
     price_from: m.price_from,
     price_unit: m.price_unit,
+    price_list: Array.isArray((m as { price_list?: unknown }).price_list) ? (m as { price_list: PublicMaster["price_list"] }).price_list : [],
     photo_url: m.photo_url,
     created_at: m.created_at,
     updated_at: m.updated_at,
@@ -310,7 +312,8 @@ const PUBLIC_COLUMNS = COLUMNS_0009 + ",links";
 const COLUMNS_0017 = PUBLIC_COLUMNS + ",short,slots";
 const COLUMNS_0040 = COLUMNS_0017 + ",subcats";
 const COLUMNS_0048 = COLUMNS_0040 + ",source_url,imported_at";
-const COLUMN_SETS = [COLUMNS_0048, COLUMNS_0040, COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
+const COLUMNS_0050 = COLUMNS_0048 + ",price_list";
+const COLUMN_SETS = [COLUMNS_0050, COLUMNS_0048, COLUMNS_0040, COLUMNS_0017, PUBLIC_COLUMNS, COLUMNS_0009, COLUMNS_0007, COLUMNS_0006, COLUMNS_0005, COLUMNS_0004, BASE_COLUMNS];
 
 /** Если миграция 0004 ещё не выполнена — читаем без новых колонок, чтобы сайт не падал. */
 function isMissingColumn(err: { message: string } | null): boolean {

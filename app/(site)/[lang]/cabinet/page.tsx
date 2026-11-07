@@ -351,6 +351,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
               experience_years: m.experience_years,
               price_from: m.price_from,
               price_unit: m.price_unit,
+              price_list: m.price_list ?? [],
               languages: m.languages,
               telegram: m.telegram,
               whatsapp: m.whatsapp,

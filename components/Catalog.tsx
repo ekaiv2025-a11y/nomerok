@@ -29,7 +29,7 @@ const INTENT_HINT = { ru: "Похоже, вам нужен:", en: "Looks like yo
  * pageCat — каталог стоит на странице направления (/services/<cat>): оно выбрано сразу.
  * catPages — у каких направлений есть своя страница: чипы ведут на неё (отдельная страница с SEO-текстом), остальные фильтруют на месте.
  */
-export function Catalog({ masters: all, lang, city, pageCat, catPages = [] }: { masters: PublicMaster[]; lang: Locale; city: CityId; pageCat?: string; catPages?: string[] }) {
+export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages = [] }: { masters: PublicMaster[]; lang: Locale; city: CityId; pageCat?: string; pageSub?: string; catPages?: string[] }) {
   const t = getDict(lang).catalog;
   const router = useRouter();
   // Город: показываем специалистов выбранного города; в списке — Батуми и города, где уже кто-то есть
@@ -63,7 +63,9 @@ export function Catalog({ masters: all, lang, city, pageCat, catPages = [] }: { 
       document.getElementById("masters")?.scrollIntoView({ block: "start" });
     }
   }, []);
-  const [sub, setSub] = useState<string>("all");
+  const [sub, setSub] = useState<string>(pageSub ?? "all");
+  // На странице направления подразделы — ссылки на свои страницы (/services/<cat>/<sub>), их видят поисковики
+  const subHref = (sb: string) => (pageCat ? `/${lang}/services/${pageCat}${sb === "all" ? "" : `/${sb}`}${cityQ}#masters` : null);
   const chooseCat = (c: string, sb = "all") => {
     setCat(c);
     setSub(sb);
@@ -244,11 +246,11 @@ export function Catalog({ masters: all, lang, city, pageCat, catPages = [] }: { 
 
       {visibleSubs.length > 1 && (
         <div className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" style={{ scrollbarWidth: "none" }}>
-          <SubChip active={sub === "all"} onClick={() => setSub("all")}>
+          <SubChip active={sub === "all"} onClick={() => setSub("all")} href={pageSub ? subHref("all") : null}>
             {t.all}
           </SubChip>
           {visibleSubs.map((s) => (
-            <SubChip key={s.id} active={sub === s.id} onClick={() => setSub(s.id)}>
+            <SubChip key={s.id} active={sub === s.id} onClick={() => setSub(s.id)} href={pageCat && s.id !== sub ? subHref(s.id) : null}>
               {s.label[lang]} · {subCounts[s.id]}
             </SubChip>
           ))}
@@ -364,13 +366,18 @@ function Chip({ active, onClick, children, href: to }: { active: boolean; onClic
   );
 }
 
-function SubChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function SubChip({ active, onClick, children, href: to }: { active: boolean; onClick: () => void; children: React.ReactNode; href?: string | null }) {
+  const cls = `inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-[13px] font-medium transition-colors ${active ? "bg-brand text-white" : "bg-brand-soft text-brand-dark hover:bg-[#d6eadf]"}`;
+  if (to)
+    return (
+      <Link href={to} className={cls}>
+        {children}
+      </Link>
+    );
   return (
     <button
       onClick={onClick}
-      className={`h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px] font-medium transition-colors ${
-        active ? "bg-brand text-white" : "bg-brand-soft text-brand-dark hover:bg-[#d6eadf]"
-      }`}
+      className={cls}
     >
       {children}
     </button>

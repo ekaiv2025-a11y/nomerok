@@ -100,6 +100,8 @@ export type Master = {
   documents: MasterDocument[];
   /** Когда отправили недельную сводку в бот */
   stats_sent_at: string | null;
+  /** Прайс: строки «услуга — цена от» (0050) */
+  price_list?: import("./price-list").PriceItem[];
   /** Анкета составлена редакцией по открытым данным (0048) */
   source_url?: string | null;
   imported_at?: string | null;
@@ -121,6 +123,7 @@ export type PublicMaster = Pick<
   | "languages"
   | "price_from"
   | "price_unit"
+  | "price_list"
   | "photo_url"
   | "created_at"
   | "updated_at"

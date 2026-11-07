@@ -1,3 +1,4 @@
+import { cleanPriceList } from "@/lib/price-list";
 import { NextResponse } from "next/server";
 import { isCity } from "@/lib/cities";
 import { normalizeLinks } from "@/lib/links";
@@ -80,6 +81,7 @@ export async function POST(req: Request) {
     languages: d.languages,
     price_from: d.price_from ?? null,
     price_unit: d.price_unit,
+    ...(Array.isArray(body.price_list) ? { price_list: cleanPriceList(body.price_list) } : {}),
     telegram: d.telegram,
     whatsapp: d.whatsapp,
     ...(mainCat !== m.category ? { category: mainCat } : {}),
