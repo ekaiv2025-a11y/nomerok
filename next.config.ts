@@ -30,6 +30,7 @@ const PUBLIC_PAGES = [
   "/:lang(ru|en|ka)/places",
   "/:lang(ru|en|ka)/places/c/:cat",
   "/:lang(ru|en|ka)/novostroyki/:path*",
+  "/:lang(ru|en|ka)/afisha",
   "/:lang(ru|en|ka)/georgia/:path*",
   "/:lang(ru|en|ka)/guide/:path*",
   "/:lang(ru|en|ka)/phones/:path*",

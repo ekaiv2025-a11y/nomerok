@@ -137,6 +137,7 @@ export async function healthCheck() {
           ["0046 заявка ждёт клиента", "requests", "pending_client"],
           ["0047 напоминания молчащим", "masters", "inactive_nudges"],
           ["0048 анкеты по открытым данным", "masters", "imported_at"],
+          ["0049 афиша", "events", "slug"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

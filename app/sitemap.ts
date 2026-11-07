@@ -1,3 +1,4 @@
+import { upcomingEvents } from "@/lib/events-db";
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { listPublishedMasters } from "@/lib/db";
@@ -39,6 +40,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // «Грузия»: города, погода по месяцам (только русский)
     { url: `${SITE_URL}/ru/georgia`, priority: 0.8 },
     { url: `${SITE_URL}/ru/novostroyki`, priority: 0.8 },
+    { url: `${SITE_URL}/ru/afisha`, priority: 0.8, changeFrequency: "daily" as const },
+    ...(await upcomingEvents().catch(() => [])).map((e) => ({ url: `${SITE_URL}/ru/afisha/${e.slug}`, priority: 0.5, lastModified: e.updated_at })),
     ...PROJECTS.map((p) => ({ url: `${SITE_URL}/ru/novostroyki/${p.slug}`, priority: 0.7, lastModified: p.updated })),
     ...DEVELOPERS.map((d) => ({ url: `${SITE_URL}/ru/novostroyki/z/${d.slug}`, priority: 0.7, lastModified: d.updated })),
     ...GEO.flatMap((g) => [

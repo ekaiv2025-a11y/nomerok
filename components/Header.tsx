@@ -100,6 +100,7 @@ export function Header({ lang }: { lang: Locale }) {
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
     { href: href(lang, "/places"), label: "📍 " + PT[lang].nav },
+    { href: href(lang, "/afisha"), label: "🎟 " + (lang === "ru" ? "Афиша" : lang === "en" ? "Events" : "აფიშა") },
     ...(lang === "ru" ? [{ href: href(lang, "/novostroyki"), label: "🏗 Новостройки" }] : []),
     { href: href(lang, "/phones"), label: "📞 " + PH[lang].nav },
     ...(lang === "ru" ? [{ href: href(lang, "/guide"), label: "📰 Журнал" }] : []),
@@ -137,6 +138,9 @@ export function Header({ lang }: { lang: Locale }) {
             </Link>
             <Link href={href(lang, "/places")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
               {PT[lang].nav}
+            </Link>
+            <Link href={href(lang, "/afisha")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">
+              {lang === "ru" ? "Афиша" : lang === "en" ? "Events" : "აფიშა"}
             </Link>
             {lang === "ru" && (
               <Link href={href(lang, "/guide")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">
