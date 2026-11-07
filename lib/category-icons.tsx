@@ -2,7 +2,7 @@ import {
   AirVent, Baby, BookOpen, Brain, CakeSlice, Calculator, Camera, ClipboardCheck, Droplets, Dumbbell, Ellipsis, GraduationCap, Hammer,
   HandHeart, KeyRound, Languages, Laptop, LayoutGrid, MessageCircleHeart, Music, PaintRoller, Palette, PawPrint, Scale, Scissors, Smile,
   Sofa, Sparkles, Stethoscope, Truck, WashingMachine, Zap, type LucideIcon,
-} from "lucide-react";
+ Stamp } from "lucide-react";
 
 /** Значки категорий — в фильтрах каталога и везде, где нужен маленький значок рядом с названием. */
 export const CATEGORY_ICON: Record<string, LucideIcon> = {
@@ -30,6 +30,7 @@ export const CATEGORY_ICON: Record<string, LucideIcon> = {
   beauty: Scissors,
   fitness: Dumbbell,
   lawyer: Scale,
+  notary: Stamp,
   accountant: Calculator,
   translator: Languages,
   realtor: KeyRound,

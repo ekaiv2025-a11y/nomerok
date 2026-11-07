@@ -40,6 +40,7 @@ export const CATEGORIES = [
   { id: "beauty", group: "beauty", label: { ru: "Красота", ka: "სილამაზე", en: "Beauty" }, plural: { ru: "Красота", ka: "სილამაზე", en: "Beauty" } },
   { id: "fitness", group: "beauty", label: { ru: "Спорт и тренеры", ka: "სპორტი და მწვრთნელები", en: "Sports & coaches" }, plural: { ru: "Спорт и тренеры", ka: "სპორტი და მწვრთნელები", en: "Sports & coaches" } },
   { id: "lawyer", group: "business", label: { ru: "Юрист", ka: "იურისტი", en: "Lawyer" }, plural: { ru: "Юристы", ka: "იურისტები", en: "Lawyers" } },
+  { id: "notary", group: "business", label: { ru: "Нотариус", ka: "ნოტარიუსი", en: "Notary" }, plural: { ru: "Нотариусы", ka: "ნოტარიუსები", en: "Notaries" } },
   { id: "accountant", group: "business", label: { ru: "Бухгалтер", ka: "ბუღალტერი", en: "Accountant" }, plural: { ru: "Бухгалтеры", ka: "ბუღალტრები", en: "Accountants" } },
   { id: "translator", group: "business", label: { ru: "Переводчик", ka: "თარჯიმანი", en: "Translator" }, plural: { ru: "Переводчики", ka: "თარჯიმნები", en: "Translators" } },
   { id: "realtor", group: "business", label: { ru: "Риелтор", ka: "რიელტორი", en: "Real estate agent" }, plural: { ru: "Риелторы", ka: "რიელტორები", en: "Real estate agents" } },

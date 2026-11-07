@@ -37,6 +37,7 @@ export const INTENTS: Rule[] = [
   R("beauty", /депиляц|эпиляц|шугаринг|воск|waxing/i, "epilation"),
   R("beauty", /барбер|бород|barber|beard/i, "barber"),
   R("fitness", /тренер|тренировк|фитнес|похуд|йог|пилатес|растяжк|спорт|секци[яию]|айкидо|карате|бокс|дзюдо|самбо|единоборств|плаван|бассейн|теннис|футбол|fitness|trainer|coach|workout|yoga|sport|swimming|boxing|karate|aikido/i),
+  R("notary", /нотариус|нотариальн|заверить|заверени|апостил|доверенност|notary|ნოტარ/i),
   R("lawyer", /юрист|адвокат|внж|вид на жительство|регистрац[\wа-яё]* (ип|компан)|договор|суд|lawyer|residence permit|იურისტ/i),
   R("accountant", /бухгалт|налог|декларац|отч[её]тност|accountant|tax|ბუღალტ/i),
   R("translator", /перевод|переводчик|нотариальн|апостиль|translat|თარჯიმ/i),

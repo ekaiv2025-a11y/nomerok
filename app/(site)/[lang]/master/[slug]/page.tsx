@@ -1,3 +1,4 @@
+import { registryPhones } from "@/lib/registry-import";
 import { eventsOfMaster } from "@/lib/events-db";
 import { EventCard } from "@/components/EventCard";
 import { portfolioSections } from "@/lib/portfolio";
@@ -82,6 +83,8 @@ export default async function MasterPage({ params, searchParams }: Props) {
   const cat = categoryLabel(m.category, lang);
   const events = m.demo ? [] : (await eventsOfMaster(m.id, true).catch(() => [])).slice(0, 4);
   const works = m.demo ? [] : (await orgsOfMaster(m.id).catch(() => [])).filter((x) => x.place.status === "published");
+  // Анкета из открытого реестра (нотариусы и т. п.), без клиники: рабочие телефоны самой анкеты
+  const ownPhones = m.imported && !works[0] ? await adminGetMaster(m.id).then((x) => (x ? registryPhones(x) : [])).catch(() => []) : [];
   // 🎁 бонус за рекомендацию (если специалист включил и бонусы не закончились)
   const bonus = m.demo ? null : await liveOffer(m.id);
   const me = bonus ? await currentClient().catch(() => null) : null;
@@ -172,7 +175,7 @@ export default async function MasterPage({ params, searchParams }: Props) {
                   </Link>
                 </div>
               ) : m.imported ? (
-                <ClinicContact m={m} lang={lang} clinic={works[0]?.place ?? null} />
+                <ClinicContact m={m} lang={lang} clinic={works[0]?.place ?? null} own={ownPhones} />
               ) : (
                 <>
                   <ViewTracker masterId={m.id} />
@@ -474,6 +477,11 @@ export default async function MasterPage({ params, searchParams }: Props) {
     </div>
   );
 }
+const CC_SOLO = {
+  ru: { title: "Запись и вопросы — по телефону", call: "Позвонить", note: "Анкета составлена редакцией NomerOk по открытым данным официального реестра" },
+  en: { title: "Appointments by phone", call: "Call", note: "This profile was compiled by NomerOk from an official public registry" },
+  ka: { title: "ჩაწერა ტელეფონით", call: "დარეკვა", note: "პროფილი შეადგინა NomerOk-მა ოფიციალური ღია რეესტრის მონაცემებით" },
+} as const;
 const CC = {
   ru: {
     title: "Запись через клинику",
@@ -508,14 +516,15 @@ const CC = {
 } as const;
 
 /** Анкета по данным сайта клиники: записываются через клинику, личных контактов нет. */
-function ClinicContact({ m, lang, clinic }: { m: { source_url?: string | null; place_address: string }; lang: import("@/lib/i18n/config").Locale; clinic: import("@/lib/places").Place | null }) {
-  const t = CC[lang];
-  const phones = (clinic?.phones ?? []).slice(0, 2);
+function ClinicContact({ m, lang, clinic, own = [] }: { m: { source_url?: string | null; place_address: string; work_hours?: string }; lang: import("@/lib/i18n/config").Locale; clinic: import("@/lib/places").Place | null; own?: string[] }) {
+  const solo = !clinic && own.length > 0;
+  const t = solo ? { ...CC[lang], ...CC_SOLO[lang] } : CC[lang];
+  const phones = solo ? own : (clinic?.phones ?? []).slice(0, 2);
   const addr = clinic ? placeAddr(clinic, lang) : m.place_address;
   return (
     <div className="space-y-3">
       <div className="rounded-2xl border border-brand/25 bg-brand-soft p-5">
-        <p className="text-[17px] font-bold text-brand-dark">🏥 {t.title}</p>
+        <p className="text-[17px] font-bold text-brand-dark">{solo ? "📞" : "🏥"} {t.title}</p>
         {clinic && (
           <p className="mt-1 text-[15px] font-semibold">
             <Link href={href(lang, `/places/${clinic.slug}`)} className="hover:underline">
@@ -524,7 +533,7 @@ function ClinicContact({ m, lang, clinic }: { m: { source_url?: string | null; p
           </p>
         )}
         {addr && <p className="mt-0.5 text-[13.5px] text-[#2f4a3e]">📍 {addr}</p>}
-        {clinic?.hours && <p className="mt-0.5 text-[13px] text-[#2f4a3e]">🕒 {clinic.hours}</p>}
+        {(clinic?.hours || (solo && m.work_hours)) && <p className="mt-0.5 text-[13px] text-[#2f4a3e]">🕒 {clinic?.hours || m.work_hours}</p>}
         <div className="mt-3 space-y-2">
           {phones.length > 0 && <p className="text-[13px] font-semibold text-brand-dark">{t.call}:</p>}
           {phones.map((ph, i) => (
