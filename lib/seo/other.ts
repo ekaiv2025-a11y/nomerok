@@ -309,6 +309,119 @@ export const SEO_OTHER: SeoContent = {
     },
   },
 
+  notary: {
+    ru: {
+      title: "Нотариусы в Батуми — адреса, телефоны, часы работы",
+      description:
+        "Нотариусы Батуми и других городов Грузии: адрес бюро, рабочие телефоны и часы работы по официальному реестру Нотариальной палаты. Позвоните и уточните время приёма.",
+      h1: "Нотариусы в Батуми",
+      lead: "Нотариальные бюро с адресами, рабочими телефонами и часами работы — по открытым данным реестра Нотариальной палаты Грузии. Выберите бюро рядом и позвоните, чтобы уточнить время и документы.",
+      servicesTitle: "Что делает нотариус",
+      services: [
+        "Удостоверяет сделки и договоры (купля-продажа, дарение, аренда)",
+        "Оформляет доверенности",
+        "Заверяет копии документов и подлинность подписей",
+        "Ведёт наследственные дела",
+        "Консультирует по нотариальным действиям",
+      ],
+      chooseTitle: "Как подготовиться к визиту",
+      choose: [
+        "Позвоните заранее: уточните, принимает ли бюро в нужный день и какие документы взять.",
+        "Возьмите паспорт или ID-карту всех участников сделки.",
+        "Если документы не на грузинском, спросите, нужен ли заверенный перевод и может ли бюро пригласить переводчика.",
+        "Стоимость нотариальных действий установлена законом — её назовут в бюро по телефону.",
+        "Некоторые бюро работают в праздничные дни — это указано в карточке.",
+      ],
+      priceQ: "Сколько стоят услуги нотариуса в Грузии?",
+      priceA: () => "Тарифы на нотариальные действия установлены законодательством Грузии и зависят от вида действия. Точную сумму для вашего случая назовут в бюро.",
+      faq: [
+        {
+          q: "Откуда эти данные?",
+          a: "Адреса, телефоны и часы работы взяты из открытого реестра Нотариальной палаты Грузии (notary.ge). Сведения могут меняться — уточняйте по телефону перед визитом.",
+        },
+        {
+          q: "Можно ли оформить доверенность, если я не говорю по-грузински?",
+          a: "Да, обычно нотариус приглашает переводчика. Уточните это заранее, когда будете звонить в бюро.",
+        },
+        {
+          q: "NomerOk берёт комиссию?",
+          a: "Нет. Вы звоните в бюро напрямую, сервис не берёт денег и не делает наценку.",
+        },
+      ],
+    },
+    en: {
+      title: "Notaries in Batumi — addresses, phones, opening hours",
+      description:
+        "Notaries in Batumi and other cities of Georgia: office address, phone numbers and opening hours from the official register of the Notary Chamber. Call to check appointment times.",
+      h1: "Notaries in Batumi",
+      lead: "Notary offices with addresses, phone numbers and opening hours, based on the public register of the Notary Chamber of Georgia. Pick an office nearby and call to check times and documents.",
+      servicesTitle: "What a notary does",
+      services: [
+        "Certifies transactions and contracts (sale, gift, lease)",
+        "Draws up powers of attorney",
+        "Certifies copies of documents and signatures",
+        "Handles inheritance cases",
+        "Advises on notarial acts",
+      ],
+      chooseTitle: "How to prepare for a visit",
+      choose: [
+        "Call ahead to check that the office can see you that day and which documents to bring.",
+        "Bring the passport or ID card of every party.",
+        "If your documents are not in Georgian, ask whether a certified translation or an interpreter is needed.",
+        "Notarial fees are set by law — the office will tell you the amount by phone.",
+        "Some offices work on public holidays — this is shown on the card.",
+      ],
+      priceQ: "How much does a notary cost in Georgia?",
+      priceA: () => "Fees for notarial acts are set by Georgian law and depend on the type of act. The office will tell you the exact amount for your case.",
+      faq: [
+        {
+          q: "Where does this information come from?",
+          a: "Addresses, phones and hours come from the public register of the Notary Chamber of Georgia (notary.ge). Details can change — please call before visiting.",
+        },
+        {
+          q: "Can I get a power of attorney if I don't speak Georgian?",
+          a: "Yes, notaries usually invite an interpreter. Ask about it when you call the office.",
+        },
+        {
+          q: "Does NomerOk charge a commission?",
+          a: "No. You call the office directly; the service takes no money and adds no markup.",
+        },
+      ],
+    },
+    ka: {
+      title: "ნოტარიუსები ბათუმში — მისამართები, ტელეფონები, სამუშაო საათები",
+      description:
+        "ნოტარიუსები ბათუმსა და საქართველოს სხვა ქალაქებში: ბიუროს მისამართი, ტელეფონები და სამუშაო საათები ნოტარიატის პალატის ოფიციალური რეესტრიდან.",
+      h1: "ნოტარიუსები ბათუმში",
+      lead: "სანოტარო ბიუროები მისამართებით, ტელეფონებითა და სამუშაო საათებით — საქართველოს ნოტარიატის პალატის ღია რეესტრის მიხედვით. აირჩიეთ ახლოს მდებარე ბიურო და დარეკეთ.",
+      servicesTitle: "რას აკეთებს ნოტარიუსი",
+      services: [
+        "ამოწმებს გარიგებებსა და ხელშეკრულებებს",
+        "აფორმებს მინდობილობებს",
+        "ამოწმებს დოკუმენტების ასლებსა და ხელმოწერებს",
+        "აწარმოებს სამკვიდრო საქმეებს",
+        "გაძლევთ კონსულტაციას სანოტარო მოქმედებებზე",
+      ],
+      chooseTitle: "როგორ მოემზადოთ ვიზიტისთვის",
+      choose: [
+        "წინასწარ დარეკეთ და დააზუსტეთ დრო და საჭირო დოკუმენტები.",
+        "თან იქონიეთ ყველა მონაწილის პასპორტი ან პირადობის მოწმობა.",
+        "სანოტარო მოქმედებების საფასური კანონით არის დადგენილი — თანხას ბიუროში გეტყვიან.",
+      ],
+      priceQ: "რა ღირს ნოტარიუსის მომსახურება?",
+      priceA: () => "სანოტარო მოქმედებების საფასური საქართველოს კანონმდებლობით არის დადგენილი და დამოკიდებულია მოქმედების სახეზე. ზუსტ თანხას ბიუროში გეტყვიან.",
+      faq: [
+        {
+          q: "საიდან არის ეს მონაცემები?",
+          a: "მისამართები, ტელეფონები და სამუშაო საათები აღებულია საქართველოს ნოტარიატის პალატის ღია რეესტრიდან (notary.ge). დარეკეთ ვიზიტამდე.",
+        },
+        {
+          q: "იღებს NomerOk საკომისიოს?",
+          a: "არა. ბიუროს პირდაპირ უკავშირდებით, სერვისი თანხას არ იღებს.",
+        },
+      ],
+    },
+  },
   lawyer: {
     ru: {
       title: "Юристы в Батуми — цены, отзывы, контакты напрямую",

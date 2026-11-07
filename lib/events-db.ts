@@ -116,8 +116,8 @@ export async function adminEvents(): Promise<{ pending: CityEvent[]; published: 
  * (повтор по ссылке-источнику не создаётся, прошедшие пропускаются).
  */
 type ImportEvent = { title: string; city: string; kind?: string; starts_at: string; ends_at?: string | null; venue?: string; address?: string; price?: string; url?: string; image?: string; description?: string; source: string };
-export async function applyEventsImport(): Promise<{ added: number; skipped: number }> {
-  const out = { added: 0, skipped: 0 };
+export async function applyEventsImport(): Promise<{ added: number; skipped: number; images?: number }> {
+  const out: { added: number; skipped: number; images?: number } = { added: 0, skipped: 0 };
   const sb = supabase();
   if (!sb) return out;
   const now = Date.now();
@@ -129,10 +129,15 @@ export async function applyEventsImport(): Promise<{ added: number; skipped: num
         out.skipped++;
         continue;
       }
-      const ex = await sb.from("events").select("id").eq("source", e.source).maybeSingle();
+      const ex = await sb.from("events").select("id, image").eq("source", e.source).maybeSingle();
       if (ex.error) return out; // миграция 0049 ещё не выполнена
       if (ex.data) {
-        out.skipped++;
+        // событие уже есть — дозаполняем афишу, если её не было
+        const img = e.image && /^https:\/\//.test(e.image) ? e.image : null;
+        if (img && !(ex.data as { image: string | null }).image) {
+          await sb.from("events").update({ image: img, updated_at: new Date().toISOString() }).eq("id", (ex.data as { id: string }).id);
+          out.images = (out.images ?? 0) + 1;
+        } else out.skipped++;
         continue;
       }
       try {
