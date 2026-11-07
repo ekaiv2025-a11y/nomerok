@@ -10,6 +10,7 @@ import { PhotoPicker } from "./PhotoPicker";
 import { useState } from "react";
 import { detectIntent } from "@/lib/search-intent";
 import { categoryLabel } from "@/lib/categories";
+import { CategoryIcon } from "@/lib/category-icons";
 import { CITY_LABEL, CityOptions } from "./CitySelect";
 import { isCity } from "@/lib/cities";
 import { looksLikeSelf } from "@/lib/request-check";
@@ -22,7 +23,12 @@ const SELF = {
   ka: { title: "როგორც ჩანს, საკუთარ თავზე წერთ როგორც სპეციალისტი", text: "ეს ფორმა მათთვისაა, ვინც ეძებს ხელოსანს. თუ სპეციალისტი ხართ და გინდათ შეკვეთები, განათავსეთ პროფილი — მოთხოვნებს Telegram-ში მიიღებთ.", join: "სპეციალისტი ვარ — პროფილის განთავსება", no: "არა, ხელოსანს ვეძებ" },
 } as const;
 
-const SUGGEST = { ru: "Похоже, подойдёт раздел:", en: "Looks like:", ka: "როგორც ჩანს:" } as const;
+const PICK = {
+  ru: { auto: "подобрали по описанию", change: "Изменить", tap: "Выберите или просто опишите задачу выше — подберём сами", notSure: "Не поняли по описанию — выберите, кто нужен:", all: "Все направления…" },
+  en: { auto: "matched from your description", change: "Change", tap: "Pick one or just describe the task above — we'll match it", notSure: "Couldn't tell from the description — pick who you need:", all: "All categories…" },
+  ka: { auto: "შერჩეულია აღწერით", change: "შეცვლა", tap: "აირჩიეთ ან უბრალოდ აღწერეთ ამოცანა ზემოთ — თავად შევარჩევთ", notSure: "აღწერით ვერ გავიგეთ — აირჩიეთ, ვინ გჭირდებათ:", all: "ყველა მიმართულება…" },
+} as const;
+const POPULAR = ["handyman", "plumber", "electrician", "appliances", "repair", "cleaning", "beauty", "tutor", "doctor", "moving"];
 
 type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; defaultText?: string; org?: string; me?: { name: string; phone: string } | null };
 
@@ -40,6 +46,10 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
   const [realty, setRealty] = useState<Realty>(EMPTY_REALTY);
   const [realtyErr, setRealtyErr] = useState("");
   const selfWarn = !selfOk && looksLikeSelf(desc);
+  const [pick, setPick] = useState(false);
+  // Направление: выбрано вручную → пришло со страницы направления → угадано по описанию
+  const autoList = detectIntent(desc).map((x) => x.cat).filter((c, i, a) => a.indexOf(c) === i && CATEGORIES.some((k) => k.id === c));
+  const auto = autoList[0] ?? "";
 
   if (state === "done") {
     return (
@@ -119,44 +129,24 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
     });
   }
 
-  const initialCat = CATEGORIES.some((c) => c.id === defaultCategory) ? defaultCategory : "";
+  const initialCat = CATEGORIES.some((c) => c.id === defaultCategory) ? defaultCategory! : "";
+  const cat = catSel || initialCat || auto;
 
   return (
     <form onSubmit={onSubmit} data-funnel="request" className="relative space-y-5" noValidate>
       <Honeypot label={d.form.honeypot} />
-      <Field label={t.who} error={errors.category}>
-        <select name="category" value={catSel || initialCat || ""} onChange={(e) => setCatSel(e.target.value)} className={fc(errors.category)} required>
-          <option value="" disabled>
-            {d.form.choose}
-          </option>
-          <CategoryOptions lang={lang} />
-        </select>
-      </Field>
-      {(catSel || initialCat) === "realtor" && (
-        <div id="realty">
-          <RealtyFields
-            lang={lang}
-            value={realty}
-            onChange={(r) => {
-              setRealty(r);
-              setRealtyErr("");
-            }}
-            error={realtyErr}
-          />
-        </div>
-      )}
       <Field
-        label={(catSel || initialCat) === "realtor" ? realtyText(lang).notesLabel : t.what}
-        hint={(catSel || initialCat) === "realtor" ? undefined : t.whatHint}
-        optional={(catSel || initialCat) === "realtor" ? d.form.optional : undefined}
+        label={cat === "realtor" ? realtyText(lang).notesLabel : t.what}
+        hint={cat === "realtor" ? undefined : t.whatHint}
+        optional={cat === "realtor" ? d.form.optional : undefined}
         error={errors.description}
       >
-        <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={(catSel || initialCat) === "realtor" ? realtyText(lang).notesPh : t.whatPlaceholder} required={(catSel || initialCat) !== "realtor"} />
-        {(catSel || initialCat) && (catSel || initialCat) !== "realtor" && desc.trim().length < 80 && (
+        <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={cat === "realtor" ? realtyText(lang).notesPh : t.whatPlaceholder} required={cat !== "realtor"} />
+        {cat && cat !== "realtor" && desc.trim().length < 80 && (
           <div className="mt-2 rounded-xl bg-cream px-3 py-2.5 text-[13px] leading-snug">
             <p className="font-semibold">{HINT_TITLE[lang]}</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
-              {requestHints(catSel || initialCat || "", lang).map((h) => (
+              {requestHints(cat, lang).map((h) => (
                 <li key={h}>{h}</li>
               ))}
             </ul>
@@ -176,22 +166,66 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
             </div>
           </div>
         )}
-        {(() => {
-          const cur = catSel || initialCat || "";
-          const sug = detectIntent(desc).map((x) => x.cat).filter((c, i, a) => a.indexOf(c) === i && c !== cur);
-          if (!sug.length || (cur && cur !== "other" && detectIntent(desc).some((x) => x.cat === cur))) return null;
-          return (
-            <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
-              {SUGGEST[lang]}
-              {sug.slice(0, 2).map((c) => (
-                <button key={c} type="button" onClick={() => setCatSel(c)} className="rounded-full bg-brand-soft px-2.5 py-0.5 font-semibold text-brand-dark hover:bg-[#d6eadf]">
-                  {categoryLabel(c, lang)}
+      </Field>
+      <Field label={t.who} error={errors.category}>
+        <input type="hidden" name="category" value={cat} />
+        {cat && !pick ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3.5 py-2 text-[15px] font-semibold text-brand-dark">
+              <CategoryIcon id={cat} className="h-4 w-4" /> {categoryLabel(cat, lang)}
+            </span>
+            {!catSel && !initialCat && <span className="text-[13px] text-muted">{PICK[lang].auto}</span>}
+            <button type="button" onClick={() => setPick(true)} className="text-[14px] font-semibold text-brand underline-offset-2 hover:underline">
+              {PICK[lang].change}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <p className="mb-2 text-[13px] text-muted">{desc.trim().length >= 3 && !auto ? PICK[lang].notSure : PICK[lang].tap}</p>
+            <div className="flex flex-wrap gap-2">
+              {[...new Set([...autoList, ...POPULAR])].slice(0, 10).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => {
+                    setCatSel(c);
+                    setPick(false);
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[14px] ${c === cat ? "border-brand bg-brand-soft font-semibold text-brand-dark" : "border-line bg-white hover:border-brand"}`}
+                >
+                  <CategoryIcon id={c} className="h-4 w-4" /> {categoryLabel(c, lang)}
                 </button>
               ))}
-            </p>
-          );
-        })()}
+            </div>
+            <select
+              value=""
+              onChange={(e) => {
+                if (!e.target.value) return;
+                setCatSel(e.target.value);
+                setPick(false);
+              }}
+              className={`${fc()} mt-2`}
+              aria-label={PICK[lang].all}
+            >
+              <option value="">{PICK[lang].all}</option>
+              <CategoryOptions lang={lang} />
+            </select>
+          </div>
+        )}
       </Field>
+      {cat === "realtor" && (
+        <div id="realty">
+          <RealtyFields
+            lang={lang}
+            value={realty}
+            onChange={(r) => {
+              setRealty(r);
+              setRealtyErr("");
+            }}
+            error={realtyErr}
+          />
+        </div>
+      )}
       <Field label={CITY_LABEL[lang]}>
         <select name="city" defaultValue={isCity(defaultCity) ? defaultCity : "batumi"} className={fc()}>
           <CityOptions lang={lang} />
