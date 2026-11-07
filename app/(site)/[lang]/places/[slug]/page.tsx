@@ -52,9 +52,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const TEAM_T = {
-  ru: { team: "Команда", empty: "Специалисты этой организации ещё не добавлены.", request: "Отправить заявку", iWork: "Я здесь работаю", ownerHint: "Владелец?", ownerLink: "Кабинет организации" },
-  en: { team: "Team", empty: "No specialists added yet.", request: "Send a request", iWork: "I work here", ownerHint: "Owner?", ownerLink: "Organization account" },
-  ka: { team: "გუნდი", empty: "სპეციალისტები ჯერ არ დამატებულა.", request: "განაცხადის გაგზავნა", iWork: "აქ ვმუშაობ", ownerHint: "მფლობელი ხართ?", ownerLink: "ორგანიზაციის კაბინეტი" },
+  ru: { more: (n: number) => `Показать всех (${n})`, team: "Команда", empty: "Специалисты этой организации ещё не добавлены.", request: "Отправить заявку", iWork: "Я здесь работаю", ownerHint: "Владелец?", ownerLink: "Кабинет организации" },
+  en: { more: (n: number) => `Show all (${n})`, team: "Team", empty: "No specialists added yet.", request: "Send a request", iWork: "I work here", ownerHint: "Owner?", ownerLink: "Organization account" },
+  ka: { more: (n: number) => `ყველას ჩვენება (${n})`, team: "გუნდი", empty: "სპეციალისტები ჯერ არ დამატებულა.", request: "განაცხადის გაგზავნა", iWork: "აქ ვმუშაობ", ownerHint: "მფლობელი ხართ?", ownerLink: "ორგანიზაციის კაბინეტი" },
 } as const;
 
 export default async function PlacePage({ params }: Props) {
@@ -77,7 +77,8 @@ export default async function PlacePage({ params }: Props) {
     nearbyPlaces(p),
     botUsername().catch(() => null),
     publishedPlaceReviews(p.id).catch(() => []),
-    p.owner_verified_at ? publicTeamOf(p.id).then((x) => localizeMasters(x, lang)).catch(() => []) : Promise.resolve([]),
+    // команда: подтверждённые организации и клиники, чьих врачей мы добавили по их сайту
+    publicTeamOf(p.id).then((x) => localizeMasters(x, lang)).catch(() => []),
     currentSpecialistId().catch(() => null),
   ]);
   // Специалисты из нашего каталога по теме места (клиника → врачи, стоматология → стоматологи…)
@@ -277,7 +278,7 @@ export default async function PlacePage({ params }: Props) {
         </section>
       )}
 
-      {specsL.length > 0 && (
+      {specsL.length > 0 && team.length === 0 && (
         <section className="mt-6">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <h2 className="text-[18px] font-bold">{SPEC_T[lang](categoryPlural(specCats[0], lang).toLowerCase(), cityIn(pcity, lang))}</h2>
@@ -294,18 +295,32 @@ export default async function PlacePage({ params }: Props) {
         </section>
       )}
 
-      {p.owner_verified_at && (
+      {(p.owner_verified_at || team.length > 0) && (
         <section className="mt-6 rounded-2xl border border-line bg-white p-5">
           <h2 className="text-[18px] font-bold">
-            👥 {TT.team}
+            {p.cat === "health" ? `🩺 ${{ ru: "Врачи", en: "Doctors", ka: "ექიმები" }[lang]}` : `👥 ${TT.team}`}
             {team.length > 0 && <span className="ml-2 text-[15px] font-semibold text-muted">{team.length}</span>}
           </h2>
           {team.length > 0 ? (
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {team.map((m) => (
-                <MasterCard key={m.id} m={m} lang={lang} />
-              ))}
-            </div>
+            <>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {team.slice(0, 9).map((m) => (
+                  <MasterCard key={m.id} m={m} lang={lang} />
+                ))}
+              </div>
+              {team.length > 9 && (
+                <details className="group mt-3">
+                  <summary className="btn-ghost h-11 cursor-pointer list-none px-5 text-[14px] group-open:hidden">
+                    {TT.more(team.length)}
+                  </summary>
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {team.slice(9).map((m) => (
+                      <MasterCard key={m.id} m={m} lang={lang} />
+                    ))}
+                  </div>
+                </details>
+              )}
+            </>
           ) : (
             <p className="mt-2 text-[14px] text-muted">{TT.empty}</p>
           )}
