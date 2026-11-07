@@ -144,9 +144,16 @@ export function AdminPostPhotos({ initial, hint, cover = true }: { initial: stri
         </div>
       )}
       {cover && list[0] && <CoverPreview url={list[0]} onChange={(y) => setList((l) => [withY(l[0], y), ...l.slice(1)])} />}
-      <label className="btn-ghost mt-2 inline-flex h-9 cursor-pointer px-4 text-[13px]">
-        {busy ? `Загружаю… (${busy})` : "+ Добавить фото"}
-        <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+      {/* Большая зона: перетащить фото из папки или нажать и выбрать */}
+      <label className="mt-2 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed border-line p-4 transition hover:border-brand hover:bg-brand-soft/40">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-cream text-[26px]" aria-hidden>
+          {busy ? "⏳" : "🖼"}
+        </span>
+        <span>
+          <span className="block text-[15px] font-semibold text-brand">{busy ? `Загружаю… (${busy})` : "Перетащите фото сюда или нажмите, чтобы выбрать"}</span>
+          <span className="mt-0.5 block text-[12.5px] text-muted">JPG, PNG или WEBP · можно сразу несколько</span>
+        </span>
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
       </label>
       {err && <p className="mt-1 text-[13px] text-danger">{err}</p>}
       <p className="mt-1 text-[12px] text-muted">{hint ?? "Можно выбрать сразу несколько или перетащить мышью сюда. Первое фото — обложка. Остальные покажутся галереей после текста, а нажмите «↳ в текст» — и фото встанет в статью там, где стоит курсор. Можно и сразу перетащить фото в поле текста."}</p>

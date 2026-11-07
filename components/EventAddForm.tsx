@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CITIES } from "@/lib/cities";
 import { EVENT_KINDS } from "@/lib/events";
+import { DropZone } from "./DropZone";
 import type { Locale } from "@/lib/i18n/config";
 
 /** Форма «Добавить своё мероприятие» — уходит на проверку. Подписи по-русски (раздел для ru), город и тип — на языке страницы. */
@@ -12,6 +13,11 @@ export function EventAddForm({ lang }: { lang: Locale }) {
   const [msg, setMsg] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pick = (f: File | undefined) => {
+    setFileName(f?.name ?? "");
+    setPreview(f ? URL.createObjectURL(f) : null);
+  };
   async function onSubmit(ev: React.FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     setState("sending");
@@ -109,18 +115,15 @@ export function EventAddForm({ lang }: { lang: Locale }) {
       <div>
         <L>Афиша или фото</L>
         {/* Своя кнопка вместо системной «Выберите файл»: большая зона с превью */}
+        <DropZone
+          onFiles={(files) => {
+            // перетащили файл — кладём его в поле формы, чтобы он ушёл вместе с остальным
+            if (fileRef.current) fileRef.current.files = files;
+            pick(files[0]);
+          }}
+        >
         <label className={`relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed p-4 transition hover:border-brand hover:bg-brand-soft/40 ${errors.image ? "border-danger" : "border-line"}`}>
-          <input
-            type="file"
-            name="image"
-            accept="image/*"
-            className="sr-only"
-            onChange={(ev) => {
-              const f = ev.currentTarget.files?.[0];
-              setFileName(f?.name ?? "");
-              setPreview(f ? URL.createObjectURL(f) : null);
-            }}
-          />
+          <input ref={fileRef} type="file" name="image" accept="image/*" className="sr-only" onChange={(ev) => pick(ev.currentTarget.files?.[0])} />
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
@@ -130,10 +133,11 @@ export function EventAddForm({ lang }: { lang: Locale }) {
             </span>
           )}
           <span className="min-w-0">
-            <span className="block text-[15px] font-semibold text-brand">{preview ? "Заменить картинку" : "📷 Загрузить афишу или фото"}</span>
+            <span className="block text-[15px] font-semibold text-brand">{preview ? "Заменить картинку" : "Перетащите афишу сюда или нажмите, чтобы выбрать"}</span>
             <span className="mt-0.5 block truncate text-[12.5px] text-muted">{fileName || "JPG, PNG или WEBP, до 8 МБ. Можно пропустить"}</span>
           </span>
         </label>
+        </DropZone>
         <Err n="image" />
       </div>
       <label className="block">
