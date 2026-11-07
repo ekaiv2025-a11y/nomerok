@@ -36,16 +36,16 @@ const T = {
 } as const;
 
 /** Главная, над каталогом: короткий блок про бонусы — клиентам кнопка «мастера с бонусом», специалистам — «включить бонус». */
-export async function BonusStrip({ lang, masters, city = "batumi" }: { lang: Locale; masters: PublicMaster[]; city?: string }) {
+export async function BonusStrip({ lang, masters, city = "all" }: { lang: Locale; masters: PublicMaster[]; city?: string }) {
   const t = T[lang];
   // только специалисты выбранного города — в Тбилиси батумские бонусы не нужны
-  const n = masters.filter((m) => m.bonus && !m.demo && (m.city ?? "batumi") === city).length;
+  const n = masters.filter((m) => m.bonus && !m.demo && (city === "all" || (m.city ?? "batumi") === city)).length;
   // Тонкая строка над каталогом — только если в городе есть специалисты с бонусом (специалистам — короткая ссылка справа)
   if (n === 0) return null;
   return (
     <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-[#f0d58a] bg-[#fffaf0] px-4 py-2.5">
-        <a href={`/${lang}?${city !== "batumi" ? `city=${city}&` : ""}bonus=1#masters`} className="group flex min-w-0 grow items-center gap-2 text-[14px]">
+        <a href={`/${lang}?${city !== "all" ? `city=${city}&` : ""}bonus=1#masters`} className="group flex min-w-0 grow items-center gap-2 text-[14px]">
           <span aria-hidden>🎁</span>
           <span className="min-w-0">
             <b>{t.show(n)}</b> <span className="text-[#6b4f12]">{t.short}</span>

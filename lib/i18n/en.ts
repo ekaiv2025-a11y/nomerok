@@ -31,7 +31,7 @@ const en: Dict = {
   },
   footer: {
     cabinet: "Specialist dashboard",
-    tagline: "Specialists in Batumi. Contact them directly — no middlemen, no markups.",
+    tagline: "Specialists across Georgia. Contact them directly — no middlemen, no markups.",
     clients: "For clients",
     specialists: "For specialists",
     company: "About",

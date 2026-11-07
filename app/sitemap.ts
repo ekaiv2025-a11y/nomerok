@@ -1,3 +1,4 @@
+import { CITIES } from "@/lib/cities";
 import { SUBCATS, subcatsOf } from "@/lib/subcats";
 import { upcomingEvents } from "@/lib/events-db";
 import type { MetadataRoute } from "next";
@@ -52,6 +53,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Статьи — пока только на русском
     { url: `${SITE_URL}/ru/guide`, priority: 0.6 },
     ...ARTICLES.map((a) => ({ url: `${SITE_URL}/ru/guide/${a.slug}`, priority: 0.7, lastModified: a.date })),
+    // Главная по городам (без ?city= — вся Грузия)
+    ...CITIES.filter((c) => masters.some((m) => !m.demo && (m.city ?? "batumi") === c.id)).flatMap((c) => entry(`?city=${c.id}`, 0.9)),
     ...seoCategoryIds().flatMap((c) => entry(`/services/${c}`, 0.9)),
     // Места города: раздел, категории, карточки с описанием
     ...entry("/places", 0.7),

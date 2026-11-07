@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { href, type Locale } from "@/lib/i18n";
-import { cityIn, cityLabel } from "@/lib/cities";
+import { CITIES, cityIn, cityLabel } from "@/lib/cities";
 import { categoryPlural } from "@/lib/categories";
 import { SUBCATS, subcatsOf } from "@/lib/subcats";
 import type { PublicMaster } from "@/lib/types";
@@ -21,8 +21,9 @@ const T = {
     from: (n: number) => `от ${n} ₾`,
     masters: (n: number) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "специалист" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "специалиста" : "специалистов"}`,
     faqH: "Частые вопросы",
+    cities: "Специалисты по городам",
     faq: (c: string, l: string) => [
-      { q: `Как найти мастера ${c}?`, a: `Выберите направление в каталоге выше и город ${l} — откроются анкеты с ценами, фото и отзывами. Или разместите заявку: специалисты сами напишут вам.` },
+      { q: `Как найти мастера ${c}?`, a: `Выберите ${l ? `город ${l} и ` : "город и "}направление в каталоге выше — откроются анкеты с ценами, фото и отзывами. Или разместите заявку: специалисты сами напишут вам.` },
       { q: "Сколько стоит пользоваться NomerOk?", a: "Для клиентов бесплатно. Цену работы вы обсуждаете со специалистом напрямую." },
       { q: "Как связаться со специалистом?", a: "В анкете есть телефон или Telegram: пишите и звоните напрямую. Если анкету составила редакция по сайту клиники, запись — через клинику." },
       { q: `Я специалист ${c}. Как попасть в каталог?`, a: "Зарегистрируйтесь — это бесплатно и занимает около 5 минут. Заявки клиентов вашего направления будут приходить в Telegram." },
@@ -39,8 +40,9 @@ const T = {
     from: (n: number) => `from ${n} ₾`,
     masters: (n: number) => `${n} specialists`,
     faqH: "FAQ",
+    cities: "Specialists by city",
     faq: (c: string, l: string) => [
-      { q: `How do I find a specialist ${c}?`, a: `Pick a category above and the city ${l} to see profiles with prices, photos and reviews. Or post a request and specialists will contact you.` },
+      { q: `How do I find a specialist ${c}?`, a: `Pick ${l ? `the city ${l}` : "a city"} and a category above to see profiles with prices, photos and reviews. Or post a request and specialists will contact you.` },
       { q: "How much does NomerOk cost?", a: "It is free for clients. You agree on the price with the specialist directly." },
       { q: `I'm a specialist ${c}. How do I join?`, a: "Sign up — it's free and takes about 5 minutes. Client requests in your field will arrive in Telegram." },
     ],
@@ -56,6 +58,7 @@ const T = {
     from: (n: number) => `${n} ₾-დან`,
     masters: (n: number) => `${n} სპეციალისტი`,
     faqH: "ხშირი კითხვები",
+    cities: "სპეციალისტები ქალაქების მიხედვით",
     faq: (c: string) => [
       { q: "რა ღირს NomerOk?", a: "კლიენტებისთვის უფასოა. ფასზე სპეციალისტთან პირდაპირ თანხმდებით." },
       { q: `სპეციალისტი ვარ ${c}. როგორ დავრეგისტრირდე?`, a: "რეგისტრაცია უფასოა და დაახლოებით 5 წუთს გრძელდება." },
@@ -67,8 +70,11 @@ const T = {
 export function CitySeo({ lang, city, masters, cats }: { lang: Locale; city: string; masters: PublicMaster[]; cats: string[] }) {
   const t = T[lang];
   const c = cityIn(city, lang);
-  const local = masters.filter((m) => !m.demo && (m.city ?? "batumi") === city);
+  const all = city === "all";
+  const local = masters.filter((m) => !m.demo && (all || (m.city ?? "batumi") === city));
   const q = city !== "batumi" ? `?city=${city}` : "";
+  // Вся Грузия: вместо услуг (их страницы — по городам) показываем города со ссылками
+  const byCity = all ? CITIES.map((x) => ({ x, n: local.filter((m) => (m.city ?? "batumi") === x.id).length })).filter((r) => r.n > 0) : [];
   // Не повторяем направления (они уже есть над каталогом) — показываем конкретные услуги-подразделы с ценами из прайсов
   const services = cats
     .flatMap((cat) =>
@@ -81,7 +87,7 @@ export function CitySeo({ lang, city, masters, cats }: { lang: Locale; city: str
     .filter((x) => x.n > 0)
     .sort((a, b) => Number(b.min != null) - Number(a.min != null) || b.n - a.n)
     .slice(0, 12);
-  const faq = t.faq(c, cityLabel(city, lang));
+  const faq = t.faq(c, all ? "" : cityLabel(city, lang));
   const ld = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   return (
     <section className="mx-auto max-w-6xl px-4 pb-6 pt-10 sm:px-6">
@@ -92,7 +98,19 @@ export function CitySeo({ lang, city, masters, cats }: { lang: Locale; city: str
           <p className="mt-3 text-[15px] leading-relaxed text-[#3a3935]">{t.p1(c)}</p>
           <p className="mt-3 text-[15px] leading-relaxed text-[#3a3935]">{t.p2}</p>
           {local.length >= 3 && <p className="mt-3 text-[14px] text-muted">{t.count(local.length, c)}</p>}
-          {services.length > 0 && (
+          {byCity.length > 0 && (
+            <>
+              <h3 className="mt-6 text-[17px] font-bold">{t.cities}</h3>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {byCity.map(({ x, n }) => (
+                  <Link key={x.id} href={`/${lang}?city=${x.id}#masters`} className="rounded-full border border-line px-3.5 py-1.5 text-[14px] hover:border-brand">
+                    {x.label[lang]} <span className="text-muted">· {n}</span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+          {!all && services.length > 0 && (
             <>
               <h3 className="mt-6 text-[17px] font-bold">{t.popular(c)}</h3>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">

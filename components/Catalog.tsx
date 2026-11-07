@@ -10,7 +10,7 @@ import type { PublicMaster } from "@/lib/types";
 import { MasterCard } from "./MasterCard";
 import { masterPoint } from "./map/master-point";
 import { useRouter } from "next/navigation";
-import { CITIES, type CityId } from "@/lib/cities";
+import { ALL_GEORGIA, CITIES, type CityScope } from "@/lib/cities";
 import { MapPin } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
 import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
@@ -29,7 +29,7 @@ const INTENT_HINT = { ru: "Похоже, вам нужен:", en: "Looks like yo
  * pageCat — каталог стоит на странице направления (/services/<cat>): оно выбрано сразу.
  * catPages — у каких направлений есть своя страница: чипы ведут на неё (отдельная страница с SEO-текстом), остальные фильтруют на месте.
  */
-export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages = [] }: { masters: PublicMaster[]; lang: Locale; city: CityId; pageCat?: string; pageSub?: string; catPages?: string[] }) {
+export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages = [] }: { masters: PublicMaster[]; lang: Locale; city: CityScope; pageCat?: string; pageSub?: string; catPages?: string[] }) {
   const t = getDict(lang).catalog;
   const router = useRouter();
   // Город: показываем специалистов выбранного города; в списке — Батуми и города, где уже кто-то есть
@@ -38,7 +38,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   const [mix, setMix] = useState(0);
   useEffect(() => setMix(1), []);
   const masters = useMemo(() => {
-    const list = all.filter((m) => (m.city ?? "batumi") === city);
+    const list = all.filter((m) => city === "all" || (m.city ?? "batumi") === city);
     if (!mix) return list;
     const n = list.length || 1;
     return list
@@ -52,9 +52,12 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
     return c;
   }, [all]);
   const cities = CITIES.filter((c) => c.id === "batumi" || c.id === city || cityCounts[c.id]);
+  // На главной можно выбрать всю Грузию (без ?city=); на страницах направлений — только город (без ?city= — Батуми)
+  const home = !pageCat;
   const [cat, setCat] = useState<string>(pageCat ?? "all");
-  const cityQ = city !== "batumi" ? `?city=${city}` : "";
-  const pageHref = (c: string) => (c === "all" ? `/${lang}${cityQ}#masters` : catPages.includes(c) ? `/${lang}/services/${c}${cityQ}#masters` : null);
+  const cityQ = city === "all" || city === "batumi" ? "" : `?city=${city}`;
+  // Вся Грузия: страницы направлений — по городам, поэтому на главной фильтруем на месте
+  const pageHref = (c: string) => (c === "all" ? `/${lang}${cityQ}#masters` : city !== "all" && catPages.includes(c) ? `/${lang}/services/${c}${cityQ}#masters` : null);
   // Ссылка вида nomerok.ge/ru?cat=plumber сразу открывает нужное направление (удобно для баннеров и чатов)
   useEffect(() => {
     const c = new URLSearchParams(window.location.search).get("cat");
@@ -162,7 +165,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   const reqCat = cat !== "all" ? cat : intents[0]?.cat;
   const requestHref = href(
     lang,
-    `/request?${new URLSearchParams({ ...(reqCat ? { category: reqCat } : {}), ...(city !== "batumi" ? { city } : {}), ...(q.trim().length > 2 ? { text: q.trim() } : {}) }).toString()}`,
+    `/request?${new URLSearchParams({ ...(reqCat ? { category: reqCat } : {}), ...(city !== "all" ? { city } : {}), ...(q.trim().length > 2 ? { text: q.trim() } : {}) }).toString()}`,
   );
 
   return (
@@ -202,18 +205,24 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
         </p>
       )}
 
-      {cities.length > 1 && (
+      {(home || cities.length > 1) && (
         <label className="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white pl-3.5 pr-2 text-[14px] font-semibold">
           <MapPin className="h-4 w-4 text-brand" aria-hidden />
           <select
             value={city}
             onChange={(e) => {
-              const q = e.target.value === "batumi" ? "" : `?city=${e.target.value}`;
+              const v = e.target.value;
+              const q = home ? (v === "all" ? "" : `?city=${v}`) : v === "batumi" ? "" : `?city=${v}`;
               router.push(pageCat ? `/${lang}/services/${pageCat}${q}#masters` : `/${lang}${q}#masters`);
             }}
             className="h-full bg-transparent pr-1 outline-none"
             aria-label="City"
           >
+            {home && (
+              <option value="all">
+                {ALL_GEORGIA.label[lang]} · {all.length}
+              </option>
+            )}
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.label[lang]}

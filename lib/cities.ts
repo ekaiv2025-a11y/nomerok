@@ -24,10 +24,24 @@ export function isCity(v: unknown): v is CityId {
 export function cityOf(v: unknown): CityId {
   return isCity(v) ? v : DEFAULT_CITY;
 }
+/** Область каталога: один город или вся Грузия (главная без ?city=). */
+export type CityScope = CityId | "all";
+export const ALL_GEORGIA = {
+  label: { ru: "Вся Грузия", en: "All Georgia", ka: "მთელი საქართველო" },
+  in: { ru: "в Грузии", en: "in Georgia", ka: "საქართველოში" },
+} as const;
+export function scopeOf(v: unknown): CityScope {
+  return isCity(v) ? v : "all";
+}
+export function inScope(city: string | null | undefined, scope: CityScope): boolean {
+  return scope === "all" || (city ?? "batumi") === scope;
+}
 export function cityLabel(id: string | null | undefined, lang: Locale): string {
+  if (id === "all") return ALL_GEORGIA.label[lang];
   return CITIES.find((c) => c.id === id)?.label[lang] ?? CITIES[0].label[lang];
 }
 export function cityIn(id: string | null | undefined, lang: Locale): string {
+  if (id === "all") return ALL_GEORGIA.in[lang];
   return CITIES.find((c) => c.id === id)?.in[lang] ?? CITIES[0].in[lang];
 }
 export function cityCenter(id: string | null | undefined): [number, number] {

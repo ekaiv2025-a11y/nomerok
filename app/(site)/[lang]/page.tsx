@@ -13,7 +13,7 @@ import { getDict, href } from "@/lib/i18n";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
 import { SITE_NAME } from "@/lib/site";
 import type { PublicMaster } from "@/lib/types";
-import { cityIn, cityOf, cityLabel } from "@/lib/cities";
+import { cityIn, cityLabel, inScope, scopeOf } from "@/lib/cities";
 import { CitySeo } from "@/components/CitySeo";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +21,8 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params, searchParams }: LangParams & { searchParams: Promise<{ city?: string }> }): Promise<Metadata> {
   const lang = await langOf(params);
   const t = getDict(lang).meta;
-  const city = cityOf((await searchParams).city);
-  if (city === "batumi") return pageMeta(lang, "/", t.title(SITE_NAME), t.description);
+  const city = scopeOf((await searchParams).city);
+  if (city === "batumi") return pageMeta(lang, "/?city=batumi", t.title(SITE_NAME), t.description);
   // Отдельный заголовок и описание для каждого города — чтобы поиск показывал страницу по запросу «мастер в Тбилиси»
   const l = cityLabel(city, lang);
   const META = {
@@ -30,12 +30,12 @@ export async function generateMetadata({ params, searchParams }: LangParams & { 
     en: [`Specialists ${cityIn(city, "en")}: repairs, tutors, doctors — ${SITE_NAME}`, `Catalog of independent specialists ${cityIn(city, "en")}: repairs, cleaning, beauty, tutors, doctors. Prices, photos and reviews.`],
     ka: [`სპეციალისტები — ${l} | ${SITE_NAME}`, `კერძო სპეციალისტების კატალოგი ${cityIn(city, "ka")}: ფასები, ნამუშევრები, შეფასებები.`],
   } as const;
-  return pageMeta(lang, `/?city=${city}`, META[lang][0], META[lang][1]);
+  return pageMeta(lang, city === "all" ? "/" : `/?city=${city}`, META[lang][0], META[lang][1]);
 }
 
 export default async function Home({ params, searchParams }: LangParams & { searchParams: Promise<{ city?: string }> }) {
   const lang = await langOf(params);
-  const city = cityOf((await searchParams).city);
+  const city = scopeOf((await searchParams).city);
   const t = getDict(lang).home;
   let masters: PublicMaster[] = [];
   let broken = false;
@@ -47,7 +47,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
     broken = true;
   }
 
-  const count = masters.filter((m) => !m.demo && (m.city ?? "batumi") === city).length;
+  const count = masters.filter((m) => !m.demo && inScope(m.city, city)).length;
   return (
     <>
       <section className="mx-auto max-w-6xl px-4 pb-4 pt-5 sm:px-6 sm:pt-8">
@@ -66,7 +66,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
               <a href="#masters" className="btn-primary h-12 gap-2 px-3 text-[14.5px] sm:px-6 sm:text-[15.5px]">
                 <Search className="h-4.5 w-4.5" /> {HERO[lang].find}
               </a>
-              <Link href={href(lang, city !== "batumi" ? `/request?city=${city}` : "/request")} className="btn-ghost h-12 gap-2 bg-white px-3 text-[14.5px] sm:px-6 sm:text-[15.5px]">
+              <Link href={href(lang, city !== "all" ? `/request?city=${city}` : "/request")} className="btn-ghost h-12 gap-2 bg-white px-3 text-[14.5px] sm:px-6 sm:text-[15.5px]">
                 <ClipboardList className="h-4.5 w-4.5" /> {t.pathRequest}
               </Link>
             </div>
