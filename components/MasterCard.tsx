@@ -36,7 +36,14 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
   const link = href(lang, `/master/${m.slug}`);
   const atPlace = m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both");
-  const summary = cardSummary(m.services, m.about);
+  const line = subcatLine(m, lang) ?? categoryLabel(m.category, lang);
+  // Не повторяем под специальностью то же самое слово («Кардиолог» / «Кардиолог»)
+  const norm = (x: string) => x.toLowerCase().replace(/[^a-zа-яёა-ჰ0-9]+/gi, " ").trim();
+  const lineParts = new Set([norm(line), ...line.split(/[,()·]/).map(norm)].filter(Boolean));
+  const summary = (cardSummary(m.services, m.about) ?? "")
+    .split(" · ")
+    .filter((x) => x.trim() && !lineParts.has(norm(x)))
+    .join(" · ");
   const mode = !atPlace ? MODE[m.work_mode === "both" ? "at_client" : m.work_mode]?.[lang] : null;
   const langs = (m.languages ?? []).map((l) => LANG_SHORT[l]).filter(Boolean);
   const prices = m.price_list ?? [];
@@ -72,7 +79,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           )}
         </h3>
         <div className="mt-1 text-[13px] text-muted">
-          {subcatLine(m, lang) ?? categoryLabel(m.category, lang)}
+          {line}
           {m.experience_years ? <span className="hidden sm:inline"> · {t.experience(m.experience_years)}</span> : null}
         </div>
         {m.rating != null && m.reviews > 0 && (
