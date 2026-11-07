@@ -9,7 +9,7 @@ import { pageMeta } from "@/lib/i18n/page";
 import { seoCategoryIds } from "@/lib/seo-categories";
 import { SUBCATS, subcatsOf } from "@/lib/subcats";
 import { Catalog } from "@/components/Catalog";
-import { cityIn, cityOf } from "@/lib/cities";
+import { cityIn, inScope, pageScopeOf } from "@/lib/cities";
 import { SITE_URL } from "@/lib/site";
 import type { PublicMaster } from "@/lib/types";
 
@@ -98,7 +98,7 @@ function priceStats(masters: PublicMaster[], cat: string, sub: string) {
 
 async function load(lang: Locale, cat: string, sub: string, city: string) {
   const all = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
-  const inCat = all.filter((m) => (m.city ?? "batumi") === city && (m.category === cat || m.extra_categories.includes(cat)));
+  const inCat = all.filter((m) => inScope(m.city, city as never) && (m.category === cat || m.extra_categories.includes(cat)));
   const matched = inCat.filter((m) => subcatsOf(m, cat).includes(sub));
   return { all: inCat, matched };
 }
@@ -106,7 +106,7 @@ async function load(lang: Locale, cat: string, sub: string, city: string) {
 export async function subMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang, cat, district: sub } = await params;
   if (!isLocale(lang) || !seoCategoryIds().includes(cat) || !subOf(cat, sub)) return {};
-  const city = cityOf((await searchParams)?.city);
+  const city = pageScopeOf((await searchParams)?.city);
   const t = T[lang];
   const label = subOf(cat, sub)!.label[lang];
   const { matched } = await load(lang, cat, sub, city);
@@ -122,7 +122,7 @@ export async function SubPage({ params, searchParams }: Props) {
   if (!isLocale(lang) || !seoCategoryIds().includes(cat)) notFound();
   const s = subOf(cat, sub);
   if (!s) notFound();
-  const city = cityOf((await searchParams)?.city);
+  const city = pageScopeOf((await searchParams)?.city);
   const t = T[lang];
   const c = cityIn(city, lang);
   const label = s.label[lang];

@@ -55,9 +55,11 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   // На главной можно выбрать всю Грузию (без ?city=); на страницах направлений — только город (без ?city= — Батуми)
   const home = !pageCat;
   const [cat, setCat] = useState<string>(pageCat ?? "all");
-  const cityQ = city === "all" || city === "batumi" ? "" : `?city=${city}`;
+  // Главная: без ?city= — вся Грузия. Страницы направлений: без ?city= — Батуми, ?city=all — вся Грузия.
+  const homeQ = city === "all" ? "" : `?city=${city}`;
+  const cityQ = city === "batumi" ? "" : `?city=${city}`;
   // Вся Грузия: страницы направлений — по городам, поэтому на главной фильтруем на месте
-  const pageHref = (c: string) => (c === "all" ? `/${lang}${cityQ}#masters` : city !== "all" && catPages.includes(c) ? `/${lang}/services/${c}${cityQ}#masters` : null);
+  const pageHref = (c: string) => (c === "all" ? `/${lang}${homeQ}#masters` : catPages.includes(c) ? `/${lang}/services/${c}${cityQ}#masters` : null);
   // Ссылка вида nomerok.ge/ru?cat=plumber сразу открывает нужное направление (удобно для баннеров и чатов)
   useEffect(() => {
     const c = new URLSearchParams(window.location.search).get("cat");
@@ -72,6 +74,16 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   const chooseCat = (c: string, sb = "all") => {
     setCat(c);
     setSub(sb);
+    // На главной фильтр без своей страницы — запоминаем в адресе, чтобы не сбрасывался при обновлении
+    if (!pageCat) {
+      try {
+        const u = new URL(window.location.href);
+        if (c === "all") u.searchParams.delete("cat");
+        else u.searchParams.set("cat", c);
+        u.hash = "masters";
+        window.history.replaceState(null, "", u.toString());
+      } catch {}
+    }
   };
   const [q, setQ] = useState("");
   const [fMode, setFMode] = useState("");
@@ -213,12 +225,13 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
             onChange={(e) => {
               const v = e.target.value;
               const q = home ? (v === "all" ? "" : `?city=${v}`) : v === "batumi" ? "" : `?city=${v}`;
+              // на главной сохраняем выбранное направление без своей страницы
               router.push(pageCat ? `/${lang}/services/${pageCat}${q}#masters` : `/${lang}${q}#masters`);
             }}
             className="h-full bg-transparent pr-1 outline-none"
             aria-label="City"
           >
-            {home && (
+            {(
               <option value="all">
                 {ALL_GEORGIA.label[lang]} · {all.length}
               </option>

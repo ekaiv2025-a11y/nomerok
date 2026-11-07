@@ -33,6 +33,19 @@ export const ALL_GEORGIA = {
 export function scopeOf(v: unknown): CityScope {
   return isCity(v) ? v : "all";
 }
+/** Страницы направлений: без ?city= — Батуми (так они проиндексированы), ?city=all — вся Грузия. */
+export function pageScopeOf(v: unknown): CityScope {
+  return v === "all" ? "all" : cityOf(v);
+}
+/** Тексты страниц направлений написаны для Батуми — подставляем выбранный город или всю Грузию. */
+export function cityize(text: string, scope: CityScope, lang: Locale): string {
+  if (scope === "batumi") return text;
+  const label = scope === "all" ? { ru: "Грузии", en: "Georgia", ka: "საქართველოს" }[lang] : cityLabel(scope, lang);
+  const inC = cityIn(scope, lang);
+  if (lang === "ru") return text.replace(/в Батуми/g, inC).replace(/Батуми/g, label);
+  if (lang === "en") return text.replace(/in Batumi/g, inC).replace(/Batumi/g, label);
+  return text.replace(/ბათუმში/g, inC).replace(/ბათუმის/g, scope === "all" ? "საქართველოს" : label).replace(/ბათუმი/g, label);
+}
 export function inScope(city: string | null | undefined, scope: CityScope): boolean {
   return scope === "all" || (city ?? "batumi") === scope;
 }

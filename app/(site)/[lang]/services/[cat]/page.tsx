@@ -15,17 +15,13 @@ import { DISTRICTS } from "@/lib/districts";
 import { Catalog } from "@/components/Catalog";
 import { Map as MapView } from "@/components/map/Map";
 import { masterPoint } from "@/components/map/master-point";
-import { cityIn, cityOf } from "@/lib/cities";
+import { cityize, inScope, pageScopeOf, type CityScope } from "@/lib/cities";
+import type { SeoText } from "@/lib/seo-categories";
 
 /* Где клиент обычно приходит к специалисту — для них показываем карту «Где принимают». */
 const MAP_CATS = new Set(["beauty", "massage", "dentist", "doctor", "vet", "psychologist", "fitness", "tutor", "languages", "music", "speech", "photo", "food", "art", "lawyer", "accountant", "translator", "realtor", "appliances", "furniture"]);
 const MAP_T = { ru: "Где принимают", en: "Where they receive clients", ka: "სად იღებენ" } as const;
 const MAP_NOTE = { ru: "Показаны специалисты, которые указали адрес, где принимают клиентов. Нажмите на точку — откроется анкета.", en: "Specialists who listed an address where they see clients. Tap a pin to open the profile.", ka: "ნაჩვენებია სპეციალისტები, რომლებმაც მიუთითეს მისამართი. დააჭირეთ წერტილს — გაიხსნება ანკეტა." } as const;
-const OTHER_LEAD = {
-  ru: (c: string) => `Специалисты ${c}: фото работ, цены и отзывы. Пишите напрямую или оставьте заявку — свободные откликнутся сами.`,
-  en: (c: string) => `Specialists ${c}: work photos, prices and reviews. Contact directly or post a request — those who are free will respond.`,
-  ka: (c: string) => `სპეციალისტები ${c}: ნამუშევრების ფოტოები, ფასები და შეფასებები. დაუკავშირდით პირდაპირ ან დატოვეთ განაცხადი.`,
-} as const;
 
 export const dynamic = "force-dynamic";
 
@@ -87,25 +83,23 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!isLocale(lang)) return {};
   const t = seoText(cat, lang);
   if (!t) return {};
-  const city = cityOf((await searchParams).city);
-  if (city !== "batumi") {
-    const h = `${categoryPlural(cat, lang)} ${cityIn(city, lang)}`;
-    return pageMeta(lang, `/services/${cat}?city=${city}`, `${h} — NomerOk`, OTHER_LEAD[lang](cityIn(city, lang)));
-  }
+  const city = pageScopeOf((await searchParams).city);
+  if (city !== "batumi") return pageMeta(lang, `/services/${cat}?city=${city}`, cityize(t.title, city, lang), cityize(t.description, city, lang));
   return pageMeta(lang, `/services/${cat}`, t.title, t.description);
 }
 
 export default async function ServicePage({ params, searchParams }: Props) {
   const { lang, cat } = await params;
-  const city = cityOf((await searchParams).city);
+  const city = pageScopeOf((await searchParams).city);
   const batumi = city === "batumi";
   if (!isLocale(lang)) notFound();
-  const t = seoText(cat, lang);
-  if (!t) notFound();
+  const t0 = seoText(cat, lang);
+  if (!t0) notFound();
+  const t = localText(t0, city, lang);
   const l = L[lang];
 
   const all = await localizeMasters(await listPublishedMasters().catch(() => []), lang);
-  const masters = all.filter((m) => (m.city ?? "batumi") === city && (m.category === cat || m.extra_categories.includes(cat)));
+  const masters = all.filter((m) => inScope(m.city, city) && (m.category === cat || m.extra_categories.includes(cat)));
   const mapPoints = MAP_CATS.has(cat)
     ? masters
         .filter((m) => m.place_lat != null && m.place_lng != null && (m.work_mode === "at_place" || m.work_mode === "both"))
@@ -117,7 +111,9 @@ export default async function ServicePage({ params, searchParams }: Props) {
     .sort((a, b) => a.price_from! - b.price_from!);
   const price = priced[0] ? priceText(priced[0], lang).toLowerCase() : null;
   const faq = [{ q: t.priceQ, a: t.priceA(price) }, ...t.faq];
-  const guide = guideFor(cat, lang);
+  const g0 = guideFor(cat, lang);
+  const cz = (x: string) => cityize(x, city, lang);
+  const guide = g0 && { ...g0, h: cz(g0.h), intro: cz(g0.intro), sections: g0.sections.map((sec) => ({ ...sec, h: cz(sec.h), p: sec.p.map(cz), list: sec.list?.map(cz), after: sec.after?.map(cz) })) };
 
   const group = CATEGORIES.find((c) => c.id === cat)?.group;
   const related = CATEGORIES.filter((c) => c.group === group && c.id !== cat);
@@ -127,14 +123,14 @@ export default async function ServicePage({ params, searchParams }: Props) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
-      ...(batumi ? [{
+      ...([{
         "@type": "FAQPage",
         mainEntity: faq.map((f) => ({
           "@type": "Question",
           name: f.q,
           acceptedAnswer: { "@type": "Answer", text: f.a },
         })),
-      }] : []),
+      }]),
       {
         "@type": "BreadcrumbList",
         itemListElement: [
@@ -170,10 +166,10 @@ export default async function ServicePage({ params, searchParams }: Props) {
       </nav>
 
       <h1 className="mt-4 text-[28px] font-bold leading-tight sm:text-[38px]">
-        {batumi ? t.h1 : `${categoryPlural(cat, lang)} ${cityIn(city, lang)}`}
+        {t.h1}
       </h1>
       <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-[#3a3935]">
-        {batumi ? t.lead : OTHER_LEAD[lang](cityIn(city, lang))}
+        {t.lead}
       </p>
     </div>
 
@@ -202,7 +198,7 @@ export default async function ServicePage({ params, searchParams }: Props) {
         ))}
       </div>)}
 
-      {batumi && (<>
+      {(<>
       <div className="mt-12 grid gap-10 lg:grid-cols-2">
         <section>
           <h2 className="text-[20px] font-bold">{t.servicesTitle}</h2>
@@ -327,4 +323,24 @@ export default async function ServicePage({ params, searchParams }: Props) {
     </div>
     </>
   );
+}
+
+/** Тексты направления под выбранный город (или всю Грузию). */
+function localText(t: SeoText, city: CityScope, lang: import("@/lib/i18n").Locale): SeoText {
+  if (city === "batumi") return t;
+  const c = (x: string) => cityize(x, city, lang);
+  return {
+    ...t,
+    title: c(t.title),
+    description: c(t.description),
+    h1: c(t.h1),
+    lead: c(t.lead),
+    servicesTitle: c(t.servicesTitle),
+    services: t.services.map(c),
+    chooseTitle: c(t.chooseTitle),
+    choose: t.choose.map(c),
+    faq: t.faq.map((f) => ({ q: c(f.q), a: c(f.a) })),
+    priceQ: c(t.priceQ),
+    priceA: (p) => c(t.priceA(p)),
+  };
 }
