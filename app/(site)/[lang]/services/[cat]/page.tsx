@@ -84,7 +84,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const t = seoText(cat, lang);
   if (!t) return {};
   const city = pageScopeOf((await searchParams).city);
-  if (city !== "batumi") return pageMeta(lang, `/services/${cat}?city=${city}`, cityize(t.title, city, lang), cityize(t.description, city, lang));
+  if (city !== "batumi") {
+    const m = pageMeta(lang, `/services/${cat}?city=${city}`, cityize(t.title, city, lang), cityize(t.description, city, lang));
+    // Город, где в направлении меньше 3 анкет, — страница почти пустая: не отдаём её в поиск (тонкий контент)
+    const n = (await listPublishedMasters().catch(() => [])).filter((x) => !x.demo && inScope(x.city, city) && (x.category === cat || x.extra_categories.includes(cat))).length;
+    return n >= 3 ? m : { ...m, robots: { index: false, follow: true } };
+  }
   return pageMeta(lang, `/services/${cat}`, t.title, t.description);
 }
 
