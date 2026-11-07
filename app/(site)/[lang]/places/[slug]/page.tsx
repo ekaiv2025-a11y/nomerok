@@ -128,7 +128,7 @@ export default async function PlacePage({ params }: Props) {
       </nav>
       {p.photos?.[0] ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={p.photos[0]} alt={name} className="mt-4 h-56 w-full rounded-2xl object-cover sm:h-72" />
+        <img src={p.photos[0]} alt={name} className="mt-4 aspect-[16/9] w-full rounded-2xl bg-cream object-cover object-[50%_35%] sm:aspect-[2/1]" />
       ) : null}
       <div className={`flex items-center gap-4 ${p.photos?.[0] ? "mt-4" : "mt-5"}`}>
         {!p.photos?.[0] && (

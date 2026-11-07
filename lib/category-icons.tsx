@@ -2,7 +2,7 @@ import {
   AirVent, Baby, BookOpen, Brain, CakeSlice, Calculator, Camera, ClipboardCheck, Droplets, Dumbbell, Ellipsis, GraduationCap, Hammer,
   HandHeart, KeyRound, Languages, Laptop, LayoutGrid, MessageCircleHeart, Music, PaintRoller, Palette, PawPrint, Scale, Scissors, Smile,
   Sofa, Sparkles, Stethoscope, Truck, WashingMachine, Zap, type LucideIcon,
- Stamp, PartyPopper, Car, Printer, PenTool } from "lucide-react";
+ Stamp, PartyPopper, Car, Printer, PenTool, Box } from "lucide-react";
 
 /** Значки категорий — в фильтрах каталога и везде, где нужен маленький значок рядом с названием. */
 export const CATEGORY_ICON: Record<string, LucideIcon> = {
@@ -41,6 +41,7 @@ export const CATEGORY_ICON: Record<string, LucideIcon> = {
   events: PartyPopper,
   transfer: Car,
   print: Printer,
+  print3d: Box,
   tattoo: PenTool,
   other: Ellipsis,
 };
