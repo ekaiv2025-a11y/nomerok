@@ -79,7 +79,7 @@ export type Master = {
   inactive_nudges?: number;
   /** Профиль в архиве — клиенты его не видят */
   archived_at: string | null;
-  archived_reason: "inactive" | "missed" | "admin" | null;
+  archived_reason: "inactive" | "missed" | "admin" | "deleted" | null;
   /** Личных заявок подряд без ответа */
   missed_direct: number;
   /** Фото работ (до 12) */

@@ -1,3 +1,5 @@
+import { DeleteProfile } from "@/components/DeleteProfile";
+import { deleteUntil } from "@/lib/master-delete";
 import { eventsOfMaster } from "@/lib/events-db";
 import { EventAddForm } from "@/components/EventAddForm";
 import { MyEvents } from "@/components/MyEvents";
@@ -28,6 +30,11 @@ import { subcatLine } from "@/lib/subcats";
 import { priceText } from "@/components/MasterCard";
 import { posStyle } from "@/lib/photo-pos";
 
+const DEL_T = {
+  ru: { title: "Анкета удалена", text: (d: string) => `Клиенты её не видят, заявки не приходят. До ${d} анкету можно вернуть со всеми фото и отзывами, потом она удалится насовсем.`, btn: "Восстановить анкету" },
+  en: { title: "Profile deleted", text: (d: string) => `Clients can't see it and you get no requests. Until ${d} you can restore it with all photos and reviews; after that it is deleted for good.`, btn: "Restore profile" },
+  ka: { title: "ანკეტა წაშლილია", text: (d: string) => `კლიენტები ვერ ხედავენ, განაცხადები არ მოდის. ${d}-მდე შეგიძლიათ აღადგინოთ ფოტოებითა და შეფასებებით, შემდეგ სამუდამოდ წაიშლება.`, btn: "ანკეტის აღდგენა" },
+} as const;
 const CAB_TABS = {
   ru: [["home", "🏠 Главная"], ["orders", "📩 Заявки"], ["profile", "✏️ Анкета"], ["reviews", "⭐ Отзывы"], ["promo", "🚀 Продвижение"], ["events", "🎟 Мероприятия"]],
   en: [["home", "🏠 Home"], ["orders", "📩 Requests"], ["profile", "✏️ Profile"], ["reviews", "⭐ Reviews"], ["promo", "🚀 Promotion"], ["events", "🎟 Events"]],
@@ -188,6 +195,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const docUrls = await signedUrls(docList.map((x) => x.path)).catch(() => ({}) as Record<string, string>);
   const myDocs = docList.map((x) => ({ id: x.id, title: x.title, kind: x.kind, type: x.type, public: x.public, status: x.status, url: docUrls[x.path] ?? null }));
   const verifyLink = m.phone_verified_at ? null : await botLink(`m_${m.tg_link_token}`);
+  const deleted = m.archived_reason === "deleted";
   const statusColor =
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
 
@@ -215,7 +223,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           <h1 className="truncate text-[22px] font-bold leading-tight sm:text-[26px]">{m.name}</h1>
           <p className="mt-0.5 flex flex-wrap items-center gap-2 text-[14px] text-muted">
             {categoryLabel(m.category, lang)}
-            <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusColor}`}>{t.statuses[m.status]}</span>
+            <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${deleted ? "bg-[#fdecea] text-danger" : statusColor}`}>{deleted ? DEL_T[lang].title : t.statuses[m.status]}</span>
           </p>
         </div>
         <a href={`/api/cabinet/logout?lang=${lang}`} className="btn-ghost h-9 shrink-0 px-3 text-[13px]">
@@ -223,6 +231,14 @@ export default async function CabinetPage({ params, searchParams }: Props) {
         </a>
       </div>
 
+      {deleted ? (
+        <div className="mt-6 rounded-2xl border border-danger/40 bg-[#fdecea] p-5">
+          <p className="text-[16px] font-semibold">🗑 {DEL_T[lang].title}</p>
+          <p className="mt-1 text-[14px] leading-relaxed">{DEL_T[lang].text(formatDay(deleteUntil(m)!.toISOString().slice(0, 10), lang))}</p>
+          <UnarchiveButton lang={lang} label={DEL_T[lang].btn} />
+        </div>
+      ) : (
+      <>
       {/* Разделы кабинета */}
       <nav className="no-scrollbar sticky top-14 z-30 -mx-4 mt-5 flex gap-1.5 overflow-x-auto bg-white/95 px-4 py-2 backdrop-blur md:top-16">
         {TABS.map(([k, label]) => (
@@ -239,7 +255,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       {tab === "home" && (
         <div className="mt-4 space-y-4">
-          {m.archived_at && (
+          {m.archived_at && m.archived_reason !== "deleted" && (
             <div className="rounded-2xl border border-danger/40 bg-[#fdecea] p-5">
               <p className="text-[16px] font-semibold">📦 {t.archivedTitle}</p>
               <p className="mt-1 text-[14px] leading-relaxed">{m.archived_reason === "missed" ? t.archivedMissed : t.archivedInactive}</p>
@@ -309,7 +325,9 @@ export default async function CabinetPage({ params, searchParams }: Props) {
               </div>
             </div>
           )}
-          <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
+          <div id="pause" className="scroll-mt-32">
+            <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
+          </div>
           <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
           <div className="rounded-2xl border border-line p-5">
             <p className="text-[15px] font-semibold">🔑 {CAB_AUTH[lang].title}</p>
@@ -384,6 +402,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             <DocumentsEditor lang={lang} initial={myDocs} />
           </div>
           <CabinetOrgs masterId={m.id} lang={lang} q={sp.orgq} org={sp.org} msg={sp.orgmsg} />
+          {!deleted && <DeleteProfile lang={lang} name={m.name} />}
         </div>
       )}
 
@@ -470,6 +489,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
             reviewUrl={bot ? `https://t.me/${bot}?start=rv_${m.id}` : null}
           />
         </div>
+      )}
+      </>
       )}
     </div>
   );
