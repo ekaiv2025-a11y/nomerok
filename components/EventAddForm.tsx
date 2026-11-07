@@ -7,8 +7,10 @@ import { DropZone } from "./DropZone";
 import type { Locale } from "@/lib/i18n/config";
 
 /** Форма «Добавить своё мероприятие» — уходит на проверку. Подписи по-русски (раздел для ru), город и тип — на языке страницы. */
-export function EventAddForm({ lang }: { lang: Locale }) {
+/** asMaster — форма в кабинете специалиста: контакт не спрашиваем (берём из анкеты), событие сразу в афише. */
+export function EventAddForm({ lang, asMaster = false }: { lang: Locale; asMaster?: boolean }) {
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [done, setDone] = useState<{ published?: boolean; slug?: string }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -25,7 +27,11 @@ export function EventAddForm({ lang }: { lang: Locale }) {
     setMsg("");
     const r = await fetch("/api/events/add", { method: "POST", body: new FormData(ev.currentTarget) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
-    if (r?.ok) return setState("done");
+    if (r?.ok) {
+      setDone(j);
+      if (asMaster) window.setTimeout(() => window.location.reload(), 1500);
+      return setState("done");
+    }
     setErrors(j.errors ?? {});
     setMsg(j.error ?? (j.errors ? "Проверьте поля, отмеченные красным" : "Не получилось отправить. Попробуйте ещё раз."));
     setState("idle");
@@ -34,8 +40,8 @@ export function EventAddForm({ lang }: { lang: Locale }) {
     return (
       <div className="rounded-2xl border border-brand/30 bg-brand-soft p-6 text-center">
         <p className="text-[34px]">🎉</p>
-        <p className="mt-2 text-[18px] font-bold">Спасибо! Событие отправлено на проверку</p>
-        <p className="mt-1 text-[14.5px] text-[#3d5a4c]">Обычно публикуем в течение суток. Если будут вопросы — напишем по указанному контакту.</p>
+        <p className="mt-2 text-[18px] font-bold">{done.published ? "Готово! Мероприятие в афише" : "Спасибо! Событие отправлено на проверку"}</p>
+        <p className="mt-1 text-[14.5px] text-[#3d5a4c]">{done.published ? "Оно появится в афише и в вашей анкете. После даты уйдёт в архив само." : "Обычно публикуем в течение суток. Если будут вопросы — напишем по указанному контакту."}</p>
       </div>
     );
   const inp = (name: string) => `h-11 w-full rounded-xl border bg-white px-3.5 text-[15px] outline-none focus:border-brand ${errors[name] ? "border-danger" : "border-line"}`;
@@ -140,16 +146,18 @@ export function EventAddForm({ lang }: { lang: Locale }) {
         </DropZone>
         <Err n="image" />
       </div>
-      <label className="block">
-        <L>Ваш контакт для связи *</L>
-        <input name="contact" className={inp("contact")} placeholder="Телефон, Telegram или почта — на сайте не показываем" />
-        <Err n="contact" />
-      </label>
+      {!asMaster && (
+        <label className="block">
+          <L>Ваш контакт для связи *</L>
+          <input name="contact" className={inp("contact")} placeholder="Телефон, Telegram или почта — на сайте не показываем" />
+          <Err n="contact" />
+        </label>
+      )}
       {msg && <p className="text-[14px] text-danger">{msg}</p>}
       <button type="submit" disabled={state === "sending"} className="btn-primary h-12 w-full text-[16px] disabled:opacity-60">
-        {state === "sending" ? "Отправляем…" : "Отправить на проверку"}
+        {state === "sending" ? "Отправляем…" : asMaster ? "Опубликовать в афише" : "Отправить на проверку"}
       </button>
-      <p className="text-center text-[12.5px] text-muted">Бесплатно. Публикуем после проверки, обычно в течение суток.</p>
+      <p className="text-center text-[12.5px] text-muted">{asMaster ? "Бесплатно. Мероприятие появится в афише и в вашей анкете, после даты — уйдёт в архив." : "Бесплатно. Публикуем после проверки, обычно в течение суток."}</p>
     </form>
   );
 }

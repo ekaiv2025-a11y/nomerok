@@ -18,7 +18,7 @@
 ## Поля события
 - `title` — название по-русски (если событие на грузинском/английском — переведи понятно, имя артиста оставь как есть: «Концерт Nino Katamadze»);
 - `city` — batumi, tbilisi, kutaisi, rustavi, kobuleti, zugdidi, poti, gori, telavi, borjomi;
-- `kind` — concert | theatre | kids | festival | exhibition | party | sport | talk | other;
+- `kind` — concert | theatre | kids | festival | exhibition | party | games (мафия, квизы, настолки) | sport | talk | other;
 - `starts_at` — дата и время начала с часовым поясом Тбилиси: `2026-11-14T19:00:00+04:00` (если время неизвестно — `T00:00:00+04:00`);
 - `ends_at` — только для многодневных (выставка, фестиваль): `2026-12-01T23:59:00+04:00`; иначе не указывай;
 - `venue` — площадка («Батумский драмтеатр»), `address` — адрес, если есть;

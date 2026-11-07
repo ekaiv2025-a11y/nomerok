@@ -1,3 +1,5 @@
+import { eventsOfMaster } from "@/lib/events-db";
+import { EventCard } from "@/components/EventCard";
 import { portfolioSections } from "@/lib/portfolio";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -58,6 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const TR_ORIG = { ru: "Показать оригинал", en: "Show original", ka: "ორიგინალის ნახვა" } as const;
 const TR_SHOW = { ru: "Показать перевод", en: "Show translation", ka: "თარგმანის ნახვა" } as const;
 
+const EV_T = { ru: "Ближайшие мероприятия", en: "Upcoming events", ka: "მომავალი ღონისძიებები" } as const;
 const WORKS_AT = { ru: "Работает в:", en: "Works at:", ka: "მუშაობს:" } as const;
 
 export default async function MasterPage({ params, searchParams }: Props) {
@@ -77,6 +80,7 @@ export default async function MasterPage({ params, searchParams }: Props) {
   const bot = m.demo ? null : await botUsername();
   const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
+  const events = m.demo ? [] : (await eventsOfMaster(m.id, true).catch(() => [])).slice(0, 4);
   const works = m.demo ? [] : (await orgsOfMaster(m.id).catch(() => [])).filter((x) => x.place.status === "published");
   // 🎁 бонус за рекомендацию (если специалист включил и бонусы не закончились)
   const bonus = m.demo ? null : await liveOffer(m.id);
@@ -182,6 +186,16 @@ export default async function MasterPage({ params, searchParams }: Props) {
 
         <div className="order-1">
           {!m.demo && !m.imported && <RefBanner lang={lang} slug={m.slug} />}
+          {events.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-[18px] font-bold">🎟 {EV_T[lang]}</h2>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {events.map((e) => (
+                  <EventCard key={e.id} e={e} lang={lang} />
+                ))}
+              </div>
+            </section>
+          )}
           {(m.price_list ?? []).length > 0 && (
             <section className="mb-8">
               <h2 className="text-[18px] font-bold">{PL[lang].title}</h2>

@@ -64,6 +64,30 @@ export async function createEvent(e: NewEvent): Promise<CityEvent> {
   return full;
 }
 
+/** Мероприятия специалиста: на проверке и будущие (для кабинета и анкеты). */
+export async function eventsOfMaster(masterId: string, onlyPublished = false): Promise<CityEvent[]> {
+  const sb = supabase();
+  let list: CityEvent[] = [];
+  if (sb) {
+    const r = await sb.from("events").select("*").eq("master_id", masterId).gte("starts_at", new Date(Date.now() - 60 * 86400000).toISOString()).order("starts_at").limit(50);
+    if (r.error) return [];
+    list = r.data as CityEvent[];
+  } else list = (((await readLocal()) as unknown as L).events ?? []).filter((e) => e.master_id === masterId);
+  return list.filter((e) => isUpcoming(e) && e.status !== "rejected" && (!onlyPublished || e.status === "published")).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+}
+
+/** Специалист снимает своё мероприятие. */
+export async function removeEventOfMaster(masterId: string, id: string) {
+  const sb = supabase();
+  if (sb) {
+    await sb.from("events").update({ status: "rejected", updated_at: new Date().toISOString() }).eq("id", id).eq("master_id", masterId);
+    return;
+  }
+  const d = (await readLocal()) as unknown as L;
+  d.events = (d.events ?? []).map((e) => (e.id === id && e.master_id === masterId ? { ...e, status: "rejected" } : e));
+  await writeLocal(d as never);
+}
+
 export async function setEventStatus(id: string, status: CityEvent["status"]) {
   const sb = supabase();
   if (sb) {
@@ -127,6 +151,7 @@ export async function applyEventsImport(): Promise<{ added: number; skipped: num
           source: e.source,
           status: "published",
           contact: null,
+          master_id: null,
         });
         out.added++;
         added.push(e.title);

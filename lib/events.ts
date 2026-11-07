@@ -1,7 +1,7 @@
 /* Афиша: типы и подписи (можно и на сервере, и в браузере). */
 import type { Locale } from "./i18n/config";
 
-export type EventKind = "concert" | "theatre" | "kids" | "festival" | "exhibition" | "party" | "sport" | "talk" | "other";
+export type EventKind = "concert" | "theatre" | "kids" | "festival" | "exhibition" | "party" | "games" | "sport" | "talk" | "other";
 export type CityEvent = {
   id: string;
   slug: string;
@@ -19,6 +19,8 @@ export type CityEvent = {
   source: string | null;
   status: "published" | "pending" | "rejected";
   contact?: string | null;
+  /** организатор — специалист из каталога (0051) */
+  master_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -30,6 +32,7 @@ export const EVENT_KINDS: { id: EventKind; emoji: string; label: Record<Locale, 
   { id: "festival", emoji: "🎪", label: { ru: "Фестивали", en: "Festivals", ka: "ფესტივალები" } },
   { id: "exhibition", emoji: "🖼", label: { ru: "Выставки", en: "Exhibitions", ka: "გამოფენები" } },
   { id: "party", emoji: "🪩", label: { ru: "Вечеринки", en: "Parties", ka: "წვეულებები" } },
+  { id: "games", emoji: "🎲", label: { ru: "Игры, мафия, квизы", en: "Games & quizzes", ka: "თამაშები, ქვიზები" } },
   { id: "sport", emoji: "⚽", label: { ru: "Спорт", en: "Sport", ka: "სპორტი" } },
   { id: "talk", emoji: "🎤", label: { ru: "Лекции и встречи", en: "Talks & meetups", ka: "ლექციები" } },
   { id: "other", emoji: "✨", label: { ru: "Другое", en: "Other", ka: "სხვა" } },

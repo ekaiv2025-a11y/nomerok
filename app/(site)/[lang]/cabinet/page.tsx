@@ -1,3 +1,6 @@
+import { eventsOfMaster } from "@/lib/events-db";
+import { EventAddForm } from "@/components/EventAddForm";
+import { MyEvents } from "@/components/MyEvents";
 import { portfolioLimit, portfolioSections } from "@/lib/portfolio";
 import { subcatsOf } from "@/lib/subcats";
 import type { Metadata } from "next";
@@ -26,9 +29,9 @@ import { priceText } from "@/components/MasterCard";
 import { posStyle } from "@/lib/photo-pos";
 
 const CAB_TABS = {
-  ru: [["home", "🏠 Главная"], ["orders", "📩 Заявки"], ["profile", "✏️ Анкета"], ["reviews", "⭐ Отзывы"], ["promo", "🚀 Продвижение"]],
-  en: [["home", "🏠 Home"], ["orders", "📩 Requests"], ["profile", "✏️ Profile"], ["reviews", "⭐ Reviews"], ["promo", "🚀 Promotion"]],
-  ka: [["home", "🏠 მთავარი"], ["orders", "📩 მოთხოვნები"], ["profile", "✏️ ანკეტა"], ["reviews", "⭐ შეფასებები"], ["promo", "🚀 პოპულარიზაცია"]],
+  ru: [["home", "🏠 Главная"], ["orders", "📩 Заявки"], ["profile", "✏️ Анкета"], ["reviews", "⭐ Отзывы"], ["promo", "🚀 Продвижение"], ["events", "🎟 Мероприятия"]],
+  en: [["home", "🏠 Home"], ["orders", "📩 Requests"], ["profile", "✏️ Profile"], ["reviews", "⭐ Reviews"], ["promo", "🚀 Promotion"], ["events", "🎟 Events"]],
+  ka: [["home", "🏠 მთავარი"], ["orders", "📩 მოთხოვნები"], ["profile", "✏️ ანკეტა"], ["reviews", "⭐ შეფასებები"], ["promo", "🚀 პოპულარიზაცია"], ["events", "🎟 ღონისძიებები"]],
 } as const;
 
 const REALTY_TAB = { ru: "🏠 Объявления", en: "🏠 Listings", ka: "🏠 განცხადებები" } as const;
@@ -191,7 +194,8 @@ export default async function CabinetPage({ params, searchParams }: Props) {
   const realtor = isRealtor(m);
   // «Объявления» — только у риелторов; остальным показываем, как стать риелтором
   if (sp.tab === "realty" && !realtor) redirect(`/${lang}/realty/agents`);
-  const tab = (["home", "orders", "profile", "reviews", "promo", ...(realtor ? (["realty"] as const) : [])] as const).find((x) => x === sp.tab) ?? "home";
+  const tab = (["home", "orders", "profile", "reviews", "promo", "events", ...(realtor ? (["realty"] as const) : [])] as const).find((x) => x === sp.tab) ?? "home";
+  const myEvents = tab === "events" ? await eventsOfMaster(m.id).catch(() => []) : [];
   const tabHref = (k: string) => `/${lang}/cabinet${k === "home" ? "" : `?tab=${k}`}`;
   const TABS: readonly (readonly [string, string])[] = realtor ? [CAB_TABS[lang][0], CAB_TABS[lang][1], ["realty", REALTY_TAB[lang]], ...CAB_TABS[lang].slice(2)] : CAB_TABS[lang];
 
@@ -415,6 +419,22 @@ export default async function CabinetPage({ params, searchParams }: Props) {
         </section>
       )}
 
+      {tab === "events" && (
+        <div className="mt-4 space-y-4">
+          <div className="rounded-2xl border border-line bg-cream p-5">
+            <p className="text-[17px] font-bold">🎟 Ваши мероприятия в афише</p>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted">
+              Проводите игры, концерты, мастер-классы, выставки, тренировки, встречи? Добавьте анонс — он появится в{" "}
+              <Link href={`/${lang}/afisha`} className="text-brand underline">
+                афише города
+              </Link>{" "}
+              и в вашей анкете. Люди увидят, кто организатор, и перейдут к вам. После даты анонс сам уйдёт в архив. Бесплатно.
+            </p>
+          </div>
+          <MyEvents events={myEvents} lang={lang} />
+          <EventAddForm lang={lang} asMaster />
+        </div>
+      )}
       {tab === "promo" && (
         <div className="mt-4 space-y-4">
           <ReferralEditor

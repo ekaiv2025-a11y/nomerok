@@ -8,6 +8,8 @@ import { visitorId } from "@/lib/request-info";
 import { rateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/site";
 import { cityLabel, isCity } from "@/lib/cities";
+import { currentSpecialistId } from "@/lib/spec-auth";
+import { adminGetMaster } from "@/lib/db";
 
 const s = (v: FormDataEntryValue | null, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -24,7 +26,10 @@ export async function POST(req: Request) {
   const date = s(fd.get("date"), 10);
   const time = s(fd.get("time"), 5);
   const endDate = s(fd.get("end_date"), 10);
-  const contact = s(fd.get("contact"), 100);
+  // Специалист из кабинета: контакт — его анкета, событие привязано к нему
+  const specId = await currentSpecialistId().catch(() => null);
+  const master = specId ? await adminGetMaster(specId).catch(() => null) : null;
+  const contact = master ? master.phone : s(fd.get("contact"), 100);
   if (title.length < 4) errors.title = "Напишите название";
   if (!isCity(city)) errors.city = "Выберите город";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) errors.date = "Укажите дату";
@@ -57,12 +62,14 @@ export async function POST(req: Request) {
     image,
     description: s(fd.get("description"), 1500) || null,
     source: "user",
-    status: "pending",
+    // опубликованная анкета — сразу в афише (администратор видит и может снять); остальные — на проверку
+    status: master && master.status === "published" ? "published" : "pending",
     contact,
+    master_id: master?.id ?? null,
   });
   const x = escapeHtml;
   await notifyAdmin(
-    [`🎟 <b>Новое событие на проверку</b>`, `<b>${x(e.title)}</b>`, `${x(cityLabel(e.city, "ru"))} · ${x(date)} ${x(time)}`, e.venue ? `Место: ${x(e.venue)}` : "", `Контакт: ${x(contact)}`, `Проверить: ${SITE_URL}/admin/events`].filter(Boolean).join("\n"),
+    [master ? (e.status === "published" ? `🎟 <b>${x(master.name)} опубликовал(а) мероприятие</b>` : `🎟 <b>Мероприятие от ${x(master.name)} на проверку</b>`) : `🎟 <b>Новое событие на проверку</b>`, `<b>${x(e.title)}</b>`, `${x(cityLabel(e.city, "ru"))} · ${x(date)} ${x(time)}`, e.venue ? `Место: ${x(e.venue)}` : "", `Контакт: ${x(contact)}`, `Проверить: ${SITE_URL}/admin/events`].filter(Boolean).join("\n"),
   ).catch(() => false);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, published: e.status === "published", slug: e.slug });
 }

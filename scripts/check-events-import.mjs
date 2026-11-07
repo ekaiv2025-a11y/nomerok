@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 const d = JSON.parse(readFileSync(new URL("../data/events-import.json", import.meta.url), "utf8"));
 const CITIES = new Set(["batumi", "tbilisi", "kutaisi", "rustavi", "kobuleti", "zugdidi", "poti", "gori", "telavi", "borjomi"]);
-const KINDS = new Set(["concert", "theatre", "kids", "festival", "exhibition", "party", "sport", "talk", "other"]);
+const KINDS = new Set(["concert", "theatre", "kids", "festival", "exhibition", "party", "games", "sport", "talk", "other"]);
 const AD = /(лучш|грандиозн|не пропустите|незабываем|№ ?1|самый)/i;
 const errs = [];
 const ids = new Set();

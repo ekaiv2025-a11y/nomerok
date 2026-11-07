@@ -7,6 +7,9 @@ import { cityLabel } from "@/lib/cities";
 import { getEvent, upcomingEvents } from "@/lib/events-db";
 import { eventWhen, isUpcoming, kindOf } from "@/lib/events";
 import { EventCard } from "@/components/EventCard";
+import { MasterCard } from "@/components/MasterCard";
+import { listPublishedMasters } from "@/lib/db";
+import { localizeMasters } from "@/lib/translate-db";
 
 export const revalidate = 600;
 
@@ -38,6 +41,8 @@ export default async function EventPage({ params }: Props) {
   const live = isUpcoming(e);
   const more = live ? (await upcomingEvents({ city: e.city }).catch(() => [])).filter((x) => x.id !== e.id).slice(0, 4) : [];
   const where = [e.venue, e.address].filter(Boolean).join(", ");
+  // Организатор — специалист из каталога: показываем его карточку
+  const org = e.master_id ? (await listPublishedMasters().catch(() => [])).find((m) => m.id === e.master_id) ?? null : null;
   const ld = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -99,6 +104,12 @@ export default async function EventPage({ params }: Props) {
               </a>
             )}
           </div>
+          {org && (
+            <div className="rounded-2xl border border-line bg-white p-4">
+              <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">{lang === "ru" ? "Организатор" : lang === "en" ? "Organizer" : "ორგანიზატორი"}</p>
+              <MasterCard m={(await localizeMasters([org], lang).catch(() => [org]))[0]} lang={lang} />
+            </div>
+          )}
         </aside>
       </div>
       {more.length > 0 && (
