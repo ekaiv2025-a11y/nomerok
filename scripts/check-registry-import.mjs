@@ -23,6 +23,7 @@ for (const b of d.batches ?? []) {
     if (!Array.isArray(s.phones) || !s.phones.length || s.phones.some((p) => !/^\+995 ?\d[\d ]{7,12}$/.test(p))) errs.push(`${w}: phones — массив номеров вида +995 5XX XXX XXX`);
     if (!s.address_ru || /[a-z]{3}/i.test(s.address_ru)) errs.push(`${w}: address_ru — адрес по-русски`);
     if (!/^https:\/\//.test(s.source_url ?? "") || !s.source_url.includes("#")) errs.push(`${w}: source_url — ссылка на страницу реестра + #метка (уникальная)`);
+    if (s.photo != null && !/^https:\/\/(www\.)?notary\.ge\/res\/images\//.test(s.photo)) errs.push(`${w}: photo — полная ссылка https://notary.ge/res/images/notaries/….jpg (не crop.php) или не указывай`);
     if (urls.has(s.source_url)) errs.push(`${w}: повтор source_url`);
     urls.add(s.source_url);
     if (AD.test([s.title, s.services, s.about].join(" "))) errs.push(`${w}: рекламные слова — убери`);
