@@ -10,6 +10,8 @@ export function EventAddForm({ lang }: { lang: Locale }) {
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState("");
+  const [preview, setPreview] = useState<string | null>(null);
+  const [fileName, setFileName] = useState("");
   async function onSubmit(ev: React.FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     setState("sending");
@@ -104,11 +106,36 @@ export function EventAddForm({ lang }: { lang: Locale }) {
         <L>Описание</L>
         <textarea name="description" rows={5} className={`${inp("description")} h-auto py-2.5`} placeholder="Что будет, для кого, программа, возраст" />
       </label>
-      <label className="block">
+      <div>
         <L>Афиша или фото</L>
-        <input type="file" name="image" accept="image/*" className="block w-full text-[14px]" />
+        {/* Своя кнопка вместо системной «Выберите файл»: большая зона с превью */}
+        <label className={`relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed p-4 transition hover:border-brand hover:bg-brand-soft/40 ${errors.image ? "border-danger" : "border-line"}`}>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            className="sr-only"
+            onChange={(ev) => {
+              const f = ev.currentTarget.files?.[0];
+              setFileName(f?.name ?? "");
+              setPreview(f ? URL.createObjectURL(f) : null);
+            }}
+          />
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
+          ) : (
+            <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-cream text-[30px]" aria-hidden>
+              🖼
+            </span>
+          )}
+          <span className="min-w-0">
+            <span className="block text-[15px] font-semibold text-brand">{preview ? "Заменить картинку" : "📷 Загрузить афишу или фото"}</span>
+            <span className="mt-0.5 block truncate text-[12.5px] text-muted">{fileName || "JPG, PNG или WEBP, до 8 МБ. Можно пропустить"}</span>
+          </span>
+        </label>
         <Err n="image" />
-      </label>
+      </div>
       <label className="block">
         <L>Ваш контакт для связи *</L>
         <input name="contact" className={inp("contact")} placeholder="Телефон, Telegram или почта — на сайте не показываем" />
