@@ -1,3 +1,6 @@
+import { categoryLabel } from "@/lib/categories";
+import { TeamBySpecialty, type TeamGroup } from "@/components/TeamBySpecialty";
+import { subcatsOf, subcatLabel } from "@/lib/subcats";
 import type { Metadata } from "next";
 import { cityLabel } from "@/lib/cities";
 import Link from "next/link";
@@ -302,25 +305,7 @@ export default async function PlacePage({ params }: Props) {
             {team.length > 0 && <span className="ml-2 text-[15px] font-semibold text-muted">{team.length}</span>}
           </h2>
           {team.length > 0 ? (
-            <>
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {team.slice(0, 9).map((m) => (
-                  <MasterCard key={m.id} m={m} lang={lang} />
-                ))}
-              </div>
-              {team.length > 9 && (
-                <details className="group mt-3">
-                  <summary className="btn-ghost h-11 cursor-pointer list-none px-5 text-[14px] group-open:hidden">
-                    {TT.more(team.length)}
-                  </summary>
-                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {team.slice(9).map((m) => (
-                      <MasterCard key={m.id} m={m} lang={lang} />
-                    ))}
-                  </div>
-                </details>
-              )}
-            </>
+            <TeamBySpecialty team={team} groups={teamGroups(team, lang)} lang={lang} />
           ) : (
             <p className="mt-2 text-[14px] text-muted">{TT.empty}</p>
           )}
@@ -480,3 +465,18 @@ const TIPS: Record<string, { h: string; list: string[] }> = {
     list: ["Узнайте по телефону, на каком языке идут занятия и есть ли пробный урок.", "Спросите про документы для зачисления: обычно нужны паспорт или свидетельство о рождении ребёнка."],
   },
 };
+
+/** Группы команды для фильтра: у врачей — специальности, у остальных — направления. */
+function teamGroups(team: import("@/lib/types").PublicMaster[], lang: import("@/lib/i18n").Locale): TeamGroup[] {
+  const map = new globalThis.Map<string, TeamGroup>();
+  for (const m of team) {
+    const subs = subcatsOf(m);
+    const keys = subs.length ? subs.map((id) => [`${m.category}:${id}`, subcatLabel(m.category, id, lang)] as const) : [[m.category, categoryLabel(m.category, lang)] as const];
+    for (const [id, label] of keys) {
+      const g = map.get(id) ?? { id, label, ids: [] };
+      g.ids.push(m.id);
+      map.set(id, g);
+    }
+  }
+  return [...map.values()].sort((a, b) => b.ids.length - a.ids.length);
+}

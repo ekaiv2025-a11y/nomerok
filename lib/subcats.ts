@@ -64,20 +64,30 @@ export const SUBCATS: Record<string, Sub[]> = {
   ],
   // Специальности врачей — определяются по тексту анкеты (должность «Кардиолог, эхокардиолог» и т. п.)
   doctor: [
+    { id: "therapist", label: { ru: "Терапевт, семейный врач", en: "GP", ka: "თერაპევტი" }, re: /(?<![а-яё])терапевт|семейн[а-яёa-z]* врач|врач общей практики|интернист|general practitioner|\bGP\b|(?<!ქიმიო)თერაპევტ|ოჯახის ექიმ/i },
     { id: "pediatrician", label: { ru: "Педиатр", en: "Pediatrician", ka: "პედიატრი" }, re: /педиатр|неонатолог|детск[а-яёa-z]* врач|pediatric|neonatolog|პედიატრ|ნეონატოლ/i },
-    { id: "gynecologist", label: { ru: "Гинеколог", en: "Gynecologist", ka: "გინეკოლოგი" }, re: /гинеколог|акушер|репродуктолог|маммолог|gynecolog|obstetric|გინეკოლოგ|მეან/i },
-    { id: "cardiologist", label: { ru: "Кардиолог", en: "Cardiologist", ka: "კარდიოლოგი" }, re: /кардиолог|аритмолог|cardiolog|კარდიოლოგ/i },
-    { id: "therapist", label: { ru: "Терапевт, семейный врач", en: "GP", ka: "თერაპევტი" }, re: /терапевт|семейн[а-яёa-z]* врач|врач общей практики|интернист|general practitioner|\bGP\b|თერაპევტ|ოჯახის ექიმ/i },
-    { id: "radiologist", label: { ru: "УЗИ, рентген, МРТ", en: "Imaging", ka: "რადიოლოგი" }, re: /радиолог|рентген|узи|ультразвук|мрт|кт(?![а-яё])|сонолог|radiolog|ultrasound|mri|რადიოლოგ|ექოსკოპ/i },
-    { id: "neurologist", label: { ru: "Невролог", en: "Neurologist", ka: "ნევროლოგი" }, re: /невролог|невропатолог|нейрохирург|neurolog|ნევროლოგ/i },
-    { id: "surgeon", label: { ru: "Хирург", en: "Surgeon", ka: "ქირურგი" }, re: /хирург|травматолог|ортопед|уролог|проктолог|surgeon|orthop|urolog|ქირურგ|ტრავმატოლ|ორთოპედ|უროლოგ/i },
+    { id: "gynecologist", label: { ru: "Гинеколог", en: "Gynecologist", ka: "გინეკოლოგი" }, re: /гинеколог|акушер|репродуктолог|gynecolog|obstetric|გინეკოლოგ|მეან/i },
+    { id: "cardiologist", label: { ru: "Кардиолог", en: "Cardiologist", ka: "კარდიოლოგი" }, re: /кардиолог|аритмолог|эхокардиограф|cardiolog|კარდიოლოგ/i },
+    { id: "oncologist", label: { ru: "Онколог", en: "Oncologist", ka: "ონკოლოგი" }, re: /онколог|химиотерап|радиотерап|лучев[а-яё]* терап|маммолог|oncolog|chemotherap|radiotherap|ონკოლოგ|ქიმიოთერაპ/i },
+    { id: "surgeon", label: { ru: "Хирург", en: "Surgeon", ka: "ქირურგი" }, re: /(?<!нейро|кардио|ангио|сосудист[а-яё]* )хирург|surgeon|(?<!ნეირო)ქირურგ/i },
+    { id: "cardiosurgeon", label: { ru: "Кардиохирург", en: "Cardiac surgeon", ka: "კარდიოქირურგი" }, re: /кардиохирург|cardiac surg|კარდიოქირურგ/i },
+    { id: "vascular", label: { ru: "Ангиолог, сосудистый хирург", en: "Vascular surgeon", ka: "ანგიოლოგი" }, re: /ангиолог|сосудист|эндоваскуляр|флеболог|vascular|angiolog|ანგიოლოგ|სისხლძარღვ/i },
+    { id: "traumatologist", label: { ru: "Травматолог-ортопед", en: "Orthopedist", ka: "ტრავმატოლოგი" }, re: /травматолог|ортопед|orthop|traumatolog|ტრავმატოლ|ორთოპედ/i },
+    { id: "urologist", label: { ru: "Уролог", en: "Urologist", ka: "უროლოგი" }, re: /уролог|андролог|urolog|უროლოგ/i },
+    { id: "proctologist", label: { ru: "Проктолог", en: "Proctologist", ka: "პროქტოლოგი" }, re: /проктолог|колопроктолог|proctolog|პროქტოლოგ/i },
+    { id: "neurologist", label: { ru: "Невролог, нейрохирург", en: "Neurologist", ka: "ნევროლოგი" }, re: /невролог|невропатолог|нейрохирург|neurolog|neurosurg|ნევროლოგ|ნეიროქირურგ/i },
+    { id: "endo", label: { ru: "Эндокринолог", en: "Endocrinologist", ka: "ენდოკრინოლოგი" }, re: /эндокринолог|endocrinolog|ენდოკრინოლოგ/i },
+    { id: "gastro", label: { ru: "Гастроэнтеролог", en: "Gastroenterologist", ka: "გასტროენტეროლოგი" }, re: /гастроэнтеролог|гепатолог|эндоскоп|gastroenterolog|hepatolog|გასტროენტეროლოგ|ჰეპატოლოგ/i },
+    { id: "rheumatologist", label: { ru: "Ревматолог", en: "Rheumatologist", ka: "რევმატოლოგი" }, re: /ревматолог|rheumatolog|რევმატოლოგ/i },
+    { id: "nephrologist", label: { ru: "Нефролог", en: "Nephrologist", ka: "ნეფროლოგი" }, re: /нефролог|диализ|nephrolog|ნეფროლოგ/i },
+    { id: "pulmonologist", label: { ru: "Пульмонолог", en: "Pulmonologist", ka: "პულმონოლოგი" }, re: /пульмонолог|pulmonolog|პულმონოლოგ/i },
+    { id: "hematologist", label: { ru: "Гематолог", en: "Hematologist", ka: "ჰემატოლოგი" }, re: /гематолог|трансфузиолог|hematolog|ჰემატოლოგ/i },
     { id: "ent", label: { ru: "ЛОР", en: "ENT", ka: "ოტორინოლარინგოლოგი" }, re: /лор(?![а-яё])|отоларинголог|оториноларинголог|\bent\b|otolaryng|ოტორინო/i },
     { id: "eye", label: { ru: "Офтальмолог", en: "Ophthalmologist", ka: "ოფთალმოლოგი" }, re: /офтальмолог|окулист|ophthalmolog|ოფთალმოლოგ/i },
     { id: "derma", label: { ru: "Дерматолог", en: "Dermatologist", ka: "დერმატოლოგი" }, re: /дерматолог|дерматовенеролог|dermatolog|დერმატოლოგ/i },
-    { id: "endo", label: { ru: "Эндокринолог", en: "Endocrinologist", ka: "ენდოკრინოლოგი" }, re: /эндокринолог|endocrinolog|ენდოკრინოლოგ/i },
-    { id: "gastro", label: { ru: "Гастроэнтеролог", en: "Gastroenterologist", ka: "გასტროენტეროლოგი" }, re: /гастроэнтеролог|гепатолог|эндоскоп|gastroenterolog|გასტროენტეროლოგ/i },
-    { id: "oncologist", label: { ru: "Онколог", en: "Oncologist", ka: "ონკოლოგი" }, re: /онколог|химиотерап|маммолог-онколог|oncolog|ონკოლოგ/i },
-    { id: "lab", label: { ru: "Анализы, лаборатория", en: "Lab", ka: "ლაბორატორია" }, re: /лаборант|лабораторн|патолог|анализ|laborator|patholog|ლაბორატ|პათოლოგ/i },
+    { id: "radiologist", label: { ru: "УЗИ, рентген, МРТ", en: "Imaging", ka: "რადიოლოგი" }, re: /радиолог|рентген|узи(?![а-яё])|ультразвук|мрт|кт(?![а-яё])|сонолог|radiolog|ultrasound|mri|რადიოლოგ|ექოსკოპ/i },
+    { id: "anesthesiologist", label: { ru: "Анестезиолог-реаниматолог", en: "Anesthesiologist", ka: "ანესთეზიოლოგი" }, re: /анестезиолог|реаниматолог|интенсивн[а-яё]* терап|неотложн|anesthesiolog|intensive care|emergency|ანესთეზიოლოგ|რეანიმატოლოგ/i },
+    { id: "lab", label: { ru: "Анализы, лаборатория", en: "Lab", ka: "ლაბორატორია" }, re: /лаборант|лабораторн|патоморфолог|патологоанатом|анализ|laborator|patholog|ლაბორატ|პათოლოგ/i },
   ],
   beauty: [
     { id: "hair", label: { ru: "Парикмахер", en: "Hairdresser", ka: "პარიკმახერი" }, re: /парикмахер|стрижк|стригу|причес|окрашиван|колорист|волос|укладк|кератин|air ?touch|балаяж|шатуш|hair|თმ(ის|ა)/i },
@@ -128,6 +138,12 @@ export function subcatsOf(m: M, cat: string = m.category): string[] {
   // Специалист выбрал сам — берём его выбор; иначе угадываем по тексту анкеты
   const chosen = (m.subcats ?? []).map((x) => (x.includes(":") ? x : `${m.category}:${x}`)).filter((x) => x.startsWith(`${cat}:`)).map((x) => x.slice(cat.length + 1));
   if (chosen.length) return list.filter((s) => chosen.includes(s.id)).map((s) => s.id);
+  // Врачи: специальность — в первой строке услуг (должность), в тексте «о себе» много лишнего
+  if (cat === "doctor") {
+    const head = (m.services ?? "").split("\n")[0] ?? "";
+    const byHead = list.filter((s) => s.re.test(head)).map((s) => s.id);
+    if (byHead.length) return byHead;
+  }
   const text = `${m.name ?? ""}\n${m.services ?? ""}\n${m.about ?? ""}\n${(m.price_list ?? []).map((x) => x.name).join("\n")}`;
   return list.filter((s) => s.re.test(text)).map((s) => s.id);
 }
