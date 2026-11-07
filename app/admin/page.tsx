@@ -54,8 +54,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const docUrls = tab === "docs" ? await signedUrls(docsToCheck.map((x) => x.d.path)).catch(() => ({}) as Record<string, string>) : {};
   const newComplaints = complaints.filter((c) => c.status === "new").length;
   const REASONS = getDict("ru").complaint.reasons as Record<string, string>;
-  const respByReq = new Map<string, string[]>();
-  for (const x of responses) respByReq.set(x.request_id, [...(respByReq.get(x.request_id) ?? []), x.master_id]);
+  const respByReq = new Map<string, { id: string; at: string }[]>();
+  for (const x of responses) respByReq.set(x.request_id, [...(respByReq.get(x.request_id) ?? []), { id: x.master_id, at: x.created_at }]);
   const byId = new Map(masters.map((m) => [m.id, m]));
   const pending = masters.filter((m) => m.status === "pending");
   const others = masters.filter((m) => m.status !== "pending");
@@ -268,16 +268,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   </div>
                 )}
                 {r.when_text && <p className="mt-1 text-[14px] text-muted">Когда: {r.when_text}</p>}
-                <p className="mt-2 text-[13px] text-muted">
-                  📨 Разослано специалистам: {r.sent_count ?? 0}
-                  {(respByReq.get(r.id) ?? []).length > 0 && (
-                    <> · ✋ Откликнулись: {(respByReq.get(r.id) ?? []).map((id) => byId.get(id)?.name ?? "—").join(", ")}</>
-                  )}
-                  {r.client_tg_chat_id ? " · 🔔 клиент подключил Telegram" : ""}
-                  {r.outcome === "agreed" && <> · 🤝 договорились{r.outcome_master_id && byId.get(r.outcome_master_id) ? ` с ${byId.get(r.outcome_master_id)!.name}` : ""}</>}
-                  {r.outcome === "none" && <b className="text-danger"> · 😕 клиенту никто не помог</b>}
-                  {r.outcome === "closed" && " · 🔒 клиент закрыл заявку"}
-                </p>
+                <RequestTimeline r={r} resp={respByReq.get(r.id) ?? []} name={(id) => byId.get(id)?.name ?? "—"} />
                 {!r.master_id && r.status !== "done" && r.status !== "spam" && (() => {
                   const g = groupsFor(r);
                   const offered = (r.admin_note ?? "").includes("[разослано всем]");
@@ -630,6 +621,47 @@ function MasterRow({ m, views, back }: { m: Master; views: number; back: string 
           <Link href={`/ru/master/${m.slug}`} target="_blank" className="btn-ghost h-9 px-4 text-[13px]">На сайте ↗</Link>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Что происходит с заявкой — по шагам, со временем (Тбилиси). */
+function RequestTimeline({ r, resp, name }: { r: import("@/lib/types").ClientRequest; resp: { id: string; at: string }[]; name: (id: string) => string }) {
+  const t = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
+  const steps: { icon: string; text: React.ReactNode; at?: string | null; bad?: boolean }[] = [];
+  steps.push({ icon: "📝", text: r.master_id || r.direct_checked_at ? "Клиент написал специалисту с его страницы" : "Клиент оставил заявку", at: r.created_at });
+  if (r.pending_client) steps.push({ icon: "⏳", text: "Ждёт, пока клиент подключит Telegram или войдёт на сайт — специалистам ещё не отправлена", bad: true });
+  if ((r.sent_count ?? 0) > 0) steps.push({ icon: "📨", text: `Отправлено специалистам в Telegram: ${r.sent_count}` });
+  for (const x of resp) steps.push({ icon: "✋", text: <>Откликнулся: <b className="text-ink">{name(x.id)}</b> — клиент получил его контакты</>, at: x.at });
+  if (r.direct_checked_at) steps.push({ icon: "↪️", text: "Специалист не ответил за сутки — заявка передана другим специалистам", at: r.direct_checked_at, bad: true });
+  if (r.client_tg_chat_id) steps.push({ icon: "🔔", text: "Клиент подключил Telegram — получает отклики и вопросы бота" });
+  if (r.followup_at) steps.push({ icon: "❓", text: "Бот спросил клиента «Удалось договориться?»", at: r.followup_at });
+  if (r.outcome === "agreed") steps.push({ icon: "🤝", text: <>Клиент ответил: договорились{r.outcome_master_id ? <> с <b className="text-ink">{name(r.outcome_master_id)}</b></> : null}</>, at: r.outcome_at });
+  if (r.outcome === "none") steps.push({ icon: "😕", text: "Клиент ответил: никто не помог", at: r.outcome_at, bad: true });
+  if (r.outcome === "closed") steps.push({ icon: "🔒", text: "Клиент закрыл заявку — больше не нужна", at: r.outcome_at });
+  if (r.review_invited_at) steps.push({ icon: "⭐", text: "Клиента попросили оставить отзыв", at: r.review_invited_at });
+  const waiting = !r.pending_client && !r.outcome && r.status !== "spam" && r.status !== "done";
+  const next = !waiting
+    ? null
+    : resp.length
+      ? "Дальше: через сутки после отклика бот спросит клиента, удалось ли договориться."
+      : r.master_id
+        ? "Дальше: ждём ответа специалиста. Если за сутки не ответит — бот передаст заявку другим."
+        : "Дальше: ждём откликов. Если за сутки никто не откликнется — бот предложит клиенту другие анкеты, а вам придёт уведомление.";
+  return (
+    <div className="mt-3 rounded-xl bg-cream/60 p-3">
+      <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Что происходит</p>
+      <ol className="space-y-1 text-[13px]">
+        {steps.map((x, i) => (
+          <li key={i} className={`flex gap-2 ${x.bad ? "text-danger" : "text-[#3a3935]"}`}>
+            <span>{x.icon}</span>
+            <span className="grow">{x.text}</span>
+            {x.at && <span className="shrink-0 text-muted">{t(x.at)}</span>}
+          </li>
+        ))}
+      </ol>
+      {next && <p className="mt-2 text-[12.5px] text-muted">{next}</p>}
+      <p className="mt-1 text-[12px] text-muted">Если специалист сразу позвонил клиенту по номеру из Telegram, сайт этого не видит — узнаем из ответа клиента на вопрос бота.</p>
     </div>
   );
 }
