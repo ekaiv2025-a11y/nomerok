@@ -16,6 +16,7 @@
           "address_ru": "Кобулети",
           "city": "kobuleti",
           "hours": "Пн–Пт 10:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_mefarishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-1#ketevan-mefarishvili"
         },
         {
@@ -30,6 +31,7 @@
           "address_ru": "Кобулети",
           "city": "kobuleti",
           "hours": "Пн–Пт 11:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Archil_khutsidze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-1#archil-khutsidze"
         },
         {
@@ -45,6 +47,7 @@
           "address_ru": "Тбилиси, Глдани, ул. Ильи Векуа, 23",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00; Сб 10:00–17:00; Вс 10:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Aleksandre_Chalauri.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-2#achalauri_notary"
         },
         {
@@ -59,6 +62,7 @@
           "address_ru": "Тбилиси, Старый Тбилиси, село Кахрети (у административного здания муниципалитета)",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–19:00, перерыв 14:00–15:00; Сб 11:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Ana_Imerlishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-2#ana-imerlishvili"
         },
         {
@@ -73,6 +77,7 @@
           "address_ru": "Тбилиси, Варкетили, ул. Калоубани, 6, 2 этаж, помещение 7",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:30–17:30; Сб 11:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Ana_Kakulia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-2#ana-kakulia"
         },
         {
@@ -88,6 +93,7 @@
           "address_ru": "Тбилиси, Варкетили, 3-й массив, ул. Калоубани, корпус «А, Б», кв. 31, 1 этаж",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ana_Roinishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-2#aroinishvili_notary"
         },
         {
@@ -102,6 +108,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Ионы Вакели, 1",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Anzhela_Mania.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-2#amania_notary"
         },
         {
@@ -117,6 +124,7 @@
           "address_ru": "Тбилиси, Ваке, ул. Захария Палиашвили, 13/8",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Bachana_Shengelia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-3#bshengelia_notary"
         },
         {
@@ -131,6 +139,7 @@
           "address_ru": "Зугдиди, пр. Пекина, 5, 3 этаж",
           "city": "zugdidi",
           "hours": "Вт–Пт 10:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Beka_Kvaratskhelia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-3#beka-kvaratskhelia"
         },
         {
@@ -146,6 +155,7 @@
           "address_ru": "Тбилиси, Мтацминда, ул. Мтквари, 6, 1 этаж",
           "city": "tbilisi",
           "hours": "Пн–Чт 10:00–17:00; Пт 10:30–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Darejan_Akhalbedashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-3#dakhalbedashvili_notary"
         },
         {
@@ -161,6 +171,7 @@
           "address_ru": "Тбилиси, Мтацминда, ул. Мтквари, 4",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Chalatashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-3#dchalatashvili_notary"
         },
         {
@@ -176,6 +187,7 @@
           "address_ru": "Тбилиси, Старый Тбилиси, ул. Вахтанга Горгасали, 49",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Imnadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-3#dimnadze_notary"
         },
         {
@@ -191,6 +203,7 @@
           "address_ru": "Тбилиси, Глдани, микрорайон «А», корпус 54, 1 этаж, 145",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Kekelia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-3#davit-kekelia"
         },
         {
@@ -206,6 +219,7 @@
           "address_ru": "Тбилиси, Дидубе, ул. Самтредиа, корпус 3А, кв. 94",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Mepharishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#dmepharishvili_notary"
         },
         {
@@ -221,6 +235,7 @@
           "address_ru": "Тбилиси, Исани, ул. Бочорма, 11а, 2 этаж, офис 5",
           "city": "tbilisi",
           "hours": "Пн–Пт 09:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Okroshidze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#dokroshidze_notary"
         },
         {
@@ -236,6 +251,7 @@
           "address_ru": "Тбилиси, Глдани, ул. Омара Хизанишвили, 33, кв. 6",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Phutkaradze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#dfutkaradze_notary"
         },
         {
@@ -250,6 +266,7 @@
           "address_ru": "Тбилиси, Глдани, ул. Алексия Гобронидзе, 1а, 3 этаж",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00; Сб 11:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Davit_Tsivtsivadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#dtsivtsivadze_notary"
         },
         {
@@ -264,6 +281,7 @@
           "address_ru": "Тбилиси, Квемо Чугурети, пр. Давида Агмашенебели, 109",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Diana_Svanadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#dsvanadze_notary"
         },
         {
@@ -278,6 +296,7 @@
           "address_ru": "Тбилиси, Глдани, ул. Ильи Векуа, 43",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Dimitri_Liparteliani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#dimitri-liparteliani"
         },
         {
@@ -292,6 +311,7 @@
           "address_ru": "Кутаиси, ул. Царицы Тамар, 31",
           "city": "kutaisi",
           "hours": "Пн–Пт 10:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Eka_Tskepladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#etskepladze_notary"
         },
         {
@@ -307,6 +327,7 @@
           "address_ru": "Тбилиси, Квемо Чугурети, пр. Давида Агмашенебели, 108",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00; Сб 11:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterina_Kits.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#ekaterina_notary"
         },
         {
@@ -321,6 +342,7 @@
           "address_ru": "Гори, ул. Агмашенебели, 10, 1 этаж, помещение 1",
           "city": "gori",
           "hours": "Пн–Пт 10:00–16:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_chitashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-4#ekaterine-chitashvili"
         },
         {
@@ -335,6 +357,7 @@
           "address_ru": "Тбилиси, Дигоми, Дигомский массив, 3-й квартал, корпус 7",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Dzuliashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#edzuliashvili_notary"
         },
         {
@@ -350,6 +373,7 @@
           "address_ru": "Тбилиси, Мтацминда, ул. Мтквари, 4, кв. 20",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Ediberidze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#eediberidze_notary"
         },
         {
@@ -365,6 +389,7 @@
           "address_ru": "Тбилиси, Ваке, пр. Ильи Чавчавадзе, 39а",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Gvantseladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#egvanceladze_notary"
         },
         {
@@ -380,6 +405,7 @@
           "address_ru": "Тбилиси, Дидубе, пр. Акакия Церетели, 49–51",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:30–15:30",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Jeladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#ejeladze_notary"
         },
         {
@@ -394,6 +420,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Важа-Пшавела, 47, корпус I, 2",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Marshania.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#emarshania_notary"
         },
         {
@@ -408,6 +435,7 @@
           "address_ru": "Рустави, ул. Месхишвили, 13, помещение 1",
           "city": "rustavi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Nandoshvili_.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#ekaterine-nandoshvili"
         },
         {
@@ -423,6 +451,7 @@
           "address_ru": "Тбилиси, Глдани, ул. Омара Хизанишвили, 26",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ekaterine_Shengelia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#eshengelia_notary"
         },
         {
@@ -437,6 +466,7 @@
           "address_ru": "Тбилиси, Глдани, ул. Алеко Гобронидзе, 1Б, 2 этаж, 6",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Elena_Geladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#egeladze_notary"
         },
         {
@@ -452,6 +482,7 @@
           "address_ru": "Тбилиси, Вере, ул. Мераба Костава, 23",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Elene_Kizilashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-5#ekizilashvili_notary"
         },
         {
@@ -467,6 +498,7 @@
           "address_ru": "Тбилиси, Ваке, пр. Ильи Чавчавадзе, 20, 1 этаж, кв. 2",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Elene_Mergell.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#emergell_notary"
         },
         {
@@ -482,6 +514,7 @@
           "address_ru": "Тбилиси, Надзаладеви, пр. Цотне Дадиани, 32",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Eliso_Kurashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#ekurashvili_notary"
         },
         {
@@ -497,6 +530,7 @@
           "address_ru": "Тбилиси, Старый Тбилиси, ул. Котэ Апхази, 17",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00; Сб 10:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Eliso_Shikhiashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#eshikhiashvili_notary"
         },
         {
@@ -512,6 +546,7 @@
           "address_ru": "Кутаиси, ул. Иосеба Гришашвили, 14",
           "city": "kutaisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Eter_Gzirishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#etergzirishvili_notary"
         },
         {
@@ -526,6 +561,7 @@
           "address_ru": "Тбилиси, Сандзона, пр. Давида Гурамишвили, 9",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Galina_Mumladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#gmumladze_notary"
         },
         {
@@ -540,6 +576,7 @@
           "address_ru": "Рустави, ул. Гурамишвили, 4",
           "city": "rustavi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Gigi_Golubiani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#gigi-golubiani"
         },
         {
@@ -554,6 +591,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Сулхана Цинцадзе, 38",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Giorgi_Chitashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#gchitashvili_notary"
         },
         {
@@ -568,6 +606,7 @@
           "address_ru": "Тбилиси, Мтацминда, ул. Мтквари, 6, кв. 1а",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Giorgi_Lomashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-6#glomashvili_notary"
         },
         {
@@ -582,6 +621,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Пекина, 25, кв. 3",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 13:00–14:00; Сб 11:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Gultamze_Bochorishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-7#gultamze-bochorishvili"
         },
         {
@@ -596,6 +636,7 @@
           "address_ru": "Тбилиси, Дидубе, пр. Акакия Церетели, 117, 2 этаж",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 13:00–14:00; Сб 11:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Gvantsa_Kvatsashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-7#gvantsa-kvatsashvili"
         },
         {
@@ -610,6 +651,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Важа-Пшавела, 10",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Gvantsa_Miqiashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-7#gvantsa-mikiashvili"
         },
         {
@@ -624,6 +666,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Давида Агмашенебели, 68",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Gvantsa_turashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-7#gvantsa-turashvili"
         },
         {
@@ -638,6 +681,7 @@
           "address_ru": "Тбилиси, Ваке, пр. Ильи Чавчавадзе, 68",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Ia_Kiphiani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-7#ikiphiani_notary"
         },
         {
@@ -652,6 +696,7 @@
           "address_ru": "Батуми, ул. З. Горгиладзе, 12, 1 этаж, помещение 2а",
           "city": "batumi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/ia%20nemsadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#ia-nemsadze"
         },
         {
@@ -667,6 +712,7 @@
           "address_ru": "Тбилиси, Темка, у станции метро «Сараджишвили»",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Iamze_Chankseliani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#ichanqseliani_notary"
         },
         {
@@ -681,6 +727,7 @@
           "address_ru": "Кутаиси, ул. Бухаидзе, 4",
           "city": "kutaisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 14:00–15:00; Сб 10:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Iamze_Kutateladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#iqutateladze_notary"
         },
         {
@@ -696,6 +743,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Давида Гамрекели, 6, кв. 5",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Inga_Khardziani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#ikhardziani_notary"
         },
         {
@@ -711,6 +759,7 @@
           "address_ru": "Поти, ул. Мераба Костава, 4",
           "city": "poti",
           "hours": "Пн–Пт 11:00–17:00, перерыв 15:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Irakli_Torotadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#itorotadze_notary"
         },
         {
@@ -726,6 +775,7 @@
           "address_ru": "Тбилиси, Квемо Чугурети, пр. Давида Агмашенебели, 97",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Irine_Nanobashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#inanobashvili_notary"
         },
         {
@@ -741,6 +791,7 @@
           "address_ru": "Тбилиси, Дигоми, пр. Григола Робакидзе, 7, корпус 4, кв. 6",
           "city": "tbilisi",
           "hours": "Пн 11:00–17:00, перерыв 13:30–14:00; Вт–Пт 11:00–17:00, перерыв 13:30–14:30",
+          "photo": "https://notary.ge/res/images/notaries/Irma_Beridze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#iberidze_notary"
         },
         {
@@ -755,6 +806,7 @@
           "address_ru": "Батуми, ул. 26 Мая, 26",
           "city": "batumi",
           "hours": "Пн–Чт 10:00–17:00, перерыв 13:00–14:00; Пт 10:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Irma%20Dvalishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-8#irma-dvalishvili"
         },
         {
@@ -770,6 +822,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Жюля Шартава, 42",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Irma_Sharvadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#isharvadze_notary"
         },
         {
@@ -784,6 +837,7 @@
           "address_ru": "Гори, ул. Акакия Церетели, 42а",
           "city": "gori",
           "hours": "Пн–Пт 09:30–17:00, перерыв 13:30–14:00; Сб 12:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Iulia_Ardemanashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#iulia-ardemanashvili"
         },
         {
@@ -799,6 +853,7 @@
           "address_ru": "Тбилиси, Исани, Навтлугский тупик, 9",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Bochorishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#qbochorishvili_notary"
         },
         {
@@ -814,6 +869,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Пекина, 31г, 1 этаж, кв. 1",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Dzlierishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#q-dzlierishvili_notary"
         },
         {
@@ -828,6 +884,7 @@
           "address_ru": "Батуми, пр. Фридона Халваши, 346б",
           "city": "batumi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Qetevan_Gatenadze.png",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#ketevan-gatenadze"
         },
         {
@@ -843,6 +900,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Важа-Пшавела, 45",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Grigolia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#qgrigolia_notary"
         },
         {
@@ -857,6 +915,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Пекина, 8, кв. 35",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Kurasbediani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-9#kkurasbediani_notary"
         },
         {
@@ -871,6 +930,7 @@
           "address_ru": "Тбилиси, Диди Дигоми, ул. Давида Агмашенебели, 19б",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Lipartiani_.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#ketevan-lipartiani"
         },
         {
@@ -886,6 +946,7 @@
           "address_ru": "Тбилиси, Исани, пр. Кетеван Цамебули, 25",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Mamukashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#qmamukashvili_notary"
         },
         {
@@ -901,6 +962,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Жюля Шартава, 14а",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:30–17:30",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Odilavadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#qodilavadze_notary"
         },
         {
@@ -915,6 +977,7 @@
           "address_ru": "Тбилиси, Дидубе, пр. Тамар Мепе, 12",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Ketevan_Tkeshelashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#ktkeshelashvili_notary"
         },
         {
@@ -929,6 +992,7 @@
           "address_ru": "Батуми, ул. Тамар Мепе, 7, 2 этаж, кв. 8",
           "city": "batumi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Qetino_Tunadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#ketino-tunadze"
         },
         {
@@ -944,6 +1008,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Мераба Костава, 75",
           "city": "tbilisi",
           "hours": "Пн–Ср, Пт 11:00–18:00; Чт 13:00–18:00; перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Khatia_Beridze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#khberidze_notary"
         },
         {
@@ -959,6 +1024,7 @@
           "address_ru": "Тбилиси, Квемо Чугурети, пр. Давида Агмашенебели, 116",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Khatia_Shergelashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-10#khshergelashvili_notary"
         },
         {
@@ -974,6 +1040,7 @@
           "address_ru": "Кутаиси, пр. Шота Руставели, 20/24",
           "city": "kutaisi",
           "hours": "Пн–Пт 11:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Khatuna_Jankhoteli.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#khjankhoteli_notary"
         },
         {
@@ -988,6 +1055,7 @@
           "address_ru": "Зугдиди, ул. Меунаргиа, 1",
           "city": "zugdidi",
           "hours": "Пн–Пт 10:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Khatuna_Kajaia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#khqajaia_notary"
         },
         {
@@ -1003,6 +1071,7 @@
           "address_ru": "Батуми, ул. Ноя Жордания, 12",
           "city": "batumi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Khatuna_Kalandarishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#khkalandarishvili_notary"
         },
         {
@@ -1017,6 +1086,7 @@
           "address_ru": "Кутаиси, пр. Звиада Гамсахурдиа, 32/1",
           "city": "kutaisi",
           "hours": "Пн–Пт 09:30–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Kristine_Merkviladze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#kmerkviladze_notary"
         },
         {
@@ -1032,6 +1102,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Пекина, 23, кв. 47",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Lali_Gzirishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#lgzirishvili_notary"
         },
         {
@@ -1046,6 +1117,7 @@
           "address_ru": "Тбилиси, Диди Дигоми, пр. Мириана Мепе, 53а, 2 этаж",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Lali_Janukashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#ljanukashvili_notary"
         },
         {
@@ -1061,6 +1133,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Важа-Пшавела, 2а, кв. 13",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Lali_Kandelaki.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#lkandelaki_notary"
         },
         {
@@ -1075,6 +1148,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Пекина, 29, кв. 2",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Lali_Zviadadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#lali-zviadadze"
         },
         {
@@ -1089,6 +1163,7 @@
           "address_ru": "Тбилиси, Самгори, у станции метро «Варкетили»",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:30–17:30",
+          "photo": "https://notary.ge/res/images/notaries/Lamara_Didebashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-11#ldidebashvili_notary"
         },
         {
@@ -1103,6 +1178,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Александра Казбеги, 41, кв. 1",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Lana_Khanishvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lkhanishvili_notary"
         },
         {
@@ -1117,6 +1193,7 @@
           "address_ru": "Кутаиси, ул. Руставели, 69, 1 этаж",
           "city": "kutaisi",
           "hours": "Пн–Пт 11:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Lana_Kikvadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lana-kikvadze"
         },
         {
@@ -1131,6 +1208,7 @@
           "address_ru": "Тбилиси, Мтацминда, пр. Руставели, 1",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Lana_Machavariani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lmachavariani_notary"
         },
         {
@@ -1146,6 +1224,7 @@
           "address_ru": "Тбилиси, Диди Дигоми, ул. Мириана Мепе, 52",
           "city": "tbilisi",
           "hours": "Пн–Пт 09:00–13:00",
+          "photo": "https://notary.ge/res/images/notaries/Lela_Gazdeliani.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lgazdeliani_notary"
         },
         {
@@ -1161,6 +1240,7 @@
           "address_ru": "Тбилиси, Квемо Чугурети, ул. Котэ Марджанишвили, 21",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Lela_Intskirveli.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lintskirveli_notary"
         },
         {
@@ -1175,6 +1255,7 @@
           "address_ru": "Рустави, 20-й микрорайон, 17, кв. 99",
           "city": "rustavi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 13:00–14:00; Сб 11:00–16:00",
+          "photo": "https://notary.ge/res/images/notaries/Levan_Kobakhidze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#levan-kobakhidze"
         },
         {
@@ -1190,6 +1271,7 @@
           "address_ru": "Тбилиси, Мтацминда, пр. Шота Руставели, 46",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Lia_Gogia.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lgogia_notary"
         },
         {
@@ -1204,6 +1286,7 @@
           "address_ru": "Тбилиси, Сандзона, пр. Давида Гурамишвили, 23а, корпус «Г», 2 этаж, кв. 45",
           "city": "tbilisi",
           "hours": "Вт, Чт, Сб 10:00–18:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Lia_Iremadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#liremadze_notary"
         },
         {
@@ -1219,6 +1302,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Жюля Шартава, 44",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Lia_Kobakhidze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-12#lkobakhidze_notary"
         },
         {
@@ -1233,6 +1317,7 @@
           "address_ru": "Зугдиди, ул. Шота Руставели, 84, 2 этаж",
           "city": "zugdidi",
           "hours": "Пн–Пт 10:00–18:00, перерыв 13:00–14:00; Сб 10:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Liana_Arkania.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-13#larqania_notary"
         },
         {
@@ -1248,6 +1333,7 @@
           "address_ru": "Тбилиси, Сабуртало, ул. Бидзины Квернадзе, 13, 1 подъезд, 2 этаж, кв. 1",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00",
+          "photo": "https://notary.ge/res/images/notaries/Liana_Bukhrikidze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-13#lbukhrikidze_notary"
         },
         {
@@ -1263,6 +1349,7 @@
           "address_ru": "Гори, ул. Цабадзе, 5",
           "city": "gori",
           "hours": "Пн–Пт 11:00–18:00, перерыв 14:00–15:00",
+          "photo": "https://notary.ge/res/images/notaries/Liana_Gogiashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-13#lgogiashvili_notary"
         },
         {
@@ -1277,6 +1364,7 @@
           "address_ru": "Тбилиси, Сабуртало, пр. Важа-Пшавела, 30а (пр. Казбеги, 29, корпус 1), 2 этаж, кв. 1",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–18:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Liana_Modebadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-13#liana-modebadze"
         },
         {
@@ -1292,6 +1380,7 @@
           "address_ru": "Тбилиси, Земо Чугурети, ул. Нико Пиросмани, 23",
           "city": "tbilisi",
           "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Luiza_Tskhadadze.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-13#lckhadadze_notary"
         },
         {
@@ -1306,6 +1395,7 @@
           "address_ru": "Тбилиси, Глдани, ул. О. Хизанишвили, 23",
           "city": "tbilisi",
           "hours": "Пн–Пт 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Magda_Jankhoteli.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-13#mjankhoteli_notary"
         }
       ]
@@ -3256,6 +3346,58 @@
           "hours": "Пн–Пт 11:00–17:00, перерыв 13:00–14:00",
           "photo": "https://notary.ge/res/images/notaries/Zaal_Batuashvili.jpg",
           "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-28#zaal-batuashvili"
+        }
+      ]
+    },
+    {
+      "id": "notary-2026-11-07-p29",
+      "source": "Реестр Нотариальной палаты Грузии, notary.ge",
+      "items": [
+        {
+          "name": "Заал Закарашвили",
+          "category": "notary",
+          "title": "Нотариус, медиатор",
+          "services": "Удостоверение сделок и договоров\nДоверенности\nЗаверение копий документов и подписей\nКонсультация по нотариальным действиям",
+          "about": "Нотариальное бюро в районе Сабуртало (Тбилиси). Работает в праздничные дни.",
+          "phones": [
+            "+995 595 075 244"
+          ],
+          "address_ru": "Тбилиси, Сабуртало, пр. Ал. Казбеги, 12б, 2 этаж",
+          "city": "tbilisi",
+          "hours": "Пн–Пт 10:00–18:00; Сб 11:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Zaal_Zakarashvili.jpg",
+          "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-29#zzakarashvili_notary"
+        },
+        {
+          "name": "Заза Мегрелишвили",
+          "category": "notary",
+          "title": "Нотариус, медиатор",
+          "services": "Удостоверение сделок и договоров\nДоверенности\nЗаверение копий документов и подписей\nКонсультация по нотариальным действиям",
+          "about": "Нотариальное бюро в районе Дидубе (Тбилиси). Офис приспособлен для людей с инвалидностью.",
+          "phones": [
+            "+995 599 313 105"
+          ],
+          "address_ru": "Тбилиси, Дидубе, пр. Церетели, 116",
+          "city": "tbilisi",
+          "hours": "Пн–Пт 11:00–19:00, перерыв 13:00–14:00",
+          "photo": "https://notary.ge/res/images/notaries/Zaza_Megrelishvili.jpg",
+          "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-29#zmegrelishvili_notary"
+        },
+        {
+          "name": "Жения Тартарашвили",
+          "category": "notary",
+          "title": "Нотариус, медиатор",
+          "services": "Удостоверение сделок и договоров\nДоверенности\nЗаверение копий документов и подписей\nКонсультация по нотариальным действиям",
+          "about": "Нотариальное бюро в районе Исани (Тбилиси). Офис приспособлен для людей с инвалидностью.",
+          "phones": [
+            "+995 32 277 16 00",
+            "+995 591 709 980"
+          ],
+          "address_ru": "Тбилиси, Исани, пр. Кетеван Цамебули, 42",
+          "city": "tbilisi",
+          "hours": "Пн–Пт 10:00–17:00",
+          "photo": "https://notary.ge/res/images/notaries/Zhenia_Tartarashvili.jpg",
+          "source_url": "https://notary.ge/eng-3718-notary-bureaus-page-29#jtartarashvili_notary"
         }
       ]
     }
