@@ -7,7 +7,8 @@ import { placesOwnedBy } from "@/lib/places-db";
 import { inviteCode, teamOf } from "@/lib/org-db";
 import { PLACE_CATS, placeName } from "@/lib/places";
 import { CITIES } from "@/lib/cities";
-import { botLink } from "@/lib/telegram";
+import { botLink, botUsername } from "@/lib/telegram";
+import { OrgFinder } from "@/components/OrgFinder";
 import { categoryLabel } from "@/lib/categories";
 import { CopyText } from "@/components/CopyText";
 import { createOrg, newInviteCode, saveOrgInfo, teamAction } from "./actions";
@@ -19,13 +20,15 @@ const T = {
   ru: {
     title: "Кабинет организации",
     intro: "Для клиник, салонов, учебных центров, агентств и мастерских: страница организации со всей командой, заявки клиентов в Telegram — без комиссии.",
-    how: ["Войдите через Telegram — это ваш пароль.", "Найдите свою организацию в «Местах» и подтвердите, что она ваша, или добавьте новую.", "Отправьте сотрудникам ссылку-приглашение: каждый сам создаёт свою анкету за 3 минуты и попадает в команду."],
+    how: ["Найдите свою организацию и нажмите «Это моя».", "В Telegram поделитесь номером: совпал с телефоном организации — подтверждаем сразу.", "Бот пришлёт ссылку в кабинет: описание, фото, команда, заявки клиентов."],
+    findHead: "Найдите свою организацию",
+    have: "Уже подтвердили организацию?",
     login: "Войти через Telegram",
     expired: "Ссылка для входа устарела — нажмите кнопку ещё раз, бот пришлёт новую.",
     logout: "Выйти",
     none: "У вас пока нет подтверждённых организаций.",
     findTitle: "Ваша организация уже есть в «Местах»?",
-    findText: "Найдите её, откройте карточку и нажмите «Подтвердить в Telegram». После подтверждения она появится здесь.",
+    findText: "Нажмите «Это моя» и поделитесь номером в Telegram — после подтверждения она появится здесь.",
     findBtn: "Найти в «Местах»",
     newTitle: "Добавить новую организацию",
     newText: "Если вашей организации нет в «Местах». Она появится на сайте после быстрой проверки, а команду можно собирать сразу.",
@@ -63,13 +66,15 @@ const T = {
   en: {
     title: "Organization account",
     intro: "For clinics, salons, learning centres, agencies and workshops: an organization page with your whole team and client requests in Telegram — no commission.",
-    how: ["Log in with Telegram — it's your password.", "Find your organization in “Places” and confirm it's yours, or add a new one.", "Send your staff an invite link: each person creates their own profile in 3 minutes and joins the team."],
+    how: ["Find your organization and press “It's mine”.", "Share your phone number in Telegram: if it matches the organization's phone, it's confirmed at once.", "The bot sends you a link to the account: description, photos, team, client requests."],
+    findHead: "Find your organization",
+    have: "Already confirmed your organization?",
     login: "Log in with Telegram",
     expired: "The login link has expired — press the button again and the bot will send a new one.",
     logout: "Log out",
     none: "You don't have confirmed organizations yet.",
     findTitle: "Is your organization already in “Places”?",
-    findText: "Find it, open its card and press “Confirm in Telegram”. Once confirmed, it will appear here.",
+    findText: "Press “It's mine” and share your number in Telegram — once confirmed, it will appear here.",
     findBtn: "Find in “Places”",
     newTitle: "Add a new organization",
     newText: "If your organization isn't in “Places”. It will appear on the site after a quick check; you can build your team right away.",
@@ -107,13 +112,15 @@ const T = {
   ka: {
     title: "ორგანიზაციის კაბინეტი",
     intro: "კლინიკებისთვის, სალონებისთვის, სასწავლო ცენტრებისთვის, სააგენტოებისა და სახელოსნოებისთვის: ორგანიზაციის გვერდი მთელი გუნდით და კლიენტების განაცხადები Telegram-ში — საკომისიოს გარეშე.",
-    how: ["შედით Telegram-ით — ეს თქვენი პაროლია.", "იპოვეთ თქვენი ორგანიზაცია „ადგილებში“ და დაადასტურეთ, ან დაამატეთ ახალი.", "გაუგზავნეთ თანამშრომლებს მოსაწვევი ბმული: თითოეული თავად ქმნის ანკეტას 3 წუთში და გუნდში ხვდება."],
+    how: ["იპოვეთ თქვენი ორგანიზაცია და დააჭირეთ „ეს ჩემია“.", "Telegram-ში გააზიარეთ ნომერი: თუ ემთხვევა ორგანიზაციის ტელეფონს — მაშინვე დავადასტურებთ.", "ბოტი გამოგიგზავნით ბმულს კაბინეტში: აღწერა, ფოტოები, გუნდი, კლიენტების განაცხადები."],
+    findHead: "იპოვეთ თქვენი ორგანიზაცია",
+    have: "უკვე დაადასტურეთ ორგანიზაცია?",
     login: "შესვლა Telegram-ით",
     expired: "შესვლის ბმულს ვადა გაუვიდა — დააჭირეთ ღილაკს ხელახლა, ბოტი ახალს გამოგიგზავნით.",
     logout: "გასვლა",
     none: "დადასტურებული ორგანიზაცია ჯერ არ გაქვთ.",
     findTitle: "თქვენი ორგანიზაცია უკვე არის „ადგილებში“?",
-    findText: "იპოვეთ, გახსენით ბარათი და დააჭირეთ „დადასტურება Telegram-ში“. დადასტურების შემდეგ აქ გამოჩნდება.",
+    findText: "დააჭირეთ „ეს ჩემია“ და გააზიარეთ ნომერი Telegram-ში — დადასტურების შემდეგ აქ გამოჩნდება.",
     findBtn: "ძებნა „ადგილებში“",
     newTitle: "ახალი ორგანიზაციის დამატება",
     newText: "თუ თქვენი ორგანიზაცია „ადგილებში“ არ არის. საიტზე გამოჩნდება სწრაფი შემოწმების შემდეგ, გუნდის შეკრება კი შეგიძლიათ ახლავე.",
@@ -158,22 +165,33 @@ export default async function OrgPage({ params, searchParams }: Props) {
   const t = T[lang];
   const user = await currentOrgUser();
   const loginLink = await botLink(`org_${lang}`);
+  const bot = await botUsername().catch(() => null);
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
         <h1 className="text-[28px] font-bold leading-tight sm:text-[34px]">🏢 {t.title}</h1>
         <p className="mt-3 text-[16px] leading-relaxed text-[#3a3935]">{t.intro}</p>
-        <ol className="mt-5 list-decimal space-y-2 pl-5 text-[15px]">
-          {t.how.map((x) => (
-            <li key={x}>{x}</li>
+        {sp.expired && <p className="mt-5 rounded-xl bg-[#fdf6e6] p-3 text-[14px]">{t.expired}</p>}
+        <section className="mt-6 rounded-2xl border border-line bg-cream p-5 sm:p-6">
+          <h2 className="mb-3 text-[19px] font-bold">🔎 {t.findHead}</h2>
+          <OrgFinder lang={lang} bot={bot} addHref={loginLink} />
+        </section>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+          {t.how.map((x, i) => (
+            <li key={x} className="rounded-2xl border border-line p-4 text-[14px] leading-relaxed">
+              <span className="mb-2 flex h-7 w-7 items-center justify-center rounded-full bg-brand text-[13px] font-bold text-white">{i + 1}</span>
+              {x}
+            </li>
           ))}
         </ol>
-        {sp.expired && <p className="mt-5 rounded-xl bg-[#fdf6e6] p-3 text-[14px]">{t.expired}</p>}
         {loginLink && (
-          <a href={loginLink} target="_blank" rel="noopener noreferrer" className="btn mt-6 h-12 bg-[#229ED9] px-6 text-[16px] text-white hover:bg-[#1c89bd]">
-            {t.login}
-          </a>
+          <p className="mt-6 text-[14px] text-muted">
+            {t.have}{" "}
+            <a href={loginLink} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#229ED9] hover:underline">
+              {t.login}
+            </a>
+          </p>
         )}
       </div>
     );
@@ -317,14 +335,12 @@ export default async function OrgPage({ params, searchParams }: Props) {
 
       {/* Найти или добавить */}
       <section className="mt-8 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl bg-cream p-5">
+        <div className="rounded-2xl bg-cream p-5 sm:col-span-2">
           <h2 className="text-[17px] font-bold">{t.findTitle}</h2>
-          <p className="mt-2 text-[14px] text-muted">{t.findText}</p>
-          <Link href={href(lang, "/places")} className="btn-ghost mt-3 h-10 px-4 text-[14px]">
-            {t.findBtn}
-          </Link>
+          <p className="mb-3 mt-1 text-[14px] text-muted">{t.findText}</p>
+          <OrgFinder lang={lang} bot={bot} addHref={null} />
         </div>
-        <details className="rounded-2xl border border-line p-5" open={mine.length === 0}>
+        <details className="rounded-2xl border border-line p-5 sm:col-span-2" open={mine.length === 0}>
           <summary className="cursor-pointer text-[17px] font-bold">{t.newTitle}</summary>
           <p className="mt-2 text-[14px] text-muted">{t.newText}</p>
           <form action={createOrg} className="mt-3 space-y-3">
