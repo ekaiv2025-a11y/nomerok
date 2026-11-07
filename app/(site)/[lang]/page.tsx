@@ -89,7 +89,7 @@ export default async function Home({ params, searchParams }: LangParams & { sear
         </div>
       </section>
       {!broken && <BonusStrip lang={lang} masters={masters} city={city} />}
-      {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} catPages={seoCategoryIds()} />}
+      {broken ? <SetupNotice lang={lang} /> : <Catalog key={city} masters={masters} lang={lang} city={city} catPages={seoCategoryIds()} />}
       {!broken && <LatestOrders lang={lang} />}
       {!broken && <CitySeo lang={lang} city={city} masters={masters} cats={seoCategoryIds()} />}
       <HomeJournal lang={lang} />
