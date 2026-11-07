@@ -1,0 +1,25 @@
+/* Таргет-креативы: общие стили (сторис 1080×1920 и лента 1080×1350). Грузинский — Noto Sans Georgian. */
+@font-face{font-family:G;font-weight:400;src:url(noto-sans-georgian-georgian-400-normal.woff2) format("woff2")}
+@font-face{font-family:G;font-weight:600;src:url(noto-sans-georgian-georgian-700-normal.woff2) format("woff2")}
+@font-face{font-family:G;font-weight:800;src:url(noto-sans-georgian-georgian-800-normal.woff2) format("woff2")}
+body{font-family:M,G,system-ui,sans-serif}
+.ka .h{letter-spacing:-.01em;line-height:1.12}
+.kick{font-size:34px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.h{font-weight:800;letter-spacing:-.03em;line-height:1.03}
+.step{display:flex;gap:26px;align-items:flex-start;border-radius:30px;padding:30px 34px}
+.num{flex:none;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;font-size:36px;font-weight:800}
+.t1{font-size:40px;font-weight:800;line-height:1.15}
+.t2{font-size:30px;line-height:1.35;margin-top:6px}
+.url{font-size:56px;font-weight:800;border-radius:999px;padding:24px 56px;letter-spacing:-.01em}
+/* макет анкеты — показываем сам сервис, а не «реального мастера» */
+.pc{background:#fff;border-radius:34px;box-shadow:0 24px 60px rgba(0,0,0,.14);padding:34px;color:var(--ink)}
+.pc .row{display:flex;gap:24px;align-items:center}
+.pc .av{width:120px;height:120px;border-radius:28px;background:var(--gs);display:grid;place-items:center;font-size:52px;font-weight:800;color:var(--g)}
+.pc .nm{font-size:40px;font-weight:800}
+.pc .ct{font-size:28px;color:var(--mut);margin-top:4px}
+.pc .ok{display:inline-flex;gap:8px;align-items:center;margin-top:10px;background:var(--gs);color:var(--gd);border-radius:999px;padding:6px 16px;font-size:24px;font-weight:600}
+.pc ul{list-style:none;margin-top:24px;border-top:2px solid #eee9de;padding-top:18px;display:flex;flex-direction:column;gap:12px}
+.pc li{display:flex;gap:12px;align-items:baseline;font-size:29px}
+.pc li .d{flex:1;border-bottom:3px dotted #e2ddd2;transform:translateY(-6px)}
+.pc li b{font-weight:800}
+.pc .tg{margin-top:24px;display:flex;align-items:center;gap:14px;background:#eaf6fd;color:#0f6c99;border-radius:20px;padding:18px 22px;font-size:27px;font-weight:600}
