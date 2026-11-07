@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, Users, X } from "lucide-react";
 import { Logo } from "./Logo";
@@ -28,7 +28,6 @@ const REQ_LONG = { ru: "Ищу специалиста", en: "Find a specialist",
 
 export function Header({ lang }: { lang: Locale }) {
   const t = getDict(lang);
-  const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
   // Специалист уже входил — вместо «Я специалист» ведём сразу в кабинет
   const [isSpec, setIsSpec] = useState(false);
@@ -37,53 +36,8 @@ export function Header({ lang }: { lang: Locale }) {
       setIsSpec(/(?:^|; )nm_is_spec=1/.test(document.cookie));
     } catch {}
   }, []);
-  const hiddenRef = useRef(false);
-  useEffect(() => {
-    hiddenRef.current = hidden;
-  }, [hidden]);
   const pathname = usePathname();
-  // iPhone Safari (iOS 26): при прокрутке поверх страницы сверху «плавает» плашка с адресом сайта.
-  // Чтобы она не налезала на кнопки, в прокрученном состоянии опускаем содержимое шапки ниже неё.
-  const [iosSafari, setIosSafari] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const ua = navigator.userAgent;
-    setIosSafari(/iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser/.test(ua));
-  }, []);
-
   useEffect(() => setOpen(false), [pathname]);
-
-  useEffect(() => {
-    // Простое правило: листаем вниз — шапки нет, листаем вверх — она на месте.
-    // Мелкие подрагивания пальца (меньше 8px) и «пружину» у краёв страницы не учитываем.
-    let last = window.scrollY;
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const y = window.scrollY;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setScrolled(y > 56);
-      if (window.innerWidth >= 768 || y <= 56) {
-        if (hiddenRef.current) setHidden(false);
-        last = Math.max(0, y);
-        return;
-      }
-      if (y < 0 || y > max) return;
-      const diff = y - last;
-      if (Math.abs(diff) < 8) return;
-      const hide = diff > 0;
-      if (hide !== hiddenRef.current) setHidden(hide);
-      last = y;
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -113,13 +67,9 @@ export function Header({ lang }: { lang: Locale }) {
   return (
     <>
       <header
-        className="fixed inset-x-0 top-0 z-40 border-b border-line bg-white md:sticky"
-        style={{
-          transform: hidden && !open ? "translate3d(0,-100%,0)" : "translate3d(0,0,0)",
-          willChange: "transform",
-          paddingTop: iosSafari && scrolled ? 30 : 0,
-          transition: "transform .3s ease-out, padding-top .2s ease-out",
-        }}
+        // На телефоне шапка — обычная часть страницы: уезжает вместе с ней и не прыгает при прокрутке.
+        // На компьютере — закреплена сверху.
+        className="relative z-40 border-b border-line bg-white md:sticky md:top-0"
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-16 sm:px-6">
           <Logo lang={lang} />
@@ -162,7 +112,11 @@ export function Header({ lang }: { lang: Locale }) {
             </Link>
             <button
               type="button"
-              onClick={() => setOpen((v) => !v)}
+              onClick={() => {
+                // меню открывается под шапкой — поднимаем страницу к началу
+                if (!open) window.scrollTo({ top: 0 });
+                setOpen((v) => !v);
+              }}
               className="flex h-10 w-9 items-center justify-center rounded-full hover:bg-cream md:hidden"
               aria-label={open ? t.nav.close : t.nav.menu}
               aria-expanded={open}
@@ -172,8 +126,6 @@ export function Header({ lang }: { lang: Locale }) {
           </nav>
         </div>
       </header>
-      {/* место под шапку на телефоне (там она «плавает» поверх страницы) */}
-      <div className="h-14 sm:h-16 md:hidden" aria-hidden />
 
       {open && (
         <div className="fixed inset-0 top-14 z-30 bg-black/30 md:hidden" onClick={() => setOpen(false)}>

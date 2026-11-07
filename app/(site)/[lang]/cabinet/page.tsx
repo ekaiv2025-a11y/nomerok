@@ -240,7 +240,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
       ) : (
       <>
       {/* Разделы кабинета */}
-      <nav className="no-scrollbar sticky top-14 z-30 -mx-4 mt-5 flex gap-1.5 overflow-x-auto bg-white/95 px-4 py-2 backdrop-blur md:top-16">
+      <nav className="no-scrollbar sticky top-0 z-30 -mx-4 mt-5 flex gap-1.5 overflow-x-auto bg-white/95 px-4 py-2 backdrop-blur md:top-16">
         {TABS.map(([k, label]) => (
           <Link
             key={k}
