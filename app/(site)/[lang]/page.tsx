@@ -47,32 +47,46 @@ export default async function Home({ params, searchParams }: LangParams & { sear
     broken = true;
   }
 
+  const count = masters.filter((m) => !m.demo && (m.city ?? "batumi") === city).length;
   return (
     <>
-      <section className="mx-auto max-w-6xl px-4 pb-5 pt-6 sm:px-6 sm:pt-12">
-        <h1 className="max-w-2xl text-[28px] font-bold leading-[1.15] tracking-tight sm:text-[40px]">
-          {t.h1a(cityIn(city, lang))} <span className="text-brand">{t.h1b}</span>
-        </h1>
-        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted sm:text-[17px]">{t.sub}</p>
-        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:max-w-2xl sm:gap-3">
-          <a href="#masters" className="group rounded-2xl border border-line bg-white p-3.5 transition hover:border-brand sm:p-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand">
-              <Search className="h-5 w-5" />
-            </span>
-            <span className="mt-2.5 block text-[15px] font-semibold leading-tight group-hover:text-brand sm:text-[16px]">{t.pathPick}</span>
-            <span className="mt-1 block text-[12.5px] leading-snug text-muted sm:text-[13px]">{t.pathPickText}</span>
-          </a>
-          <Link href={href(lang, city !== "batumi" ? `/request?city=${city}` : "/request")} className="group rounded-2xl border border-brand/30 bg-brand-soft p-3.5 transition hover:border-brand sm:p-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white">
-              <ClipboardList className="h-5 w-5" />
-            </span>
-            <span className="mt-2.5 block text-[15px] font-semibold leading-tight text-brand-dark sm:text-[16px]">{t.pathRequest}</span>
-            <span className="mt-1 block text-[12.5px] leading-snug text-[#3d5a4c] sm:text-[13px]">{t.pathRequestText}</span>
-          </Link>
+      <section className="mx-auto max-w-6xl px-4 pb-4 pt-5 sm:px-6 sm:pt-8">
+        <div className="grid gap-6 rounded-3xl border border-line bg-cream px-5 py-6 sm:px-8 sm:py-9 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-10">
+          <div>
+            {count > 0 && (
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[12.5px] font-semibold text-brand-dark">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden /> {HERO[lang].count(count, cityLabel(city, lang))}
+              </p>
+            )}
+            <h1 className="mt-3 text-[30px] font-bold leading-[1.1] tracking-tight sm:text-[44px]">
+              {t.h1a(cityIn(city, lang))} <span className="text-brand">{t.h1b}</span>
+            </h1>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted sm:text-[17px]">{t.sub}</p>
+            <div className="mt-5 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
+              <a href="#masters" className="btn-primary h-12 gap-2 px-3 text-[14.5px] sm:px-6 sm:text-[15.5px]">
+                <Search className="h-4.5 w-4.5" /> {HERO[lang].find}
+              </a>
+              <Link href={href(lang, city !== "batumi" ? `/request?city=${city}` : "/request")} className="btn-ghost h-12 gap-2 bg-white px-3 text-[14.5px] sm:px-6 sm:text-[15.5px]">
+                <ClipboardList className="h-4.5 w-4.5" /> {t.pathRequest}
+              </Link>
+            </div>
+            <Link href={href(lang, "/join")} className="mt-4 inline-block text-[13.5px] font-semibold text-[#8a6a1f] hover:underline">
+              {t.specialistCta}
+            </Link>
+          </div>
+          <ol className="hidden space-y-3 rounded-2xl bg-white p-5 lg:block">
+            {HERO[lang].steps.map((x, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[13px] font-bold text-brand-dark">{i + 1}</span>
+                <span>
+                  <span className="block text-[15px] font-semibold leading-snug">{x[0]}</span>
+                  <span className="block text-[13px] leading-snug text-muted">{x[1]}</span>
+                </span>
+              </li>
+            ))}
+            <li className="border-t border-line pt-3 text-[12.5px] text-muted">{HERO[lang].free}</li>
+          </ol>
         </div>
-        <Link href={href(lang, "/join")} className="mt-4 block rounded-2xl border border-accent/50 bg-[#fdf3dc] px-4 py-3 text-[14px] font-semibold leading-snug text-[#5a4410] hover:bg-[#fbecc6] md:hidden">
-          {t.specialistCta}
-        </Link>
       </section>
       {!broken && <BonusStrip lang={lang} masters={masters} city={city} />}
       {broken ? <SetupNotice lang={lang} /> : <Catalog masters={masters} lang={lang} city={city} catPages={seoCategoryIds()} />}
@@ -82,3 +96,36 @@ export default async function Home({ params, searchParams }: LangParams & { sear
     </>
   );
 }
+
+const HERO = {
+  ru: {
+    count: (n: number, c: string) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "специалист" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "специалиста" : "специалистов"} · ${c}`,
+    find: "Найти специалиста",
+    steps: [
+      ["Выберите в каталоге", "Цены, фото работ и отзывы в каждой анкете"],
+      ["Напишите напрямую", "Телефон или Telegram — без посредников"],
+      ["Или оставьте заявку", "Свободные специалисты откликнутся сами"],
+    ],
+    free: "Для клиентов бесплатно · без комиссии",
+  },
+  en: {
+    count: (n: number, c: string) => `${n} specialists · ${c}`,
+    find: "Find a specialist",
+    steps: [
+      ["Pick from the catalog", "Prices, work photos and reviews"],
+      ["Contact directly", "Phone or Telegram — no middlemen"],
+      ["Or post a request", "Free specialists will respond"],
+    ],
+    free: "Free for clients · no commission",
+  },
+  ka: {
+    count: (n: number, c: string) => `${n} სპეციალისტი · ${c}`,
+    find: "სპეციალისტის პოვნა",
+    steps: [
+      ["აირჩიეთ კატალოგში", "ფასები, ნამუშევრები და შეფასებები"],
+      ["დაუკავშირდით პირდაპირ", "ტელეფონი ან Telegram — შუამავლის გარეშე"],
+      ["ან დატოვეთ განაცხადი", "თავისუფალი სპეციალისტები გამოგეხმაურებიან"],
+    ],
+    free: "კლიენტებისთვის უფასოა",
+  },
+} as const;
