@@ -9,6 +9,7 @@ import { applyStaffImport } from "@/lib/staff-import";
 import { applyEventsImport } from "@/lib/events-db";
 import { purgeDeletedMasters } from "@/lib/master-delete";
 import { applyRegistryImport } from "@/lib/registry-import";
+import { geocodeImported } from "@/lib/geocode";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -37,6 +38,8 @@ export async function GET(req: Request) {
     const eventsImported = await applyEventsImport().catch((e) => ({ error: String(e) }));
     // анкеты по открытым реестрам (нотариусы)
     const registry = await applyRegistryImport().catch((e) => ({ error: String(e) }));
+    // координаты для анкет из реестров (карта)
+    const geocoded = await geocodeImported(40).catch((e) => ({ error: String(e) }));
     // анкеты, удалённые специалистами больше 30 дней назад, — насовсем
     const purged = await purgeDeletedMasters().catch((e) => ({ error: String(e) }));
     let funnel = false;
@@ -44,7 +47,7 @@ export async function GET(req: Request) {
       const s = await funnelSummary(7).catch(() => null);
       if (s && s.total > 0) funnel = await notifyAdmin(summaryText(s)).catch(() => false);
     }
-    return NextResponse.json({ ok: true, ...followups, translations, funnel, placesEnriched, staffImported, eventsImported, purged, registry });
+    return NextResponse.json({ ok: true, ...followups, translations, funnel, placesEnriched, staffImported, eventsImported, purged, registry, geocoded });
   } catch (e) {
     console.error("[cron]", e);
     return NextResponse.json({ ok: false, error: e instanceof Error ? e.message : String(e) }, { status: 500 });

@@ -35,15 +35,27 @@ export function priceText(m: Pick<PublicMaster, "price_from" | "price_unit"> & {
 export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   const t = getDict(lang).card;
   const link = href(lang, `/master/${m.slug}`);
-  const atPlace = m.place_lat != null && (m.work_mode === "at_place" || m.work_mode === "both");
+  const atPlace = (m.place_lat != null || (m.imported && !!m.place_address?.trim())) && (m.work_mode === "at_place" || m.work_mode === "both");
+  // Адрес на карточке — без названия города (город и так выбран): «Сабуртало, ул. Ионы Вакели, 1»
+  const addr = (m.place_address ?? "").trim().replace(/^(Батуми|Тбилиси|Кутаиси|Рустави|Кобулети|Зугдиди|Поти|Гори|Телави|Боржоми|Batumi|Tbilisi|Kutaisi),\s*/i, "");
   const line = subcatLine(m, lang) ?? categoryLabel(m.category, lang);
   // Не повторяем под специальностью то же самое слово («Кардиолог» / «Кардиолог»)
   const norm = (x: string) => x.toLowerCase().replace(/[^a-zа-яёა-ჰ0-9]+/gi, " ").trim();
   const lineParts = new Set([norm(line), ...line.split(/[,()·]/).map(norm)].filter(Boolean));
   const summary = (cardSummary(m.services, m.about) ?? "")
     .split(" · ")
-    .filter((x) => x.trim() && !lineParts.has(norm(x)))
+    .map((x) =>
+      // «Нотариус, медиатор» под «Нотариус» → «Медиатор»
+      x
+        .split(/,\s*/)
+        .filter((w) => !lineParts.has(norm(w)))
+        .join(", "),
+    )
+    .filter((x) => x.trim())
+    .map((x) => x.charAt(0).toUpperCase() + x.slice(1))
     .join(" · ");
+  // Анкеты из открытых реестров (нотариусы): вместо одинакового списка услуг — адрес и часы работы
+  const registry = m.imported && !!m.work_hours?.trim();
   const mode = !atPlace ? MODE[m.work_mode === "both" ? "at_client" : m.work_mode]?.[lang] : null;
   const langs = (m.languages ?? []).map((l) => LANG_SHORT[l]).filter(Boolean);
   const prices = m.price_list ?? [];
@@ -105,11 +117,18 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
             {prices.length > 3 && <li className="text-[12px] text-brand">{PL[lang].more(prices.length - 3)}</li>}
           </ul>
         ) : (
-          summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>
+          registry ? (
+            <div className="mt-1.5 space-y-0.5 text-[13px] leading-snug text-[#3a3935]">
+              {addr && <p className="line-clamp-2 font-medium">📍 {addr}</p>}
+              <p className="line-clamp-2 text-muted">🕒 {m.work_hours}</p>
+            </div>
+          ) : (
+            summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>
+          )
         )}
-        {(atPlace || mode || langs.length > 0) && (
+        {((atPlace && !registry) || mode || langs.length > 0) && (
           <div className="mt-2 flex max-h-[22px] flex-wrap gap-1 overflow-hidden sm:max-h-none">
-            {atPlace && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {m.place_address?.trim() || t.atPlace}</span>}
+            {atPlace && !registry && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {addr || t.atPlace}</span>}
             {mode && <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">{mode}</span>}
             {langs.length > 0 && <span className="hidden rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted sm:inline">🗣 {langs.join(" · ")}</span>}
           </div>

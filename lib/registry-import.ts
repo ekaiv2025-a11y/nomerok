@@ -26,6 +26,9 @@ export type RegistryItem = {
   hours?: string;
   /** официальное фото из реестра (полный размер), если есть */
   photo?: string | null;
+  /** координаты адреса (геокодер OpenStreetMap) — для карты */
+  lat?: number | null;
+  lng?: number | null;
   source_url: string;
 };
 
@@ -51,8 +54,8 @@ type Batch = { id: string; source: string; items: RegistryItem[] };
 const PER_RUN = 150;
 const CAT_IDS = new Set<string>(CATEGORIES.map((c) => c.id));
 
-export async function applyRegistryImport(): Promise<{ created: number; skipped: number; photos: number }> {
-  const out = { created: 0, skipped: 0, photos: 0 };
+export async function applyRegistryImport(): Promise<{ created: number; skipped: number; photos: number; coords: number }> {
+  const out = { created: 0, skipped: 0, photos: 0, coords: 0 };
   const sb = supabase();
   if (!sb) return out;
   let budget = PER_RUN;
@@ -61,11 +64,15 @@ export async function applyRegistryImport(): Promise<{ created: number; skipped:
   for (const b of (DATA as { batches: Batch[] }).batches ?? []) {
     for (const s of b.items ?? []) {
       if (!s?.name || !s.source_url || !CAT_IDS.has(s.category)) continue;
-      const ex = await sb.from("masters").select("id, photo_url").eq("source_url", s.source_url).maybeSingle();
+      const ex = await sb.from("masters").select("id, photo_url, place_lat").eq("source_url", s.source_url).maybeSingle();
       if (ex.error) return out;
       if (ex.data) {
-        // анкета уже есть — дозаполняем фото, если его не было
-        const d = ex.data as { id: string; photo_url: string | null };
+        // анкета уже есть — дозаполняем координаты и фото, если их не было
+        const d = ex.data as { id: string; photo_url: string | null; place_lat: number | null };
+        if (d.place_lat == null && s.lat != null && s.lng != null) {
+          await sb.from("masters").update({ place_lat: s.lat, place_lng: s.lng }).eq("id", d.id);
+          out.coords++;
+        }
         if (s.photo && !d.photo_url && budget > 0 && (await setPhoto(d.id, s.photo))) {
           out.photos++;
           budget--;
@@ -107,8 +114,8 @@ export async function applyRegistryImport(): Promise<{ created: number; skipped:
         city: isCity(s.city) ? s.city : "tbilisi",
         work_mode: "at_place",
         place_address: (s.address_ru ?? "").slice(0, 200),
-        place_lat: null,
-        place_lng: null,
+        place_lat: s.lat ?? null,
+        place_lng: s.lng ?? null,
         work_hours: (s.hours ?? "").slice(0, 200),
         links: {},
         source_url: s.source_url,

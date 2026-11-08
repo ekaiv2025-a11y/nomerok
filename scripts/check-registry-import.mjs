@@ -24,6 +24,7 @@ for (const b of d.batches ?? []) {
     if (!s.address_ru || /[a-z]{3}/i.test(s.address_ru)) errs.push(`${w}: address_ru — адрес по-русски`);
     if (!/^https:\/\//.test(s.source_url ?? "") || !s.source_url.includes("#")) errs.push(`${w}: source_url — ссылка на страницу реестра + #метка (уникальная)`);
     if (s.photo != null && !/^https:\/\/(www\.)?notary\.ge\/res\/images\//.test(s.photo)) errs.push(`${w}: photo — полная ссылка https://notary.ge/res/images/notaries/….jpg (не crop.php) или не указывай`);
+    if ((s.lat != null || s.lng != null) && !(s.lat > 41 && s.lat < 43.6 && s.lng > 40 && s.lng < 46.8)) errs.push(`${w}: lat/lng — вне Грузии`);
     if (urls.has(s.source_url)) errs.push(`${w}: повтор source_url`);
     urls.add(s.source_url);
     if (AD.test([s.title, s.services, s.about].join(" "))) errs.push(`${w}: рекламные слова — убери`);
