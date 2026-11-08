@@ -104,11 +104,24 @@ export function AdminPostPhotos({ initial, hint, cover = true }: { initial: stri
       const urls = await addRef.current(files);
       [...urls].reverse().forEach((u) => insertInText(u, pos));
     };
+    // Вставили картинку из буфера (Ctrl+V скриншота/фото) — тоже загружаем в это место текста
+    const paste = async (e: ClipboardEvent) => {
+      const files = Array.from(e.clipboardData?.files ?? []).filter((f) => f.type.startsWith("image/"));
+      if (!files.length) return;
+      e.preventDefault();
+      const pos = ta.selectionStart ?? ta.value.length;
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      const urls = await addRef.current(dt.files);
+      [...urls].reverse().forEach((u) => insertInText(u, pos));
+    };
     ta.addEventListener("dragover", over);
     ta.addEventListener("drop", drop);
+    ta.addEventListener("paste", paste);
     return () => {
       ta.removeEventListener("dragover", over);
       ta.removeEventListener("drop", drop);
+      ta.removeEventListener("paste", paste);
     };
   }, []);
   const move = (i: number, d: number) =>
