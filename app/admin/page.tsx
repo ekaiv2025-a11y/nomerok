@@ -7,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, sendToChosen, remindVerifyAll, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, runImportsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, sendToChosen, remindVerifyAll, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -23,6 +23,8 @@ import { guessCategory } from "@/lib/search-intent";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
+// «Импорт сейчас» ищет координаты адресов (до минуты)
+export const maxDuration = 300;
 
 const REQ_LABEL: Record<RequestStatus, string> = { new: "Новая", sent: "Разослана", taken: "Есть отклик", in_work: "В работе", done: "Готово", spam: "Спам" };
 const MASTER_LABEL: Record<Master["status"], string> = { pending: "На проверке", published: "Опубликован", hidden: "Скрыт", rejected: "Отклонён" };
@@ -107,6 +109,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <Link href="/admin/places" className="btn-ghost h-10 text-[14px]">📍 Места</Link>
           <Link href="/admin/realty" className="btn-ghost h-10 text-[14px]">🏠 Недвижимость</Link>
           <Link href="/admin/projects" className="btn-ghost h-10 text-[14px]">🏗 Новостройки</Link>
+          <form action={runImportsNow}>
+            <button className="btn-ghost h-10 text-[14px]" title="Применить сразу то, что собрали задачи (нотариусы, координаты, врачи, афиша)">⚡ Импорт сейчас</button>
+          </form>
           <Link href="/admin/masters/new" className="btn-primary h-10 text-[14px]">+ Добавить специалиста</Link>
           <form action={logout}><button className="btn-ghost h-10 text-[14px]">Выйти</button></form>
         </div>

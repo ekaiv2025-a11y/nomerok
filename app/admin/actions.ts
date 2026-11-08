@@ -480,3 +480,19 @@ export async function sendCardBroadcast(formData: FormData) {
   redirect(`/admin/broadcast?${q}#cards`);
 }
 
+
+/** Применить сразу то, что задачи положили в репозиторий (нотариусы, координаты, врачи, афиша, места) — не ждать 11:00. */
+export async function runImportsNow() {
+  await requireAdmin();
+  const { applyRegistryImport } = await import("@/lib/registry-import");
+  const { geocodeImported } = await import("@/lib/geocode");
+  const { applyStaffImport } = await import("@/lib/staff-import");
+  const { applyEventsImport } = await import("@/lib/events-db");
+  const r = await applyRegistryImport().catch(() => null);
+  const s = await applyStaffImport().catch(() => null);
+  const e = await applyEventsImport().catch(() => null);
+  const g = await geocodeImported(25).catch(() => null);
+  revalidatePath("/", "layout");
+  const msg = `Импорт: анкет +${r?.created ?? 0}, фото +${r?.photos ?? 0}, координат из файла +${r?.coords ?? 0}, найдено на карте +${g?.done ?? 0}; врачи +${(s as { created?: number } | null)?.created ?? 0}; афиша +${e?.added ?? 0}, фото событий +${e?.images ?? 0}`;
+  redirect(`/admin?msg=${encodeURIComponent(msg)}`);
+}

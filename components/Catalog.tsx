@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { List, Map as MapIcon, Search, X } from "lucide-react";
 import { CATEGORIES, categoryLabel } from "@/lib/categories";
@@ -144,6 +144,15 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   const [limit, setLimit] = useState(PAGE);
   useEffect(() => setLimit(PAGE), [cat, sub, q, fMode, fLang, fPrice, fBonus, sort, city]);
   const shown = filtered.slice(0, limit);
+  // Лента: следующая порция подгружается сама, когда кнопка «Показать ещё» показалась на экране
+  const moreRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setLimit((l) => l + PAGE), { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [limit, filtered.length]);
   const rest = filtered.length - shown.length;
   // Запоминаем, что искали (через 1.5 с после ввода) — админ видит, каких специалистов не хватает
   useEffect(() => {
@@ -345,7 +354,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
             <MasterCard key={m.id} m={m} lang={lang} />
           ))}
           {rest > 0 && (
-            <button onClick={() => setLimit((l) => l + PAGE)} className="col-span-2 flex h-12 items-center justify-center rounded-2xl border border-line bg-white text-[15px] font-semibold transition hover:border-ink sm:col-span-3 lg:col-span-4">
+            <button ref={moreRef} onClick={() => setLimit((l) => l + PAGE)} className="col-span-2 flex h-12 items-center justify-center rounded-2xl border border-line bg-white text-[15px] font-semibold transition hover:border-ink sm:col-span-3 lg:col-span-4">
               {F[lang].showMore(Math.min(rest, PAGE))} · {shown.length}/{filtered.length}
             </button>
           )}
