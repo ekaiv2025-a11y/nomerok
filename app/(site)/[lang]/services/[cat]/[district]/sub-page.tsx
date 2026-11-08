@@ -1,3 +1,4 @@
+import { articlesForCat } from "@/lib/articles";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -207,6 +208,26 @@ export async function SubPage({ params, searchParams }: Props) {
             </div>
           </section>
         </div>
+        {lang === "ru" && articlesForCat(cat, sub).filter((x) => x.subs?.includes(sub)).length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-[18px] font-bold">💡 Полезно знать</h2>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {articlesForCat(cat, sub)
+                .filter((x) => x.subs?.includes(sub))
+                .map((x) => (
+                  <Link key={x.slug} href={`/ru/guide/${x.slug}`} className="flex items-center gap-3 overflow-hidden rounded-2xl border border-line bg-white hover:border-brand">
+                    {x.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={x.cover} alt="" className="h-20 w-24 shrink-0 object-cover" loading="lazy" />
+                    ) : (
+                      <span className="flex h-20 w-24 shrink-0 items-center justify-center bg-cream text-[28px]">{x.emoji}</span>
+                    )}
+                    <span className="py-2 pr-3 text-[15px] font-semibold leading-snug">{x.h1}</span>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        )}
         {siblings.length > 0 && (
           <section className="mt-8">
             <h2 className="text-[18px] font-bold">

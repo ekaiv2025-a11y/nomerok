@@ -88,7 +88,8 @@ export default async function ArticlePage({ params }: Props) {
           <a href={a.coverCredit.source} target="_blank" rel="noopener noreferrer nofollow" className="underline">
             {a.coverCredit.credit}
           </a>
-          , {a.coverCredit.license}, Wikimedia Commons. Иллюстрация, не снимок события.
+          , {a.coverCredit.license}
+          {/commons\.wikimedia/.test(a.coverCredit.source) ? ", Wikimedia Commons. Иллюстрация, не снимок события." : ""}
         </p>
       )}
       {a.lead && <p className="mt-4 text-[17px] leading-relaxed text-[#3a3935]">{a.lead}</p>}

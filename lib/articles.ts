@@ -4,6 +4,7 @@
  */
 
 import { MORE_ARTICLES } from "./articles-more";
+import { BEAUTY_ARTICLES } from "./articles-beauty";
 import { CITY_ARTICLES } from "./articles-cities";
 
 export type Block =
@@ -89,6 +90,8 @@ export type Article = {
   source?: { name: string; url: string } | null; // источник новости
   sources?: { name: string; url: string }[]; // несколько источников (автоновости)
   faq?: { q: string; a: string }[];
+  /** уточнения раздела (lib/subcats), на чьих страницах показывать статью: barber, hair… */
+  subs?: string[];
 };
 
 const FIRST: Article[] = [
@@ -226,7 +229,7 @@ const FIRST: Article[] = [
 const RUBRIC_BY_SLUG: Record<string, Rubric> = { "kak-nayti-nyanyu-batumi": "family" };
 
 /** Все статьи журнала, новые сверху. */
-export const ARTICLES: Article[] = [...CITY_ARTICLES, ...MORE_ARTICLES, ...FIRST]
+export const ARTICLES: Article[] = [...BEAUTY_ARTICLES, ...CITY_ARTICLES, ...MORE_ARTICLES, ...FIRST]
   .map((a) => ({ ...a, rubric: a.rubric ?? RUBRIC_BY_SLUG[a.slug] ?? "home" }))
   .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -245,6 +248,6 @@ export function articleBySlug(slug: string) {
 }
 
 /** Статьи, связанные с разделом каталога, — для ссылок со страниц услуг. */
-export function articlesForCat(cat: string) {
-  return ARTICLES.filter((a) => a.cats.includes(cat));
+export function articlesForCat(cat: string, sub?: string) {
+  return ARTICLES.filter((a) => a.cats.includes(cat) && (!sub || !a.subs || a.subs.includes(sub)));
 }
