@@ -821,6 +821,70 @@ async function respondersOf(requestId: string): Promise<Master[]> {
 
 /* ---------- пауза: «в отпуске / не принимаю заявки» ---------- */
 
+const DEL_RE = /(удал|снес|убер)[а-яё]*\s+(мой\s+|мою\s+|мо[её]\s+)?(профил|анкет|аккаунт|страниц)|delete\s+(my\s+)?(profile|account)|წაშალ/i;
+const DEL_T = {
+  ru: {
+    ask: "Хотите убрать анкету с NomerOk?\n\n⏸ <b>Пауза</b> — анкета останется на сайте, но заявки приходить не будут. Вернуться можно в любой момент.\n🗑 <b>Удалить</b> — анкета сразу исчезнет с сайта. 30 дней её можно восстановить, потом удалим насовсем.",
+    pause: "⏸ Поставить на паузу",
+    del: "🗑 Удалить анкету",
+    sure: (n: string) => `Точно удалить анкету «${n}»?`,
+    yes: "Да, удалить",
+    no: "Нет, оставить",
+    kept: "Хорошо, анкета остаётся 👍",
+  },
+  en: {
+    ask: "Do you want to remove your profile from NomerOk?\n\n⏸ <b>Pause</b> — the profile stays on the site but you get no requests. Come back any time.\n🗑 <b>Delete</b> — the profile disappears at once. You can restore it for 30 days, then it is deleted for good.",
+    pause: "⏸ Pause",
+    del: "🗑 Delete profile",
+    sure: (n: string) => `Delete the profile “${n}”?`,
+    yes: "Yes, delete",
+    no: "No, keep it",
+    kept: "OK, your profile stays 👍",
+  },
+  ka: {
+    ask: "გსურთ ანკეტის მოხსნა NomerOk-დან?\n\n⏸ <b>პაუზა</b> — ანკეტა საიტზე დარჩება, მაგრამ განაცხადები არ მოგივათ.\n🗑 <b>წაშლა</b> — ანკეტა მაშინვე გაქრება. 30 დღის განმავლობაში შეგიძლიათ აღადგინოთ.",
+    pause: "⏸ პაუზა",
+    del: "🗑 ანკეტის წაშლა",
+    sure: (n: string) => `ნამდვილად წავშალოთ ანკეტა „${n}“?`,
+    yes: "დიახ, წაშლა",
+    no: "არა, დავტოვოთ",
+    kept: "კარგი, ანკეტა რჩება 👍",
+  },
+};
+
+/** Специалист из бота: пауза или удаление анкеты (с подтверждением). */
+async function onSelfDelete(cb: TgCallback, step: string) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const masters = (await getMastersByChatId(cb.from.id)).filter((m) => m.archived_reason !== "deleted");
+  if (!masters[0]) return;
+  const lang = (["ru", "en", "ka"].includes(masters[0].lang ?? "") ? masters[0].lang : "ru") as "ru" | "en" | "ka";
+  const t = DEL_T[lang];
+  const b = botDict(masters[0].lang);
+  if (step === "pause")
+    return void (await sendTo(cb.from.id, b.pauseAsk, [
+      [
+        { text: b.btnWeek, callback_data: "away:7" },
+        { text: b.btn2Weeks, callback_data: "away:14" },
+      ],
+      [
+        { text: b.btnMonth, callback_data: "away:30" },
+        { text: b.btnNoEnd, callback_data: "away:0" },
+      ],
+    ]));
+  if (step === "ask")
+    return void (await sendTo(cb.from.id, t.sure(esc(masters.map((m) => m.name).join(", "))), [
+      [
+        { text: t.yes, callback_data: "del:yes" },
+        { text: t.no, callback_data: "del:no" },
+      ],
+    ]));
+  if (step === "no") return void (await sendTo(cb.from.id, t.kept));
+  if (step === "yes") {
+    const { selfDeleteMaster } = await import("./master-delete");
+    for (const m of masters) await selfDeleteMaster(m, "", "удалил(а) через бота");
+  }
+}
+
 async function onAway(cb: TgCallback, days: number) {
   await tg("answerCallbackQuery", { callback_query_id: cb.id });
   const masters = await getMastersByChatId(cb.from.id);
@@ -1201,6 +1265,11 @@ async function onText(msg: TgMessage) {
     return askLoginContact(chatId, lang);
   }
   if (text === "/help" || text.startsWith("/help@")) return sendTo(chatId, b.help);
+  // «Удалить профиль» — предлагаем паузу или удаление с подтверждением (без ручной работы админа)
+  if (masters.some((m) => m.archived_reason !== "deleted") && (text === "/delete" || DEL_RE.test(text))) {
+    const t = DEL_T[(["ru", "en", "ka"].includes(lang) ? lang : "ru") as "ru" | "en" | "ka"];
+    return sendTo(chatId, t.ask, [[{ text: t.pause, callback_data: "del:pause" }], [{ text: t.del, callback_data: "del:ask" }]]);
+  }
   if (text === "/pause" || text.startsWith("/pause@")) {
     if (!masters[0]) return sendTo(chatId, b.notSpecialistShort);
     return sendTo(chatId, b.pauseAsk, [
@@ -1266,6 +1335,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data === "sub:1" || data === "sub:0") return void (await onSubscribe(u.callback_query, data === "sub:1"));
     if (data.startsWith("ph:")) return void (await onPhoneChoice(u.callback_query, data));
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
+    if (data.startsWith("del:")) return void (await onSelfDelete(u.callback_query, data.slice(4)));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
