@@ -1256,6 +1256,15 @@ async function onText(msg: TgMessage) {
     const ok = await sendTo(Number(replyTo[1]), `💬 <b>Ответ от NomerOk</b>\n\n${esc(text)}`).catch(() => null);
     return void (await sendTo(chatId, ok ? "✓ Ответ отправлен" : "⚠️ Не удалось отправить: возможно, человек остановил бота"));
   }
+  // Админ ответил на уведомление, где нет Telegram человека (сообщение с сайта, заявка без Telegram) — переслать некуда
+  if (msg.reply_to_message && text && String(chatId) === telegramChatId()) {
+    const src = msg.reply_to_message.text ?? "";
+    const contact = src.match(/(?:Связь|Клиент|Контакт|Телефон):\s*([^\n]+)/)?.[1]?.trim();
+    return void (await sendTo(
+      chatId,
+      `⚠️ Этот ответ никуда не ушёл: у этого человека нет Telegram, связанного с ботом, поэтому бот не может ему написать.${contact ? `\n\nНапишите или позвоните ему сами: <b>${esc(contact)}</b>` : ""}`,
+    ));
+  }
   const masters = await getMastersByChatId(chatId);
   const lang = masters[0]?.lang ?? guessLang(msg.from);
   const b = botDict(lang);
