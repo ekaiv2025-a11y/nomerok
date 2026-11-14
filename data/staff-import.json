@@ -320,6 +320,327 @@
           "photo": "https://medcenter.ge/wp-content/uploads/-%E1%83%93%E1%83%9D%E1%83%9A%E1%83%98%E1%83%AB%E1%83%94-%E1%83%A3%E1%83%A0%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-e1656107381640.jpg"
         }
       ]
+    },
+    {
+      "id": "medcenter.ge-2026-11-14-pushkin",
+      "place_id": "BAT-FCE13922E9D4",
+      "staff": [
+        {
+          "name": "Георгий Чангашвили",
+          "category": "doctor",
+          "title": "Уролог",
+          "source_url": "https://medcenter.ge/ru/profile/giorgi-changashvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/giorgi_changashvili-.jpg"
+        },
+        {
+          "name": "Михаил Дзимистаришвили",
+          "category": "doctor",
+          "title": "Онко-гинеколог, заведующий отделением гинекологии, акушер-гинеколог, специалист по малоинвазивной хирургии",
+          "source_url": "https://medcenter.ge/ru/profile/mikhail-dzimistarishvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/mikhail_dzimistarishvili.jpeg",
+          "about": "Занимается оперативной гинекологией и онкогинекологией: лапароскопическими и малоинвазивными операциями, сложными вмешательствами при злокачественных и доброкачественных заболеваниях женской репродуктивной системы, лечением эндометриоза (включая глубокий инфильтративный), влагалищной хирургией при пролапсе половых органов и хирургией при распространённом раке яичников."
+        },
+        {
+          "name": "Луиза Бежанидзе",
+          "category": "doctor",
+          "title": "Онкогинеколог",
+          "source_url": "https://medcenter.ge/ru/profile/luiza-bejanidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-ბეჟანიძე-ონკო-გინეკოლოგი-e1655500995398.jpg",
+          "credentials": "Кубанская медицинская академия, медицинский факультет (1991–1998); лечебная ординатура по акушерству и гинекологии на факультете последипломного образования (1998–1999); член Ассоциации акушеров-гинекологов Грузии; член Ассоциации кольпоскопистов Грузии."
+        },
+        {
+          "name": "Нино Цискаридзе",
+          "category": "doctor",
+          "title": "Онкогинеколог",
+          "source_url": "https://medcenter.ge/ru/profile/nino-tsiskaridze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-ცისკარიძე-e1655497891748.jpg",
+          "credentials": "Первый Московский медицинский институт; клиническая ординатура по онкогинекологии (1991–1992)."
+        },
+        {
+          "name": "Ирина Иремадзе",
+          "category": "doctor",
+          "title": "Акушер-гинеколог, кольпоскопист",
+          "source_url": "https://medcenter.ge/ru/profile/irina-iremadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/ირინა-ირემაძე-მეან-გინეკოლოგი-კოლპოსკოპისტი.jpg",
+          "credentials": "Харьковский национальный университет им. В.Н. Каразина, медицинский факультет (лечебное дело); клиническая ординатура по акушерству и гинекологии, Одесский национальный медицинский университет (2005–2011)."
+        },
+        {
+          "name": "Иосеб Сихарулидзе",
+          "category": "doctor",
+          "title": "Заведующий отделением сердечно-сосудистой и интервенционной кардиологии, врач-кардиолог, доктор медицинских наук",
+          "source_url": "https://medcenter.ge/ru/profile/ioseb-sikharulidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/იოსებ-სიხარულიძე-scaled.jpg",
+          "about": "По данным сайта клиники, провёл более 10 000 кардиологических процедур и организует профильные конференции по интервенционной кардиологии.",
+          "credentials": "Тбилисский медицинский институт, специальность терапия; аспирантура в Тбилисском государственном медицинском университете; ординатура по кардиологии; избранный член Европейского общества кардиологов (с 2006); стажировка в университетской клинике г. Линц, Австрия (2006–2009); стипендиат Florida Heart Foundation, Tampa General (2009); член европейских и грузинских ассоциаций кардиологов."
+        },
+        {
+          "name": "Бачуки Начкебия",
+          "category": "doctor",
+          "title": "Кардиохирург, заведующий кардиохирургическим отделением",
+          "source_url": "https://medcenter.ge/ru/profile/bachuki-nachkebia/",
+          "photo": "https://medcenter.ge/wp-content/uploads/IMG_3278.jpg",
+          "credentials": "Саратовский государственный медицинский университет им. В.И. Разумовского, с отличием (2010–2016); клиническая ординатура по кардиохирургии, Федеральный центр сердечно-сосудистых заболеваний, Санкт-Петербург (2016–2018); повышение квалификации по малоинвазивной хирургии (2020); член Европейской ассоциации кардиоторакальных хирургов (EACTS)."
+        },
+        {
+          "name": "Георгий Габаидзе",
+          "category": "doctor",
+          "title": "Кардиохирург",
+          "source_url": "https://medcenter.ge/ru/profile/georgy-gabaidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/IMG_3273.jpg",
+          "credentials": "Батумский государственный университет, медицинский факультет, с отличием (2011–2017); клиническая ординатура по кардиохирургии, медицинский центр Западной Грузии (2018–2022); сертифицированный кардиохирург с 2023 года; член EACTS.",
+          "experience_years": 3
+        },
+        {
+          "name": "Гиорги Кавелашвили",
+          "category": "doctor",
+          "title": "Заведующий травматологическим отделением, травматолог-ортопед",
+          "source_url": "https://medcenter.ge/ru/profile/giorgi-kavelashvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-ყაველაშვილი-ტრავმატოლოგიური-განყოფილების-ხელმძღვანელიტრავმატოლოგ-ორთოპედი-e1655487060329.jpg",
+          "credentials": "Батумский государственный университет им. Шота Руставели, медицинский факультет (2002–2008); клиническая ординатура, Харьковская медицинская академия последипломного образования (2008–2010); курс хирургии кисти и запястья (2016); курсы и сертификат AO Trauma (2018–2020); сертификаты конференций Грузинской ассоциации травматологов (2019–2022).",
+          "experience_years": 14
+        },
+        {
+          "name": "Гела Давитадзе",
+          "category": "doctor",
+          "title": "Травматолог-ортопед",
+          "source_url": "https://medcenter.ge/ru/profile/gela-davitadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-დავითაძე-ტრავმატოლოგ-ორთოპედი-e1656107183739.jpg",
+          "credentials": "Батумский государственный университет им. Шота Руставели, факультет здравоохранения, диплом врача (2010–2016); клиническая ординатура по травматологии-ортопедии, Харьковская медицинская академия последипломного образования (2016–2018)."
+        },
+        {
+          "name": "Георгий Диасамидзе",
+          "category": "doctor",
+          "title": "Травматолог-ортопед",
+          "source_url": "https://medcenter.ge/ru/profile/giorgi-diasamidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/გიორგი-დიასამიძე-ტრავმატოლოგ-ორთოპედი-scaled.jpg"
+        },
+        {
+          "name": "Ираклий Микадзе",
+          "category": "doctor",
+          "title": "Реаниматолог",
+          "source_url": "https://medcenter.ge/ru/profile/irakli-mikadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/IMG_6612-scaled.jpg",
+          "credentials": "Диплом врача, медицинский университет, Кутаиси; клиническая ординатура по анестезиологии и реаниматологии, Белорусская медицинская академия, с отличием (2010–2012); с 2019 года — лектор Кутаисского университета им. Акакия Церетели."
+        },
+        {
+          "name": "Майа Абакумова",
+          "category": "doctor",
+          "title": "Анестезиолог-реаниматолог",
+          "source_url": "https://medcenter.ge/ru/profile/maia-abakumova/",
+          "photo": "https://medcenter.ge/wp-content/uploads/მაია-აბაკუმოვა-ანესთეზიოლოგი.jpg"
+        },
+        {
+          "name": "Майа Кобуладзе",
+          "category": "doctor",
+          "title": "Анестезиолог-реаниматолог",
+          "source_url": "https://medcenter.ge/ru/profile/maia-kobuladze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/მაია-ქობულაძე-ანესთეზიოლოგი.jpg"
+        },
+        {
+          "name": "Мелано Гогитидзе",
+          "category": "doctor",
+          "title": "Анестезиолог",
+          "source_url": "https://medcenter.ge/ru/profile/melano-gogitidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/მელანო-გოგიტიძე-ანესთეზიოლოგი-scaled.jpg"
+        },
+        {
+          "name": "Мераб Долидзе",
+          "category": "doctor",
+          "title": "Нейрохирург, заведующий нейрохирургическим отделением",
+          "source_url": "https://medcenter.ge/ru/profile/merab-dolidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/მერაბ-დოლიძე-ნეიროქირურგიული-scaled.jpg",
+          "credentials": "Батумский государственный университет им. Шота Руставели, медицинский факультет, специальность педиатрия, с отличием (1993–1999); клиническая ординатура, НИИ нейрохирургии им. А.Л. Поленова, Санкт-Петербург (1999–2001); курс по диагностике и лечению травм ЦНС, онкологических и сосудистых заболеваний, Санкт-Петербургская академия последипломного образования (1999); курс по онкопрофилактике и ранней диагностике (2002); курс по эпилепсии Европейской академии эпилепсии (2002); курс по неврологии Европейской федерации неврологических обществ, EFNS (2002)."
+        },
+        {
+          "name": "Джамбул Макарадзе",
+          "category": "doctor",
+          "title": "Невролог",
+          "source_url": "https://medcenter.ge/ru/profile/jambul-makaradze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-მაკარაძე-ნევროლოგი-e1655496099714.jpg",
+          "credentials": "Работает неврологом с 1989 года: Шуахевская районная больница (1989–1990); Батумская больница №2 (1991–2004); заведующий отделением неврологии Батумской республиканской больницы (2005–2012); заведующий отделением неврологии Батумской референтной больницы (2013–2019); с 1 июня 2019 года — в клинике Medcenter, руководитель инсультного проекта.",
+          "experience_years": 37
+        },
+        {
+          "name": "Шорена Вашадзе",
+          "category": "doctor",
+          "title": "Невролог, гештальт-консультант, психолог, доктор медицинских наук, доцент Батумского государственного университета им. Шота Руставели",
+          "source_url": "https://medcenter.ge/ru/profile/shorena-vashadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-ვაშაძე-e1655500377905.jpg"
+        },
+        {
+          "name": "Меги Цулукидзе",
+          "category": "doctor",
+          "title": "Радиолог, специалист по магнитно-резонансной томографии",
+          "source_url": "https://medcenter.ge/ru/profile/megi-tsulukidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/მეგი-წულუკიძერადიოლოგიმაგნიტო-რეზონანსული-დიაგნოსტიკის-სპეციალისტი.jpg"
+        },
+        {
+          "name": "Ирина Хомасуридзе",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/irina-khomasuridze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/2015/11/ირინა-ხომასურიძე.jpg",
+          "credentials": "Доктор медицинских наук (диплом КТ 125940, Москва); государственный сертификат 013491/НВ 092852 (2001, Грузия); член грузинских ассоциаций сердечно-сосудистой и интервенционной радиологии; обучалась по программе школы Иэна Дональда; автор публикаций в журналах «Эхография» и «Ультразвуковая и функциональная диагностика» (Москва).",
+          "experience_years": 38
+        },
+        {
+          "name": "Маквала Катамадзе",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/makvala-katamadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-ქათამაძე-რადიოლოგი-e1656108455813.jpg",
+          "credentials": "Тбилисский государственный медицинский институт, лечебный факультет (1987–1994); постдипломная подготовка в Государственной академии ультразвуковой диагностики (1999); государственный сертификат по радиологии (2002); курс по акушерству и радиологии школы Иэна Дональда (2011)."
+        },
+        {
+          "name": "Каха Цецхладзе",
+          "category": "doctor",
+          "title": "Радиолог, ультразвуковая диагностика",
+          "source_url": "https://medcenter.ge/ru/profile/kakha-tsetskhladze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/კახა-ცეცხლაძე-რადიოლოგიულტრაბგერითი-დიაგნოსტიკა.jpg",
+          "credentials": "Тбилисский государственный медицинский университет, медицинский факультет (2004–2010); Национальная медицинская академия последипломного образования им. П.Л. Шупика, Киев, специальность радиология (2010–2012)."
+        },
+        {
+          "name": "Кетеван Цулукидзе",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/ketevan-tsulukidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/ქეთევან-წულუკიძე-რადიოლოგი.jpg",
+          "credentials": "Благовещенский государственный медицинский институт (1983–1985); Ивановский государственный медицинский институт (1985–1989); интернатура в Батумской республиканской больнице (1989–1990)."
+        },
+        {
+          "name": "Тамуна Качахмадзе-Болквадзе",
+          "category": "doctor",
+          "title": "Рентгенолог",
+          "source_url": "https://medcenter.ge/ru/profile/tamuna-katchakhmadze-bolkvadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/თამუნა-კაჭახმაძე-ბოლქვაძე.jpg",
+          "credentials": "Батумский государственный университет им. Шота Руставели, медицинский факультет (1999–2005); резидентура по радиологии, постдипломный институт ТГМУ (2007–2009); государственный сертификат по медицинской радиологии (2009); занимается скрининговой маммографией с 2009 года; курс по новым направлениям радиологии и интервенционной медицине (2010–2012); курс Европейской школы онкологии по скрининговой маммографии (2011–2013).",
+          "experience_years": 21
+        },
+        {
+          "name": "Майя Тугуши",
+          "category": "doctor",
+          "title": "Рентгенолог-денситометр",
+          "source_url": "https://medcenter.ge/ru/profile/maia-tugushi/",
+          "photo": "https://medcenter.ge/wp-content/uploads/მაია-ტუღუში-რადიოლოგი-დენსიტომეტრია-1.jpg",
+          "credentials": "Тбилисский государственный медицинский университет, медицинский факультет (2006–2012); резидентура по радиологии (2015–2018); научный сотрудник Университета Томаса Джефферсона, ультразвуковые исследования (2014–2015); приглашённый лектор Батумского государственного университета им. Шота Руставели (с 2018); член Европейской ассоциации сердечно-сосудистой и интервенционной радиологии (с 2013) и Европейской ассоциации радиологов (с 2014).",
+          "experience_years": 5
+        },
+        {
+          "name": "Нана Ванадзе",
+          "category": "doctor",
+          "title": "Рентгенолог-денситометр",
+          "source_url": "https://medcenter.ge/ru/profile/nana-vanadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/ნანა-ვანაძე-რადიოლოგი-დენსიტომეტრია-scaled.jpg",
+          "credentials": "Батумский государственный университет им. Шота Руставели, медицинский факультет, лечебное дело (2005–2011); резидентура по медицинской радиологии, БГУ (2013–2015); курс по компьютерной томографии (2021–2022); член Европейской ассоциации радиологов (с 2014) и Лиги ревматологов и реабилитологов Западной Грузии (с 2018)."
+        },
+        {
+          "name": "Эрекле Хурцидзе",
+          "category": "doctor",
+          "title": "Специалист по томографической диагностике, врач-радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/erekle-khurtsidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/ერეკლე-ხურციძე-კომპიუტერულ-ტომოგრაფიული-დიაგნოსტიკის-სპეციალისტი-scaled.jpg",
+          "credentials": "Университет Грузии им. Давида Агмашенебели, медицинский факультет, лечебное дело, диплом врача (2001–2007); резидентура по медицинской радиологии, постдипломный институт ТГМУ (2008–2010); государственная аттестация по медицинской радиологии (2010); курс по КТ-диагностике ТГМУ (2011); государственная аттестация как специалист по КТ (2011); государственная аттестация как специалист по МРТ (2022).",
+          "experience_years": 18
+        }
+      ]
+    },
+    {
+      "id": "medcenter.ge-2026-11-14-bagrationi",
+      "place_id": "BAT-FEC68F7F4D49",
+      "staff": [
+        {
+          "name": "Ростом Халваши",
+          "category": "doctor",
+          "title": "Заведующий урологическим отделением, онко-уролог",
+          "source_url": "https://medcenter.ge/ru/profile/rostom-khalvashi/",
+          "photo": "https://medcenter.ge/wp-content/uploads/rostom_khalvashi.jpg"
+        },
+        {
+          "name": "Тенгиз Лорткипанидзе",
+          "category": "doctor",
+          "title": "Уролог",
+          "source_url": "https://medcenter.ge/ru/profile/tengiz-lordkipanidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/tengiz_lordkipanidze.jpg"
+        },
+        {
+          "name": "Торнике Иремадзе",
+          "category": "doctor",
+          "title": "Уролог",
+          "source_url": "https://medcenter.ge/ru/profile/tornike-iremadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/tornike_iremadze.jpg",
+          "credentials": "Тбилисский государственный университет им. Иване Джавахишвили (2010–2011); Батумский государственный университет им. Шота Руставели (2011–2016); клиническая ординатура, Запорожская медицинская академия последипломного образования, Украина (2016–2018); резидентура в Тбилисском национальном центре урологии им. Александра Цулукидзе (2018–2020)."
+        },
+        {
+          "name": "Мамука Шарашидзе",
+          "category": "doctor",
+          "title": "Ортопед-травматолог, заведующий отделением травматологии-ортопедии",
+          "source_url": "https://medcenter.ge/ru/profile/mamuka-sharashidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Mamuka-Sharashidze.jpg"
+        },
+        {
+          "name": "Михеил Тедорадзе",
+          "category": "doctor",
+          "title": "Ортопед-травматолог",
+          "source_url": "https://medcenter.ge/ru/profile/mikheil-tedoradze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Mikheil-Tedoradze.jpg"
+        },
+        {
+          "name": "Хвича Болквадзе",
+          "category": "doctor",
+          "title": "Ортопед-травматолог",
+          "source_url": "https://medcenter.ge/ru/profile/khvicha-bolkvadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Khvicha-Bolkvadze.jpg"
+        },
+        {
+          "name": "Теимураз Пешков",
+          "category": "doctor",
+          "title": "Анестезиолог-реаниматолог, руководитель анестезиологического направления",
+          "source_url": "https://medcenter.ge/ru/profile/temur-peshkov/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Temur-Peshkov.jpg"
+        },
+        {
+          "name": "София Мортуладзе",
+          "category": "doctor",
+          "title": "Реаниматолог",
+          "source_url": "https://medcenter.ge/ru/profile/sofia-mortuladze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Sofia-Mortuladze.jpg"
+        },
+        {
+          "name": "Евгений Верёвкин",
+          "category": "doctor",
+          "title": "Нейрохирург",
+          "source_url": "https://medcenter.ge/ru/profile/evgeny-verevkin/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Evgeny-Verevkin.jpg"
+        },
+        {
+          "name": "Гиорги Валишвили",
+          "category": "doctor",
+          "title": "Нейрохирург, заведующий отделением нейрохирургии",
+          "source_url": "https://medcenter.ge/ru/profile/giorgi-valishvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Giorgi-Valishvili.jpg"
+        },
+        {
+          "name": "Медея Джихашвили",
+          "category": "doctor",
+          "title": "Невролог",
+          "source_url": "https://medcenter.ge/ru/profile/medeya-jikhashvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Medeya-Jikhashvili.jpg"
+        },
+        {
+          "name": "Екатерина Путкарадзе",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/ekaterina-putkaradze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/EkaterinaPutkaradze.jpg"
+        },
+        {
+          "name": "Тамар Гибрадзе",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/tamar-ghibradze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/TamarGhibradze.jpg"
+        }
+      ]
     }
   ]
 }
