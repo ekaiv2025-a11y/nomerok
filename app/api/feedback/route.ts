@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { feedbackSchema, firstErrors, langFromBody } from "@/lib/validation";
-import { notifyAdmin, escapeHtml } from "@/lib/telegram";
+import { notifyAdmin, escapeHtml, botLink } from "@/lib/telegram";
+import { randomBytes } from "crypto";
+import { supabase } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-info";
 import { getDict, LOCALE_NAMES } from "@/lib/i18n";
@@ -26,8 +28,15 @@ export async function POST(req: Request) {
       `<b>Язык сайта:</b> ${LOCALE_NAMES[lang]}`,
       "",
       escapeHtml(d.message),
+      "",
+      "<i>Ответить: по контакту выше. Если человек подключит Telegram, придёт сообщение «🔗 …» — на него можно ответить прямо через бота.</i>",
     ].join("\n"),
   );
   if (!sent) return NextResponse.json({ ok: false, error: e.unavailable }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  // Чтобы ответить через бота: человек подключает Telegram по ссылке t.me/бот?start=fb_КОД
+  const token = randomBytes(6).toString("hex");
+  const clip = (x: string) => x.replace(/[|\n]/g, " ").slice(0, 80);
+  await supabase()?.from("_nm_once").insert({ key: `fb:${token}|${clip(d.name || "—")}|${clip(d.contact)}` }).then(() => null, () => null);
+  const tg = await botLink(`fb_${token}`).catch(() => null);
+  return NextResponse.json({ ok: true, tg });
 }

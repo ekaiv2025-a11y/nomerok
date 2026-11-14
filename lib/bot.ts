@@ -20,6 +20,7 @@ import {
   adminListMasters,
   touchActive,
   listPublishedMasters,
+  supabase,
 } from "./db";
 import { daysFromToday, formatDay, isAwayNow, servesCategory, todayTbilisi } from "./availability";
 import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup, listStaleWithoutTg } from "./reviews-db";
@@ -341,6 +342,12 @@ async function askContact(m: Master, chatId: number) {
   });
 }
 
+const FB_LINKED: Record<string, string> = {
+  ru: "✅ Готово! Ваше сообщение у нас. Ответ NomerOk придёт сюда, в этот чат.",
+  en: "✅ Done! We have your message. NomerOk's reply will arrive here, in this chat.",
+  ka: "✅ მზადაა! თქვენი შეტყობინება მივიღეთ. NomerOk-ის პასუხი აქ, ამ ჩატში მოვა.",
+};
+
 async function onStart(msg: TgMessage, payload: string) {
   const chatId = msg.chat.id;
   const from = msg.from;
@@ -355,6 +362,19 @@ async function onStart(msg: TgMessage, payload: string) {
       return sendCabinetLink({ ...m, tg_chat_id: chatId });
     }
     return askContact(m, chatId);
+  }
+
+  // Написал через форму «Написать нам» и подключил Telegram, чтобы получить ответ: t.me/бот?start=fb_КОД
+  if (payload.startsWith("fb_")) {
+    const lang = guessLang(from);
+    const sb = supabase();
+    const row = sb ? (await sb.from("_nm_once").select("key").like("key", `fb:${payload.slice(3).replace(/[^a-f0-9]/g, "")}|%`).maybeSingle()).data : null;
+    const [, name, contact] = ((row as { key: string } | null)?.key ?? "").split("|");
+    const who = [from?.first_name, from?.last_name].filter(Boolean).join(" ") + (from?.username ? ` @${from.username}` : "");
+    await notifyAdmin(
+      `🔗 <b>${esc(name || who || "—")}</b>${contact ? ` (${esc(contact)})` : ""} подключил(а) Telegram к сообщению с сайта.\nТеперь можно ответить: смахните это сообщение влево и напишите текст — бот перешлёт. #u${chatId}`,
+    ).catch(() => null);
+    return sendTo(chatId, FB_LINKED[lang] ?? FB_LINKED.ru);
   }
 
   // Клиент хочет получать отклики: t.me/бот?start=r_КОД
