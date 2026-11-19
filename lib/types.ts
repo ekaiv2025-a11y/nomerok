@@ -173,6 +173,8 @@ export type ClientRequest = {
   photos?: string[];
   /** ждёт, пока клиент подключит Telegram или войдёт на сайт — до этого специалистам не рассылается */
   pending_client?: boolean;
+  /** одобрена администратором (0055); null — ждёт одобрения, специалистам не рассылается */
+  approved_at?: string | null;
   created_at: string;
 };
 

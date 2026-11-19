@@ -841,6 +841,34 @@ async function respondersOf(requestId: string): Promise<Master[]> {
 
 /* ---------- пауза: «в отпуске / не принимаю заявки» ---------- */
 
+/** Администратор в Telegram: «✅ Одобрить и разослать» или «🚫 Спам» у новой заявки. */
+async function onModerate(cb: TgCallback, act: string, id: string) {
+  const answer = (text: string) => tg("answerCallbackQuery", { callback_query_id: cb.id, text, show_alert: true });
+  const chat = telegramChatId();
+  if (!chat || (String(cb.message?.chat.id) !== chat && String(cb.from.id) !== chat)) return answer("Это может сделать только администратор");
+  const r = await getRequest(id).catch(() => null);
+  if (!r) return answer("Заявка не найдена");
+  const msgId = (cb.message as { message_id?: number } | undefined)?.message_id;
+  const done = async (label: string) => {
+    if (cb.message && msgId) await tg("editMessageReplyMarkup", { chat_id: cb.message.chat.id, message_id: msgId, reply_markup: { inline_keyboard: [[{ text: label, callback_data: "noop" }]] } }).catch(() => null);
+  };
+  if (act === "rj") {
+    const { blockPhone } = await import("./spam");
+    await updateRequest(r.id, { status: "spam" }).catch(() => null);
+    await blockPhone(r.phone);
+    await done("🚫 Спам — отправитель заблокирован");
+    return answer("Отмечено как спам, номер заблокирован");
+  }
+  if (r.approved_at) {
+    await done("✅ Уже одобрена");
+    return answer("Уже одобрена");
+  }
+  const { approveRequest } = await import("./request-dispatch");
+  const res = await approveRequest(r);
+  await done(res.waiting ? "✅ Одобрена — уйдёт, когда клиент подтвердит" : `✅ Одобрена — отправлено: ${res.sent}`);
+  return answer(res.waiting ? "Одобрено. Заявка уйдёт специалистам, как только клиент подтвердит Telegram или вход." : `Одобрено. Отправлено специалистам: ${res.sent}`);
+}
+
 const SPAM_BTN: Record<string, string> = { ru: "🚫 Это спам", en: "🚫 Spam", ka: "🚫 სპამი" };
 const SPAM_OK: Record<string, string> = {
   ru: "Спасибо! Отправитель заблокирован — его сообщения больше не дойдут ни до кого.",
@@ -1386,6 +1414,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
     if (data.startsWith("del:")) return void (await onSelfDelete(u.callback_query, data.slice(4)));
     if (data.startsWith("spam:")) return void (await onSpamMark(u.callback_query, data.slice(5)));
+    if (data.startsWith("ap:") || data.startsWith("rj:")) return void (await onModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));

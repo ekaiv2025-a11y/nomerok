@@ -503,3 +503,13 @@ export async function runImportsNow() {
   const msg = `Импорт: анкет +${r?.created ?? 0}, фото +${r?.photos ?? 0}, координат из файла +${r?.coords ?? 0}, найдено на карте +${g?.done ?? 0}; врачи +${(s as { created?: number } | null)?.created ?? 0}; афиша +${e?.added ?? 0}, фото событий +${e?.images ?? 0}`;
   redirect(`/admin?msg=${encodeURIComponent(msg)}`);
 }
+
+/** Админка: одобрить заявку — уйдёт специалистам (или сразу после подтверждения клиентом). */
+export async function approveRequestAction(formData: FormData) {
+  await requireAdmin();
+  const { getRequest } = await import("@/lib/db");
+  const { approveRequest } = await import("@/lib/request-dispatch");
+  const r = await getRequest(String(formData.get("id"))).catch(() => null);
+  if (r && !r.approved_at) await approveRequest(r);
+  revalidatePath("/admin");
+}

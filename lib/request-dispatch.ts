@@ -3,7 +3,7 @@ import { adminGetMaster, findMasterByPhone, updateRequest } from "./db";
 import { distributeRequest, sendRequestToChosen } from "./bot";
 import { getPlace } from "./places-db";
 import { orgRequestTargets } from "./org-db";
-import { notifyAdmin, escapeHtml, sendTo } from "./telegram";
+import { notifyAdmin, escapeHtml, sendTo, telegramChatId } from "./telegram";
 import { categoryLabel } from "./categories";
 import { formatPhone } from "./phone";
 import { SITE_URL } from "./site";
@@ -26,8 +26,35 @@ export async function heldOf(saved: ClientRequest): Promise<"specialist" | "self
   return check.ad && looksLikeSelf(saved.description) ? "self" : null;
 }
 
-export async function dispatchRequest(saved: ClientRequest, opts: { notSelf?: boolean } = {}): Promise<{ sent: number }> {
+/** Заявка ждёт одобрения администратора: сообщение с кнопками «Одобрить» / «Спам». */
+async function askApproval(saved: ClientRequest, master: { name: string; slug: string } | null) {
+  const chat = telegramChatId();
+  const text = [
+    master ? "✉️ <b>Сообщение специалисту — на проверке</b>" : "🆕 <b>Новая заявка — на проверке</b>",
+    `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}`,
+    master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
+    `<b>Задача:</b> ${escapeHtml(saved.description)}`,
+    saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
+    saved.photos?.length ? `📷 Фото: ${saved.photos.length}` : "",
+    `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
+    `<b>Язык сайта:</b> ${LOCALE_NAMES[saved.lang]}`,
+    "",
+    "Специалистам пока не отправлена. Одобрите — и она уйдёт.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  if (chat) await sendTo(Number(chat), text, [[{ text: "✅ Одобрить и разослать", callback_data: `ap:${saved.id}` }], [{ text: "🚫 Спам", callback_data: `rj:${saved.id}` }]]).catch(() => null);
+  else await notifyAdmin(text + `\n${SITE_URL}/admin`).catch(() => null);
+}
+
+export async function dispatchRequest(saved: ClientRequest, opts: { notSelf?: boolean; approved?: boolean } = {}): Promise<{ sent: number }> {
   const lang = saved.lang;
+  // Ручное одобрение: пока администратор не одобрил — никому не рассылаем (если в базе есть поле approved_at)
+  if ("approved_at" in saved && !saved.approved_at) {
+    const m = saved.master_id ? await adminGetMaster(saved.master_id).catch(() => null) : null;
+    await askApproval(saved, m);
+    return { sent: 0 };
+  }
   const master = saved.master_id ? await adminGetMaster(saved.master_id).catch(() => null) : null;
   // Заявка организации: получат её команда и владелец (а не весь раздел)
   const orgId = (saved as { org_place_id?: string | null }).org_place_id;
@@ -36,9 +63,10 @@ export async function dispatchRequest(saved: ClientRequest, opts: { notSelf?: bo
 
   // Похоже на рекламу (ссылки, «предлагаем», LLC…) — не рассылаем, ждём решения администратора.
   // Сообщение конкретному специалисту рассылаем всегда (он сам решит).
-  const check = master ? { ad: false, reasons: [] as string[] } : looksLikeAd(saved);
+  // Администратор одобрил вручную — его решение важнее автоматических проверок
+  const check = master || opts.approved ? { ad: false, reasons: [] as string[] } : looksLikeAd(saved);
   // Номер принадлежит специалисту с анкетой — это он сам, а не клиент
-  const asMaster = master ? null : await findMasterByPhone(saved.phone).catch(() => null);
+  const asMaster = master || opts.approved ? null : await findMasterByPhone(saved.phone).catch(() => null);
   if (asMaster && asMaster.status !== "rejected") {
     check.ad = true;
     check.reasons.push(`номер специалиста «${asMaster.name}»`);
@@ -97,4 +125,13 @@ export async function activatePending(r: ClientRequest, chatId: number): Promise
   await updateRequest(r.id, { pending_client: false, client_tg_chat_id: chatId } as never);
   await dispatchRequest({ ...r, pending_client: false, client_tg_chat_id: chatId });
   return true;
+}
+
+/** Администратор одобрил: если клиент уже подтвердил — рассылаем сейчас, иначе заявка уйдёт, когда подтвердит. */
+export async function approveRequest(r: ClientRequest): Promise<{ sent: number; waiting: boolean }> {
+  const now = new Date().toISOString();
+  await updateRequest(r.id, { approved_at: now } as never);
+  if (r.pending_client) return { sent: 0, waiting: true };
+  const res = await dispatchRequest({ ...r, approved_at: now }, { approved: true });
+  return { sent: res.sent, waiting: false };
 }

@@ -135,6 +135,7 @@ export async function healthCheck() {
           ["0044 действия на сайте", "funnel_events", "sid"],
           ["0045 фото новостроек", "project_photos", "slug"],
           ["0046 заявка ждёт клиента", "requests", "pending_client"],
+          ["0055 одобрение заявок", "requests", "approved_at"],
           ["0047 напоминания молчащим", "masters", "inactive_nudges"],
           ["0048 анкеты по открытым данным", "masters", "imported_at"],
           ["0049 афиша", "events", "slug"],

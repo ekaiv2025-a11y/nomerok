@@ -7,7 +7,7 @@ import { tg, telegramToken } from "@/lib/telegram";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone, telegramLink } from "@/lib/phone";
 import type { Master, RequestStatus } from "@/lib/types";
-import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, runImportsNow, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, sendToChosen, remindVerifyAll, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
+import { adminUnarchive, connectBot, deleteReview, logout, removeDemo, runFollowupsNow, runImportsNow, approveRequestAction, setComplaintStatus, changeRequestCategory, deleteMaster, deleteRequest, distributeNow, offerUnsubscribed, sendToChosen, remindVerifyAll, messageClient, moveMasterCategory, setMasterStatus, setRequestStatus, setReviewStatus } from "./actions";
 import { adminListComplaints, adminListReviews } from "@/lib/reviews-db";
 import { getDict } from "@/lib/i18n";
 import { signedUrls } from "@/lib/documents";
@@ -288,6 +288,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                     </div>
                   );
                 })()}
+                {"approved_at" in r && !r.approved_at && r.status !== "spam" && r.status !== "done" && (
+                  <form action={approveRequestAction} className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#e8c97a] bg-[#fdf6e6] p-3">
+                    <input type="hidden" name="id" value={r.id} />
+                    <span className="grow text-[13.5px]">🕐 <b>Ждёт вашего одобрения</b> — специалистам ещё не отправлена{r.pending_client ? " (и клиент ещё не подтвердил)" : ""}</span>
+                    <button className="btn-primary h-9 px-4 text-[13.5px]">✅ Одобрить и разослать</button>
+                  </form>
+                )}
                 {r.status !== "done" && r.status !== "spam" && (
                   <AdminPickMasters
                     req={{ id: r.id, description: r.description, when: r.when_text ?? "", client: r.name ?? "", phone: formatPhone(r.phone), catLabel: categoryLabel(r.category) }}
@@ -635,6 +642,7 @@ function RequestTimeline({ r, resp, name }: { r: import("@/lib/types").ClientReq
   const t = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Tbilisi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
   const steps: { icon: string; text: React.ReactNode; at?: string | null; bad?: boolean }[] = [];
   steps.push({ icon: "📝", text: r.master_id || r.direct_checked_at ? "Клиент написал специалисту с его страницы" : "Клиент оставил заявку", at: r.created_at });
+  if ("approved_at" in r && !r.approved_at && r.status !== "spam") steps.push({ icon: "🕐", text: "Ждёт вашего одобрения — специалистам не отправлена", bad: true });
   if (r.pending_client) steps.push({ icon: "⏳", text: "Ждёт, пока клиент подключит Telegram или войдёт на сайт — специалистам ещё не отправлена", bad: true });
   if ((r.sent_count ?? 0) > 0) steps.push({ icon: "📨", text: `Отправлено специалистам в Telegram: ${r.sent_count}` });
   for (const x of resp) steps.push({ icon: "✋", text: <>Откликнулся: <b className="text-ink">{name(x.id)}</b> — клиент получил его контакты</>, at: x.at });

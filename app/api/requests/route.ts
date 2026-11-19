@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requestSchema, firstErrors, langFromBody } from "@/lib/validation";
 import { createRequest, getPublishedMasterBySlug } from "@/lib/db";
-import { botLink, notifyAdmin, escapeHtml } from "@/lib/telegram";
+import { botLink, notifyAdmin, escapeHtml, sendTo, telegramChatId } from "@/lib/telegram";
 import { dispatchRequest, heldOf } from "@/lib/request-dispatch";
 import { getPlace } from "@/lib/places-db";
 import { rateLimit } from "@/lib/rate-limit";
@@ -84,7 +84,10 @@ export async function POST(req: Request) {
       const marked = await updateRequest(saved.id, { pending_client: true } as never).then(() => true, () => false);
       if (marked) {
         pending = true;
-        await notifyAdmin(`⏳ <b>Новая заявка ждёт подтверждения клиента</b> (Telegram или вход на сайт)\n<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}\n<b>Задача:</b> ${escapeHtml(saved.description.slice(0, 300))}\n<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}\nЕсли не подтвердит — позвоните сами.`).catch(() => null);
+        const txt = `⏳ <b>Новая заявка ждёт подтверждения клиента</b> (Telegram или вход на сайт)\n<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}\n<b>Задача:</b> ${escapeHtml(saved.description.slice(0, 300))}\n<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}\nЕсли не подтвердит — позвоните сами.`.replace("Если не подтвердит — позвоните сами.", "Можно одобрить сейчас — уйдёт специалистам, когда клиент подтвердит. Если не подтвердит — позвоните сами.");
+        const chat = telegramChatId();
+        if (chat) await sendTo(Number(chat), txt, [[{ text: "✅ Одобрить", callback_data: `ap:${saved.id}` }], [{ text: "🚫 Спам", callback_data: `rj:${saved.id}` }]]).catch(() => null);
+        else await notifyAdmin(txt).catch(() => null);
       } else await dispatchRequest(saved, { notSelf: body.notSelf === true }); // база ещё без поля pending_client — по-старому
     }
     return NextResponse.json({ ok: true, held, pending, linked: !!me, claim: me ? null : saved.client_link_token, tgLink: me ? null : await botLink(`r_${saved.client_link_token}`) });
