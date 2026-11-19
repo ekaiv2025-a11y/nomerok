@@ -5,6 +5,7 @@ import { botLink, notifyAdmin, escapeHtml } from "@/lib/telegram";
 import { dispatchRequest, heldOf } from "@/lib/request-dispatch";
 import { getPlace } from "@/lib/places-db";
 import { rateLimit } from "@/lib/rate-limit";
+import { isBlockedPhone, sameTextRecent, spamReasons } from "@/lib/spam";
 import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
@@ -26,6 +27,11 @@ export async function POST(req: Request) {
   // Бот заполнил скрытое поле или отправил форму мгновенно — делаем вид, что всё хорошо.
   if (data.website || (data.startedAt && Date.now() - data.startedAt < 2500)) return NextResponse.json({ ok: true });
   if (!rateLimit("req:" + (await clientIp()), 5)) return NextResponse.json({ ok: false, error: e.tooMany }, { status: 429 });
+
+  // Спам: контакты/слова рассылки в тексте, номер в чёрном списке, один и тот же текст многим специалистам
+  const spam = [...spamReasons(data.description, data.name)];
+  if (await isBlockedPhone(data.phone).catch(() => false)) spam.push("номер уже помечен как спам");
+  if ((await sameTextRecent(data.description).catch(() => 0)) >= 1) spam.push("тот же текст уже отправляли сегодня");
 
   try {
     const found = data.master_slug ? await getPublishedMasterBySlug(data.master_slug) : null;
@@ -61,6 +67,12 @@ export async function POST(req: Request) {
     if (org && org.owner_verified_at) {
       await updateRequest(saved.id, { org_place_id: org.id } as never).catch(() => null);
       (saved as { org_place_id?: string }).org_place_id = org.id;
+    }
+    if (spam.length) {
+      // Никому не отправляем; отправителю — обычный «отправлено», чтобы не подбирал обход
+      await updateRequest(saved.id, { status: "spam" }).catch(() => null);
+      await notifyAdmin(`🚫 <b>Спам задержан</b> — никому не отправлен\n<b>Причина:</b> ${escapeHtml(spam.join("; "))}\n<b>Кому:</b> ${escapeHtml(master?.name ?? categoryLabel(saved.category, "ru"))}\n<b>Текст:</b> ${escapeHtml(saved.description.slice(0, 200))}\n<b>От:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}\nЕсли это не спам — отправьте заявку из админки.`).catch(() => null);
+      return NextResponse.json({ ok: true, held: false, pending: false, linked: true });
     }
     const held = await heldOf(saved);
 

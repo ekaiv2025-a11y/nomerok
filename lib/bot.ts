@@ -72,7 +72,7 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
       if (media.length === 1) await tg("sendPhoto", { chat_id: m.tg_chat_id, photo: media[0].media }).catch(() => null);
       else if (media.length > 1) await tg("sendMediaGroup", { chat_id: m.tg_chat_id, media }).catch(() => null);
     }
-    const ok = await sendTo(m.tg_chat_id!, text, [[{ text: b.btnTake, callback_data: `take:${r.id}` }]]);
+    const ok = await sendTo(m.tg_chat_id!, text, [[{ text: b.btnTake, callback_data: `take:${r.id}` }], [{ text: SPAM_BTN[m.lang] ?? SPAM_BTN.ru, callback_data: `spam:${r.id}` }]]);
     if (ok) sent++;
   }
   if (sent > 0) await updateRequest(r.id, { sent_count: (exclude.size ? r.sent_count ?? 0 : 0) + sent, status: "sent" });
@@ -813,7 +813,7 @@ async function onTake(cb: TgCallback, data: string) {
     (adminPick ? masters.find((x) => x.status !== "rejected") : null) ??
     masters.find((x) => x.status === "published" && canGetRequests(x) && (r?.master_id ? x.id === r.master_id : !!r && servesCategory(x, r.category))) ?? masters[0] ?? null;
   const b = botDict(m?.lang ?? guessLang(cb.from));
-  if (!r) return answer(b.requestGone);
+  if (!r || r.status === "spam") return answer(b.requestGone);
   if (!m) return answer(b.notAllowed);
   const err = await takeRequest(m, r, { notifyInTelegram: true, adminPick });
   if (err) return answer({ gone: b.requestGone, notAllowed: b.notAllowed, already: b.alreadyYours, full: b.requestFull }[err]);
@@ -840,6 +840,26 @@ async function respondersOf(requestId: string): Promise<Master[]> {
 }
 
 /* ---------- пауза: «в отпуске / не принимаю заявки» ---------- */
+
+const SPAM_BTN: Record<string, string> = { ru: "🚫 Это спам", en: "🚫 Spam", ka: "🚫 სპამი" };
+const SPAM_OK: Record<string, string> = {
+  ru: "Спасибо! Отправитель заблокирован — его сообщения больше не дойдут ни до кого.",
+  en: "Thanks! The sender is blocked — their messages won't reach anyone.",
+  ka: "გმადლობთ! გამგზავნი დაბლოკილია.",
+};
+
+/** Специалист пометил заявку/сообщение как спам: блокируем номер, скрываем заявку, сообщаем админу. */
+async function onSpamMark(cb: TgCallback, id: string) {
+  await tg("answerCallbackQuery", { callback_query_id: cb.id });
+  const r = await getRequest(id).catch(() => null);
+  const ms = await getMastersByChatId(cb.from.id);
+  if (!r || !ms[0]) return;
+  const { blockPhone } = await import("./spam");
+  await blockPhone(r.phone);
+  await updateRequest(r.id, { status: "spam" }).catch(() => null);
+  await sendTo(cb.from.id, SPAM_OK[ms[0].lang] ?? SPAM_OK.ru);
+  await notifyAdmin(`🚫 <b>${esc(ms[0].name)}</b> пометил(а) как спам: «${esc(r.description.slice(0, 150))}»\nОтправитель ${esc(r.name || "—")}, ${esc(r.phone)} заблокирован.`).catch(() => null);
+}
 
 const DEL_RE = /(удал|снес|убер)[а-яё]*\s+(мой\s+|мою\s+|мо[её]\s+)?(профил|анкет|аккаунт|страниц)|delete\s+(my\s+)?(profile|account)|წაშალ/i;
 const DEL_T = {
@@ -1365,6 +1385,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data.startsWith("ph:")) return void (await onPhoneChoice(u.callback_query, data));
     if (data === "unarchive") return void (await onUnarchive(u.callback_query));
     if (data.startsWith("del:")) return void (await onSelfDelete(u.callback_query, data.slice(4)));
+    if (data.startsWith("spam:")) return void (await onSpamMark(u.callback_query, data.slice(5)));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));

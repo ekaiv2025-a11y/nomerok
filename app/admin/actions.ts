@@ -90,6 +90,13 @@ export async function setRequestStatus(formData: FormData) {
   const status = String(formData.get("status")) as RequestStatus;
   if (!REQUEST_STATUSES.includes(status)) return;
   await adminSetRequestStatus(id, status);
+  // Пометили как спам — номер отправителя в чёрный список: его заявки и сообщения больше никому не уйдут
+  if (status === "spam") {
+    const { getRequest } = await import("@/lib/db");
+    const { blockPhone } = await import("@/lib/spam");
+    const r = await getRequest(id).catch(() => null);
+    if (r) await blockPhone(r.phone);
+  }
   revalidatePath("/admin");
 }
 
