@@ -147,6 +147,16 @@ export function PlacesBrowser({ items, lang }: { items: Place[]; lang: Locale })
                         📞 {formatPhone(phone)}
                       </a>
                     )}
+                    {p.menu_url && (
+                      <a href={p.menu_url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex h-8 items-center gap-1 rounded-full border border-line px-3 text-[12.5px] font-semibold hover:border-brand">
+                        📋 {lang === "ru" ? "Меню" : lang === "ka" ? "მენიუ" : "Menu"}
+                      </a>
+                    )}
+                    {(p.delivery?.length ?? 0) > 0 && (
+                      <a href={p.delivery![0]} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex h-8 items-center gap-1 rounded-full border border-line px-3 text-[12.5px] font-semibold hover:border-brand">
+                        🛵 {lang === "ru" ? "Доставка" : lang === "ka" ? "მიტანა" : "Delivery"}
+                      </a>
+                    )}
                     {route && (
                       <a href={route} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 items-center gap-1 rounded-full border border-line px-3 text-[12.5px] font-semibold hover:border-brand">
                         🧭 {t.route}

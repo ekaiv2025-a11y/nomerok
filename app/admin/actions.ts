@@ -500,9 +500,10 @@ export async function runImportsNow() {
   const e = await applyEventsImport().catch(() => null);
   const { applyCommittedEnrichment } = await import("@/lib/places-enrich-auto");
   const pl = await applyCommittedEnrichment().catch(() => null);
+  const ph = await import("@/lib/place-photos").then((m) => m.rehostPlacePhotos(100_000)).catch(() => null);
   const g = await geocodeImported(25).catch(() => null);
   revalidatePath("/", "layout");
-  const msg = `Импорт: анкет +${r?.created ?? 0}, фото +${r?.photos ?? 0}, координат из файла +${r?.coords ?? 0}, найдено на карте +${g?.done ?? 0}; врачи +${(s as { created?: number } | null)?.created ?? 0}; афиша +${e?.added ?? 0}, фото событий +${e?.images ?? 0}; карточки мест +${pl?.updated ?? 0}`;
+  const msg = `Импорт: анкет +${r?.created ?? 0}, фото +${r?.photos ?? 0}, координат из файла +${r?.coords ?? 0}, найдено на карте +${g?.done ?? 0}; врачи +${(s as { created?: number } | null)?.created ?? 0}; афиша +${e?.added ?? 0}, фото событий +${e?.images ?? 0}; карточки мест +${pl?.updated ?? 0}, фото мест сохранено +${ph?.saved ?? 0}`;
   redirect(`/admin?msg=${encodeURIComponent(msg)}`);
 }
 

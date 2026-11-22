@@ -10,9 +10,9 @@ import ENRICH from "@/data/places-enrich.json";
  */
 type Batch = { id: string; csv: string };
 
-export async function applyCommittedEnrichment(): Promise<{ batches: number; updated: number; closed: number }> {
+export async function applyCommittedEnrichment(): Promise<{ batches: number; updated: number; closed: number; photos: number }> {
   const sb = supabase();
-  const out = { batches: 0, updated: 0, closed: 0 };
+  const out = { batches: 0, updated: 0, closed: 0, photos: 0 };
   if (!sb) return out;
   for (const b of (ENRICH as { batches: Batch[] }).batches ?? []) {
     if (!b?.id || !b.csv) continue;
@@ -24,6 +24,7 @@ export async function applyCommittedEnrichment(): Promise<{ batches: number; upd
     out.batches++;
     out.updated += r.updated;
     out.closed += r.closed;
+    out.photos += r.photos;
   }
   return out;
 }

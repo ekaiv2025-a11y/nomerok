@@ -142,6 +142,7 @@ export async function healthCheck() {
           ["0050 прайс специалиста", "masters", "price_list"],
           ["0051 мероприятия специалистов", "events", "master_id"],
           ["0056 заполненность мест", "places", "fill"],
+          ["0057 меню, доставка и фото мест", "places", "photo_kinds"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {
@@ -847,7 +848,7 @@ export async function resolveLoginToken(token: string): Promise<string | null> {
 
 /** Загрузка фото специалиста. Возвращает публичную ссылку. */
 /** Уменьшаем фото на сервере (до 1600px, JPEG): страницы грузятся быстро даже без сжатия хостинга. */
-async function shrinkPhoto(file: Blob, ext: string): Promise<{ file: Blob; ext: string }> {
+export async function shrinkPhoto(file: Blob, ext: string): Promise<{ file: Blob; ext: string }> {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 250 * 1024) return { file, ext };
   try {
     const sharp = (await import("sharp")).default;

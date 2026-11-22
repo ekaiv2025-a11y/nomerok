@@ -75,6 +75,8 @@ export default async function EditPlace({ params, searchParams }: { params: Prom
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <label><span className={L}>Другие соцсети (ссылки, с новой строки)</span><textarea name="socials" rows={2} defaultValue={(p.socials ?? []).join("\n")} className={`${F} py-2`} /></label>
+          <label><span className={L}>Меню (ссылка)</span><input name="menu_url" defaultValue={p.menu_url ?? ""} className={F} placeholder="https://…" /></label>
+          <label><span className={L}>Доставка: Wolt, Glovo, Bolt Food или своя (ссылки, с новой строки)</span><textarea name="delivery" rows={2} defaultValue={(p.delivery ?? []).join("\n")} className={`${F} py-2`} /></label>
           <label><span className={L}>Email</span><input name="email" defaultValue={p.email ?? ""} className={F} /></label>
         </div>
         <label className="block"><span className={L}>Описание RU (своими словами)</span><textarea name="desc_ru" rows={4} defaultValue={p.desc_ru ?? ""} className={`${F} py-2`} /></label>

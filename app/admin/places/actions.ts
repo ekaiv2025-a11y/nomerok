@@ -78,6 +78,7 @@ export async function savePlaceAction(fd: FormData) {
     socials: list(fd.get("socials")).filter((u) => /^https?:\/\//.test(u)).slice(0, 6),
     email: txt(fd.get("email"), 120),
     hours: txt(fd.get("hours"), 200),
+    ...(fd.has("menu_url") ? { menu_url: url(fd.get("menu_url")), delivery: list(fd.get("delivery")).filter((u) => /^https?:\/\//.test(u) && !/wa\.me|whatsapp/i.test(u)).slice(0, 5) } : {}),
     desc_ru: txt(fd.get("desc_ru"), 2000),
     desc_en: txt(fd.get("desc_en"), 2000),
     status: fd.get("status") === "hidden" ? "hidden" : "published",
@@ -86,7 +87,12 @@ export async function savePlaceAction(fd: FormData) {
   };
   try {
     const ph = JSON.parse(String(fd.get("photos") ?? "[]"));
-    if (Array.isArray(ph)) patch.photos = ph.filter((u) => typeof u === "string" && /^(https:\/\/|data:image\/)/.test(u)).slice(0, 12);
+    if (Array.isArray(ph)) {
+      patch.photos = ph.filter((u) => typeof u === "string" && /^(https:\/\/|data:image\/)/.test(u)).slice(0, 12);
+      // подписи к фото (интерьер, блюда…) остаются при своих фото, даже если порядок поменяли
+      const kindOf = new Map((prev.photos ?? []).map((u, i) => [u, prev.photo_kinds?.[i] ?? ""]));
+      if (prev.photo_kinds?.length) patch.photo_kinds = patch.photos.map((u) => kindOf.get(u) ?? "");
+    }
   } catch {}
   if (fd.get("owner_ok") === "1") patch.owner_verified_at = new Date().toISOString();
   if (fd.get("owner_reset") === "1") Object.assign(patch, { owner_verified_at: null, owner_chat_id: null, owner_name: null });

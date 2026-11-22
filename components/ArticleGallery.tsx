@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /** Галерея фото в статье журнала: сетка + просмотр на весь экран (стрелки, свайп, Esc). */
-export function ArticleGallery({ photos }: { photos: string[] }) {
+export function ArticleGallery({ photos, captions, className = "mt-8" }: { photos: string[]; captions?: string[]; className?: string }) {
   const [open, setOpen] = useState<number | null>(null);
   const [x0, setX0] = useState<number | null>(null);
   const go = (d: number) => setOpen((i) => (i === null ? i : (i + d + photos.length) % photos.length));
@@ -24,7 +24,7 @@ export function ArticleGallery({ photos }: { photos: string[] }) {
   const one = photos.length === 1;
   return (
     <>
-      <div className={`mt-8 grid gap-2 ${one ? "" : "grid-cols-2 sm:grid-cols-3"}`}>
+      <div className={`${className} grid gap-2 ${one ? "" : "grid-cols-2 sm:grid-cols-3"}`}>
         {photos.map((u, i) => (
           <button key={u} type="button" onClick={() => setOpen(i)} className="overflow-hidden rounded-xl bg-cream">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -50,7 +50,7 @@ export function ArticleGallery({ photos }: { photos: string[] }) {
             <>
               <button type="button" aria-label="Назад" onClick={(e) => { e.stopPropagation(); go(-1); }} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/55 px-3.5 py-1.5 text-[28px] leading-none text-white ring-1 ring-white/40 hover:bg-black/75">‹</button>
               <button type="button" aria-label="Вперёд" onClick={(e) => { e.stopPropagation(); go(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/55 px-3.5 py-1.5 text-[28px] leading-none text-white ring-1 ring-white/40 hover:bg-black/75">›</button>
-              <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[13px] text-white/80">{open + 1} / {photos.length}</span>
+              <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[13px] text-white/80">{captions?.[open] ? `${captions[open]} · ` : ""}{open + 1} / {photos.length}</span>
             </>
           )}
           <button type="button" aria-label="Закрыть" className="absolute right-3 top-3 text-[28px] leading-none text-white">×</button>

@@ -1,4 +1,5 @@
 import { categoryLabel } from "@/lib/categories";
+import { PlaceGallery } from "@/components/PlaceGallery";
 import { OpenBadge } from "@/components/OpenBadge";
 import { TeamBySpecialty, type TeamGroup } from "@/components/TeamBySpecialty";
 import { subcatsOf, subcatLabel } from "@/lib/subcats";
@@ -33,6 +34,13 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ lang: string; slug: string }> };
 
 const host = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "").slice(0, 40);
+function deliveryLabel(u: string, lang: string) {
+  if (/wolt\.com/i.test(u)) return "Wolt";
+  if (/glovoapp\.com|glovo/i.test(u)) return "Glovo";
+  if (/bolt\.eu|food\.bolt/i.test(u)) return "Bolt Food";
+  return lang === "ru" ? "Доставка" : lang === "ka" ? "მიტანა" : "Delivery";
+}
+
 function socialLabel(u: string) {
   if (/facebook\.com/i.test(u)) return "Facebook";
   if (/instagram\.com/i.test(u)) return "Instagram";
@@ -160,6 +168,16 @@ export default async function PlacePage({ params }: Props) {
         <a href={p.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}` : gmaps} target="_blank" rel="noopener noreferrer" className="btn-ghost h-11 px-4 text-[15px]">
           🧭 {t.route}
         </a>
+        {p.menu_url && (
+          <a href={p.menu_url} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-11 px-4 text-[15px]">
+            📋 {lang === "ru" ? "Меню" : lang === "ka" ? "მენიუ" : "Menu"}
+          </a>
+        )}
+        {(p.delivery ?? []).map((u) => (
+          <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-11 px-4 text-[15px]">
+            🛵 {deliveryLabel(u, lang)}
+          </a>
+        ))}
         {p.ig && (
           <a href={p.ig} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost h-11 px-4 text-[15px]">
             Instagram
@@ -174,10 +192,15 @@ export default async function PlacePage({ params }: Props) {
       </div>
       {p.owner_verified_at && <p className="mt-2 inline-block rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand-dark">{t.ownerOk}</p>}
 
-      {(() => {
-        const gal = [...(p.photos ?? []).slice(1), ...reviews.flatMap((r) => r.photos)];
-        return gal.length > 0 ? <ArticleGallery photos={gal} /> : null;
-      })()}
+      {(p.photos?.length ?? 0) > 1 && (
+        <PlaceGallery
+          photos={(p.photos ?? []).slice(1)}
+          kinds={(p.photos ?? []).slice(1).map((_, i) => p.photo_kinds?.[i + 1] ?? "")}
+          lang={lang}
+          credit={p.photo_src ? (lang === "ru" ? `Фото: ${p.photo_src === "pending" ? "страницы заведения" : `страница заведения ${host(p.photo_src)}`}` : `Photos: ${p.photo_src === "pending" ? "the venue's pages" : host(p.photo_src)}`) : null}
+        />
+      )}
+      {reviews.some((r) => r.photos.length > 0) && <ArticleGallery photos={reviews.flatMap((r) => r.photos)} />}
 
       {!desc && summary && (
         <section className="mt-6">

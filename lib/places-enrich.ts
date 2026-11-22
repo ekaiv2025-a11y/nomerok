@@ -2,13 +2,16 @@ import "server-only";
 import { dbMode, readLocal, supabase, writeLocal } from "./db";
 import { normalizePhone } from "./phone";
 import type { Place } from "./places";
+import { parsePhotoCell } from "./place-photos";
 
 /*
  * Дополнение базы мест результатами проверки (CSV от ассистента или редактора).
  * Колонки: id, work_status, name_ru, addr_ru, phones, site, instagram, facebook, other_links, hours, desc_ru, desc_en, tags, sources, checked
+ * и (необязательно) email, menu, delivery, photos («ссылка|подпись; …»), photo_source
  */
 
-export const ENRICH_HEADER = ["id", "work_status", "name_ru", "addr_ru", "phones", "site", "instagram", "facebook", "other_links", "hours", "desc_ru", "desc_en", "tags", "sources", "checked"] as const;
+export const ENRICH_HEADER = ["id", "work_status", "name_ru", "addr_ru", "phones", "site", "instagram", "facebook", "other_links", "hours", "desc_ru", "desc_en", "tags", "sources", "checked", "email", "menu", "delivery", "photos", "photo_source"] as const;
+// Последние пять колонок необязательны: старые пачки без них тоже принимаются.
 
 /** Простой разбор CSV (запятая или точка с запятой, кавычки, переносы строк внутри кавычек). */
 export function parseCsv(text: string): string[][] {
@@ -59,9 +62,9 @@ const CLOSED = /закрыт|closed|не работает/i;
 const OPEN = /работает|open|active/i;
 
 /** Применить CSV. Возвращает отчёт. Поля, которые редактор правил вручную (edited), не перезаписываются — только пустые заполняются. */
-export async function applyEnrichment(csv: string): Promise<{ updated: number; closed: number; unknownIds: string[]; badRows: number }> {
+export async function applyEnrichment(csv: string): Promise<{ updated: number; closed: number; photos: number; unknownIds: string[]; badRows: number }> {
   const rows = parseCsv(csv);
-  if (!rows.length) return { updated: 0, closed: 0, unknownIds: [], badRows: 0 };
+  if (!rows.length) return { updated: 0, closed: 0, photos: 0, unknownIds: [], badRows: 0 };
   const head = rows[0].map((h) => h.trim().toLowerCase());
   const col = (name: string) => head.indexOf(name);
   if (col("id") < 0) throw new Error("В файле нет колонки id — используйте шапку из задания");
@@ -76,6 +79,7 @@ export async function applyEnrichment(csv: string): Promise<{ updated: number; c
 
   let updated = 0;
   let closed = 0;
+  let photos = 0;
   let badRows = 0;
   const unknownIds: string[] = [];
   const now = new Date().toISOString();
@@ -116,9 +120,29 @@ export async function applyEnrichment(csv: string): Promise<{ updated: number; c
     set("site", isUrl(site) ? site : null);
     const ig = get(r, "instagram");
     set("ig", isUrl(ig) && /instagram\.com/i.test(ig) ? ig : null);
-    const socials = [get(r, "facebook"), ...split(get(r, "other_links"))].filter(isUrl);
+    const NO_WA = (u: string) => !/wa\.me|whatsapp/i.test(u); // WhatsApp на сайте не публикуем
+    const socials = [get(r, "facebook"), ...split(get(r, "other_links"))].filter(isUrl).filter(NO_WA);
     if (socials.length) set("socials", [...new Set([...socials, ...(p.socials ?? [])])].slice(0, 6));
     set("hours", get(r, "hours").slice(0, 200) || null);
+    const email = get(r, "email");
+    set("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email.slice(0, 120) : null);
+    const menu = get(r, "menu");
+    set("menu_url", isUrl(menu) ? menu.slice(0, 500) : null);
+    const delivery = split(get(r, "delivery")).filter(isUrl).filter(NO_WA);
+    if (delivery.length) patch.delivery = [...new Set([...(p.delivery ?? []), ...delivery])].slice(0, 5);
+    // фото: только если владелец не добавил свои и редактор не правил. Сначала ссылки как есть,
+    // потом ежедневная проверка скачивает их к нам в хранилище (rehostPlacePhotos) — так cron не тратит время
+    const pics = parsePhotoCell(get(r, "photos")).slice(0, 8);
+    if (pics.length && !p.owner_verified_at && !keep("photos")) {
+      const prevUrls = p.photos ?? [];
+      const prevKinds = prevUrls.map((_, i) => p.photo_kinds?.[i] ?? "");
+      const fresh = pics.filter((x) => !prevUrls.includes(x.url));
+      patch.photos = [...prevUrls, ...fresh.map((x) => x.url)].slice(0, 12);
+      patch.photo_kinds = [...prevKinds, ...fresh.map((x) => x.kind)].slice(0, 12);
+      const ps = get(r, "photo_source");
+      patch.photo_src = isUrl(ps) ? ps.slice(0, 500) : (p.photo_src ?? "pending");
+      photos += fresh.length;
+    }
     set("desc_ru", get(r, "desc_ru").slice(0, 2000) || null);
     set("desc_en", get(r, "desc_en").slice(0, 2000) || null);
     const tags = split(get(r, "tags").replace(/,/g, ";")).map((t) => t.toLowerCase()).slice(0, 20);
@@ -130,9 +154,13 @@ export async function applyEnrichment(csv: string): Promise<{ updated: number; c
     if (sb) {
       const res = await sb.from("places").update(patch).eq("id", id);
       if (res.error) {
-        // колонок tags/work_status ещё нет — пробуем без них
+        // новых колонок ещё нет (миграции не выполнены) — пробуем без них
         delete patch.tags;
         delete patch.work_status;
+        delete patch.menu_url;
+        delete patch.delivery;
+        delete patch.photo_kinds;
+        delete patch.photo_src;
         const res2 = await sb.from("places").update(patch).eq("id", id);
         if (res2.error) throw new Error(res2.error.message);
       }
@@ -142,5 +170,5 @@ export async function applyEnrichment(csv: string): Promise<{ updated: number; c
     updated++;
   }
   if (local) await writeLocal(local);
-  return { updated, closed, unknownIds, badRows };
+  return { updated, closed, photos, unknownIds, badRows };
 }

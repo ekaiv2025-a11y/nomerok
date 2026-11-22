@@ -31,6 +31,10 @@ export type Place = {
   city?: string;
   status: "published" | "hidden";
   photos?: string[];
+  photo_kinds?: string[]; // подпись к каждому фото по порядку: интерьер, снаружи, блюда, меню, терраса, вид
+  photo_src?: string | null; // откуда фото (страница заведения)
+  menu_url?: string | null;
+  delivery?: string[]; // ссылки на Wolt, Glovo, Bolt Food или собственную доставку
   tags?: string[];
   work_status?: string | null; // работает / закрыто / не найдено — по последней проверке
   checked?: string | null;
