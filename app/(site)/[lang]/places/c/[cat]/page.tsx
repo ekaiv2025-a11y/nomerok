@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { FOOD_KINDS, FOOD_TAGS, PLACE_CATS, PT, placesH1 } from "@/lib/places";
+import { FOOD_KINDS, FOOD_TAGS, FOOD_TAG_GROUPS, PLACE_CATS, PT, placesH1 } from "@/lib/places";
 import { PlaceCityChips } from "@/components/PlaceCityChips";
 import { catText } from "@/lib/place-cat-texts";
 import { Linkified } from "@/components/Linkified";
 import { cityIn, isCity } from "@/lib/cities";
 import SUBS from "@/data/place-subs.json";
-import { PLACES_PAGE, listPlaces, placeCityCounts } from "@/lib/places-db";
+import { PLACES_PAGE, listPlaces, placeCityCounts, placeFacets } from "@/lib/places-db";
 import { PlacesBrowser } from "@/components/PlacesBrowser";
 import { PlaceSearch } from "@/components/PlaceSearch";
 
@@ -42,7 +42,13 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
   const subs = kind ? kind.subs : sp.sub ? [sp.sub] : undefined;
   const tag = sp.tag && (FOOD_TAGS.includes(sp.tag) || /^[\p{L} -]{2,40}$/u.test(sp.tag)) ? sp.tag : undefined;
   const city = isCity(sp.city) ? sp.city : undefined;
-  const [{ items, total }, byCity] = await Promise.all([listPlaces({ cat, city, q: sp.q, page, subs, tag }), placeCityCounts()]);
+  const [{ items, total }, byCity, facets] = await Promise.all([
+    listPlaces({ cat, city, q: sp.q, page, subs, tag }),
+    placeCityCounts(cat),
+    isFood ? placeFacets(cat, city) : Promise.resolve({ subs: {}, tags: {} } as { subs: Record<string, number>; tags: Record<string, number> }),
+  ]);
+  const kindCount = (k: (typeof FOOD_KINDS)[number]) => k.subs.reduce((n, x) => n + (facets.subs[x] ?? 0), 0);
+  const tagGroups = FOOD_TAG_GROUPS.map((g) => ({ ...g, tags: g.tags.filter((x) => (facets.tags[x] ?? 0) > 0 || x === tag) })).filter((g) => g.tags.length);
   const pages = Math.ceil(total / PLACES_PAGE);
   const params0 = { ...(city ? { city } : {}), ...(sp.q ? { q: sp.q } : {}), ...(sp.kind ? { kind: sp.kind } : {}), ...(sp.sub ? { sub: sp.sub } : {}), ...(tag ? { tag } : {}) };
   const link = (p: number) => href(lang, `/places/c/${cat}?${new URLSearchParams({ ...params0, page: String(p) })}`);
@@ -78,16 +84,38 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
         <div className="mt-4 space-y-2">
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
             <a href={chipLink({ kind: undefined })} className={chip(!kind)}>{lang === "ru" ? "Все" : lang === "ka" ? "ყველა" : "All"}</a>
-            {FOOD_KINDS.map((k) => (
-              <a key={k.id} href={chipLink({ kind: k.id })} className={chip(kind?.id === k.id)}>{k.label[lang]}</a>
+            {FOOD_KINDS.filter((k) => kindCount(k) > 0 || kind?.id === k.id).map((k) => (
+              <a key={k.id} href={chipLink({ kind: k.id })} className={chip(kind?.id === k.id)}>
+                {k.label[lang]} <span className="opacity-60">{kindCount(k)}</span>
+              </a>
             ))}
           </div>
-          {lang === "ru" && (
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-              {FOOD_TAGS.map((x) => (
-                <a key={x} href={chipLink({ tag: tag === x ? undefined : x })} className={`${chip(tag === x)} !text-[12px]`}>{x}</a>
-              ))}
-            </div>
+          {lang === "ru" && tagGroups.length > 0 && (
+            <details className="group rounded-2xl border border-line bg-white" open={!!tag}>
+              <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-[14px] font-semibold [&::-webkit-details-marker]:hidden">
+                🍴 Кухня и особенности
+                {tag && (
+                  <span className="rounded-full bg-brand px-2.5 py-0.5 text-[12px] font-medium text-white">{tag}</span>
+                )}
+                <span className="ml-auto text-muted transition group-open:rotate-180">▾</span>
+              </summary>
+              <div className="space-y-3 border-t border-line px-4 py-3">
+                {tagGroups.map((g) => (
+                  <div key={g.label}>
+                    <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">{g.label}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {g.tags.map((x) => (
+                        <a key={x} href={chipLink({ tag: tag === x ? undefined : x })} className={`${chip(tag === x)} !py-1 !text-[12.5px]`}>
+                          {x} {facets.tags[x] ? <span className="opacity-60">{facets.tags[x]}</span> : null}
+                          {tag === x && " ×"}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[12px] text-muted">Метки ставим по сайтам и страницам самих заведений — список растёт по мере наполнения карточек.</p>
+              </div>
+            </details>
           )}
         </div>
       )}
@@ -117,6 +145,15 @@ export default async function PlaceCatPage({ params, searchParams }: Props) {
             </Link>
           )}
         </nav>
+      )}
+      {isFood && lang === "ru" && (
+        <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#cfe3f0] bg-[#f1f8fc] p-5 sm:flex-row sm:items-center">
+          <div className="grow">
+            <p className="font-semibold text-[#0f5c82]">Ваше кафе или ресторан?</p>
+            <p className="mt-1 text-[14px] text-[#2f5d74]">Откройте карточку заведения и нажмите «Подтвердить в Telegram» — бесплатно добавите фото, меню, часы и контакты. Карточки с фото и описанием стоят в списке выше.</p>
+          </div>
+          <a href={href(lang, "/org")} className="btn-ghost h-10 shrink-0 px-4 text-[14px]">Подробнее →</a>
+        </div>
       )}
       {tx && (
         <article className="mt-10 max-w-3xl space-y-4 text-[16px] leading-relaxed text-[#2a2925]">

@@ -1,4 +1,5 @@
 import { categoryLabel } from "@/lib/categories";
+import { OpenBadge } from "@/components/OpenBadge";
 import { TeamBySpecialty, type TeamGroup } from "@/components/TeamBySpecialty";
 import { subcatsOf, subcatLabel } from "@/lib/subcats";
 import type { Metadata } from "next";
@@ -7,7 +8,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { href, isLocale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { PT, placeTone, placeAddr, placeCat, placeDesc, placeIndexable, placeName, placeSummary, prettyHours } from "@/lib/places";
+import { PT, placeTone, placeAddr, placeCat, placeDesc, placeIndexable, placeName, placeSummary, prettyHours, subLabel } from "@/lib/places";
 import { getPlace, getPlaceBySlug, nearbyPlaces } from "@/lib/places-db";
 import { formatPhone } from "@/lib/phone";
 import { botUsername } from "@/lib/telegram";
@@ -49,8 +50,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const c = placeCat(p.cat);
   const name = placeName(p, lang);
   const a0 = placeAddr(p, lang);
-  const desc = placeDesc(p, lang) ?? `${p.sub || c.label[lang]}${a0 ? `, ${a0}` : ""}. ${PT[lang].h1}.`;
-  const base = pageMeta(lang, `/places/${p.slug}`, `${name} — ${p.sub || c.label[lang]}, ${cityLabel(p.city ?? "batumi", lang)}`, desc.slice(0, 160));
+  const desc = placeDesc(p, lang) ?? `${subLabel(p.sub) || c.label[lang]}${a0 ? `, ${a0}` : ""}. ${PT[lang].h1}.`;
+  const base = pageMeta(lang, `/places/${p.slug}`, `${name} — ${subLabel(p.sub) || c.label[lang]}, ${cityLabel(p.city ?? "batumi", lang)}`, desc.slice(0, 160));
   return placeIndexable(p) ? base : { ...base, robots: { index: false, follow: true } };
 }
 
@@ -139,7 +140,7 @@ export default async function PlacePage({ params }: Props) {
         <div className="min-w-0">
           <h1 translate="no" className="notranslate text-[26px] font-bold leading-tight sm:text-[34px]">{name}</h1>
           <p className="mt-1 text-[15px] text-muted">
-            {p.sub || c.label[lang]}
+            {subLabel(p.sub) || c.label[lang]}
             {addr ? ` · ${addr}` : ""}
             {altNames.length > 0 && <span className="block text-[13px]">{altNames.join(" · ")}</span>}
           </p>
@@ -225,6 +226,7 @@ export default async function PlacePage({ params }: Props) {
         {p.hours && (
           <p className="text-[15px]">
             <span className="text-muted">{t.hours}:</span> {prettyHours(p.hours, lang)}
+            <OpenBadge hours={p.hours} lang={lang} />
           </p>
         )}
         <div className="flex flex-wrap gap-2">

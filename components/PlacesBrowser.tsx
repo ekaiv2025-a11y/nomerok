@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Map, type MapPoint } from "./map/Map";
 import { href } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/config";
 import { formatPhone } from "@/lib/phone";
-import { placeAddr, placeCat, placeDesc, placeName, type Place } from "@/lib/places";
+import { foodEmoji, openNow, placeAddr, placeCat, placeDesc, placeName, prettyHours, subLabel, type Place } from "@/lib/places";
 
 /*
  * Раздел мест: список и карта рядом. Номер на карточке = номер метки на карте.
@@ -14,9 +14,9 @@ import { placeAddr, placeCat, placeDesc, placeName, type Place } from "@/lib/pla
  */
 
 const T = {
-  ru: { list: "Список", map: "Карта", call: "Позвонить", route: "Маршрут", onMap: "На карте", more: "Подробнее", noMap: "Без точки на карте" },
-  en: { list: "List", map: "Map", call: "Call", route: "Directions", onMap: "On map", more: "Details", noMap: "Not on the map" },
-  ka: { list: "სია", map: "რუკა", call: "დარეკვა", route: "მარშრუტი", onMap: "რუკაზე", more: "დეტალები", noMap: "რუკაზე არ არის" },
+  ru: { list: "Список", map: "Карта", call: "Позвонить", route: "Маршрут", onMap: "На карте", more: "Подробнее", noMap: "Без точки на карте", open: "Открыто", closed: "Закрыто" },
+  en: { list: "List", map: "Map", call: "Call", route: "Directions", onMap: "On map", more: "Details", noMap: "Not on the map", open: "Open now", closed: "Closed" },
+  ka: { list: "სია", map: "რუკა", call: "დარეკვა", route: "მარშრუტი", onMap: "რუკაზე", more: "დეტალები", noMap: "რუკაზე არ არის", open: "ღიაა", closed: "დაკეტილია" },
 } as const;
 
 // мягкие цвета для «аватарок» без фото — у каждого места свой, по названию
@@ -36,6 +36,13 @@ export function PlacesBrowser({ items, lang }: { items: Place[]; lang: Locale })
   const [hover, setHover] = useState<number | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [view, setView] = useState<"list" | "map">("list");
+  // «Открыто сейчас» считаем только в браузере — иначе время сервера и посетителя разойдутся
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // номера только у мест с координатами — они же метки на карте
   const { points, numOf } = useMemo(() => {
@@ -44,7 +51,7 @@ export function PlacesBrowser({ items, lang }: { items: Place[]; lang: Locale })
     for (const p of items) {
       if (p.lat == null || p.lng == null) continue;
       numOf.set(p.id, points.length);
-      points.push({ lat: p.lat, lng: p.lng, label: points.length + 1, title: placeName(p, lang), subtitle: p.sub ?? placeCat(p.cat).label[lang], href: href(lang, `/places/${p.slug}`), photo: p.photos?.[0] ?? null });
+      points.push({ lat: p.lat, lng: p.lng, label: points.length + 1, title: placeName(p, lang), subtitle: subLabel(p.sub) ?? placeCat(p.cat).label[lang], href: href(lang, `/places/${p.slug}`), photo: p.photos?.[0] ?? null });
     }
     return { points, numOf };
   }, [items, lang]);
@@ -85,6 +92,7 @@ export function PlacesBrowser({ items, lang }: { items: Place[]; lang: Locale })
             const [bg, fg] = tone(name);
             const route = p.lat != null && p.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}` : addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${addr}`)}` : null;
             const tags = lang === "ru" ? (p.tags ?? []).slice(0, 4) : [];
+            const isOpen = now && p.hours ? openNow(p.hours, now) : null;
             return (
               <div
                 key={p.id}
@@ -97,6 +105,10 @@ export function PlacesBrowser({ items, lang }: { items: Place[]; lang: Locale })
                   {p.photos?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.photos[0]} alt="" loading="lazy" className="h-14 w-14 rounded-xl bg-cream object-cover sm:h-[72px] sm:w-[72px]" />
+                  ) : p.cat === "food" ? (
+                    <span style={{ background: bg }} className="flex h-14 w-14 items-center justify-center rounded-xl text-[26px] sm:h-[72px] sm:w-[72px] sm:text-[32px]">
+                      {foodEmoji(p.sub)}
+                    </span>
                   ) : (
                     <span style={{ background: bg, color: fg }} className="flex h-14 w-14 items-center justify-center rounded-xl text-[18px] font-extrabold tracking-tight sm:h-[72px] sm:w-[72px] sm:text-[22px]">
                       {initials(name)}
@@ -110,10 +122,15 @@ export function PlacesBrowser({ items, lang }: { items: Place[]; lang: Locale })
                     {p.owner_verified_at && <span className="ml-1.5 text-[12px] font-medium text-brand">✓</span>}
                   </Link>
                   <p className="mt-0.5 text-[13px] text-muted">
-                    {p.sub || placeCat(p.cat).label[lang]}
+                    {subLabel(p.sub) || placeCat(p.cat).label[lang]}
                     {addr ? ` · ${addr}` : ""}
                   </p>
-                  {p.hours && <p className="mt-1 line-clamp-1 text-[12.5px] text-muted">🕒 {p.hours}</p>}
+                  {p.hours && (
+                    <p className="mt-1 line-clamp-1 text-[12.5px] text-muted">
+                      {isOpen != null && <b className={`mr-1.5 font-semibold ${isOpen ? "text-brand" : "text-[#b4532a]"}`}>{isOpen ? t.open : t.closed} ·</b>}
+                      🕒 {prettyHours(p.hours, lang)}
+                    </p>
+                  )}
                   {tags.length > 0 && (
                     <p className="mt-1.5 flex flex-wrap gap-1">
                       {tags.map((x) => (

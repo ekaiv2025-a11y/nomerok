@@ -141,6 +141,7 @@ export async function healthCheck() {
           ["0049 афиша", "events", "slug"],
           ["0050 прайс специалиста", "masters", "price_list"],
           ["0051 мероприятия специалистов", "events", "master_id"],
+          ["0056 заполненность мест", "places", "fill"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

@@ -120,6 +120,13 @@ export const FOOD_KINDS: { id: string; label: L3; subs: string[] }[] = [
 /** Кухни и признаки для фильтра (совпадают с тегами мест). */
 export const FOOD_TAGS = ["грузинская кухня", "хинкали", "хачапури", "шашлык", "азиатская кухня", "суши", "пицца", "бургеры", "шаурма и донер", "турецкая кухня", "узбекская кухня", "итальянская кухня", "индийская кухня", "морепродукты", "кофе", "десерты", "завтраки", "вино", "пиво", "кальян", "вид на море", "терраса", "банкетный зал", "живая музыка", "детская комната", "доставка", "халяль", "вегетарианское"];
 
+/** Те же метки по группам — для панели фильтров. */
+export const FOOD_TAG_GROUPS: { label: string; tags: string[] }[] = [
+  { label: "Кухня и блюда", tags: FOOD_TAGS.slice(0, FOOD_TAGS.indexOf("кофе")) },
+  { label: "Напитки и время", tags: ["кофе", "десерты", "завтраки", "вино", "пиво", "кальян"] },
+  { label: "Особенности", tags: ["вид на море", "терраса", "банкетный зал", "живая музыка", "детская комната", "доставка", "халяль", "вегетарианское", "круглосуточно"] },
+];
+
 /** Короткая справка из известных фактов — для карточек без описания. */
 export function placeSummary(p: Place, lang: Locale, catLabel: string): string {
   if (lang !== "ru") return "";
@@ -146,10 +153,87 @@ export function prettyHours(h: string, lang: Locale): string {
     Mo: { ru: "Пн", en: "Mon", ka: "ორშ" }, Tu: { ru: "Вт", en: "Tue", ka: "სამ" }, We: { ru: "Ср", en: "Wed", ka: "ოთხ" },
     Th: { ru: "Чт", en: "Thu", ka: "ხუთ" }, Fr: { ru: "Пт", en: "Fri", ka: "პარ" }, Sa: { ru: "Сб", en: "Sat", ka: "შაბ" }, Su: { ru: "Вс", en: "Sun", ka: "კვ" },
   };
+  const daily = lang === "ru" ? "Ежедневно" : lang === "ka" ? "ყოველდღე" : "Daily";
   return h
+    .replace(/\bMo-Su\b/g, daily)
     .replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, (d) => D[d][lang])
-    .replace(/\boff\b/gi, lang === "ru" ? "выходной" : lang === "ka" ? "დასვენება" : "closed")
+    .replace(/\boff\b|\bclosed\b/gi, lang === "ru" ? "выходной" : lang === "ka" ? "დასვენება" : "closed")
+    .replace(/\bPH\b/g, lang === "ru" ? "праздники" : lang === "ka" ? "დღესასწაულები" : "holidays")
+    .replace(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g, "$1–$2")
+    .replace(/([А-Яа-яA-Za-zა-ჰ]{2,3})-([А-Яа-яA-Za-zა-ჰ]{2,3})/g, "$1–$2")
     .replace(/;\s*/g, " · ");
+}
+
+/**
+ * Открыто ли сейчас (по времени Грузии, UTC+4) — для простых записей вида «Mo-Fr 09:00-18:00; Sa 10:00-15:00», «24/7».
+ * true/false — если удалось понять часы; null — если формат сложный (тогда ничего не показываем).
+ */
+export function openNow(h: string | null | undefined, now = new Date()): boolean | null {
+  if (!h) return null;
+  const s = h.trim();
+  if (s === "24/7") return true;
+  const DAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+  const g = new Date(now.getTime() + 4 * 3600_000); // Грузия: UTC+4 без перехода на летнее время
+  const day = (g.getUTCDay() + 6) % 7; // 0 = Пн
+  const min = g.getUTCHours() * 60 + g.getUTCMinutes();
+  const toMin = (t: string) => {
+    const [a, b] = t.split(":").map(Number);
+    return a * 60 + b;
+  };
+  const daySet = (spec: string): Set<number> | null => {
+    const out = new Set<number>();
+    for (const part of spec.split(",")) {
+      const m = part.trim().match(/^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/);
+      if (!m) return null;
+      const a = DAYS.indexOf(m[1]);
+      const b = m[2] ? DAYS.indexOf(m[2]) : a;
+      for (let i = a; ; i = (i + 1) % 7) {
+        out.add(i);
+        if (i === b) break;
+      }
+    }
+    return out;
+  };
+  // для каждого дня — интервалы; позднее правило перекрывает раннее (как в OSM)
+  const sched = new globalThis.Map<number, [number, number][] | "off">();
+  for (const rule of s.split(";").map((x) => x.trim()).filter(Boolean)) {
+    const m = rule.match(/^(?:([A-Za-z,\- ]+?)\s+)?((?:\d{1,2}:\d{2}-\d{1,2}:\d{2}(?:\s*,\s*)?)+|off|closed)$/);
+    if (!m) return null;
+    const days = m[1] ? daySet(m[1].replace(/\s+/g, "")) : new Set([0, 1, 2, 3, 4, 5, 6]);
+    if (!days) return null;
+    const val: [number, number][] | "off" = /off|closed/.test(m[2]) ? "off" : m[2].split(",").map((x) => x.trim().split("-").map(toMin) as [number, number]);
+    for (const d of days) sched.set(d, val);
+  }
+  if (!sched.size) return null;
+  const inRange = (d: number, t: number, overnightOnly: boolean) => {
+    const v = sched.get(d);
+    if (!v || v === "off") return false;
+    return v.some(([a, b]) => {
+      const end = b <= a ? b + 1440 : b; // «до 02:00» — после полуночи
+      return overnightOnly ? end > 1440 && t + 1440 < end : t >= a && t < end;
+    });
+  };
+  return inRange(day, min, false) || inRange((day + 6) % 7, min, true);
+}
+
+/** Значок для заведения без фото — по виду места. */
+export function foodEmoji(sub: string | null | undefined): string {
+  const s = (sub ?? "").toLowerCase();
+  if (/кофейн/.test(s)) return "☕";
+  if (/паб|пив/.test(s)) return "🍺";
+  if (/лаунж/.test(s)) return "🍸";
+  if (/бар/.test(s)) return "🍷";
+  if (/быстр|фастфуд/.test(s)) return "🍔";
+  if (/морожен/.test(s)) return "🍨";
+  if (/кондитер|выпеч|пекар/.test(s)) return "🧁";
+  if (/кафе/.test(s)) return "🥐";
+  return "🍽";
+}
+
+/** Подпись вида места: «Заведение питания» из карт звучит казённо. */
+export function subLabel(sub: string | null | undefined): string | null {
+  if (!sub) return null;
+  return sub === "Заведение питания" ? "Кафе-ресторан" : sub;
 }
 
 /** Заголовок раздела «Места» для города или всей Грузии. */
