@@ -233,6 +233,10 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
             value={city}
             onChange={(e) => {
               const v = e.target.value;
+              // Запоминаем выбор: главная потом сразу откроется на этом городе (или на всей Грузии)
+              try {
+                document.cookie = `nm_city=${v}; path=/; max-age=31536000; samesite=lax`;
+              } catch {}
               const q = home ? (v === "all" ? "" : `?city=${v}`) : v === "batumi" ? "" : `?city=${v}`;
               // на главной сохраняем выбранное направление без своей страницы
               router.push(pageCat ? `/${lang}/services/${pageCat}${q}#masters` : `/${lang}${q}#masters`);
