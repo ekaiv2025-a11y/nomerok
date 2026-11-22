@@ -13,6 +13,7 @@ export const OSM_GROUPS = {
   health: { label: "🏥 Клиники, больницы, стоматологии, аптеки, лаборатории" },
   public: { label: "🏛 Дом юстиции, мэрия, нотариусы, полиция, суды, почта, посольства" },
   education: { label: "🎓 Школы, детские сады, колледжи и университеты" },
+  food: { label: "🍽 Рестораны, кафе, кофейни, бары, фастфуд" },
 } as const;
 export type OsmGroup = keyof typeof OSM_GROUPS;
 
@@ -24,6 +25,7 @@ const FILTERS: Record<OsmGroup, string[]> = {
   health: ['["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]', '["healthcare"~"^(laboratory|hospital|clinic|centre|dentist)$"]'],
   public: ['["office"="notary"]', '["amenity"~"^(townhall|police|courthouse|post_office|embassy)$"]', '["office"~"^(government|diplomatic)$"]'],
   education: ['["amenity"~"^(kindergarten|school|college|university)$"]'],
+  food: ['["amenity"~"^(restaurant|cafe|bar|pub|fast_food|ice_cream)$"]'],
 };
 
 export function overpassQuery(city: string, groups: OsmGroup[]): string {
@@ -59,7 +61,33 @@ export function classify(t: Record<string, string>): { cat: string; sub: string 
   if (a === "kindergarten") return { cat: "education", sub: "Детский сад" };
   if (a === "school") return { cat: "education", sub: "Школа" };
   if (a === "college" || a === "university") return { cat: "education", sub: "Колледж, университет" };
+  if (a === "restaurant") return { cat: "food", sub: "Ресторан" };
+  if (a === "cafe") return { cat: "food", sub: /coffee/.test(t.cuisine ?? "") ? "Кофейня" : "Кафе" };
+  if (a === "bar") return { cat: "food", sub: "Бар" };
+  if (a === "pub") return { cat: "food", sub: "Паб" };
+  if (a === "fast_food") return { cat: "food", sub: "Быстрое питание" };
+  if (a === "ice_cream") return { cat: "food", sub: "Мороженое" };
   return null;
+}
+
+// кухня из OSM → метки фильтра «Кухня и особенности»
+const CUISINE: [RegExp, string][] = [
+  [/georgian/, "грузинская кухня"], [/khinkali/, "хинкали"], [/khachapuri/, "хачапури"], [/barbecue|grill|shashlik/, "шашлык"],
+  [/asian|chinese|japanese|thai|korean|vietnamese/, "азиатская кухня"], [/sushi/, "суши"], [/pizza/, "пицца"], [/burger/, "бургеры"],
+  [/kebab|shawarma|doner/, "шаурма и донер"], [/turkish/, "турецкая кухня"], [/uzbek/, "узбекская кухня"], [/italian/, "итальянская кухня"],
+  [/indian/, "индийская кухня"], [/seafood|fish/, "морепродукты"], [/coffee/, "кофе"], [/dessert|cake|pastry|ice_cream/, "десерты"], [/breakfast/, "завтраки"],
+];
+function foodTags(t: Record<string, string>): string[] {
+  const c = (t.cuisine ?? "").toLowerCase();
+  const out = CUISINE.filter(([re]) => re.test(c)).map(([, x]) => x);
+  if (t.opening_hours === "24/7") out.push("круглосуточно");
+  if (t["diet:halal"] === "yes" || t["diet:halal"] === "only") out.push("халяль");
+  if (t["diet:vegetarian"] === "yes" || t["diet:vegetarian"] === "only" || t["diet:vegan"] === "yes") out.push("вегетарианское");
+  if (t.delivery === "yes") out.push("доставка");
+  if (t.outdoor_seating === "yes") out.push("терраса");
+  if (t.amenity === "pub" || /beer/.test(c)) out.push("пиво");
+  if (/wine/.test(c) || t.drink?.includes("wine")) out.push("вино");
+  return [...new Set(out)];
 }
 
 const split = (v?: string) => (v ?? "").split(/[;,]/).map((x) => x.trim()).filter(Boolean);
@@ -104,6 +132,7 @@ export function osmToRows(json: unknown, city: string): OsmRow[] {
       socials: fb ? [fb] : [],
       email: t.email || t["contact:email"] || null,
       hours: t.opening_hours || null,
+      ...(k.cat === "food" ? { tags: foodTags(t) } : {}),
       src: "OSM",
       area: city,
       city,

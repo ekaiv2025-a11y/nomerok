@@ -147,7 +147,7 @@ export async function importOsmCity(city: string, groups: import("./osm-import")
   const sb = supabase();
   if (sb) {
     for (let from = 0; ; from += 1000) {
-      const r = await sb.from("places").select("id,slug,name,name_en,name_ka,lat,lng,cat").eq("city", city).in("cat", ["health", "public", "education", "business", "delivery", "services"]).order("id").range(from, from + 999);
+      const r = await sb.from("places").select("id,slug,name,name_en,name_ka,lat,lng,cat").eq("city", city).in("cat", ["health", "public", "education", "business", "delivery", "services", "food"]).order("id").range(from, from + 999);
       if (r.error) break;
       existing = existing.concat((r.data as Lite[]) ?? []);
       if ((r.data ?? []).length < 1000) break;

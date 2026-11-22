@@ -1,1 +1,8 @@
-{ "batches": [] }
+{
+ "batches": [
+  {
+   "id": "2026-11-22-07",
+   "csv": "id,work_status,name_ru,addr_ru,phones,site,instagram,facebook,other_links,hours,desc_ru,desc_en,tags,sources,checked\nBAT-2BD18CD9EB7B,,,,,,,,,,\"Кафе на улице 26 Мая, где главное блюдо — хачапури по-аджарски: лодочка из теста с сыром, сливочным маслом и яйцом. По данным открытых карт работает каждый день с 8:00 до полуночи.\",\"A café on 26 May Street focused on Adjarian khachapuri — a boat-shaped bread with cheese, butter and egg. Open daily 08:00–24:00 according to open map data.\",,,2026-11-22\nCOL-010,,,,,,,,,,\"Небольшой ресторан грузинской кухни на улице Костава, 24. По данным открытых карт работает каждый день с 11:00 до 23:00.\",\"A small Georgian restaurant at 24 Kostava Street, open daily 11:00–23:00 according to open map data.\",,,2026-11-22\nCOL-011,,,,,,,,,,\"Ресторан традиционной грузинской кухни на улице Горгиладзе, 78: хинкали, хачапури и другие классические грузинские блюда.\",\"A traditional Georgian restaurant at 78 Gorgiladze Street serving khinkali, khachapuri and other classic dishes.\",,,2026-11-22\n"
+  }
+ ]
+}
