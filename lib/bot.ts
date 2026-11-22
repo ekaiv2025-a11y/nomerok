@@ -24,6 +24,7 @@ import {
 } from "./db";
 import { daysFromToday, formatDay, isAwayNow, servesCategory, todayTbilisi } from "./availability";
 import { hasReviewFrom, listRequestsForDirectCheck, listRequestsForFollowup, listStaleWithoutTg } from "./reviews-db";
+import { isBlockedPhone, spamReasons } from "./spam";
 import { reviewToken } from "./signed";
 import { clientLoginToken } from "./client-auth";
 import { sub } from "./sub-text";
@@ -1232,7 +1233,7 @@ export async function runFollowups() {
   const list = await listRequestsForFollowup();
   for (const r of list) {
     const chatId = r.client_tg_chat_id;
-    if (!chatId || r.status === "spam") continue;
+    if (!chatId || (await skipFollowup(r))) continue;
     const b = botDict(r.lang);
     const age = now - new Date(r.created_at).getTime();
     const short = esc(r.description.slice(0, 60));
@@ -1277,13 +1278,27 @@ export async function runFollowups() {
   }
   // Клиенты без Telegram: им написать не можем — предупреждаем администратора, чтобы позвонил сам
   for (const r of await listStaleWithoutTg().catch(() => [])) {
-    if (now - new Date(r.created_at).getTime() <= 20 * HOUR) continue;
+    if (now - new Date(r.created_at).getTime() <= 20 * HOUR || (await skipFollowup(r))) continue;
     const short = esc(r.description.slice(0, 60));
     await notifyAdmin(`⏰ Заявку «${short}» за сутки никто не взял, а Telegram у клиента не подключён — позвоните ему сами: ${esc(r.name || "—")}, ${esc(formatPhone(r.phone))}.${await gapNote(r)}\n${siteUrl()}/admin`);
     await updateRequest(r.id, { followup_at: new Date().toISOString() });
     out.noResponse++;
   }
   return out;
+}
+
+/**
+ * Заявки, по которым напоминать не нужно: спам (в том числе старый, пришедший до фильтра — помечаем его сейчас),
+ * заблокированный номер, ещё не одобренная администратором или отклонённая заявка.
+ */
+async function skipFollowup(r: ClientRequest): Promise<boolean> {
+  if (r.status === "spam") return true;
+  if ("approved_at" in r && !r.approved_at) return true;
+  if (spamReasons(r.description, r.name ?? "").length || (await isBlockedPhone(r.phone).catch(() => false))) {
+    await updateRequest(r.id, { status: "spam" }).catch(() => null);
+    return true;
+  }
+  return false;
 }
 
 /** До 4 анкет направления и города заявки (порядок как в каталоге: бонусы, потом случайно). */
