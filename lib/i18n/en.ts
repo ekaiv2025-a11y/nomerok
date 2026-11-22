@@ -187,7 +187,7 @@ const en: Dict = {
     filled: "Filled in from Telegram, number verified ✓",
     phoneLocked: "Number from Telegram. If clients should call another number — change it",
     gateTitle: "Fastest: sign up with Telegram",
-    gateText: "The bot verifies your number, fills in your name and photo, and requests arrive instantly. It takes 1 minute: Registration is free. Your number is for clients to call you — we don't call or send SMS.",
+    gateText: "The bot verifies your number, fills in your name and photo, and requests arrive instantly. Registration is free. Your number is for clients to call you — we don't call or send SMS. It takes 1 minute:",
     gateSteps: ["Tap the button below — the NomerOk bot opens, tap “Start”", "Tap “📱 Share phone number”", "The bot sends a link — it opens your profile form with number, username and photo filled in"],
     gateBtn: "Sign up with Telegram",
     gateNoTg: "No Telegram? Please install it — requests are delivered only there.",
