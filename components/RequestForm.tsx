@@ -7,7 +7,7 @@ import { getDict, href, type Locale } from "@/lib/i18n";
 import { CategoryOptions } from "./CategoryOptions";
 import { ContactFields, Field, Honeypot, LinkedNote, PHOTO_TEXT, TelegramStep, fc, uploadRequestPhotos, useSubmit } from "./form-kit";
 import { PhotoPicker } from "./PhotoPicker";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { detectIntent } from "@/lib/search-intent";
 import { categoryLabel } from "@/lib/categories";
 import { CategoryIcon } from "@/lib/category-icons";
@@ -28,6 +28,43 @@ const PICK = {
   en: { auto: "matched from your description", change: "Change", tap: "Pick one or just describe the task above — we'll match it", notSure: "Couldn't tell from the description — pick who you need:", all: "All categories…" },
   ka: { auto: "შერჩეულია აღწერით", change: "შეცვლა", tap: "აირჩიეთ ან უბრალოდ აღწერეთ ამოცანა ზემოთ — თავად შევარჩევთ", notSure: "აღწერით ვერ გავიგეთ — აირჩიეთ, ვინ გჭირდებათ:", all: "ყველა მიმართულება…" },
 } as const;
+const PICK_EMPTY = {
+  ru: "Нажмите задачу выше или опишите своими словами — подберём направление сами.",
+  en: "Tap a task above or describe it in your own words — we'll match the category.",
+  ka: "აირჩიეთ ამოცანა ზემოთ ან აღწერეთ — მიმართულებას თავად შევარჩევთ.",
+} as const;
+const QUICK: Record<"ru" | "en" | "ka", { cat: string; label: string; text: string }[]> = {
+  ru: [
+    { cat: "plumber", label: "🚰 Сантехника", text: "Нужен сантехник: " },
+    { cat: "electrician", label: "💡 Электрика", text: "Нужен электрик: " },
+    { cat: "handyman", label: "🔧 Мастер на час", text: "Нужен мастер на час: " },
+    { cat: "appliances", label: "🧺 Ремонт техники", text: "Сломалась техника: " },
+    { cat: "cleaning", label: "🧽 Уборка", text: "Нужна уборка: " },
+    { cat: "repair", label: "🏠 Ремонт квартиры", text: "Нужен ремонт: " },
+    { cat: "tutor", label: "📚 Репетитор", text: "Ищу репетитора по " },
+    { cat: "beauty", label: "💅 Красота", text: "Ищу мастера: " },
+  ],
+  en: [
+    { cat: "plumber", label: "🚰 Plumbing", text: "Need a plumber: " },
+    { cat: "electrician", label: "💡 Electrics", text: "Need an electrician: " },
+    { cat: "handyman", label: "🔧 Handyman", text: "Need a handyman: " },
+    { cat: "appliances", label: "🧺 Appliance repair", text: "Appliance broke: " },
+    { cat: "cleaning", label: "🧽 Cleaning", text: "Need cleaning: " },
+    { cat: "repair", label: "🏠 Renovation", text: "Need renovation: " },
+    { cat: "tutor", label: "📚 Tutor", text: "Looking for a tutor in " },
+    { cat: "beauty", label: "💅 Beauty", text: "Looking for a master: " },
+  ],
+  ka: [
+    { cat: "plumber", label: "🚰 სანტექნიკა", text: "მჭირდება სანტექნიკოსი: " },
+    { cat: "electrician", label: "💡 ელექტრიკა", text: "მჭირდება ელექტრიკოსი: " },
+    { cat: "handyman", label: "🔧 ხელოსანი", text: "მჭირდება ხელოსანი: " },
+    { cat: "appliances", label: "🧺 ტექნიკის შეკეთება", text: "გაფუჭდა ტექნიკა: " },
+    { cat: "cleaning", label: "🧽 დალაგება", text: "მჭირდება დალაგება: " },
+    { cat: "repair", label: "🏠 რემონტი", text: "მჭირდება რემონტი: " },
+    { cat: "tutor", label: "📚 რეპეტიტორი", text: "ვეძებ რეპეტიტორს: " },
+    { cat: "beauty", label: "💅 სილამაზე", text: "ვეძებ ოსტატს: " },
+  ],
+};
 const POPULAR = ["handyman", "plumber", "electrician", "appliances", "repair", "cleaning", "beauty", "tutor", "doctor", "moving"];
 
 type Props = { lang: Locale; defaultCategory?: string; defaultCity?: string; defaultText?: string; org?: string; me?: { name: string; phone: string } | null };
@@ -40,6 +77,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
   const [files, setFiles] = useState<File[]>([]);
   const [catSel, setCatSel] = useState<string>("");
   const [desc, setDesc] = useState(defaultText ?? "");
+  const descRef = useRef<HTMLTextAreaElement | null>(null);
   const [photoErr, setPhotoErr] = useState("");
   const [uploading, setUploading] = useState(false);
   const [selfOk, setSelfOk] = useState(false);
@@ -141,7 +179,32 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
         optional={cat === "realtor" ? d.form.optional : undefined}
         error={errors.description}
       >
-        <textarea name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={cat === "realtor" ? realtyText(lang).notesPh : t.whatPlaceholder} required={cat !== "realtor"} />
+        {!desc.trim() && cat !== "realtor" && (
+          // Быстрый старт: на поле описания уходит больше всего людей — даём начало фразы одним нажатием
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {QUICK[lang].filter((q) => !initialCat || q.cat === initialCat).map((q) => (
+              <button
+                key={q.label}
+                type="button"
+                onClick={() => {
+                  setDesc(q.text);
+                  setCatSel(q.cat);
+                  requestAnimationFrame(() => {
+                    const el = descRef.current;
+                    if (el) {
+                      el.focus();
+                      el.setSelectionRange(q.text.length, q.text.length);
+                    }
+                  });
+                }}
+                className="rounded-full border border-line bg-white px-3 py-1.5 text-[13.5px] hover:border-brand"
+              >
+                {q.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <textarea ref={descRef} name="description" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} className={fc(errors.description)} placeholder={cat === "realtor" ? realtyText(lang).notesPh : t.whatPlaceholder} required={cat !== "realtor"} />
         {cat && cat !== "realtor" && desc.trim().length < 80 && (
           <div className="mt-2 rounded-xl bg-cream px-3 py-2.5 text-[13px] leading-snug">
             <p className="font-semibold">{HINT_TITLE[lang]}</p>
@@ -179,6 +242,9 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
               {PICK[lang].change}
             </button>
           </div>
+        ) : !desc.trim() && !pick && !errors.category ? (
+          // Пока описание пустое — кнопки быстрого старта уже над полем, второй ряд кнопок не дублируем
+          <p className="text-[13px] text-muted">{PICK_EMPTY[lang]}</p>
         ) : (
           <div>
             <p className="mb-2 text-[13px] text-muted">{desc.trim().length >= 3 && !auto ? PICK[lang].notSure : PICK[lang].tap}</p>
