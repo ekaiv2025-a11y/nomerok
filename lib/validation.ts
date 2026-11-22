@@ -50,8 +50,10 @@ export function requestSchema(lang: Locale) {
     master_slug: z.string().trim().max(80).optional().or(z.literal("")),
     ...antiSpam,
   }).superRefine((v, ctx) => {
-    // Общая заявка (не личное сообщение): просим описать задачу хотя бы парой фраз
-    if (!v.master_slug && v.category !== "realtor" && v.description.length < 25) ctx.addIssue({ code: "custom", path: ["description"], message: e.describeMore });
+    // Короткие описания («Нужен сантехник») раньше отклонялись (меньше 25 знаков) — на этом поле терялись клиенты.
+    // Теперь хватает 10 знаков (общее правило выше); подсказки «что добавить» под полем остаются.
+    void v;
+    void ctx;
   });
 }
 
