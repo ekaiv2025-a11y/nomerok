@@ -6,6 +6,7 @@ import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { subcatLine } from "@/lib/subcats";
 import { cardSummary } from "@/lib/card-summary";
+import { cityLabel } from "@/lib/cities";
 import { FREE_TEXT, freeDay } from "@/lib/slots";
 
 const MODE: Record<string, Record<Locale, string>> = {
@@ -40,6 +41,9 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
   // Адрес на карточке — без названия города (город и так выбран): «Сабуртало, ул. Ионы Вакели, 1»
   const addr = (m.place_address ?? "").trim().replace(/^(Батуми|Тбилиси|Кутаиси|Рустави|Кобулети|Зугдиди|Поти|Гори|Телави|Боржоми|Batumi|Tbilisi|Kutaisi),\s*/i, "");
   const line = subcatLine(m, lang) ?? categoryLabel(m.category, lang);
+  // Город — всегда на карточке: в «Вся Грузия» и в общих списках иначе непонятно, откуда специалист
+  const city = cityLabel(m.city ?? "batumi", lang);
+  const where = atPlace && addr ? `${city}, ${addr}` : city;
   // Не повторяем под специальностью то же самое слово («Кардиолог» / «Кардиолог»)
   const norm = (x: string) => x.toLowerCase().replace(/[^a-zа-яёა-ჰ0-9]+/gi, " ").trim();
   const lineParts = new Set([norm(line), ...line.split(/[,()·]/).map(norm)].filter(Boolean));
@@ -57,7 +61,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
     .join(" · ");
   // Анкеты из открытых реестров (нотариусы): вместо одинакового списка услуг — адрес и часы работы
   const registry = m.imported && !!m.work_hours?.trim();
-  const mode = !atPlace ? MODE[m.work_mode === "both" ? "at_client" : m.work_mode]?.[lang] : null;
+  const mode = !atPlace ? MODE[m.work_mode === "both" ? "at_client" : m.work_mode]?.[lang] : addr ? null : `🏠 ${t.atPlace}`;
   const langs = (m.languages ?? []).map((l) => LANG_SHORT[l]).filter(Boolean);
   const prices = m.price_list ?? [];
   // Вертикальная карточка: фото сверху, ниже — кто это, чем занимается и цена. Вся карточка ведёт в профиль.
@@ -123,16 +127,16 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
         ) : (
           registry ? (
             <div className="mt-1.5 space-y-0.5 text-[13px] leading-snug text-[#3a3935]">
-              {addr && <p className="line-clamp-2 font-medium">📍 {addr}</p>}
+              <p className="line-clamp-2 font-medium">📍 {addr ? `${city}, ${addr}` : city}</p>
               <p className="line-clamp-2 text-muted">🕒 {m.work_hours}</p>
             </div>
           ) : (
             summary && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-[#3a3935]">{summary}</p>
           )
         )}
-        {((atPlace && !registry) || mode || langs.length > 0) && (
+        {(!registry || mode || langs.length > 0) && (
           <div className="mt-2 flex max-h-[22px] flex-wrap gap-1 overflow-hidden sm:max-h-none">
-            {atPlace && !registry && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">📍 {addr || t.atPlace}</span>}
+            {!registry && <span className="max-w-full truncate rounded-full bg-cream px-2 py-0.5 text-[11px] font-medium text-ink/80">📍 {where}</span>}
             {mode && <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted">{mode}</span>}
             {langs.length > 0 && <span className="hidden rounded-full bg-cream px-2 py-0.5 text-[11px] text-muted sm:inline">🗣 {langs.join(" · ")}</span>}
           </div>
