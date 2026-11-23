@@ -7,7 +7,6 @@ import { Menu, Users, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { SOCIAL } from "@/lib/social-text";
 import { MY } from "@/lib/my-text";
-import { ORD } from "@/lib/orders-text";
 import { PH } from "@/lib/phones";
 import { PT } from "@/lib/places";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -49,7 +48,6 @@ export function Header({ lang }: { lang: Locale }) {
   const links = [
     { href: href(lang), label: t.nav.allSpecialists },
     { href: href(lang, "/request"), label: t.nav.leaveRequest },
-    { href: href(lang, "/orders"), label: "🔥 " + ORD[lang].nav },
     { href: href(lang, "/my"), label: "📋 " + MY[lang].nav },
     { href: href(lang, "/favorites"), label: "❤️ " + SOCIAL[lang].fav },
     { href: href(lang, "/recommend"), label: "🤝 " + SOCIAL[lang].recLink },
@@ -85,8 +83,8 @@ export function Header({ lang }: { lang: Locale }) {
               <Users className="h-5 w-5 text-brand" />
               <span className="hidden whitespace-nowrap xl:inline">{t.nav.allSpecialists}</span>
             </Link>
-            <Link href={href(lang, "/orders")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
-              {ORD[lang].nav}
+            <Link href={href(lang, "/realty")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink lg:inline-flex">
+              {lang === "ru" ? "Недвижимость" : lang === "en" ? "Property" : "უძრავი ქონება"}
             </Link>
             {lang === "ru" && (
               <Link href={href(lang, "/guide")} className="hidden h-10 items-center whitespace-nowrap px-3 text-[14px] font-medium text-muted hover:text-ink xl:inline-flex">

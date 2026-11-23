@@ -15,7 +15,8 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = await langOf(params);
   const s = ORDERS_SEO[lang];
-  return pageMeta(lang, "/orders", s.title, s.description);
+  // раздел убран из меню (23.11.2026) — страница остаётся для специалистов по прямым ссылкам, в поиск не отдаём
+  return { ...pageMeta(lang, "/orders", s.title, s.description), robots: { index: false, follow: true } };
 }
 
 const ALL = { ru: "Все", en: "All", ka: "ყველა" } as const;

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { SOCIAL } from "@/lib/social-text";
 import { MY } from "@/lib/my-text";
-import { ORD } from "@/lib/orders-text";
 import { PH } from "@/lib/phones";
 import { getDict, href, type Locale } from "@/lib/i18n";
 import { SITE_NAME } from "@/lib/site";
@@ -34,7 +33,6 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/">{t.all}</L>
             <L to="/request">{t.leaveRequest}</L>
             <L to="/how">{t.how}</L>
-            <L to="/orders">{ORD[lang].title}</L>
             <L to="/my">{MY[lang].nav}</L>
             <L to="/favorites">{SOCIAL[lang].fav}</L>
             <L to="/recommend">{SOCIAL[lang].recLink}</L>
