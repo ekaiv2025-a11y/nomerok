@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { priceHistory } from "@/lib/realty-extras-db";
+import { PriceChart } from "@/components/PriceChart";
+import { InstallmentCalc } from "@/components/InstallmentCalc";
+import { AlertButton } from "@/components/AlertButton";
+import { CompareBar, CompareToggle } from "@/components/CompareProjects";
 import { getProjectFull, allProjects } from "@/lib/projects-all";
 import { UnitsBrowser } from "@/components/UnitsBrowser";
 import { DevLeadForm } from "@/components/DevLeadForm";
@@ -45,6 +50,8 @@ export default async function ProjectPage({ params }: Props) {
   const full = await getProjectFull(slug);
   if (lang !== "ru" || !full) notFound();
   const { p, dev: devProj, units } = full;
+  // история цены за м² (пишется раз в день, см. lib/realty-daily.ts)
+  const priceHist = (await priceHistory(p.slug).catch(() => [])).filter((x) => x.per_m2).map((x) => ({ day: x.day, v: x.per_m2! }));
   const st = PROJECT_STATUS[p.status];
   // то же фото, что в списке (у каждого ЖК своё)
   // фото застройщика из кабинета важнее загруженных в админке
@@ -112,6 +119,11 @@ export default async function ProjectPage({ params }: Props) {
         ЖК {p.name} {where(p)}
       </h1>
       <p className="mt-2 max-w-3xl text-[16px] leading-relaxed text-[#3a3935] sm:text-[18px]">{p.lead}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <CompareToggle slug={p.slug} big />
+        <AlertButton project={p.slug} />
+      </div>
+      <CompareBar />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
@@ -159,6 +171,11 @@ export default async function ProjectPage({ params }: Props) {
             <p className="mt-2 text-[12px] text-muted">
               Цены — на {p.price.date}. Актуальные условия уточняйте по заявке.
             </p>
+          )}
+          {priceHist.length >= 2 && (
+            <section className="mt-6">
+              <PriceChart points={priceHist} />
+            </section>
           )}
           {p.features && p.features.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
@@ -313,7 +330,7 @@ export default async function ProjectPage({ params }: Props) {
           </section>
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           {devProj ? (
             <div className="space-y-4">
               <div className="rounded-3xl border border-line bg-white p-5">
@@ -340,6 +357,10 @@ export default async function ProjectPage({ params }: Props) {
               <ProjectLeadForm project={p.slug} projectName={`ЖК ${p.name}`} city={p.city} />
             </div>
           )}
+          <div>
+            <p className="mb-2 text-[15px] font-semibold">🧮 Сколько платить в месяц</p>
+            <InstallmentCalc price={p.price?.currency !== "GEL" ? p.price?.from : undefined} />
+          </div>
         </aside>
       </div>
 

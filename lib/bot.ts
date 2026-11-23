@@ -372,6 +372,20 @@ async function onStart(msg: TgMessage, payload: string) {
     return askContact(m, chatId);
   }
 
+  // Подписка «сообщать о новых квартирах»: t.me/бот?start=al_КОД (кнопка на странице ЖК или новостроек)
+  if (payload.startsWith("al_")) {
+    const { alertByToken, updateAlert, activeAlerts } = await import("./realty-extras-db");
+    const { alertText } = await import("./realty-daily");
+    const a = await alertByToken(payload.slice(3));
+    if (!a) return sendTo(chatId, "Ссылка устарела — нажмите «🔔 Сообщать о новых квартирах» на сайте ещё раз.");
+    if ((await activeAlerts(chatId)).length >= 10) return sendTo(chatId, "У вас уже 10 подписок — отпишитесь от лишних командой /alerts.");
+    await updateAlert(a.id, { chat_id: chatId, active: true, last_sent_at: new Date().toISOString() });
+    const name = a.project ? (await import("./projects-all").then((m) => m.getProjectFull(a.project!)))?.p.name : undefined;
+    return sendTo(chatId, `🔔 Готово! Раз в день пришлём новые квартиры: ${esc(alertText(a, name))}.
+
+Все подписки и отписка — команда /alerts.`);
+  }
+
   // Написал через форму «Написать нам» и подключил Telegram, чтобы получить ответ: t.me/бот?start=fb_КОД
   if (payload.startsWith("fb_")) {
     const lang = guessLang(from);
@@ -1452,6 +1466,13 @@ async function onText(msg: TgMessage) {
     const t = DEL_T[(["ru", "en", "ka"].includes(lang) ? lang : "ru") as "ru" | "en" | "ka"];
     return sendTo(chatId, t.ask, [[{ text: t.pause, callback_data: "del:pause" }], [{ text: t.del, callback_data: "del:ask" }]]);
   }
+  if (text === "/alerts" || text.startsWith("/alerts@")) {
+    const { activeAlerts } = await import("./realty-extras-db");
+    const { alertText } = await import("./realty-daily");
+    const list = await activeAlerts(chatId);
+    if (!list.length) return sendTo(chatId, "Подписок на новые квартиры нет. Подписаться можно на странице любого ЖК или в разделе «Новостройки» — кнопка «🔔 Сообщать о новых квартирах».");
+    return sendTo(chatId, `🔔 Ваши подписки на новые квартиры (${list.length}):`, list.map((a) => [{ text: `✖ ${alertText(a).slice(0, 50)}`, callback_data: `alx:${a.id}` }]));
+  }
   if (text === "/free" || text.startsWith("/free@")) {
     if (!masters[0]) return sendTo(chatId, b.notSpecialistShort);
     return askSlots(masters[0]);
@@ -1526,6 +1547,14 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data.startsWith("ap:") || data.startsWith("rj:")) return void (await onModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
     if (data.startsWith("lp:") || data.startsWith("lr:")) return void (await onListingModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
     if (data.startsWith("dp:") || data.startsWith("dr:")) return void (await onDevModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
+    if (data.startsWith("alx:")) {
+      const cb = u.callback_query;
+      const { activeAlerts, updateAlert } = await import("./realty-extras-db");
+      const mine = (await activeAlerts(cb.from.id)).find((a) => a.id === data.slice(4));
+      if (mine) await updateAlert(mine.id, { active: false });
+      await tg("answerCallbackQuery", { callback_query_id: cb.id, text: mine ? "Отписались ✓" : "Уже отписаны" });
+      return;
+    }
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
@@ -1728,6 +1757,7 @@ export async function setupBot(baseUrl: string, secret: string): Promise<{ ok: b
       commands: [
         { command: "cabinet", description: b.commands.cabinet },
         { command: "free", description: b.commands.free },
+        { command: "alerts", description: "Подписки на новые квартиры" },
         { command: "pause", description: b.commands.pause },
         { command: "resume", description: b.commands.resume },
         { command: "help", description: b.commands.help },

@@ -146,6 +146,7 @@ export async function healthCheck() {
           ["0058 город в поиске", "search_log", "found_all"],
           ["0059 объявления от всех", "listings", "poster_kind"],
           ["0060 кабинет застройщика", "dev_projects", "mod_status"],
+          ["0061 история цен и уведомления", "re_alerts", "token"],
         ];
         const res: Record<string, string> = {};
         for (const [name, table, col] of probes) {

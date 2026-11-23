@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { AlertButton } from "@/components/AlertButton";
+import { CompareBar } from "@/components/CompareProjects";
 import { allProjects } from "@/lib/projects-all";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
-import { PROJECTS, PROJECT_STATUS, priceLine, projectPlace, type Project, type ProjectStatus } from "@/lib/projects";
+import { pimg, PROJECTS, PROJECT_STATUS, priceLine, projectPlace, type Project, type ProjectStatus } from "@/lib/projects";
 import { CITIES, cityIn, cityLabel, isCity } from "@/lib/cities";
 import { journalArticles } from "@/lib/journal";
 import { formatArticleDate } from "@/lib/articles";
@@ -75,10 +77,16 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
         ))}
       </div>
 
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <AlertButton city={city ?? undefined} label={`🔔 Сообщать о новых квартирах${city ? ` ${cityIn(city, "ru")}` : ""}`} />
+        <span className="text-[13px] text-muted">⚖️ Отметьте 2–3 ЖК кнопкой «Сравнить» на карточке — сравним цены, сроки и условия в одной таблице.</span>
+      </div>
+      <CompareBar />
+
       {list.length > 0 ? (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((p) => (
-            <ProjectCard key={p.slug} p={p} photo={photos.get(p.slug)} />
+            <ProjectCard key={p.slug} p={p} photo={photos.get(p.slug) ?? (p.images?.[0] ? { url: pimg(p.images[0].url, true), credit: p.images[0].credit, license: "", source: "", title: "dev" } : undefined)} />
           ))}
         </div>
       ) : (

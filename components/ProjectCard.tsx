@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PROJECT_STATUS, priceLine, projectPlace, type Project } from "@/lib/projects";
 import { cityLabel } from "@/lib/cities";
 import type { CommonsPhoto } from "@/lib/commons";
+import { CompareToggle } from "./CompareProjects";
 
 const label = (id: string) => cityLabel(id, "ru");
 
@@ -29,6 +30,9 @@ export function ProjectCard({ p, photo }: { p: Project; photo?: CommonsPhoto }) 
           </span>
         )}
         <span className={`absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${st.cls}`}>{st.label}</span>
+        <span className="absolute right-3 top-3">
+          <CompareToggle slug={p.slug} />
+        </span>
         {photo && photo.title !== "dev" && photo.title !== "own" && p.photo?.alt && <span className="absolute bottom-2 right-2 rounded-full bg-ink/60 px-2 py-0.5 text-[11px] text-white">{p.photo.alt}</span>}
       </span>
       <span className="flex flex-1 flex-col p-4 sm:p-5">

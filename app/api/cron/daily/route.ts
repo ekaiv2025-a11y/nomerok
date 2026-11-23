@@ -42,6 +42,8 @@ export async function GET(req: Request) {
     const geocoded = await geocodeImported(40).catch((e) => ({ error: String(e) }));
     // анкеты, удалённые специалистами больше 30 дней назад, — насовсем
     const purged = await purgeDeletedMasters().catch((e) => ({ error: String(e) }));
+    // новостройки: цена за м² за сегодня (график) и уведомления подписчикам о новых квартирах
+    const realtyDaily = await import("@/lib/realty-daily").then(async (m) => ({ prices: await m.recordProjectPrices().catch(() => -1), alerts: await m.sendRealtyAlerts().catch(() => -1) })).catch((e) => ({ error: String(e) }));
     // фото мест из пачек — скачиваем к себе (не дольше минуты, остальное — завтра)
     const placePhotos = await import("@/lib/place-photos").then((m) => m.rehostPlacePhotos(60_000)).catch((e) => ({ error: String(e) }));
     let funnel = false;
@@ -49,7 +51,7 @@ export async function GET(req: Request) {
       const s = await funnelSummary(7).catch(() => null);
       if (s && s.total > 0) funnel = await notifyAdmin(summaryText(s)).catch(() => false);
     }
-    return NextResponse.json({ ok: true, ...followups, translations, funnel, placesEnriched, staffImported, eventsImported, purged, registry, geocoded, placePhotos });
+    return NextResponse.json({ ok: true, ...followups, translations, funnel, placesEnriched, staffImported, eventsImported, purged, registry, geocoded, placePhotos, realtyDaily });
   } catch (e) {
     console.error("[cron]", e);
     return NextResponse.json({ ok: false, error: e instanceof Error ? e.message : String(e) }, { status: 500 });

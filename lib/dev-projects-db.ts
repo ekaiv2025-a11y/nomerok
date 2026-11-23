@@ -145,11 +145,16 @@ export async function unitsOf(projectId: string): Promise<DevUnit[]> {
  */
 export async function saveUnits(projectId: string, units: (Omit<DevUnit, "id" | "project_id" | "updated_at"> & { id?: string })[]): Promise<number> {
   const now = new Date().toISOString();
-  const rows: DevUnit[] = units.map((u) => ({ ...u, id: u.id && /^[0-9a-f-]{36}$/.test(u.id) ? u.id : randomUUID(), project_id: projectId, updated_at: now }));
+  const prevAll = await unitsOf(projectId).catch(() => [] as DevUnit[]);
+  const born = new Map(prevAll.map((u) => [u.id, u.created_at ?? now]));
+  const rows: DevUnit[] = units.map((u) => {
+    const id = u.id && /^[0-9a-f-]{36}$/.test(u.id) ? u.id : randomUUID();
+    return { ...u, id, project_id: projectId, updated_at: now, created_at: born.get(id) ?? now };
+  });
   pubCache = null;
   const sb = supabase();
   if (sb) {
-    const prev = await unitsOf(projectId);
+    const prev = prevAll;
     const keep = new Set(rows.map((r) => r.id));
     const gone = prev.filter((u) => !keep.has(u.id)).map((u) => u.id);
     for (let i = 0; i < gone.length; i += 200) await sb.from("dev_units").delete().in("id", gone.slice(i, i + 200));
@@ -175,4 +180,14 @@ export async function setUnitStatus(projectId: string, unitId: string, status: D
   const d = await local();
   d.dev_units = (d.dev_units ?? []).map((u) => (u.id === unitId && u.project_id === projectId ? { ...u, status } : u));
   await save(d);
+}
+
+/** Квартиры, добавленные после даты (для уведомлений «новые квартиры»). */
+export async function unitsCreatedSince(since: string): Promise<DevUnit[]> {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("dev_units").select("*").gt("created_at", since).eq("status", "free").limit(2000);
+    return r.error ? [] : (r.data as DevUnit[]).map((u) => ({ ...u, area: u.area == null ? null : Number(u.area), price: u.price == null ? null : Number(u.price) }));
+  }
+  return ((await local()).dev_units ?? []).filter((u) => (u.created_at ?? u.updated_at) > since && u.status === "free");
 }

@@ -47,6 +47,7 @@ export type DevUnit = {
   status: UnitStatus;
   plan_url: string | null;
   updated_at: string;
+  created_at?: string;
 };
 
 export const UNIT_STATUS: Record<UnitStatus, { label: string; cls: string; dot: string }> = {
