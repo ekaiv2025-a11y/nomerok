@@ -1,6 +1,244 @@
 {
   "batches": [
     {
+      "id": "2026-11-23-04",
+      "events": [
+        {
+          "title": "Спектакль «Я, бабушка, Илико и Иларион»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-23T00:00:00+04:00",
+          "venue": "Дом актёра имени Акакия Хорава",
+          "price": "от 25 ₾",
+          "url": "https://tkt.ge/show/33730/me-bebia-iliko-da-ilarioni",
+          "description": "Спектакль по повести Нодара Думбадзе о детстве мальчика в грузинской деревне военных лет, его бабушке и соседях Илико и Иларионе — основа одноимённого советского фильма 1962 года.",
+          "source": "https://yolo.ge/en/poster/me-grandma-iliko-and-ilarion345678"
+        },
+        {
+          "title": "Спектакль «Мама» Флориана Зеллера",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-23T00:00:00+04:00",
+          "venue": "Театр имени Котэ Марджанишвили",
+          "price": "от 30 ₾",
+          "url": "https://tkt.ge/show/16929/florian-zeleris-deda",
+          "description": "Психологическая драма французского драматурга Флориана Зеллера о матери, тяжело переживающей отъезд взрослых детей из дома. Зеллер — автор пьес «Отец» и «Сын», позже экранизированных в кино.",
+          "source": "https://yolo.ge/en/poster/florian-zeleris-deda45678"
+        },
+        {
+          "title": "Концерт «В поисках нового звучания»: Дебюсси и Прокофьев",
+          "city": "tbilisi",
+          "kind": "concert",
+          "starts_at": "2026-11-23T00:00:00+04:00",
+          "venue": "Театр марионеток Резо Габриадзе",
+          "price": "от 75 ₾",
+          "url": "https://tkt.ge/show/35629/akhali-zhgheradobis-dziebashi-debiusi-prokofievi",
+          "description": "Концерт классической музыки с произведениями Клода Дебюсси и Сергея Прокофьева на сцене Театра марионеток Резо Габриадзе в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/in-search-of-a-new-sound-debussy-prokofiev23456"
+        },
+        {
+          "title": "Премьера спектакля «Дом под августовским солнцем»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-24T00:00:00+04:00",
+          "venue": "Liberty Theatre",
+          "price": "от 34.99 ₾",
+          "url": "https://tkt.ge/show/23629/sakhliagvistosmzeze",
+          "description": "Премьера новой постановки на сцене Liberty Theatre в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/the-house-in-the-august-sun-premiere56875668"
+        },
+        {
+          "title": "Спектакль «Медея»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-24T00:00:00+04:00",
+          "venue": "Театр имени Котэ Марджанишвили",
+          "price": "от 35 ₾",
+          "url": "https://biletebi.ge/marjanishvili-theatre-skveni/medea",
+          "description": "Постановка античной трагедии Еврипида о Медее, которая мстит неверному мужу Ясону, убив их детей.",
+          "source": "https://yolo.ge/en/poster/medea65675765757"
+        },
+        {
+          "title": "Спектакль «Амаркорд»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-24T00:00:00+04:00",
+          "venue": "Theatre Factory 42",
+          "price": "от 33 ₾",
+          "url": "https://tkt.ge/show/24107/amarkordi",
+          "description": "Спектакль «Амаркорд» на сцене Theatre Factory 42 в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/amarcord574754"
+        },
+        {
+          "title": "Спектакль «Укрощение строптивой, или Феличита»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-24T00:00:00+04:00",
+          "venue": "Театр «Цисквили»",
+          "price": "от 150 ₾",
+          "url": "https://biletebi.ge/concerts/the-taming-of-the-shrew-or-felicit-chirveulis",
+          "description": "Комедийный спектакль по мотивам пьесы Шекспира «Укрощение строптивой» на сцене театра «Цисквили» в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/the-taming-of-the-shrew-or-felicita345678"
+        },
+        {
+          "title": "Спектакль «Собачье сердце» (16+)",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-25T00:00:00+04:00",
+          "venue": "Liberty Theatre",
+          "price": "от 34.99 ₾",
+          "url": "https://tkt.ge/show/23234/dzaghlis-guli-16",
+          "description": "Постановка по повести Михаила Булгакова «Собачье сердце» о профессоре Преображенском, превратившем бездомного пса в человека. Рекомендовано зрителям от 16 лет.",
+          "source": "https://yolo.ge/en/poster/sobache-serdtse-164567890"
+        },
+        {
+          "title": "Спектакль «Дон Жуан»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-25T00:00:00+04:00",
+          "venue": "Theatre Factory 42",
+          "price": "от 33 ₾",
+          "url": "https://tkt.ge/show/16243/don-zhuani",
+          "description": "Спектакль по мотивам легенды о Дон Жуане — герое-соблазнителе, известном по пьесам Мольера, Байрона и других авторов.",
+          "source": "https://yolo.ge/en/poster/don-zhuani65"
+        },
+        {
+          "title": "Комедия «Toc Toc» Лорана Баффи",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-25T00:00:00+04:00",
+          "ends_at": "2026-11-29T23:59:00+04:00",
+          "venue": "Iliauni Theatre",
+          "price": "от 30 ₾",
+          "url": "https://tkt.ge/show/35169/loran-bafi-toc-toc-tok-tok",
+          "description": "Французская комедия Лорана Баффи о пациентах с разными формами обсессивно-компульсивного расстройства, которые знакомятся в приёмной психиатра.",
+          "source": "https://yolo.ge/en/poster/laurent-baffie-toc-toc23456789"
+        },
+        {
+          "title": "Спектакль «Дэда эна» («Родная речь»)",
+          "city": "tbilisi",
+          "kind": "kids",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Тбилисский театр марионеток",
+          "price": "от 15 ₾",
+          "url": "https://biletebi.ge/tojinebis-teatri/deda-ena",
+          "description": "Кукольный спектакль для детей, вдохновлённый грузинским учебником «Дэда эна» («Родная речь») Якоба Гогебашвили — классическим букварём, по которому в Грузии учат грузинский алфавит.",
+          "source": "https://yolo.ge/en/poster/deda-ena75476468458"
+        },
+        {
+          "title": "Спектакль «Три галстука и ангел»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Liberty Theatre",
+          "price": "от 34.99 ₾",
+          "url": "https://tkt.ge/show/11361/sami-halstukhiani-da-angelozi-14",
+          "description": "Спектакль «Три галстука и ангел» на сцене Liberty Theatre в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/sami-halstukhiani-da-angelozi"
+        },
+        {
+          "title": "Спектакль «Антигона»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Государственный драматический театр имени Ахметели",
+          "price": "от 20 ₾",
+          "url": "https://biletebi.ge/theatres/antigone",
+          "description": "Постановка античной трагедии Софокла «Антигона» — о дочери царя Эдипа, бросившей вызов царю Креонту ради погребения брата.",
+          "source": "https://yolo.ge/en/poster/antigone3456789"
+        },
+        {
+          "title": "Спектакль «Ханума»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Грибоедовский театр",
+          "price": "от 20 ₾",
+          "url": "https://biletebi.ge/theatres/khanuma",
+          "description": "Постановка знаменитой грузинской комедии «Ханума» по пьесе Авксентия Цагарели о свахе старого Тбилиси — сюжет, известный также по советскому музыкальному фильму 1978 года.",
+          "source": "https://yolo.ge/en/poster/khanuma5765674674754"
+        },
+        {
+          "title": "Спектакль «Пятница»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Theatre Factory 42",
+          "price": "от 33 ₾",
+          "url": "https://tkt.ge/show/31206/paraskevi",
+          "description": "Спектакль «Пятница» на сцене Theatre Factory 42 в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/friday65675865865865"
+        },
+        {
+          "title": "Спектакль «Мой Гамлет»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Театр имени Котэ Марджанишвили",
+          "price": "от 35 ₾",
+          "url": "https://biletebi.ge/theatres/my-hamlet",
+          "description": "Авторская версия шекспировского «Гамлета» на сцене Театра имени Котэ Марджанишвили.",
+          "source": "https://yolo.ge/en/poster/my-hamlet34567890987654"
+        },
+        {
+          "title": "Старый водевиль «Сомнение»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-26T00:00:00+04:00",
+          "venue": "Дом актёра имени Акакия Хорава",
+          "price": "от 25 ₾",
+          "url": "https://biletebi.ge/theatres/echvi",
+          "description": "Старый водевиль «Сомнение» на сцене Дома актёра имени Акакия Хорава в Тбилиси.",
+          "source": "https://yolo.ge/en/poster/an-old-vaudeville-doubt23456788765"
+        },
+        {
+          "title": "Спектакль «Что сделала Иавнана?!»",
+          "city": "gori",
+          "kind": "kids",
+          "starts_at": "2026-11-27T00:00:00+04:00",
+          "venue": "Горийский государственный драматический театр имени Георгия Эристави",
+          "price": "от 10 ₾",
+          "url": "https://biletebi.ge/theatres/iavnanam-ra-hqmna-5159",
+          "description": "Детский спектакль о персонаже грузинского фольклора Иавнане, связанном с одноимённой колыбельной песней.",
+          "source": "https://yolo.ge/en/poster/what-did-the-iavnana-do576576567"
+        },
+        {
+          "title": "Спектакль «Брут, или убийство Юлия Цезаря»",
+          "city": "tbilisi",
+          "kind": "theatre",
+          "starts_at": "2026-11-27T00:00:00+04:00",
+          "venue": "Государственный драматический театр имени Ахметели",
+          "price": "от 20 ₾",
+          "url": "https://biletebi.ge/akhmeteli-theatre/brutusi-anu-iulius-keisris-mkvleloba",
+          "description": "Историческая драма об убийстве Юлия Цезаря Брутом и другими заговорщиками римского Сената.",
+          "source": "https://yolo.ge/en/poster/brutusi-anu-iulius-keisris-mkvleloba-akhmetelis-teatri"
+        },
+        {
+          "title": "Опера «Сельская честь» Пьетро Масканьи",
+          "city": "kutaisi",
+          "kind": "concert",
+          "starts_at": "2026-11-27T00:00:00+04:00",
+          "venue": "Кутаисский государственный драматический театр имени Ладо Месхишвили",
+          "price": "от 5 ₾",
+          "url": "https://biletebi.ge/concerts/pietro-mascagani-cavalleria-rusticana",
+          "description": "Постановка одноактной оперы Пьетро Масканьи «Сельская честь» (Cavalleria Rusticana) — классика итальянского веризма о любви, чести и мести в сицилийской деревне.",
+          "source": "https://yolo.ge/en/poster/pietro-mascagni-cavalleria-rusticana6865856757465"
+        },
+        {
+          "title": "Кукольный спектакль «Секрет золотого ключика»",
+          "city": "batumi",
+          "kind": "kids",
+          "starts_at": "2026-11-28T13:00:00+04:00",
+          "venue": "Батумский театр кукол",
+          "address": "ул. Мемеда Абашидзе, 49",
+          "price": "10 ₾",
+          "image": "https://www.infobatumi.ge/wp-content/uploads/2026/05/6c3c51b6f7514036af1f10f827547e21-portrait-1.webp",
+          "description": "Кукольный спектакль по мотивам повести Алексея Толстого «Золотой ключик, или Приключения Буратино» — о дружбе, доверии и ответственности. Рекомендован детям от 5 лет.",
+          "source": "https://www.infobatumi.ge/en/events/oqros-gasagebis-saidumloeba/"
+        }
+      ]
+    },
+    {
       "id": "2026-11-13-13",
       "events": [
         {
