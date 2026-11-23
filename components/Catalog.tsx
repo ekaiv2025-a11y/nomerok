@@ -10,7 +10,7 @@ import type { PublicMaster } from "@/lib/types";
 import { MasterCard } from "./MasterCard";
 import { masterPoint } from "./map/master-point";
 import { useRouter } from "next/navigation";
-import { ALL_GEORGIA, CITIES, type CityScope } from "@/lib/cities";
+import { ALL_GEORGIA, CITIES, cityLabel, type CityScope } from "@/lib/cities";
 import { MapPin } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
 import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
@@ -86,6 +86,11 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
     }
   };
   const [q, setQ] = useState("");
+  // ?q=массаж — открываем каталог сразу с поиском (так же переносим поиск при смене города)
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("q");
+    if (v) setQ(v.slice(0, 80));
+  }, []);
   const [fMode, setFMode] = useState("");
   const [fLang, setFLang] = useState("");
   const [fPrice, setFPrice] = useState(false);
@@ -98,6 +103,18 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
     }
   }, []);
   const [sort, setSort] = useState("");
+  // Смена города: запоминаем выбор (главная потом откроется на нём) и переносим поиск и направление
+  const switchCity = (v: string) => {
+    try {
+      document.cookie = `nm_city=${v}; path=/; max-age=31536000; samesite=lax`;
+    } catch {}
+    const sp = new URLSearchParams();
+    if (home ? v !== "all" : v !== "batumi") sp.set("city", v);
+    if (!pageCat && cat !== "all") sp.set("cat", cat);
+    if (q.trim()) sp.set("q", q.trim());
+    const qs = sp.toString() ? `?${sp}` : "";
+    router.push(pageCat ? `/${lang}/services/${pageCat}${qs}#masters` : `/${lang}${qs}#masters`);
+  };
   const [view, setView] = useState<"list" | "map">("list");
 
   const counts = useMemo(() => {
@@ -114,12 +131,12 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   const hiddenCats = visibleCats.length - shownCats.length;
 
   const intents = useMemo(() => detectIntent(q), [q]);
-  const filtered = useMemo(() => {
+  const { list: filtered, other: elsewhere } = useMemo(() => {
     const query = q.trim().toLowerCase();
     // Запрос понятен по смыслу («течёт кран» → сантехник) — показываем специалистов этого направления
     const byIntent = (m: PublicMaster) =>
       intents.some((it) => (m.category === it.cat || (m.extra_categories ?? []).includes(it.cat)) && (!it.sub || subcatsOf(m, it.cat).includes(it.sub)));
-    const list = masters.filter((m) => {
+    const match = (m: PublicMaster) => {
       if (fMode === "at_client" && !(m.work_mode === "at_client" || m.work_mode === "both")) return false;
       if (fMode === "at_place" && !(m.work_mode === "at_place" || m.work_mode === "both")) return false;
       if (fMode === "online" && m.work_mode !== "online") return false;
@@ -134,11 +151,17 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
       const subNames = [m.category, ...(m.extra_categories ?? [])].flatMap((c) => subcatsOf(m, c).flatMap((id) => (["ru", "ka", "en"] as Locale[]).map((l) => subcatLabel(c, id, l)))).join(" ");
       const hay = `${m.name} ${m.services} ${m.about} ${catNames} ${subNames}`.toLowerCase();
       return byIntent(m) || query.split(/\s+/).every((w) => hay.includes(w));
-    });
-    if (sort === "reviews") return [...list].sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.rating ?? 0) - (a.rating ?? 0));
-    if (sort === "cheap") return [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9));
-    return list;
-  }, [masters, cat, sub, q, intents, fMode, fLang, fPrice, fBonus, sort]);
+    };
+    const list = masters.filter(match);
+    // В других городах — чтобы не говорить «никого нет», если специалист есть, но не здесь
+    const other: Record<string, number> = {};
+    if (city !== "all" && (query || cat !== "all")) for (const m of all) if ((m.city ?? "batumi") !== city && match(m)) other[m.city ?? "batumi"] = (other[m.city ?? "batumi"] ?? 0) + 1;
+    if (sort === "reviews") return { list: [...list].sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.rating ?? 0) - (a.rating ?? 0)), other };
+    if (sort === "cheap") return { list: [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9)), other };
+    return { list, other };
+  }, [masters, all, city, cat, sub, q, intents, fMode, fLang, fPrice, fBonus, sort]);
+  const elsewhereList = CITIES.filter((c) => elsewhere[c.id]).sort((a, b) => elsewhere[b.id] - elsewhere[a.id]);
+  const foundAll = filtered.length + Object.values(elsewhere).reduce((a, b) => a + b, 0);
   // Показываем по 16 карточек — страница не тянет сразу всех специалистов
   const PAGE = 16;
   const [limit, setLimit] = useState(PAGE);
@@ -162,7 +185,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
       fetch("/api/search-log", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ q: query, cat: intents[0]?.cat ?? null, found: filtered.length }),
+        body: JSON.stringify({ q: query, cat: intents[0]?.cat ?? null, found: filtered.length, foundAll, city }),
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(id);
@@ -231,16 +254,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
           <MapPin className="h-4 w-4 text-brand" aria-hidden />
           <select
             value={city}
-            onChange={(e) => {
-              const v = e.target.value;
-              // Запоминаем выбор: главная потом сразу откроется на этом городе (или на всей Грузии)
-              try {
-                document.cookie = `nm_city=${v}; path=/; max-age=31536000; samesite=lax`;
-              } catch {}
-              const q = home ? (v === "all" ? "" : `?city=${v}`) : v === "batumi" ? "" : `?city=${v}`;
-              // на главной сохраняем выбранное направление без своей страницы
-              router.push(pageCat ? `/${lang}/services/${pageCat}${q}#masters` : `/${lang}${q}#masters`);
-            }}
+            onChange={(e) => switchCity(e.target.value)}
             className="h-full bg-transparent pr-1 outline-none"
             aria-label="City"
           >
@@ -370,8 +384,18 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
         </div>
       ) : (
         <div className="mt-6 rounded-2xl border border-dashed border-line bg-cream px-5 py-10 text-center">
-          <p className="font-semibold">{masters.length === 0 ? t.emptyFirst : t.emptyQuery}</p>
-          <p className="mx-auto mt-1 max-w-md text-[14px] text-muted">{t.emptyHint}</p>
+          <p className="font-semibold">{masters.length === 0 ? t.emptyFirst : elsewhereList.length ? ELSE_T[lang].title(cityLabel(city, lang)) : t.emptyQuery}</p>
+          {elsewhereList.length > 0 ? (
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {elsewhereList.map((c) => (
+                <button key={c.id} type="button" onClick={() => switchCity(c.id)} className="rounded-full border border-line bg-white px-3.5 py-2 text-[14px] font-semibold hover:border-ink">
+                  {c.label[lang]} · {elsewhere[c.id]} →
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="mx-auto mt-1 max-w-md text-[14px] text-muted">{t.emptyHint}</p>
+          )}
           <Link href={requestHref} className="btn-primary mt-5">
             {t.leaveRequest}
           </Link>
@@ -382,6 +406,12 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
 }
 
 const ICO = "h-4 w-4 shrink-0 opacity-70";
+
+const ELSE_T = {
+  ru: { title: (c: string) => `В городе ${c} по этому запросу пока никого нет — но есть в других городах:` },
+  en: { title: (c: string) => `Nobody in ${c} for this search yet — but there are specialists in other cities:` },
+  ka: { title: (c: string) => `${c}-ში ამ ძიებით ჯერ არავინაა — მაგრამ სხვა ქალაქებში არიან:` },
+} as const;
 
 function Chip({ active, onClick, children, href: to }: { active: boolean; onClick: () => void; children: React.ReactNode; href?: string | null }) {
   const cls = `inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${

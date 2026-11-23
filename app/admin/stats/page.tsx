@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cityLabel } from "@/lib/cities";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { getStats } from "@/lib/stats-db";
@@ -103,12 +104,13 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
       <div className="rounded-2xl bg-white p-4">
         <p className="font-semibold">Что искали в каталоге</p>
-        <p className="text-[12px] text-muted">красным — ничего не нашли: этих специалистов стоит позвать в первую очередь</p>
+        <p className="text-[12px] text-muted">красным — нет никого по всей Грузии: этих специалистов стоит позвать в первую очередь; жёлтым — не нашли в своём городе (в скобках), но в других городах есть</p>
         <div className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
           {site.searches.slice(0, 60).map((s) => (
-            <span key={s.q} className={`rounded-full px-2.5 py-1 ${s.found ? "bg-cream" : "bg-[#fde8e8] text-danger"}`}>
+            <span key={s.q} className={`rounded-full px-2.5 py-1 ${s.found ? "bg-cream" : s.foundAll ? "bg-[#fdf3d8] text-[#8a5a00]" : "bg-[#fde8e8] text-danger"}`}>
               {s.q}
               {s.n > 1 && <b> ×{s.n}</b>}
+              {!s.found && s.cities.length > 0 && <span className="opacity-70"> ({s.cities.map((c) => cityLabel(c, "ru")).join(", ")})</span>}
             </span>
           ))}
           {!site.searches.length && <p className="text-muted">Пока пусто.</p>}

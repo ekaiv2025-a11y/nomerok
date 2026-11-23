@@ -12,6 +12,8 @@ export async function POST(req: Request) {
   const v = await visitorId();
   if (!rateLimit("search:" + v, 20)) return NextResponse.json({ ok: true });
   const cat = typeof b.cat === "string" ? b.cat.slice(0, 30) : null;
-  await recordSearch(q, cat, Math.max(0, Math.min(999, Number(b.found) || 0)), v).catch(() => null);
+  const city = typeof b.city === "string" && /^[a-z]{2,20}$/.test(b.city) ? b.city : null;
+  const foundAll = Number.isFinite(Number(b.foundAll)) ? Math.max(0, Math.min(9999, Number(b.foundAll))) : null;
+  await recordSearch(q, cat, Math.max(0, Math.min(999, Number(b.found) || 0)), v, city, foundAll).catch(() => null);
   return NextResponse.json({ ok: true });
 }

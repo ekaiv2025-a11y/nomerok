@@ -1121,7 +1121,14 @@ async function sendAdminWeekly(force = false): Promise<boolean> {
   const sumPrev = (k: "requests" | "signups" | "contacts" | "views") => prev.days.slice(0, 7).reduce((a, d) => a + d[k], 0);
   const delta = (a: number, b: number) => (b ? ` (${a >= b ? "+" : ""}${Math.round(((a - b) / b) * 100)}%)` : "");
   const src = site.sources.slice(0, 6).map((s) => `${esc(s.source)} — ${s.n}`).join(", ") || "—";
-  const missing = site.searches.filter((s) => s.found === 0).slice(0, 8).map((s) => `«${esc(s.q)}»${s.n > 1 ? ` ×${s.n}` : ""}`).join(", ");
+  const { cityLabel } = await import("./cities");
+  // «никого не нашли» — только если нет никого по всей Грузии; если есть в другом городе — отдельной строкой
+  const missing = site.searches.filter((s) => s.foundAll === 0).slice(0, 8).map((s) => `«${esc(s.q)}»${s.n > 1 ? ` ×${s.n}` : ""}`).join(", ");
+  const otherCity = site.searches
+    .filter((s) => s.found === 0 && s.foundAll > 0)
+    .slice(0, 8)
+    .map((s) => `«${esc(s.q)}»${s.cities.length ? ` (${s.cities.map((c) => cityLabel(c, "ru")).join(", ")})` : ""}`)
+    .join(", ");
   const popular = site.searches.filter((s) => s.found > 0).slice(0, 6).map((s) => `«${esc(s.q)}»${s.n > 1 ? ` ×${s.n}` : ""}`).join(", ");
   const lines = [
     "📊 <b>Неделя на NomerOk</b>",
@@ -1135,6 +1142,7 @@ async function sendAdminWeekly(force = false): Promise<boolean> {
     `✅ Новых анкет всего: ${sum("signups")}`,
   ];
   if (missing) lines.push("", `🔍 <b>Искали, но никого не нашли:</b> ${missing}`, "<i>— вот каких специалистов стоит позвать в первую очередь</i>");
+  if (otherCity) lines.push("", `📍 <b>Не нашли в своём городе</b> (в других городах такие есть): ${otherCity}`);
   if (popular) lines.push("", `🔎 Чаще всего искали: ${popular}`);
   lines.push("", `Подробно: ${SITE_URL}/admin/stats`);
   await notifyAdmin(lines.join("\n"));

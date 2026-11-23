@@ -4,7 +4,7 @@ import { todayTbilisi } from "./availability";
 
 /* Посетители сайта (один раз в день на человека, с источником) и поисковые запросы — для админа. */
 type Visit = { day: string; visitor: string; source: string; path: string | null; created_at: string };
-type Search = { q: string; cat: string | null; found: number; visitor: string | null; created_at: string };
+type Search = { q: string; cat: string | null; found: number; visitor: string | null; created_at: string; city?: string | null; found_all?: number | null };
 type L = { site_visits?: Visit[]; search_log?: Search[] };
 
 /** Откуда пришёл человек: по метке utm_source или по сайту, с которого перешёл. */
@@ -44,11 +44,18 @@ export async function recordVisit(visitor: string, source: string, path: string)
   }
 }
 
-export async function recordSearch(q: string, cat: string | null, found: number, visitor: string) {
-  const row: Search = { q: q.slice(0, 80), cat, found, visitor, created_at: new Date().toISOString() };
+export async function recordSearch(q: string, cat: string | null, found: number, visitor: string, city: string | null = null, foundAll: number | null = null) {
+  const row: Search = { q: q.slice(0, 80), cat, found, visitor, created_at: new Date().toISOString(), city, found_all: foundAll };
   const sb = supabase();
   if (sb) {
-    await sb.from("search_log").insert(row);
+    const r = await sb.from("search_log").insert(row);
+    if (r.error) {
+      // колонок city/found_all ещё нет — пишем как раньше
+      const { city: _c, found_all: _f, ...old } = row;
+      void _c;
+      void _f;
+      await sb.from("search_log").insert(old);
+    }
     return;
   }
   if (dbMode() === "none") return;
@@ -61,7 +68,7 @@ export type SiteSummary = {
   visitors: number;
   byDay: { day: string; n: number }[];
   sources: { source: string; n: number }[];
-  searches: { q: string; n: number; found: number }[]; // что искали (схожие запросы склеены)
+  searches: { q: string; n: number; found: number; foundAll: number; cities: string[] }[]; // что искали (схожие запросы склеены); found — в своём городе, foundAll — по всей Грузии
 };
 
 /** Сводка за `days` дней. */
@@ -81,7 +88,7 @@ export async function siteSummary(days: number): Promise<SiteSummary> {
       }
       return out;
     };
-    [visits, searches] = await Promise.all([all<Visit>("site_visits", "day,visitor,source,created_at"), all<Search>("search_log", "q,cat,found,visitor,created_at")]);
+    [visits, searches] = await Promise.all([all<Visit>("site_visits", "day,visitor,source,created_at"), all<Search>("search_log", "*")]);
   } else if (dbMode() !== "none") {
     const d = (await readLocal()) as unknown as L;
     visits = (d.site_visits ?? []).filter((v) => v.created_at >= since);
@@ -95,14 +102,17 @@ export async function siteSummary(days: number): Promise<SiteSummary> {
   }
   // Один человек — один раз каждый запрос; запросы приводим к простому виду
   const seen = new Set<string>();
-  const qMap = new Map<string, { q: string; n: number; found: number }>();
+  const qMap = new Map<string, { q: string; n: number; found: number; foundAll: number; cities: string[] }>();
   for (const s of searches) {
     const key = s.q.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ").trim();
     if (key.length < 3 || seen.has(key + "|" + s.visitor)) continue;
     seen.add(key + "|" + s.visitor);
-    const x = qMap.get(key) ?? { q: key, n: 0, found: 0 };
+    const x = qMap.get(key) ?? { q: key, n: 0, found: 0, foundAll: 0, cities: [] };
     x.n++;
     x.found = Math.max(x.found, s.found);
+    x.foundAll = Math.max(x.foundAll, s.found_all ?? s.found);
+    // город, где искали и никого не нашли
+    if (!s.found && s.city && !x.cities.includes(s.city)) x.cities.push(s.city);
     qMap.set(key, x);
   }
   return {

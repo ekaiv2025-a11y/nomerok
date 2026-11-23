@@ -58,7 +58,7 @@ export async function computeGaps() {
     .sort((a, b) => a.catalog - b.catalog);
 
   // Что искали в каталоге и не нашли
-  const notFound = (site?.searches ?? []).filter((s) => s.found === 0).slice(0, 30);
+  const notFound = (site?.searches ?? []).filter((s) => s.foundAll === 0).slice(0, 30);
 
   return { rows, thinBatumi, notFound };
 }
