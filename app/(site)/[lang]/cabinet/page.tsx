@@ -1,4 +1,5 @@
 import { DeleteProfile } from "@/components/DeleteProfile";
+import { listingsOf } from "@/lib/realty-db";
 import { SlotsEditor } from "@/components/SlotsEditor";
 import { cleanSlots } from "@/lib/slots";
 import { deleteUntil } from "@/lib/master-delete";
@@ -43,7 +44,12 @@ const CAB_TABS = {
   ka: [["home", "🏠 მთავარი"], ["orders", "📩 მოთხოვნები"], ["profile", "✏️ ანკეტა"], ["reviews", "⭐ შეფასებები"], ["promo", "🚀 პოპულარიზაცია"], ["events", "🎟 ღონისძიებები"]],
 } as const;
 
-const REALTY_TAB = { ru: "🏠 Объявления", en: "🏠 Listings", ka: "🏠 განცხადებები" } as const;
+const REALTY_TAB = { ru: "🏠 Объекты", en: "🏠 Listings", ka: "🏠 ობიექტები" } as const;
+const REALTY_HOME = {
+  ru: { title: "🏠 Ваши объекты", count: (n: number) => (n ? `На сайте: ${n}` : "Пока нет объектов на сайте"), add: "+ Добавить объект", dev: "🏗 Добавить ЖК застройщика", all: "Все объекты" },
+  en: { title: "🏠 Your listings", count: (n: number) => (n ? `Live: ${n}` : "No live listings yet"), add: "+ Add a property", dev: "🏗 Add a development", all: "All listings" },
+  ka: { title: "🏠 თქვენი ობიექტები", count: (n: number) => (n ? `საიტზე: ${n}` : "ჯერ არ არის"), add: "+ ობიექტის დამატება", dev: "🏗 კომპლექსის დამატება", all: "ყველა ობიექტი" },
+} as const;
 const OR = { ru: "или войти по ссылке из бота", en: "or log in with a link from the bot", ka: "ან შედით ბოტის ბმულით" } as const;
 import { mastersWithBonus, offerStatus, recentCodes } from "@/lib/referral-db";
 import { BONUS } from "@/lib/bonus-text";
@@ -202,6 +208,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
     m.status === "published" ? "bg-brand-soft text-brand-dark" : m.status === "pending" ? "bg-[#fdf6e6] text-[#5a4a22]" : "bg-[#fdecea] text-danger";
 
   const realtor = isRealtor(m);
+  const liveObjects = realtor ? (await listingsOf(m.id).catch(() => [])).filter((l) => l.status === "published").length : 0;
   // «Объявления» — только у риелторов; остальным показываем, как стать риелтором
   if (sp.tab === "realty" && !realtor) redirect(`/${lang}/realty/agents`);
   const tab = (["home", "orders", "profile", "reviews", "promo", "events", ...(realtor ? (["realty"] as const) : [])] as const).find((x) => x === sp.tab) ?? "home";
@@ -257,6 +264,27 @@ export default async function CabinetPage({ params, searchParams }: Props) {
 
       {tab === "home" && (
         <div className="mt-4 space-y-4">
+          {realtor && !m.archived_at && (
+            <div className="flex flex-col gap-3 rounded-2xl border-2 border-[#f0d58a] bg-[#fffaf0] p-5 sm:flex-row sm:items-center">
+              <div className="grow">
+                <p className="text-[17px] font-bold">{REALTY_HOME[lang].title}</p>
+                <p className="text-[14px] text-[#5a4410]">{REALTY_HOME[lang].count(liveObjects)}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href={`/${lang}/cabinet?tab=realty&new=1`} className="btn h-11 rounded-full bg-accent px-5 text-[15px] font-semibold text-ink hover:bg-[#cf9620]">
+                  {REALTY_HOME[lang].add}
+                </Link>
+                <Link href={`/${lang}/cabinet?tab=realty`} className="btn-ghost h-11 px-4 text-[14px]">
+                  {REALTY_HOME[lang].all}
+                </Link>
+                {lang === "ru" && (
+                  <Link href="/ru/realty/dev" className="btn-ghost h-11 px-4 text-[14px]">
+                    {REALTY_HOME[lang].dev}
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
           {m.archived_at && m.archived_reason !== "deleted" && (
             <div className="rounded-2xl border border-danger/40 bg-[#fdecea] p-5">
               <p className="text-[16px] font-semibold">📦 {t.archivedTitle}</p>

@@ -1,4 +1,6 @@
 import { registryPhones } from "@/lib/registry-import";
+import { listingsOf } from "@/lib/realty-db";
+import { ListingCard } from "@/components/ListingCard";
 import { FREE_TEXT, freeDay } from "@/lib/slots";
 import { eventsOfMaster } from "@/lib/events-db";
 import { EventCard } from "@/components/EventCard";
@@ -62,6 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const TR_ORIG = { ru: "Показать оригинал", en: "Show original", ka: "ორიგინალის ნახვა" } as const;
 const TR_SHOW = { ru: "Показать перевод", en: "Show translation", ka: "თარგმანის ნახვა" } as const;
 
+const OBJ_T = { ru: (n: number) => `Объекты · ${n}`, en: (n: number) => `Listings · ${n}`, ka: (n: number) => `ობიექტები · ${n}` } as const;
 const EV_T = { ru: "Ближайшие мероприятия", en: "Upcoming events", ka: "მომავალი ღონისძიებები" } as const;
 const WORKS_AT = { ru: "Работает в:", en: "Works at:", ka: "მუშაობს:" } as const;
 
@@ -83,6 +86,8 @@ export default async function MasterPage({ params, searchParams }: Props) {
   const dateFmt = new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const cat = categoryLabel(m.category, lang);
   const events = m.demo ? [] : (await eventsOfMaster(m.id, true).catch(() => [])).slice(0, 4);
+  // У риелторов и агентств — их объекты (опубликованные объявления)
+  const objects = !m.demo && (m.category === "realtor" || (m.extra_categories ?? []).includes("realtor")) ? (await listingsOf(m.id).catch(() => [])).filter((l) => l.status === "published") : [];
   const works = m.demo ? [] : (await orgsOfMaster(m.id).catch(() => [])).filter((x) => x.place.status === "published");
   // Анкета из открытого реестра (нотариусы и т. п.), без клиники: рабочие телефоны самой анкеты
   const ownPhones = m.imported && !works[0] ? await adminGetMaster(m.id).then((x) => (x ? registryPhones(x) : [])).catch(() => []) : [];
@@ -202,6 +207,16 @@ export default async function MasterPage({ params, searchParams }: Props) {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {events.map((e) => (
                   <EventCard key={e.id} e={e} lang={lang} />
+                ))}
+              </div>
+            </section>
+          )}
+          {objects.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-[18px] font-bold">🏠 {OBJ_T[lang](objects.length)}</h2>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {objects.slice(0, 9).map((l) => (
+                  <ListingCard key={l.id} l={l} lang={lang} />
                 ))}
               </div>
             </section>
