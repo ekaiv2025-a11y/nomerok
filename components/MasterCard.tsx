@@ -142,7 +142,7 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           </div>
         )}
         {/* общую цену показываем, если она есть или если прайса нет */}
-        {(m.price_from != null || prices.length === 0) && <div className={`mt-auto pt-2.5 sm:pt-3 ${m.price_from == null ? "text-[13px] text-muted" : "text-[14px] font-semibold"}`}>{priceText(m, lang)}</div>}
+        {(m.price_from != null || prices.length === 0) && <div className={`pt-2.5 sm:pt-3 ${m.price_from == null ? "text-[13px] text-muted" : "text-[14px] font-semibold"}`}>{priceText(m, lang)}</div>}
       </Link>
     </div>
   );
