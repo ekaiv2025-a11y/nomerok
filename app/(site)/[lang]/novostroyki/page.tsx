@@ -55,6 +55,17 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       <h1 className="text-[28px] font-bold leading-tight sm:text-[38px]">Новостройки {city ? cityIn(city, "ru") : "Грузии"}</h1>
       <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted sm:text-[17px]">Строящиеся дома и жилые комплексы: застройщик, срок сдачи, цены и расположение. По любому ЖК можно оставить заявку — специалист агентства недвижимости расскажет о планировках и условиях или подберёт другой вариант.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link href="/ru/realty/add" className="btn h-11 rounded-full bg-accent px-5 text-[15px] font-semibold text-ink hover:bg-[#cf9620]">
+          + Разместить объект
+        </Link>
+        <Link href="/ru/realty/dev" className="btn-ghost h-11 px-4 text-[14px]">
+          🏗 Я застройщик — добавить ЖК
+        </Link>
+        <Link href="/ru/realty?deal=rent" className="btn-ghost h-11 px-4 text-[14px]">
+          🔑 Аренда квартир
+        </Link>
+      </div>
 
       <div className="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
         <Link href={qs({ city: null })} className={chip(!city)}>

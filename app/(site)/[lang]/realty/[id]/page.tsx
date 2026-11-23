@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { projectBySlug } from "@/lib/projects";
 import { ListingPhone } from "@/components/ListingPhone";
+import { otherOfPoster, priceScale } from "@/lib/realty-db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, href, type Locale } from "@/lib/i18n";
@@ -54,6 +55,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
   const { l, m } = d;
   const t = T[lang];
   const pub = m ? await getPublishedMasterBySlug(m.slug) : null;
+  const [scale, more] = await Promise.all([priceScale(l).catch(() => null), otherOfPoster(l).catch(() => 0)]);
   const fl = floorLabel(l, lang);
   const perM2 = pricePerM2(l);
   const cur = CUR_SIGN[l.currency];
@@ -126,6 +128,20 @@ export default async function ListingPage({ params, searchParams }: Props) {
         </a>
       )}
 
+      {scale && (
+        <section className="mt-6 rounded-2xl border border-line bg-white p-4">
+          <p className="text-[14px] font-semibold">{SCALE_T[lang].title}</p>
+          <div className="mt-2 grid grid-cols-5 gap-1">
+            {SCALE_T[lang].levels.map((x, i) => (
+              <div key={x} className={`rounded-lg px-1 py-1.5 text-center text-[11px] font-semibold leading-tight ${i === scale.level ? ["bg-brand text-white", "bg-[#3d9b6e] text-white", "bg-accent text-ink", "bg-[#e88a4a] text-white", "bg-[#c4452b] text-white"][i] : "bg-cream text-muted"}`}>
+                {x}
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[12px] text-muted">{SCALE_T[lang].note(scale.n)}</p>
+        </section>
+      )}
+
       {l.project_slug && projectBySlug(l.project_slug) && (
         <Link href={`/ru/novostroyki/${l.project_slug}`} className="mt-5 flex items-center gap-2 rounded-2xl border border-line bg-white p-3 text-[15px] font-semibold hover:border-brand">
           🏗 ЖК {projectBySlug(l.project_slug)!.name} — о комплексе, сроки и ход стройки →
@@ -187,8 +203,9 @@ export default async function ListingPage({ params, searchParams }: Props) {
               )}
               <ShareButton title={l.title} label={t.share} done={t.copied} className="btn-ghost h-10 px-4 text-[14px]" />
             </div>
+            {more > 0 && <p className="text-[13px] text-muted">{SCALE_T[lang].more(more)}</p>}
             <p className="text-[12px] text-muted">
-              {t.added}: {new Date(l.created_at).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU")}
+              ID: {l.id.slice(0, 8).toUpperCase()} · {t.added}: {new Date(l.created_at).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU")}
               {(l.views ?? 0) >= 10 ? ` · ${t.views(l.views!)}` : ""}
             </p>
             <p className="text-[12px] text-muted">{t.note}</p>
@@ -220,4 +237,10 @@ const POSTER_T = {
   ru: { who: "Кто разместил", show: "📞 Показать телефон" },
   en: { who: "Posted by", show: "📞 Show phone" },
   ka: { who: "ვინ განათავსა", show: "📞 ტელეფონის ნახვა" },
+} as const;
+
+const SCALE_T = {
+  ru: { title: "Цена по сравнению с похожими", levels: ["Ниже рынка", "Хорошая", "Средняя", "Выше средней", "Высокая"], note: (n: number) => `Сравнили с ${n} похожими объявлениями на NomerOk (тот же город, сделка и тип; для продажи — цена за м²).`, more: (n: number) => `У этого автора ещё ${n} объявл. на NomerOk.` },
+  en: { title: "Price vs similar listings", levels: ["Below market", "Good", "Average", "Above average", "High"], note: (n: number) => `Compared with ${n} similar NomerOk listings (same city, deal and type; per m² for sales).`, more: (n: number) => `This poster has ${n} more listing(s).` },
+  ka: { title: "ფასი მსგავსებთან შედარებით", levels: ["ბაზარზე დაბალი", "კარგი", "საშუალო", "საშუალოზე მაღალი", "მაღალი"], note: (n: number) => `შევადარეთ ${n} მსგავს განცხადებას.`, more: (n: number) => `ამ ავტორს კიდევ ${n} განცხადება აქვს.` },
 } as const;

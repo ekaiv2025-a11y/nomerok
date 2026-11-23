@@ -13,7 +13,7 @@ export type Listing = {
   /** ЖК из «Новостроек», если объект в нём */
   project_slug?: string | null;
   city: string;
-  deal: "rent" | "sale" | "daily";
+  deal: "rent" | "sale" | "daily" | "pledge";
   kind: "apartment" | "house" | "commercial" | "land";
   rooms: number | null;
   area: number | null;
@@ -77,6 +77,8 @@ export const DEALS: Record<Listing["deal"], L3> = {
   rent: { ru: "Аренда", en: "Rent", ka: "ქირავდება" },
   sale: { ru: "Продажа", en: "Sale", ka: "იყიდება" },
   daily: { ru: "Посуточно", en: "Daily", ka: "დღიურად" },
+  // «под залог» (გირავდება): живёте в квартире, пока у хозяина ваша сумма; уходите — деньги возвращаются
+  pledge: { ru: "Под залог", en: "Pledge rent", ka: "გირავდება" },
 };
 export const KINDS: Record<Listing["kind"], L3> = {
   apartment: { ru: "Квартира", en: "Apartment", ka: "ბინა" },
@@ -137,7 +139,7 @@ export const AMENITIES: Record<string, { e: string } & L3> = {
 
 /** Цена за м² (для продажи) — округлённо. */
 export function pricePerM2(l: Pick<Listing, "price" | "area" | "currency" | "deal">): string | null {
-  if (l.deal !== "sale" || !l.price || !l.area || l.area < 5) return null;
+  if ((l.deal !== "sale" && l.deal !== "pledge") || !l.price || !l.area || l.area < 5) return null;
   return `${new Intl.NumberFormat("ru-RU").format(Math.round(l.price / l.area))} ${CUR_SIGN[l.currency]}/м²`;
 }
 

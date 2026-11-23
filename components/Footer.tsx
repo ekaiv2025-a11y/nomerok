@@ -43,6 +43,7 @@ export function Footer({ lang }: { lang: Locale }) {
             <L to="/afisha">🎟 {lang === "ru" ? "Афиша" : lang === "en" ? "Events" : "აფიშა"}</L>
             {lang === "ru" && <L to="/georgia">🗺 Путеводитель по Грузии</L>}
             {lang === "ru" && <L to="/novostroyki">🏗 Новостройки Грузии</L>}
+            <L to="/realty">🏠 {lang === "ru" ? "Аренда и продажа жилья" : lang === "en" ? "Rent & buy property" : "ქირა და გაყიდვა"}</L>
             <L to="/realty/add">🏠 {lang === "ru" ? "Разместить объект недвижимости" : lang === "en" ? "Post a property" : "ობიექტის განთავსება"}</L>
             {lang === "ru" && <L to="/guide">Журнал</L>}
           </ul>

@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     rooms,
     max_price: max > 0 ? max : null,
     project,
-    deal: "sale",
+    deal: ["sale", "rent", "daily", "pledge"].includes(b.deal) && !project ? b.deal : "sale",
   });
   const link = await botLink(`al_${a.token}`);
   return link ? NextResponse.json({ ok: true, link }) : NextResponse.json({ ok: false, error: "Бот не подключён" }, { status: 503 });

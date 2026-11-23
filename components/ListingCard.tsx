@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AMENITIES, BUILDINGS, CONDITIONS, DEALS, KINDS, floorLabel, priceLabel, roomsLabel, type Listing } from "@/lib/realty";
+import { AMENITIES, BUILDINGS, CONDITIONS, DEALS, KINDS, floorLabel, priceLabel, pricePerM2, roomsLabel, type Listing } from "@/lib/realty";
 import { href, type Locale } from "@/lib/i18n";
 import { cityLabel } from "@/lib/cities";
 
@@ -19,10 +19,14 @@ export function ListingCard({ l, lang, realtor }: { l: Listing; lang: Locale; re
           <span className="absolute inset-0 flex items-center justify-center text-[44px]">🏠</span>
         )}
         <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-semibold">{DEALS[l.deal][lang]}</span>
+        {!l.master_id && l.poster_kind === "owner" && <span className="absolute right-2 top-2 rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-white">🔑 {{ ru: "Собственник", en: "Owner", ka: "მესაკუთრე" }[lang]}</span>}
         {l.photos.length > 1 && <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] text-white">📷 {l.photos.length}</span>}
       </span>
       <span className="flex flex-1 flex-col p-3">
-        <span className="text-[17px] font-bold">{priceLabel(l, lang)}</span>
+        <span className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[17px] font-bold">{priceLabel(l, lang)}</span>
+          {pricePerM2(l) && <span className="text-[12px] text-muted">{pricePerM2(l)}</span>}
+        </span>
         {params && <span className="mt-0.5 text-[13px] text-[#3a3935]">{params}</span>}
         {(tags.length > 0 || icons.length > 0) && (
           <span className="mt-1 flex flex-wrap gap-1">
@@ -42,6 +46,7 @@ export function ListingCard({ l, lang, realtor }: { l: Listing; lang: Locale; re
         <span className="mt-auto pt-2 text-[12px] text-muted">
           📍 {[l.district, cityLabel(l.city, lang)].filter(Boolean).join(", ")}
           {realtor ? ` · ${realtor.name}` : ""}
+          <span className="block">{new Date(l.expires_at ? Date.parse(l.expires_at) - 60 * 86400_000 : Date.parse(l.created_at)).toLocaleString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tbilisi" })}</span>
         </span>
       </span>
     </Link>

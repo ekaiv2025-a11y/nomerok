@@ -24,6 +24,12 @@ export type ListingFilter = {
   amenity?: string;
   /** квартиры в ЖК из «Новостроек» */
   project?: string;
+  /** только собственники (без агентов и агентств) */
+  owner?: boolean;
+  minFloor?: number;
+  minPrice?: number;
+  /** порядок: свежие (по умолчанию), дешевле, дороже */
+  sort?: "cheap" | "expensive";
   page?: number;
 };
 const RENOVATED = ["new_renovation", "renovated"];
@@ -45,6 +51,13 @@ export async function listListings(f: ListingFilter): Promise<{ items: Listing[]
     if (f.renovated) q = q.in("condition", RENOVATED);
     if (f.amenity) q = q.contains("amenities", [f.amenity]);
     if (f.project) q = q.eq("project_slug", f.project);
+    if (f.owner) q = q.eq("poster_kind", "owner").is("master_id", null);
+    if (f.minFloor) q = q.gte("floor_n", f.minFloor);
+    if (f.minPrice) q = q.gte("price", f.minPrice);
+    if (f.sort) {
+      const r = await q.order("price", { ascending: f.sort === "cheap", nullsFirst: false }).range((page - 1) * PAGE, page * PAGE - 1);
+      return r.error ? { items: [], total: 0 } : { items: r.data as Listing[], total: r.count ?? 0 };
+    }
     // порядок: свежесть + бонус за заполненность (rank_at), для старых записей — дата создания
     let r = await q.order("rank_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
     if (r.error && /rank_at|column/i.test(r.error.message)) r = await q.order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
@@ -62,6 +75,13 @@ export async function listListings(f: ListingFilter): Promise<{ items: Listing[]
   if (f.renovated) all = all.filter((l) => RENOVATED.includes(l.condition ?? ""));
   if (f.amenity) all = all.filter((l) => (l.amenities ?? []).includes(f.amenity!));
   if (f.project) all = all.filter((l) => l.project_slug === f.project);
+  if (f.owner) all = all.filter((l) => l.poster_kind === "owner" && !l.master_id);
+  if (f.minFloor) all = all.filter((l) => (l.floor_n ?? -99) >= f.minFloor!);
+  if (f.minPrice) all = all.filter((l) => l.price != null && l.price >= f.minPrice!);
+  if (f.sort) {
+    all.sort((a, b) => (f.sort === "cheap" ? 1 : -1) * ((a.price ?? 1e15) - (b.price ?? 1e15)));
+    return { items: all.slice((page - 1) * PAGE, page * PAGE), total: all.length };
+  }
   all.sort((a, b) => (b.rank_at ?? b.created_at).localeCompare(a.rank_at ?? a.created_at));
   return { items: all.slice((page - 1) * PAGE, page * PAGE), total: all.length };
 }
@@ -321,4 +341,34 @@ export async function deleteTemplate(masterId: string, id: string): Promise<void
   const d = await local();
   d.listing_templates = (d.listing_templates ?? []).filter((x) => !(x.id === id && x.master_id === masterId));
   await save(d);
+}
+
+/**
+ * «Шкала цены»: где цена объявления среди похожих (тот же город, сделка, тип, спальни; для продажи — цена за м²).
+ * Нужно минимум 5 похожих, иначе не показываем — честнее, чем гадать.
+ */
+export async function priceScale(l: Listing): Promise<{ level: 0 | 1 | 2 | 3 | 4; n: number; median: number } | null> {
+  if (!l.price) return null;
+  const perM2 = (x: Listing) => (x.deal === "sale" || x.deal === "pledge" ? (x.area && x.area > 5 ? x.price! / x.area : null) : x.price);
+  const me = perM2(l);
+  if (me == null) return null;
+  const sb = supabase();
+  let pool: Listing[];
+  if (sb) {
+    const r = await sb.from("listings").select("id,price,area,deal,currency,rooms").eq("status", "published").eq("city", l.city).eq("deal", l.deal).eq("kind", l.kind).eq("currency", l.currency).limit(1000);
+    pool = r.error ? [] : (r.data as Listing[]);
+  } else pool = ((await local()).listings ?? []).filter((x) => x.status === "published" && x.city === l.city && x.deal === l.deal && x.kind === l.kind && x.currency === l.currency);
+  const same = pool.filter((x) => x.id !== l.id && x.price && (l.deal === "sale" || l.deal === "pledge" || l.rooms == null || x.rooms === l.rooms));
+  const vals = same.map((x) => perM2(x as Listing)).filter((v): v is number => v != null).sort((a, b) => a - b);
+  if (vals.length < 5) return null;
+  const median = vals[Math.floor(vals.length / 2)];
+  const r = me / median;
+  const level = r < 0.8 ? 0 : r < 0.93 ? 1 : r <= 1.07 ? 2 : r <= 1.25 ? 3 : 4;
+  return { level: level as 0 | 1 | 2 | 3 | 4, n: vals.length, median };
+}
+
+/** Сколько ещё объявлений у того же автора (собственник/агент без анкеты). */
+export async function otherOfPoster(l: Listing): Promise<number> {
+  if (l.master_id || !l.owner_chat_id) return 0;
+  return (await listingsOfOwner(l.owner_chat_id)).filter((x) => x.status === "published" && x.id !== l.id).length;
 }

@@ -33,8 +33,9 @@ export async function recordProjectPrices(): Promise<number> {
   return n;
 }
 
-export const alertText = (a: Pick<ReAlert, "city" | "rooms" | "max_price" | "project">, projectName?: string) =>
-  [projectName ? `ЖК ${projectName}` : a.city ? cityLabel(a.city, "ru") : "вся Грузия", a.rooms != null ? roomsLabel(a.rooms).toLowerCase() : "", a.max_price ? `до ${fmtMoney(a.max_price)}` : ""].filter(Boolean).join(", ");
+const DEAL_WORD: Record<string, string> = { sale: "купить", rent: "снять", daily: "посуточно", pledge: "под залог" };
+export const alertText = (a: Pick<ReAlert, "city" | "rooms" | "max_price" | "project"> & { deal?: string }, projectName?: string) =>
+  [a.deal && a.deal !== "sale" ? DEAL_WORD[a.deal] : "", projectName ? `ЖК ${projectName}` : a.city ? cityLabel(a.city, "ru") : "вся Грузия", a.rooms != null ? roomsLabel(a.rooms).toLowerCase() : "", a.max_price ? `до ${a.deal && a.deal !== "sale" ? a.max_price.toLocaleString("ru-RU") : fmtMoney(a.max_price)}` : ""].filter(Boolean).join(", ");
 
 /** Раз в день: новые свободные квартиры от застройщиков и новые объявления о продаже — подписчикам по их фильтру. */
 export async function sendRealtyAlerts(): Promise<number> {
@@ -47,11 +48,12 @@ export async function sendRealtyAlerts(): Promise<number> {
   const pBySlug = new Map(projects.map((p) => [p.slug, p]));
   const { listListings } = await import("./realty-db");
   const listings: Listing[] = [];
-  for (let page = 1; page <= 5; page++) {
-    const r = await listListings({ deal: "sale", page }).catch(() => ({ items: [] as Listing[], total: 0 }));
-    listings.push(...r.items);
-    if (r.items.length < 24) break;
-  }
+  for (const deal of [...new Set(alerts.map((a) => a.deal || "sale"))])
+    for (let page = 1; page <= 5; page++) {
+      const r = await listListings({ deal, page }).catch(() => ({ items: [] as Listing[], total: 0 }));
+      listings.push(...r.items);
+      if (r.items.length < 24) break;
+    }
   // момент публикации объявления = срок окончания − 60 дней
   const publishedAt = (l: Listing) => (l.expires_at ? Date.parse(l.expires_at) - LISTING_DAYS * 86400_000 : Date.parse(l.created_at));
   let sent = 0;
@@ -59,7 +61,7 @@ export async function sendRealtyAlerts(): Promise<number> {
     if (!a.chat_id) continue;
     const from = Date.parse(a.last_sent_at ?? a.created_at);
     const lines: string[] = [];
-    for (const u of units) {
+    for (const u of (a.deal ?? "sale") === "sale" ? units : []) {
       if (Date.parse(u.created_at ?? u.updated_at) <= from) continue;
       const d = devById.get(u.project_id);
       if (!d) continue;
@@ -71,11 +73,13 @@ export async function sendRealtyAlerts(): Promise<number> {
       lines.push(`🏗 ЖК ${escapeHtml(pBySlug.get(slug)?.name ?? d.name)}: ${roomsLabel(u.rooms)}${u.area ? `, ${u.area} м²` : ""}${u.floor != null ? `, ${u.floor} эт.` : ""} — ${u.price ? fmtMoney(u.price, u.currency) : "цена по запросу"}\n${SITE_URL}/ru/novostroyki/${slug}#kvartiry`);
     }
     for (const l of listings) {
+      if (l.deal !== (a.deal || "sale")) continue;
       if (publishedAt(l) <= from) continue;
       if (a.project && l.project_slug !== a.project) continue;
       if (a.city && l.city !== a.city) continue;
       if (a.rooms != null && l.rooms !== a.rooms) continue;
-      if (a.max_price && (!l.price || l.currency !== "USD" || l.price > a.max_price)) continue;
+      // для аренды цена «до» — в любой валюте объявления (как ввёл человек), для покупки — в долларах
+      if (a.max_price && (!l.price || ((a.deal || "sale") === "sale" && l.currency !== "USD") || l.price > a.max_price)) continue;
       lines.push(`🏠 ${escapeHtml(l.title)} — ${escapeHtml(priceLabel(l, "ru"))}\n${SITE_URL}/ru/realty/${l.id}`);
     }
     await updateAlert(a.id, { last_sent_at: new Date().toISOString() }).catch(() => null);
