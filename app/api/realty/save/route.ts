@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { currentRealtor } from "@/lib/realty-auth";
+import { currentPoster, ownsListing } from "@/lib/realty-auth";
+import { normalizePhone } from "@/lib/phone";
+import { PROJECTS } from "@/lib/projects";
+import { notifyListingPending } from "@/lib/realty-moderation";
 import { createListing, getListing, updateListing } from "@/lib/realty-db";
-import { AMENITIES, BUILDINGS, CONDITIONS, DEALS, HEATINGS, KINDS, MAX_PHOTOS, PARKINGS, autoTitle, listingQuality, rankAt, type Listing } from "@/lib/realty";
+import { AMENITIES, BUILDINGS, CONDITIONS, DEALS, HEATINGS, KINDS, MAX_PHOTOS, PARKINGS, POSTER_KINDS, autoTitle, listingQuality, rankAt, type Listing, type PosterKind } from "@/lib/realty";
 import { CITY_IDS } from "@/lib/cities";
 
 const num = (v: unknown, max: number) => {
@@ -23,10 +26,22 @@ const coord = (v: unknown, min: number, max: number) => {
 
 /** Создать или изменить объявление из кабинета риелтора. */
 export async function POST(req: Request) {
-  const m = await currentRealtor();
-  if (!m) return NextResponse.json({ ok: false, error: "Войдите в кабинет риелтора" }, { status: 401 });
+  const who = await currentPoster();
+  if (!who) return NextResponse.json({ ok: false, error: "Войдите, чтобы разместить объект" }, { status: 401 });
+  const m = who.kind === "realtor" ? who.m : null;
   const b = await req.json().catch(() => null);
   if (!b) return NextResponse.json({ ok: false }, { status: 400 });
+  // Автор без анкеты: кто он и как с ним связаться — обязательно
+  const poster =
+    who.kind === "owner"
+      ? {
+          poster_kind: (typeof b.poster_kind === "string" && b.poster_kind in POSTER_KINDS ? b.poster_kind : "owner") as PosterKind,
+          contact_name: str(b.contact_name, 80),
+          contact_phone: normalizePhone(String(b.contact_phone ?? "")),
+        }
+      : null;
+  if (poster && !poster.contact_phone) return NextResponse.json({ ok: false, error: "Укажите телефон для связи" }, { status: 422 });
+  const project_slug = typeof b.project_slug === "string" && PROJECTS.some((p) => p.slug === b.project_slug) ? b.project_slug : null;
   const photos = (Array.isArray(b.photos) ? b.photos : []).filter((u: unknown): u is string => typeof u === "string" && (u.startsWith("https://") || u.startsWith("data:image/"))).slice(0, MAX_PHOTOS);
   const deal = (b.deal in DEALS ? b.deal : "rent") as Listing["deal"];
   const kind = (b.kind in KINDS ? b.kind : "apartment") as Listing["kind"];
@@ -39,7 +54,9 @@ export async function POST(req: Request) {
     floor: str(b.floor, 20),
     price: num(b.price, 100_000_000),
     currency: (["USD", "GEL", "EUR"].includes(b.currency) ? b.currency : "USD") as Listing["currency"],
-    city: (CITY_IDS as readonly string[]).includes(b.city) ? b.city : m.city ?? "batumi",
+    city: (CITY_IDS as readonly string[]).includes(b.city) ? b.city : m?.city ?? "batumi",
+    project_slug,
+    ...(poster ?? {}),
     district: str(b.district, 60),
     address: str(b.address, 200),
     description: str(b.description, 4000),
@@ -63,18 +80,22 @@ export async function POST(req: Request) {
   if (data.floor_n != null) data.floor = data.floors_total ? `${data.floor_n}/${data.floors_total}` : String(data.floor_n);
   const quality = listingQuality(data).percent;
   const title = str(b.title, 120) ?? autoTitle(data, "ru");
-  const status: Listing["status"] = b.publish === false ? "draft" : "published";
-  if (status === "published" && !photos.length) return NextResponse.json({ ok: false, error: "Добавьте хотя бы одно фото" }, { status: 422 });
+  const wantPublish = b.publish !== false;
+  if (wantPublish && !photos.length) return NextResponse.json({ ok: false, error: "Добавьте хотя бы одно фото" }, { status: 422 });
   if (b.id) {
     const l = await getListing(String(b.id));
-    if (!l || l.master_id !== m.id) return NextResponse.json({ ok: false }, { status: 404 });
+    if (!l || !ownsListing(who, l)) return NextResponse.json({ ok: false }, { status: 404 });
+    // Уже опубликованное после правки остаётся на сайте; новое к публикации — сначала на проверку администратору
+    const status: Listing["status"] = !wantPublish ? "draft" : l.status === "published" ? "published" : "pending";
     // порядок в списке: момент публикации (или прошлый) + бонус за заполненность
-    const base = l.status !== "published" && status === "published" ? new Date().toISOString() : l.created_at;
-    await updateListing(l.id, { ...data, title, quality, rank_at: rankAt(base, quality), ...(l.status !== status || status === "draft" ? { status } : {}) });
+    await updateListing(l.id, { ...data, title, quality, rank_at: rankAt(l.created_at, quality), status });
+    if (status === "pending" && l.status !== "pending") await notifyListingPending({ ...l, ...data, title, status } as Listing, m?.name ?? null).catch(() => null);
     revalidatePath("/[lang]/realty", "page");
-    return NextResponse.json({ ok: true, id: l.id });
+    return NextResponse.json({ ok: true, id: l.id, status });
   }
-  const l = await createListing({ ...data, title, quality, rank_at: rankAt(new Date().toISOString(), quality), master_id: m.id, status, source: "site", tg_key: null, tg_link: null });
+  const status: Listing["status"] = wantPublish ? "pending" : "draft";
+  const l = await createListing({ ...data, title, quality, rank_at: rankAt(new Date().toISOString(), quality), master_id: m?.id ?? null, owner_chat_id: who.kind === "owner" ? who.chatId : null, status, source: "site", tg_key: null, tg_link: null });
+  if (status === "pending") await notifyListingPending(l, m?.name ?? null).catch(() => null);
   revalidatePath("/[lang]/realty", "page");
-  return NextResponse.json({ ok: true, id: l.id });
+  return NextResponse.json({ ok: true, id: l.id, status });
 }

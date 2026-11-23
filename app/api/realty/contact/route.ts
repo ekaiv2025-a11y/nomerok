@@ -7,7 +7,12 @@ export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
   const lang = ["ru", "en", "ka"].includes(sp.get("lang") ?? "") ? sp.get("lang")! : "ru";
   const l = await getListing(sp.get("id") ?? "");
-  const m = l ? await adminGetMaster(l.master_id).catch(() => null) : null;
+  // Без анкеты (собственник и др.): отдаём телефон из объявления (кнопка «Показать телефон»)
+  if (l && !l.master_id && l.status === "published") {
+    await countListing(l.id, "contacts").catch(() => null);
+    return NextResponse.json({ ok: true, phone: l.contact_phone ?? null, name: l.contact_name ?? null });
+  }
+  const m = l?.master_id ? await adminGetMaster(l.master_id).catch(() => null) : null;
   if (!l || !m) return NextResponse.redirect(new URL(`/${lang}/realty`, req.url));
   await countListing(l.id, "contacts").catch(() => null);
   return NextResponse.redirect(new URL(`/${lang}/master/${m.slug}?from=realty`, req.url));

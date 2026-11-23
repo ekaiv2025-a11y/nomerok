@@ -23,7 +23,9 @@ import {
   TOKEN_RE,
   parseListingText,
   pricePerM2,
+  POSTER_KINDS,
   type Listing,
+  type PosterKind,
 } from "@/lib/realty";
 import { CITIES, cityLabel } from "@/lib/cities";
 import { Map } from "./map/Map";
@@ -347,6 +349,10 @@ export function ListingEditor({
   defaultCity,
   templates = [],
   startTemplate = null,
+  mode = "realtor",
+  poster: posterInit,
+  projects = [],
+  startProject,
 }: {
   lang: Locale;
   initial?: Listing | null;
@@ -354,10 +360,28 @@ export function ListingEditor({
   templates?: EditorTemplate[];
   /** «Новое по шаблону» из списка шаблонов */
   startTemplate?: string | null;
+  /** public — «Разместить объект» для всех (собственник, агент, агентство, застройщик): без шаблонов, с блоком «Кто вы и контакты» */
+  mode?: "realtor" | "public";
+  poster?: { kind: PosterKind; name: string; phone: string };
+  /** ЖК из «Новостроек» — чтобы привязать квартиру к комплексу */
+  projects?: { slug: string; name: string; city: string }[];
+  /** «Разместить квартиру в этом ЖК» со страницы комплекса */
+  startProject?: string;
 }) {
+  const pub = mode === "public";
+  const listHref = pub ? `/${lang}/realty/my` : `/${lang}/cabinet?tab=realty`;
+  const [who, setWho] = useState<{ kind: PosterKind; name: string; phone: string }>(
+    () => posterInit ?? { kind: (initial?.poster_kind as PosterKind) ?? "owner", name: initial?.contact_name ?? "", phone: initial?.contact_phone ?? "" },
+  );
+  const [projectSlug, setProjectSlug] = useState(initial?.project_slug ?? (startProject && projects.some((p) => p.slug === startProject) ? startProject : ""));
   const t = T[lang];
   const router = useRouter();
-  const [f, setF] = useState<F>(() => fromListing(initial, defaultCity));
+  const [f, setF] = useState<F>(() => {
+    const x = fromListing(initial, defaultCity);
+    // «Разместить квартиру в этом ЖК»: сразу продажа квартиры в новостройке
+    if (!initial && startProject) return { ...x, deal: "sale", kind: "apartment", building: "construction" } as F;
+    return x;
+  });
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const [upload, setUpload] = useState<[number, number] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -540,14 +564,22 @@ export function ListingEditor({
       document.getElementById("le-photos")?.scrollIntoView({ behavior: "smooth" });
       return setErr(t.needPhoto);
     }
-    setBusy(true);
     setErr("");
-    const r = await fetch("/api/realty/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...f, description: finalDesc, title: finalTitle, photos, id: initial?.id, publish }) })
+    if (pub && publish && who.phone.replace(/\D/g, "").length < 9) {
+      document.getElementById("le-who")?.scrollIntoView({ behavior: "smooth" });
+      return setErr(PUB_T[lang].needPhone);
+    }
+    setBusy(true);
+    const r = await fetch("/api/realty/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...f, description: finalDesc, title: finalTitle, photos, id: initial?.id, publish, project_slug: projectSlug || null, ...(pub ? { poster_kind: who.kind, contact_name: who.name, contact_phone: who.phone } : {}) }),
+    })
       .then((x) => x.json())
       .catch(() => null);
     setBusy(false);
     if (!r?.ok) return setErr(r?.error ?? "Error");
-    router.push(`/${lang}/cabinet?tab=realty&saved=1`);
+    router.push(`${listHref}${listHref.includes("?") ? "&" : "?"}saved=${r.status === "pending" ? "pending" : "1"}`);
     router.refresh();
   }
 
@@ -559,11 +591,33 @@ export function ListingEditor({
 
   return (
     <div className="space-y-4">
-      <a href={`/${lang}/cabinet?tab=realty`} className="inline-flex items-center gap-1 text-[14px] text-muted hover:text-ink">
+      <a href={listHref} className="inline-flex items-center gap-1 text-[14px] text-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" /> {t.back}
       </a>
       <h2 className="text-[22px] font-bold">{initial ? t.editTitle : t.newTitle}</h2>
-      {myTpl.length > 0 && (
+      {pub && (
+        <Section id="le-who" title={PUB_T[lang].whoTitle} hint={PUB_T[lang].whoHint}>
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(POSTER_KINDS) as PosterKind[]).map((k) => (
+              <button key={k} type="button" onClick={() => setWho((x) => ({ ...x, kind: k }))} className={`rounded-full border px-3.5 py-2 text-[14px] font-semibold ${who.kind === k ? "border-brand bg-brand text-white" : "border-line bg-white hover:border-ink"}`}>
+                {POSTER_KINDS[k][lang]}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-[14px] font-medium">
+              {who.kind === "agency" || who.kind === "developer" ? PUB_T[lang].company : PUB_T[lang].name}
+              <input value={who.name} onChange={(e) => setWho((x) => ({ ...x, name: e.target.value }))} maxLength={80} className="field mt-1.5 h-11 w-full" />
+            </label>
+            <label className="block text-[14px] font-medium">
+              {PUB_T[lang].phone}
+              <input value={who.phone} onChange={(e) => setWho((x) => ({ ...x, phone: e.target.value }))} type="tel" inputMode="tel" placeholder="+995 5__ __ __ __" className="field mt-1.5 h-11 w-full" />
+            </label>
+          </div>
+          <p className="mt-2 text-[12px] text-muted">{PUB_T[lang].phoneHint}</p>
+        </Section>
+      )}
+      {myTpl.length > 0 && !pub && (
         <div className="rounded-2xl border-2 border-[#f0d58a] bg-[#fffaf0] p-4">
           <p className="text-[15px] font-bold">{t.tplStart}</p>
           <p className="mt-0.5 text-[13px] text-[#5a4410]">{t.tplHint}</p>
@@ -634,6 +688,21 @@ export function ListingEditor({
           {filledMsg && <span className="text-[13px] font-medium text-brand">✓ {filledMsg}</span>}
         </div>
       </Section>
+
+      {projects.length > 0 && f.kind === "apartment" && f.deal === "sale" && (
+        <Section id="le-project" title={PROJ_T[lang].title} hint={PROJ_T[lang].hint}>
+          <select value={projectSlug} onChange={(e) => setProjectSlug(e.target.value)} className="field h-11 w-full">
+            <option value="">{PROJ_T[lang].none}</option>
+            {projects
+              .filter((p) => p.city === f.city)
+              .map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  {p.name}
+                </option>
+              ))}
+          </select>
+        </Section>
+      )}
 
       <Section id="le-photos" title={`${t.s2} · ${photos.length}/${MAX_PHOTOS}`} hint={t.s2hint}>
         <DropZone onFiles={(f) => addFiles(f)} label={lang === "ka" ? "გაუშვით — ავტვირთავთ" : lang === "en" ? "Drop to upload" : "Отпустите — загрузим фото"}>
@@ -876,20 +945,24 @@ export function ListingEditor({
         </label>
       </Section>
 
+      {(initial?.status ?? "draft") !== "published" && <p className="text-[13px] text-muted">ℹ️ {PUB_T[lang].review}</p>}
       {err && <p className="rounded-xl bg-[#fdecea] p-3 text-[14px] text-danger">{err}</p>}
       <div className="sticky bottom-3 z-20 ml-12 flex flex-wrap items-center gap-1.5 rounded-2xl border border-line bg-white/95 p-1.5 shadow-sm backdrop-blur sm:ml-0 sm:gap-2 sm:p-2.5">
         <button type="button" disabled={busy || !!upload} onClick={() => save(true)} className="btn-primary h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-6 sm:text-[14px]">
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {initial?.status === "published" ? t.save : t.publish}
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {initial?.status === "published" ? t.save : pub ? PUB_T[lang].send : t.publish}
         </button>
         {initial?.status !== "published" && (
           <button type="button" disabled={busy || !!upload} onClick={() => save(false)} className="btn-ghost h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-5 sm:text-[14px]">
             {t.draft}
           </button>
         )}
-        <button type="button" onClick={() => setTplOpen((v) => !v)} className="btn-ghost h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-4 sm:text-[14px]" title={t.tplSave}>
-          <Save className="hidden h-4 w-4 sm:block" /> <span className="hidden sm:inline">{t.tplSave}</span>
-          <span className="sm:hidden">{t.tplShort}</span>
-        </button>
+        {!pub && (
+          <button type="button" onClick={() => setTplOpen((v) => !v)} className="btn-ghost h-10 whitespace-nowrap px-2.5 text-[13px] sm:h-11 sm:px-4 sm:text-[14px]" title={t.tplSave}>
+            <Save className="hidden h-4 w-4 sm:block" /> <span className="hidden sm:inline">{t.tplSave}</span>
+            <span className="sm:hidden">{t.tplShort}</span>
+          </button>
+        )}
+
         {tplOpen && (
           <div className="flex w-full flex-wrap items-center gap-2 border-t border-line pt-2">
             <input value={tplName} onChange={(e) => setTplName(e.target.value)} maxLength={60} placeholder={t.tplNamePh} aria-label={t.tplName} className="field h-10 min-w-0 flex-1" />
@@ -906,3 +979,15 @@ export function ListingEditor({
     </div>
   );
 }
+
+const PUB_T = {
+  ru: { whoTitle: "Кто вы и как с вами связаться", whoHint: "Покупатели и арендаторы увидят, кто разместил объект, и смогут позвонить. Телефон показывается по кнопке «Показать телефон».", name: "Ваше имя", company: "Название компании", phone: "Телефон", phoneHint: "Номер виден только после нажатия «Показать телефон» — так меньше спама.", needPhone: "Укажите телефон для связи", review: "Новый объект сначала проверяет администратор — обычно в течение дня. Вам придёт сообщение, когда он появится на сайте.", send: "Отправить на проверку" },
+  en: { whoTitle: "Who you are and how to reach you", whoHint: "Buyers and tenants will see who posted the property and can call you. The phone is shown after “Show phone”.", name: "Your name", company: "Company name", phone: "Phone", phoneHint: "The number is shown only after “Show phone” — less spam.", needPhone: "Add a contact phone", review: "A new listing is reviewed by the administrator first — usually within a day. You'll get a message when it's live.", send: "Send for review" },
+  ka: { whoTitle: "ვინ ხართ და როგორ დაგიკავშირდნენ", whoHint: "მყიდველები ნახავენ, ვინ განათავსა ობიექტი, და დაგირეკავენ.", name: "თქვენი სახელი", company: "კომპანიის სახელი", phone: "ტელეფონი", phoneHint: "ნომერი ჩანს მხოლოდ „ტელეფონის ნახვის“ შემდეგ.", needPhone: "მიუთითეთ ტელეფონი", review: "ახალ ობიექტს ჯერ ადმინისტრატორი ამოწმებს — ჩვეულებრივ ერთ დღეში.", send: "შესამოწმებლად გაგზავნა" },
+} as const;
+
+const PROJ_T = {
+  ru: { title: "Квартира в новостройке из нашего каталога?", hint: "Выберите ЖК — объявление появится и на странице комплекса.", none: "Нет / нет в списке" },
+  en: { title: "Apartment in a new development from our catalog?", hint: "Pick the complex — the listing will also appear on its page.", none: "No / not listed" },
+  ka: { title: "ბინა ჩვენი კატალოგის ახალ კორპუსში?", hint: "აირჩიეთ კომპლექსი — განცხადება მის გვერდზეც გამოჩნდება.", none: "არა / სიაში არ არის" },
+} as const;

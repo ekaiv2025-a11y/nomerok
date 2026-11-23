@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { projectBySlug } from "@/lib/projects";
+import { ListingPhone } from "@/components/ListingPhone";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, href, type Locale } from "@/lib/i18n";
 import { pageMeta } from "@/lib/i18n/page";
 import { countListing, getListing } from "@/lib/realty-db";
-import { AMENITIES, BUILDINGS, CONDITIONS, CUR_SIGN, DEALS, HEATINGS, KINDS, PARKINGS, autoTitle, floorLabel, priceLabel, pricePerM2, roomsLabel } from "@/lib/realty";
+import { AMENITIES, BUILDINGS, CONDITIONS, CUR_SIGN, DEALS, HEATINGS, KINDS, PARKINGS, autoTitle, floorLabel, priceLabel, pricePerM2, roomsLabel, POSTER_KINDS } from "@/lib/realty";
 import { after } from "next/server";
 import { getPublishedMasterBySlug, adminGetMaster } from "@/lib/db";
 import { cityLabel } from "@/lib/cities";
@@ -26,6 +28,8 @@ type Props = { params: Promise<{ lang: string; id: string }>; searchParams: Prom
 async function load(id: string) {
   const l = await getListing(id);
   if (!l || (l.status !== "published" && l.status !== "archived")) return null;
+  // Объявление собственника / агента без анкеты — контакты в самом объявлении
+  if (!l.master_id) return { l, m: null };
   const m = await adminGetMaster(l.master_id);
   if (!m || m.status !== "published" || m.archived_at) return null;
   return { l, m };
@@ -49,7 +53,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
   if (!d) notFound();
   const { l, m } = d;
   const t = T[lang];
-  const pub = await getPublishedMasterBySlug(m.slug);
+  const pub = m ? await getPublishedMasterBySlug(m.slug) : null;
   const fl = floorLabel(l, lang);
   const perM2 = pricePerM2(l);
   const cur = CUR_SIGN[l.currency];
@@ -122,6 +126,12 @@ export default async function ListingPage({ params, searchParams }: Props) {
         </a>
       )}
 
+      {l.project_slug && projectBySlug(l.project_slug) && (
+        <Link href={`/ru/novostroyki/${l.project_slug}`} className="mt-5 flex items-center gap-2 rounded-2xl border border-line bg-white p-3 text-[15px] font-semibold hover:border-brand">
+          🏗 ЖК {projectBySlug(l.project_slug)!.name} — о комплексе, сроки и ход стройки →
+        </Link>
+      )}
+
       {l.description && (
         <section className="mt-6">
           <h2 className="text-[18px] font-bold">{t.desc}</h2>
@@ -136,7 +146,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
       )}
 
       <section className="mt-8">
-        <h2 className="text-[18px] font-bold">{t.realtor}</h2>
+        <h2 className="text-[18px] font-bold">{m ? t.realtor : POSTER_T[lang].who}</h2>
         <div className="mt-3 space-y-3">
           {pub && (
             <Link href={href(lang, `/master/${pub.slug}`)} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-3 hover:border-brand">
@@ -152,10 +162,23 @@ export default async function ListingPage({ params, searchParams }: Props) {
               </span>
             </Link>
           )}
+          {!m && (
+            <div className="flex items-center gap-3 rounded-2xl border border-line bg-white p-3">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-[22px]">{l.poster_kind === "developer" ? "🏗" : l.poster_kind === "agency" ? "🏢" : l.poster_kind === "agent" ? "🤝" : "🔑"}</span>
+              <span className="min-w-0">
+                <span className="block font-semibold">{l.contact_name || POSTER_KINDS[l.poster_kind ?? "owner"][lang]}</span>
+                <span className="block text-[13px] text-muted">{POSTER_KINDS[l.poster_kind ?? "owner"][lang]}</span>
+              </span>
+            </div>
+          )}
           <div className="space-y-2">
-            <a href={`/api/realty/contact?id=${l.id}&lang=${lang}`} className="btn-primary h-12 w-full px-5 sm:w-auto">
-              {t.contact}
-            </a>
+            {m ? (
+              <a href={`/api/realty/contact?id=${l.id}&lang=${lang}`} className="btn-primary h-12 w-full px-5 sm:w-auto">
+                {t.contact}
+              </a>
+            ) : (
+              <ListingPhone id={l.id} label={POSTER_T[lang].show} />
+            )}
             <div className="flex flex-wrap gap-2">
               {l.tg_link && (
                 <a href={l.tg_link} target="_blank" rel="noopener noreferrer" className="btn-ghost h-10 px-4 text-[14px]">
@@ -192,3 +215,9 @@ export default async function ListingPage({ params, searchParams }: Props) {
     </div>
   );
 }
+
+const POSTER_T = {
+  ru: { who: "Кто разместил", show: "📞 Показать телефон" },
+  en: { who: "Posted by", show: "📞 Show phone" },
+  ka: { who: "ვინ განათავსა", show: "📞 ტელეფონის ნახვა" },
+} as const;

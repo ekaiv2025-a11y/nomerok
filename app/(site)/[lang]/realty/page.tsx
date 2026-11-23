@@ -52,7 +52,8 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
   const byId = new Map(masters.map((m) => [m.id, m]));
   // Раздел объявлений пока скрыт, пока в нём пусто (решение владельца, 03.11.2026): ведём на «Новостройки»
   if (total === 0 && (await listListings({}).catch(() => ({ total: 1 }))).total === 0) redirect(lang === "ru" ? "/ru/novostroyki" : `/${lang}`);
-  const list = items.filter((l) => byId.has(l.master_id));
+  // объявления риелторов — только с живой анкетой; собственники, агенты и застройщики без анкеты — как есть
+  const list = items.filter((l) => !l.master_id || byId.has(l.master_id));
   const qs = (patch: Partial<SP>) => {
     const p = new URLSearchParams(Object.entries({ ...sp, ...patch }).filter(([, v]) => v) as [string, string][]);
     return `/${lang}/realty${p.toString() ? `?${p}` : ""}`;
@@ -136,7 +137,7 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
       {list.length ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {list.map((l) => (
-            <ListingCard key={l.id} l={l} lang={lang} realtor={byId.get(l.master_id)} />
+            <ListingCard key={l.id} l={l} lang={lang} realtor={l.master_id ? byId.get(l.master_id) : l.contact_name ? { name: l.contact_name } : null} />
           ))}
         </div>
       ) : (
@@ -157,13 +158,24 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
 
       <section className="mt-10 rounded-2xl bg-brand-soft p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
         <div>
-          <p className="font-semibold text-brand-dark">{t.realtor}</p>
-          <p className="mt-1 text-[14px] text-[#3d5a4c]">{t.realtorText}</p>
+          <p className="font-semibold text-brand-dark">{ADD_T[lang].title}</p>
+          <p className="mt-1 text-[14px] text-[#3d5a4c]">{ADD_T[lang].text}</p>
         </div>
-        <Link href={href(lang, "/realty/agents")} className="btn-primary mt-3 h-11 shrink-0 px-5 sm:mt-0">
-          {t.realtorBtn}
-        </Link>
+        <div className="mt-3 flex shrink-0 flex-wrap gap-2 sm:mt-0">
+          <Link href={href(lang, "/realty/add")} className="btn-primary h-11 px-5">
+            {ADD_T[lang].btn}
+          </Link>
+          <Link href={href(lang, "/realty/agents")} className="btn-ghost h-11 px-4 text-[14px]">
+            {t.realtorBtn}
+          </Link>
+        </div>
       </section>
     </div>
   );
 }
+
+const ADD_T = {
+  ru: { title: "Продаёте или сдаёте недвижимость?", text: "Разместить объект может любой — собственник, агент, агентство или застройщик. Бесплатно, проверка администратором — обычно в течение дня. Риелторы могут подключить свой Telegram-канал.", btn: "+ Разместить объект" },
+  en: { title: "Selling or renting out property?", text: "Anyone can post — owner, agent, agency or developer. Free; reviewed by the administrator, usually within a day. Agents can connect their Telegram channel.", btn: "+ Post a property" },
+  ka: { title: "ყიდით ან აქირავებთ?", text: "ობიექტის განთავსება ყველას შეუძლია — მესაკუთრეს, აგენტს, სააგენტოს, დეველოპერს. უფასოდ.", btn: "+ ობიექტის განთავსება" },
+} as const;

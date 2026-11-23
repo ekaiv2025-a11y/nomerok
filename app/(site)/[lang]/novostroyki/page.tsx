@@ -105,6 +105,16 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
         </section>
       )}
 
+      <section className="mt-10 flex flex-col gap-3 rounded-3xl border-2 border-[#f0d58a] bg-[#fffaf0] p-5 sm:flex-row sm:items-center sm:p-6">
+        <div className="grow">
+          <h2 className="text-[20px] font-bold leading-tight">Застройщик, агентство или продаёте свою квартиру?</h2>
+          <p className="mt-1 text-[14px] leading-relaxed text-[#5a4410]">Разместите объект на NomerOk бесплатно: квартиру в новостройке, на вторичном рынке, дом, коммерческую недвижимость или участок. Квартиру в ЖК из каталога можно привязать к комплексу — она появится и на его странице.</p>
+        </div>
+        <Link href="/ru/realty/add" className="btn h-11 shrink-0 rounded-full bg-accent px-5 text-[15px] font-semibold text-ink hover:bg-[#cf9620]">
+          + Разместить объект
+        </Link>
+      </section>
+
       <section id="podbor" className="mt-10 grid gap-6 rounded-3xl border border-line bg-white p-5 sm:p-8 lg:grid-cols-[1fr_1.3fr]">
         <div>
           <h2 className="text-[24px] font-bold leading-tight">Подберём квартиру в новостройке</h2>

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { listListings } from "@/lib/realty-db";
+import { ListingCard } from "@/components/ListingCard";
+import type { Listing } from "@/lib/realty";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMeta } from "@/lib/i18n/page";
@@ -40,6 +43,8 @@ export default async function ProjectPage({ params }: Props) {
   const st = PROJECT_STATUS[p.status];
   // то же фото, что в списке (у каждого ЖК своё)
   const own = (await allProjectMedia().catch(() => null))?.get(p.slug);
+  // Квартиры в этом ЖК, которые разместили собственники, агенты и сам застройщик
+  const forSale = (await listListings({ project: p.slug }).catch(() => ({ items: [] as Listing[], total: 0 }))).items.filter((l) => l.deal === "sale");
   // свои фото (админка) → фото застройщика → вид района
   const gallery = own?.photos.length
     ? { urls: own.photos, credit: own.credit, items: own.photos.slice(1).map((url) => ({ url, caption: "" })) }
@@ -187,6 +192,22 @@ export default async function ProjectPage({ params }: Props) {
               </div>
             </section>
           )}
+
+          <section className="mt-8">
+            <h2 className="text-[22px] font-bold">Квартиры в продаже{forSale.length ? ` · ${forSale.length}` : ""}</h2>
+            {forSale.length > 0 ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {forSale.slice(0, 9).map((l) => (
+                  <ListingCard key={l.id} l={l} lang="ru" realtor={l.contact_name ? { name: l.contact_name } : null} />
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-[15px] text-muted">Пока никто не разместил квартиру в этом комплексе.</p>
+            )}
+            <Link href={`/ru/realty/my?new=1&project=${p.slug}`} className="btn-ghost mt-3 h-10 px-4 text-[14px]">
+              + Продаёте квартиру в ЖК {p.name}? Разместить бесплатно
+            </Link>
+          </section>
 
           {p.amenities && p.amenities.length > 0 && (
             <section className="mt-8">

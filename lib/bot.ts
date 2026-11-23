@@ -877,6 +877,35 @@ async function onModerate(cb: TgCallback, act: string, id: string) {
   return answer(res.waiting ? "Одобрено. Заявка уйдёт специалистам, как только клиент подтвердит Telegram или вход." : `Одобрено. Отправлено специалистам: ${res.sent}`);
 }
 
+/** Админ нажал «✅ Опубликовать» / «🗑 Отклонить» у нового объекта недвижимости. */
+async function onListingModerate(cb: TgCallback, act: string, id: string) {
+  const answer = (text: string) => tg("answerCallbackQuery", { callback_query_id: cb.id, text, show_alert: true });
+  const chat = telegramChatId();
+  if (!chat || (String(cb.message?.chat.id) !== chat && String(cb.from.id) !== chat)) return answer("Это может сделать только администратор");
+  const { getListing, updateListing } = await import("./realty-db");
+  const { tellPoster } = await import("./realty-moderation");
+  const l = await getListing(id).catch(() => null);
+  if (!l) return answer("Объявление не найдено");
+  const msgId = (cb.message as { message_id?: number } | undefined)?.message_id;
+  const done = async (label: string) => {
+    if (cb.message && msgId) await tg("editMessageReplyMarkup", { chat_id: cb.message.chat.id, message_id: msgId, reply_markup: { inline_keyboard: [[{ text: label, callback_data: "noop" }]] } }).catch(() => null);
+  };
+  if (act === "lr") {
+    await updateListing(l.id, { status: "draft" });
+    await tellPoster(l, false);
+    await done("🗑 Отклонено — автор может исправить");
+    return answer("Отклонено, автору сообщили");
+  }
+  if (l.status === "published") {
+    await done("✅ Уже опубликовано");
+    return answer("Уже опубликовано");
+  }
+  await updateListing(l.id, { status: "published" });
+  await tellPoster(l, true);
+  await done("✅ Опубликовано");
+  return answer("Опубликовано на сайте, автору сообщили");
+}
+
 const SPAM_BTN: Record<string, string> = { ru: "🚫 Это спам", en: "🚫 Spam", ka: "🚫 სპამი" };
 const SPAM_OK: Record<string, string> = {
   ru: "Спасибо! Отправитель заблокирован — его сообщения больше не дойдут ни до кого.",
@@ -1467,6 +1496,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data.startsWith("del:")) return void (await onSelfDelete(u.callback_query, data.slice(4)));
     if (data.startsWith("spam:")) return void (await onSpamMark(u.callback_query, data.slice(5)));
     if (data.startsWith("ap:") || data.startsWith("rj:")) return void (await onModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
+    if (data.startsWith("lp:") || data.startsWith("lr:")) return void (await onListingModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));
@@ -1633,9 +1663,14 @@ async function expireListings(): Promise<number> {
   const { expired, soon } = await listingsToExpire().catch(() => ({ expired: [], soon: [] }));
   for (const l of expired) await updateListing(l.id, { status: "archived" });
   const byMaster = new Map<string, number>();
+  const byOwner = new Map<number, number>();
   for (const l of soon) {
     await updateListing(l.id, { expire_warned_at: new Date().toISOString() });
-    byMaster.set(l.master_id, (byMaster.get(l.master_id) ?? 0) + 1);
+    if (l.master_id) byMaster.set(l.master_id, (byMaster.get(l.master_id) ?? 0) + 1);
+    else if (l.owner_chat_id) byOwner.set(l.owner_chat_id, (byOwner.get(l.owner_chat_id) ?? 0) + 1);
+  }
+  for (const [chat, n] of byOwner) {
+    await sendTo(chat, `⏳ ${n} ваш(их) объявлений на NomerOk уйдут в архив через 3 дня. Если объект ещё актуален — продлите одной кнопкой.`, [[{ text: "Мои объявления", url: `${siteUrl()}/ru/realty/my` }]]).catch(() => null);
   }
   for (const [mid, n] of byMaster) {
     const m = await adminGetMaster(mid);

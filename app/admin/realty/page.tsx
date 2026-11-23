@@ -13,8 +13,17 @@ async function act(fd: FormData) {
   await requireAdmin();
   const id = String(fd.get("id"));
   const a = String(fd.get("act"));
+  const { getListing } = await import("@/lib/realty-db");
+  const { tellPoster } = await import("@/lib/realty-moderation");
+  const before = await getListing(id).catch(() => null);
   if (a === "hide") await updateListing(id, { status: "hidden" });
-  else if (a === "show") await updateListing(id, { status: "published", reports: 0 });
+  else if (a === "show") {
+    await updateListing(id, { status: "published", reports: 0 });
+    if (before?.status === "pending") await tellPoster(before, true).catch(() => null);
+  } else if (a === "reject") {
+    await updateListing(id, { status: "draft" });
+    if (before) await tellPoster(before, false).catch(() => null);
+  }
   else if (a === "delete") await deleteListing(id);
   revalidatePath("/admin/realty");
 }
@@ -29,7 +38,7 @@ export default async function AdminRealty({ searchParams }: { searchParams: Prom
       <Link href="/admin" className="text-[14px] text-muted">← Админка</Link>
       <h1 className="mt-2 text-[26px] font-bold">🏠 Недвижимость: {list.length}</h1>
       <div className="mt-3 flex flex-wrap gap-2 text-[14px]">
-        {[["", "Все"], ["published", "Опубликованы"], ["hidden", "Скрыты (жалобы)"], ["draft", "Черновики"], ["archived", "Архив"]].map(([k, l]) => (
+        {[["", "Все"], ["pending", "⏳ На проверке"], ["published", "Опубликованы"], ["hidden", "Скрыты (жалобы)"], ["draft", "Черновики"], ["archived", "Архив"]].map(([k, l]) => (
           <Link key={k} href={`/admin/realty${k ? `?s=${k}` : ""}`} className={`rounded-full px-3 py-1 ${(s ?? "") === k ? "bg-ink text-white" : "bg-cream"}`}>{l}</Link>
         ))}
       </div>
@@ -41,12 +50,13 @@ export default async function AdminRealty({ searchParams }: { searchParams: Prom
             <div className="min-w-0 flex-1">
               <Link href={`/ru/realty/${l.id}`} className="font-semibold hover:text-brand">{l.title}</Link>
               <p className="text-[12px] text-muted">
-                {priceLabel(l, "ru")} · {DEALS[l.deal].ru} · {l.status} · жалоб: {l.reports} · {name.get(l.master_id)?.name ?? "?"} · {l.source}
+                {priceLabel(l, "ru")} · {DEALS[l.deal].ru} · {l.status} · жалоб: {l.reports} · {l.master_id ? name.get(l.master_id)?.name ?? "?" : `${l.poster_kind ?? "owner"}: ${l.contact_name ?? "—"}, ${l.contact_phone ?? ""}`} · {l.source}
               </p>
             </div>
             <form action={act} className="flex gap-1">
               <input type="hidden" name="id" value={l.id} />
               {l.status === "published" ? <button name="act" value="hide" className="rounded-full border px-3 py-1 text-[12px]">Скрыть</button> : <button name="act" value="show" className="rounded-full border px-3 py-1 text-[12px]">Опубликовать</button>}
+              {l.status === "pending" && <button name="act" value="reject" className="rounded-full border px-3 py-1 text-[12px]">Отклонить</button>}
               <button name="act" value="delete" className="rounded-full border px-3 py-1 text-[12px] text-danger">Удалить</button>
             </form>
           </div>

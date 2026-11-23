@@ -3,7 +3,15 @@ import type { Locale } from "./i18n/config";
 
 export type Listing = {
   id: string;
-  master_id: string;
+  /** Анкета риелтора/агентства на NomerOk; у собственников и др. без анкеты — null (0059) */
+  master_id: string | null;
+  /** Автор без анкеты: Telegram-чат или аккаунт сайта (внутренний id чата) */
+  owner_chat_id?: number | null;
+  poster_kind?: PosterKind | null;
+  contact_name?: string | null;
+  contact_phone?: string | null;
+  /** ЖК из «Новостроек», если объект в нём */
+  project_slug?: string | null;
   city: string;
   deal: "rent" | "sale" | "daily";
   kind: "apartment" | "house" | "commercial" | "land";
@@ -19,7 +27,7 @@ export type Listing = {
   title: string;
   description: string | null;
   photos: string[];
-  status: "draft" | "published" | "archived" | "hidden";
+  status: "draft" | "pending" | "published" | "archived" | "hidden";
   source: "site" | "telegram";
   tg_key: string | null;
   tg_link: string | null;
@@ -48,6 +56,13 @@ export type Listing = {
 };
 
 export type Building = "new" | "old" | "construction";
+export type PosterKind = "owner" | "agent" | "agency" | "developer";
+export const POSTER_KINDS: Record<PosterKind, Record<Locale, string>> = {
+  owner: { ru: "Собственник", en: "Owner", ka: "მესაკუთრე" },
+  agent: { ru: "Агент", en: "Agent", ka: "აგენტი" },
+  agency: { ru: "Агентство недвижимости", en: "Real estate agency", ka: "უძრავი ქონების სააგენტო" },
+  developer: { ru: "Застройщик", en: "Developer", ka: "დეველოპერი" },
+};
 export type Condition = "new_renovation" | "renovated" | "old_renovation" | "white_frame" | "black_frame" | "green_frame" | "needs_renovation";
 export type Heating = "central" | "gas" | "electric" | "none";
 export type Parking = "underground" | "garage" | "yard" | "street" | "none";

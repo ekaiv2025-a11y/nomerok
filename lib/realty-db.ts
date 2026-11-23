@@ -22,6 +22,8 @@ export type ListingFilter = {
   building?: string;
   renovated?: boolean;
   amenity?: string;
+  /** квартиры в ЖК из «Новостроек» */
+  project?: string;
   page?: number;
 };
 const RENOVATED = ["new_renovation", "renovated"];
@@ -42,6 +44,7 @@ export async function listListings(f: ListingFilter): Promise<{ items: Listing[]
     if (f.building) q = q.eq("building", f.building);
     if (f.renovated) q = q.in("condition", RENOVATED);
     if (f.amenity) q = q.contains("amenities", [f.amenity]);
+    if (f.project) q = q.eq("project_slug", f.project);
     // порядок: свежесть + бонус за заполненность (rank_at), для старых записей — дата создания
     let r = await q.order("rank_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
     if (r.error && /rank_at|column/i.test(r.error.message)) r = await q.order("created_at", { ascending: false }).range((page - 1) * PAGE, page * PAGE - 1);
@@ -58,6 +61,7 @@ export async function listListings(f: ListingFilter): Promise<{ items: Listing[]
   if (f.building) all = all.filter((l) => l.building === f.building);
   if (f.renovated) all = all.filter((l) => RENOVATED.includes(l.condition ?? ""));
   if (f.amenity) all = all.filter((l) => (l.amenities ?? []).includes(f.amenity!));
+  if (f.project) all = all.filter((l) => l.project_slug === f.project);
   all.sort((a, b) => (b.rank_at ?? b.created_at).localeCompare(a.rank_at ?? a.created_at));
   return { items: all.slice((page - 1) * PAGE, page * PAGE), total: all.length };
 }
@@ -88,6 +92,16 @@ export async function listingsOf(masterId: string): Promise<Listing[]> {
     return r.error ? [] : (r.data as Listing[]);
   }
   return ((await local()).listings ?? []).filter((l) => l.master_id === masterId).sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+/** Объявления автора без анкеты (собственник, агент, застройщик) — по его чату или аккаунту. */
+export async function listingsOfOwner(chatId: number): Promise<Listing[]> {
+  const sb = supabase();
+  if (sb) {
+    const r = await sb.from("listings").select("*").eq("owner_chat_id", chatId).order("created_at", { ascending: false }).limit(200);
+    return r.error ? [] : (r.data as Listing[]);
+  }
+  return ((await local()).listings ?? []).filter((l) => l.owner_chat_id === chatId).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
 export async function createListing(data: Omit<Listing, "id" | "created_at" | "updated_at" | "reports" | "expires_at"> & { expires_at?: string | null }): Promise<Listing> {
