@@ -102,7 +102,7 @@ type BotDict = {
   statsTipPhotos: string;
   statsTipReviews: string;
   statsTipDone: string;
-  commands: { cabinet: string; help: string; pause: string; resume: string };
+  commands: { cabinet: string; help: string; pause: string; resume: string; free: string };
   steps: Record<"verified" | "photo" | "about" | "services" | "price" | "languages" | "credentials" | "portfolio" | "where" | "documents", string>;
   docVerified: (title: string) => string;
   docRejected: (title: string) => string;
@@ -197,7 +197,7 @@ const ru: BotDict = {
   loginAsk: "🔑 Чтобы войти в кабинет, нажмите кнопку <b>«Поделиться номером»</b> внизу — найдём вашу анкету по номеру телефона.\n\nЕсли анкеты ещё нет — бот предложит её заполнить.",
   loginFound: (name) => `✅ Нашли вашу анкету: <b>${name}</b>. Telegram привязан — заявки и вход будут работать через этот аккаунт.`,
   notSpecialist: "Этот Telegram не привязан к анкете специалиста. Заполните анкету на сайте, и после отправки нажмите «Подтвердить номер в Telegram».",
-  help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/pause — пауза (отпуск, не принимаю заявки)\n/resume — снова принимаю заявки\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
+  help: "Команды:\n/cabinet — ссылка на ваш кабинет\n/free — есть свободное время сегодня или завтра (клиенты увидят на карточке)\n/pause — пауза (отпуск, не принимаю заявки)\n/resume — снова принимаю заявки\n/help — помощь\n\nЛюбое другое сообщение мы передадим команде.",
   forwarded: "Спасибо! Передали сообщение команде, ответим в ближайшее время.",
   typedPhone: "📱 Номер не нужно вводить вручную — нажмите кнопку «Поделиться номером» внизу экрана. Так мы подтвердим, что номер ваш, и продолжим регистрацию.\n\nЕсли кнопки не видно — нажмите на значок ⌨️ рядом с полем ввода.",
   newRequest: (cat, desc, when) => `🆕 <b>Новая заявка: ${cat}</b>\n\n${desc}${when ? `\n\n🕒 ${when}` : ""}\n\nНажмите «Беру», чтобы получить телефон клиента.`,
@@ -215,7 +215,7 @@ const ru: BotDict = {
     `🙋 <b>На вашу заявку откликнулся специалист</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nСпециалист свяжется с вами. Если удобнее — позвоните сами.`,
   btnProfile: "Профиль специалиста",
   btnTelegram: "✈️ Telegram",
-  commands: { cabinet: "Мой кабинет специалиста", help: "Помощь", pause: "Пауза: отпуск, не принимаю заявки", resume: "Снова принимаю заявки" },
+  commands: { cabinet: "Мой кабинет специалиста", help: "Помощь", pause: "Пауза: отпуск, не принимаю заявки", resume: "Снова принимаю заявки", free: "Есть свободное время сегодня или завтра" },
   steps: {
     documents: "загрузите диплом или сертификат в кабинете",
     portfolio: "добавьте фото работ (хотя бы 3)",
@@ -337,7 +337,7 @@ const en: BotDict = {
     `🙋 <b>A specialist responded to your request</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nThe specialist will contact you. Feel free to call them yourself.`,
   btnProfile: "Specialist's profile",
   btnTelegram: "✈️ Telegram",
-  commands: { cabinet: "My specialist dashboard", help: "Help", pause: "Pause: vacation, not taking requests", resume: "Accept requests again" },
+  commands: { cabinet: "My specialist dashboard", help: "Help", pause: "Pause: vacation, not taking requests", resume: "Accept requests again", free: "I have free time today or tomorrow" },
   steps: {
     documents: "upload a diploma or certificate in your dashboard",
     portfolio: "add photos of your work (at least 3)",
@@ -459,7 +459,7 @@ const ka: BotDict = {
     `🙋 <b>თქვენს განაცხადს გამოეხმაურა სპეციალისტი</b>\n\n${name} — ${cat}\n📞 ${phone}${tg ? `\n✈️ ${tg}` : ""}\n\nსპეციალისტი დაგიკავშირდებათ. თუ გირჩევნიათ — თავად დაურეკეთ.`,
   btnProfile: "სპეციალისტის პროფილი",
   btnTelegram: "✈️ Telegram",
-  commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება", pause: "პაუზა: შვებულება, არ ვიღებ განაცხადებს", resume: "ისევ ვიღებ განაცხადებს" },
+  commands: { cabinet: "სპეციალისტის კაბინეტი", help: "დახმარება", pause: "პაუზა: შვებულება, არ ვიღებ განაცხადებს", resume: "ისევ ვიღებ განაცხადებს", free: "დღეს ან ხვალ თავისუფალი ვარ" },
   steps: {
     documents: "ატვირთეთ დიპლომი ან სერტიფიკატი კაბინეტში",
     portfolio: "დაამატეთ სამუშაოების ფოტოები (მინიმუმ 3)",

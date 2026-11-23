@@ -39,17 +39,19 @@ export function SlotsEditor({ lang, initial }: { lang: Locale; initial: Slot[] }
           </span>
         ))}
       </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={() => save([...slots, { d: quick(0), t: "" }])} className="btn-primary h-11 px-5 text-[15px] capitalize">
+          🟢 {slotLabel({ d: quick(0), t: "" }, lang)}
+        </button>
+        <button type="button" onClick={() => save([...slots, { d: quick(1), t: "" }])} className="btn-ghost h-11 px-4 text-[15px] capitalize">
+          {slotLabel({ d: quick(1), t: "" }, lang)}
+        </button>
+      </div>
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <input type="date" value={d} min={today} onChange={(e) => setD(e.target.value)} className="field h-10 w-auto py-0" />
         <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="field h-10 w-auto py-0" aria-label={t.time} title={t.time} />
-        <button type="button" onClick={() => d && save([...slots, { d, t: time }])} className="btn-primary h-10 px-4 text-[14px]">
+        <button type="button" onClick={() => d && save([...slots, { d, t: time }])} className="btn-ghost h-10 px-4 text-[14px]">
           + {t.add}
-        </button>
-        <button type="button" onClick={() => save([...slots, { d: quick(0), t: "" }])} className="btn-ghost h-10 px-3 text-[13px]">
-          {slotLabel({ d: quick(0), t: "" }, lang)}
-        </button>
-        <button type="button" onClick={() => save([...slots, { d: quick(1), t: "" }])} className="btn-ghost h-10 px-3 text-[13px]">
-          {slotLabel({ d: quick(1), t: "" }, lang)}
         </button>
         {slots.length > 0 && (
           <button type="button" onClick={() => save([])} className="h-10 px-2 text-[13px] text-muted underline">

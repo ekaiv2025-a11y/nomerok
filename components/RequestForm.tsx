@@ -74,6 +74,7 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
   const d = getDict(lang);
   const t = d.request;
   const { state, errors, message, submit, result } = useSubmit("/api/requests", lang, "request");
+  const [when, setWhen] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [catSel, setCatSel] = useState<string>("");
   const [desc, setDesc] = useState(defaultText ?? "");
@@ -298,7 +299,21 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
         </select>
       </Field>
       <Field label={t.when} optional={d.form.optional} error={errors.when_text}>
-        <input name="when_text" className={fc(errors.when_text)} placeholder={t.whenPlaceholder} />
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {WHEN_QUICK[lang].map((w, i) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => setWhen(w)}
+              className={`rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${when === w ? (i === 0 ? "border-[#d9480f] bg-[#fff1e8] text-[#b23c0a]" : "border-brand bg-brand-soft text-brand-dark") : "border-line bg-white hover:border-ink"}`}
+            >
+              {i === 0 ? "🔥 " : ""}
+              {w}
+            </button>
+          ))}
+        </div>
+        <input name="when_text" value={when} onChange={(e) => setWhen(e.target.value)} className={fc(errors.when_text)} placeholder={t.whenPlaceholder} />
+        {when === WHEN_QUICK[lang][0] && <p className="mt-1.5 text-[13px] text-[#b23c0a]">{WHEN_URGENT_HINT[lang]}</p>}
       </Field>
       <div>
         <p className="text-[14px] font-semibold">
@@ -324,3 +339,14 @@ export function RequestForm({ lang, defaultCategory, defaultCity, defaultText, o
     </form>
   );
 }
+
+const WHEN_QUICK = {
+  ru: ["Сегодня, срочно", "Завтра", "На этой неделе", "Не срочно"],
+  en: ["Today, urgent", "Tomorrow", "This week", "No rush"],
+  ka: ["დღეს, სასწრაფოდ", "ხვალ", "ამ კვირაში", "არ ჩქარობს"],
+} as const;
+const WHEN_URGENT_HINT = {
+  ru: "Срочную заявку в первую очередь увидят специалисты, у которых сегодня есть свободное время.",
+  en: "Specialists who are free today will see an urgent request first.",
+  ka: "სასწრაფო განაცხადს პირველად ნახავენ სპეციალისტები, რომლებიც დღეს თავისუფლები არიან.",
+} as const;

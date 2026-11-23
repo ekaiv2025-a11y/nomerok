@@ -37,7 +37,23 @@ export function slotLabel(s: Slot, lang: Locale): string {
 }
 
 export const SLOT_TEXT = {
-  ru: { badge: "Есть окно", title: "Свободные окна", book: "Записаться", empty: "Окон пока нет", edTitle: "Свободные окна", edHint: "Отметьте, когда вы свободны, — на карточке появится «🗓 Есть окно сегодня». Прошедшие окна исчезают сами.", add: "Добавить", time: "Время (необязательно)", saved: "Сохранено ✓", save: "Сохранить", clear: "Очистить всё" },
-  en: { badge: "Free slot", title: "Free slots", book: "Book", empty: "No free slots yet", edTitle: "Free slots", edHint: "Mark when you're free — your card will show “🗓 Free slot today”. Past slots disappear automatically.", add: "Add", time: "Time (optional)", saved: "Saved ✓", save: "Save", clear: "Clear all" },
+  ru: { badge: "Есть окно", title: "Свободные окна", book: "Записаться", empty: "Окон пока нет", edTitle: "Есть свободное время?", edHint: "Отметьте день — на карточке появится «🟢 Есть время сегодня», клиенты смогут выбрать только свободных, а срочные заявки («нужно сегодня») придут вам первыми. Прошедшие дни исчезают сами. В Telegram то же самое — команда /free.", add: "Добавить", time: "Время (необязательно)", saved: "Сохранено ✓", save: "Сохранить", clear: "Очистить всё" },
+  en: { badge: "Free slot", title: "Free slots", book: "Book", empty: "No free slots yet", edTitle: "Free time?", edHint: "Mark a day — your card will show “🟢 Free today”, clients can pick only free specialists, and urgent requests come to you first. Past days disappear automatically. In Telegram: /free.", add: "Add", time: "Time (optional)", saved: "Saved ✓", save: "Save", clear: "Clear all" },
   ka: { badge: "თავისუფალია", title: "თავისუფალი დრო", book: "ჩაწერა", empty: "თავისუფალი დრო ჯერ არ არის", edTitle: "თავისუფალი დრო", edHint: "მონიშნეთ, როდის ხართ თავისუფალი — ბარათზე გამოჩნდება „🗓 თავისუფალია დღეს“.", add: "დამატება", time: "დრო (არასავალდებულო)", saved: "შენახულია ✓", save: "შენახვა", clear: "გასუფთავება" },
+} as const;
+
+/** «Есть время сегодня / завтра» для карточки: today | tomorrow | null. */
+export function freeDay(slots: Slot[] | undefined | null): "today" | "tomorrow" | null {
+  if (!slots?.length) return null;
+  const today = todayTbilisiStr();
+  const tomorrow = new Date(Date.parse(today) + 86400000).toISOString().slice(0, 10);
+  if (slots.some((s) => s.d === today)) return "today";
+  if (slots.some((s) => s.d === tomorrow)) return "tomorrow";
+  return null;
+}
+
+export const FREE_TEXT = {
+  ru: { today: "Есть время сегодня", tomorrow: "Есть время завтра", filter: "Есть время сегодня" },
+  en: { today: "Free today", tomorrow: "Free tomorrow", filter: "Free today" },
+  ka: { today: "დღეს თავისუფალია", tomorrow: "ხვალ თავისუფალია", filter: "დღეს თავისუფალი" },
 } as const;

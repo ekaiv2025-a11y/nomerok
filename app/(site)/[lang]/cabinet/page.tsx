@@ -1,4 +1,6 @@
 import { DeleteProfile } from "@/components/DeleteProfile";
+import { SlotsEditor } from "@/components/SlotsEditor";
+import { cleanSlots } from "@/lib/slots";
 import { deleteUntil } from "@/lib/master-delete";
 import { eventsOfMaster } from "@/lib/events-db";
 import { EventAddForm } from "@/components/EventAddForm";
@@ -328,6 +330,7 @@ export default async function CabinetPage({ params, searchParams }: Props) {
           <div id="pause" className="scroll-mt-32">
             <AvailabilityCard lang={lang} away={isAwayNow(m)} untilLabel={m.away_until ? formatDay(m.away_until, lang) : null} />
           </div>
+          {m.status === "published" && !isAwayNow(m) && <SlotsEditor lang={lang} initial={cleanSlots(m.slots)} />}
           <StatsCard lang={lang} week={week} month={month} byDay={byDay} />
           <div className="rounded-2xl border border-line p-5">
             <p className="text-[15px] font-semibold">🔑 {CAB_AUTH[lang].title}</p>

@@ -48,3 +48,9 @@ export function requestHints(cat: string, lang: Locale): string[] {
   if (lang === "ru" && RU[cat]) return RU[cat];
   return GENERIC[lang];
 }
+
+/** Срочная заявка — клиент написал «сегодня», «срочно», «прямо сейчас» в поле «Когда» или в описании. */
+export function isUrgent(r: { when_text?: string | null; description?: string | null }): boolean {
+  const t = `${r.when_text ?? ""} ${(r.description ?? "").slice(0, 300)}`;
+  return /сегодня|срочн|прямо сейчас|как можно скорее|today|urgent|asap|right now|დღეს|სასწრაფო|ახლავე/i.test(t);
+}

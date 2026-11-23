@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isUrgent } from "@/lib/request-hints";
 import { CATEGORIES } from "@/lib/categories";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
@@ -272,7 +273,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                     ))}
                   </div>
                 )}
-                {r.when_text && <p className="mt-1 text-[14px] text-muted">Когда: {r.when_text}</p>}
+                {r.when_text && <p className={`mt-1 text-[14px] ${isUrgent(r) ? "font-semibold text-[#b23c0a]" : "text-muted"}`}>{isUrgent(r) ? "🔥 " : ""}Когда: {r.when_text}</p>}
                 <RequestTimeline r={r} resp={respByReq.get(r.id) ?? []} name={(id) => byId.get(id)?.name ?? "—"} />
                 {!r.master_id && r.status !== "done" && r.status !== "spam" && (() => {
                   const g = groupsFor(r);

@@ -28,7 +28,8 @@ import { isBlockedPhone, spamReasons } from "./spam";
 import { reviewToken } from "./signed";
 import { clientLoginToken } from "./client-auth";
 import { sub } from "./sub-text";
-import { cleanSlots, slotLabel, todayTbilisiStr } from "./slots";
+import { cleanSlots, freeDay, slotLabel, todayTbilisiStr } from "./slots";
+import { isUrgent } from "./request-hints";
 import type { Review } from "./types";
 import { botDict } from "./i18n/bot";
 import { categoryLabel, categoryPlural } from "./categories";
@@ -36,6 +37,7 @@ import { seoCategoryIds } from "./seo-categories";
 import { catalogCount } from "./gaps";
 import { formatPhone, normalizePhone, normalizeTelegram, telegramLink } from "./phone";
 import { profileSteps } from "./profile";
+import { getDict } from "./i18n";
 import { SITE_NAME, SITE_URL } from "./site";
 import { downloadTelegramFile, escapeHtml, notifyAdmin, sendTo, telegramChatId, tg, webhookSecret } from "./telegram";
 import { makeJoinToken } from "./join-token";
@@ -62,12 +64,16 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
     targets = await listMastersForRequests(r.category, r.city ?? "batumi");
   }
   targets = targets.filter((m) => !exclude.has(m.id));
+  // Срочная заявка («нужно сегодня»): первыми получают те, у кого сегодня есть свободное время
+  const urgent = isUrgent(r);
+  if (urgent) targets = [...targets].sort((a, b) => Number(freeDay(cleanSlots(b.slots)) === "today") - Number(freeDay(cleanSlots(a.slots)) === "today"));
   let sent = 0;
   for (const m of targets) {
     const b = botDict(m.lang);
-    const text = r.master_id
+    const base = r.master_id
       ? b.directRequest(esc(r.description), esc(r.when_text))
       : b.newRequest(esc(categoryLabel(r.category, m.lang)), esc(r.description), esc(r.when_text));
+    const text = urgent ? `${URGENT_T[m.lang] ?? URGENT_T.ru}\n${base}` : base;
     if (r.photos?.length) {
       const media = r.photos.filter((u) => u.startsWith("https://")).map((u) => ({ type: "photo", media: u }));
       if (media.length === 1) await tg("sendPhoto", { chat_id: m.tg_chat_id, photo: media[0].media }).catch(() => null);
@@ -79,6 +85,8 @@ export async function distributeRequest(r: ClientRequest, exclude: Set<string> =
   if (sent > 0) await updateRequest(r.id, { sent_count: (exclude.size ? r.sent_count ?? 0 : 0) + sent, status: "sent" });
   return sent;
 }
+
+const URGENT_T: Record<string, string> = { ru: "🔥 <b>Срочно — нужно сегодня</b>", en: "🔥 <b>Urgent — needed today</b>", ka: "🔥 <b>სასწრაფოა — დღესვე</b>" };
 
 /** Админ выбрал конкретных специалистов: отправляем им заявку (любой раздел). Возвращает имена, кому ушло. */
 export async function sendRequestToChosen(r: ClientRequest, ms: Master[]): Promise<string[]> {
@@ -162,13 +170,12 @@ async function onSubscribe(cb: TgCallback, on: boolean) {
 }
 
 const OKNA: Record<string, { ask: string; today: string; tomorrow: string; clear: string; done: (l: string) => string; cleared: string }> = {
-  ru: { ask: "🗓 <b>Свободные окна</b>\nКлиенты увидят на вашей карточке «Есть окно сегодня». Точное время можно указать в кабинете.", today: "Свободен(на) сегодня", tomorrow: "Свободен(на) завтра", clear: "Очистить окна", done: (l) => `✅ Отмечено: ${l}. Клиенты увидят это на сайте.`, cleared: "🧹 Окна очищены." },
-  en: { ask: "🗓 <b>Free slots</b>\nClients will see “Free slot today” on your card. Exact times — in your account.", today: "Free today", tomorrow: "Free tomorrow", clear: "Clear slots", done: (l) => `✅ Marked: ${l}.`, cleared: "🧹 Slots cleared." },
+  ru: { ask: "🟢 <b>Есть свободное время?</b>\nОтметьте — на вашей карточке появится «Есть время сегодня», клиенты смогут выбрать только свободных, а срочные заявки («нужно сегодня») придут вам в первую очередь. Отметка сама исчезает на следующий день. Точное время можно указать в кабинете.", today: "🟢 Сегодня", tomorrow: "Завтра", clear: "Убрать отметку", done: (l) => `✅ Отмечено: есть время ${l}. Клиенты видят это на сайте.`, cleared: "🧹 Отметка убрана." },
+  en: { ask: "🟢 <b>Free time?</b>\nMark it — your card will show “Free today”, clients can filter free specialists, and urgent requests come to you first. The mark disappears the next day.", today: "🟢 Today", tomorrow: "Tomorrow", clear: "Remove mark", done: (l) => `✅ Marked: free ${l}.`, cleared: "🧹 Mark removed." },
   ka: { ask: "🗓 <b>თავისუფალი დრო</b>", today: "დღეს თავისუფალი ვარ", tomorrow: "ხვალ თავისუფალი ვარ", clear: "გასუფთავება", done: (l) => `✅ მონიშნულია: ${l}.`, cleared: "🧹 გასუფთავდა." },
 };
 
-// Свободные окна пока отключены (функция преждевременна) — код оставлен на будущее.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// «Есть время сегодня/завтра»: /free, кнопка в недельной сводке и кабинет
 async function askSlots(m: Master) {
   if (!m.tg_chat_id) return;
   const o = OKNA[m.lang] ?? OKNA.ru;
@@ -1088,6 +1095,12 @@ async function restoreInactiveArchivedOnce() {
 }
 
 /** По понедельникам — недельная сводка специалисту: просмотры, контакты, взятые заявки. */
+const FILL_T = {
+  ru: (p: number) => `📝 Анкета заполнена на ${p}%. Заполненные анкеты стоят в каталоге выше. Осталось:`,
+  en: (p: number) => `📝 Your profile is ${p}% complete. Complete profiles rank higher in the catalog. Still missing:`,
+  ka: (p: number) => `📝 პროფილი შევსებულია ${p}%-ით. სრული პროფილები კატალოგში უფრო მაღლაა. დარჩა:`,
+};
+
 async function sendWeeklyStats(force = false): Promise<number> {
   const weekday = new Date(todayTbilisi() + "T12:00:00Z").getUTCDay(); // 1 = понедельник
   if (weekday !== 1 && !force) return 0;
@@ -1101,8 +1114,20 @@ async function sendWeeklyStats(force = false): Promise<number> {
     const st = await masterStats(m.id, 7).catch(() => null);
     if (!st) continue;
     const b = botDict(m.lang);
-    const tip = !(m.portfolio ?? []).length ? b.statsTipPhotos : !reviewsBy.get(m.id) ? b.statsTipReviews : b.statsTipDone;
-    await sendTo(m.tg_chat_id, `${b.weeklyStats(st.views, st.contacts, st.taken)}\n\n${tip}`, [[await cabinetButton(m)]]);
+    const { percent, missing } = profileSteps(m);
+    const L = (["ru", "en", "ka"].includes(m.lang) ? m.lang : "ru") as "ru" | "en" | "ka";
+    const stepNames = getDict(L).cabinet.steps as Record<string, string>;
+    // Анкета заполнена не полностью — говорим, чего не хватает (по пунктам из кабинета), иначе — про фото и отзывы
+    const tip =
+      percent < 100 && missing.length
+        ? `${FILL_T[L](percent)}\n${missing.slice(0, 3).map((x) => `• ${stepNames[x] ?? x}`).join("\n")}`
+        : !(m.portfolio ?? []).length
+          ? b.statsTipPhotos
+          : !reviewsBy.get(m.id)
+            ? b.statsTipReviews
+            : b.statsTipDone;
+    const o = OKNA[m.lang] ?? OKNA.ru;
+    await sendTo(m.tg_chat_id, `${b.weeklyStats(st.views, st.contacts, st.taken)}\n\n${tip}`, [[{ text: o.today, callback_data: "slot:0" }, { text: o.tomorrow, callback_data: "slot:1" }], [await cabinetButton(m)]]);
     await adminUpdateMaster(m.id, { stats_sent_at: new Date().toISOString() });
     n++;
   }
@@ -1370,6 +1395,10 @@ async function onText(msg: TgMessage) {
     const t = DEL_T[(["ru", "en", "ka"].includes(lang) ? lang : "ru") as "ru" | "en" | "ka"];
     return sendTo(chatId, t.ask, [[{ text: t.pause, callback_data: "del:pause" }], [{ text: t.del, callback_data: "del:ask" }]]);
   }
+  if (text === "/free" || text.startsWith("/free@")) {
+    if (!masters[0]) return sendTo(chatId, b.notSpecialistShort);
+    return askSlots(masters[0]);
+  }
   if (text === "/pause" || text.startsWith("/pause@")) {
     if (!masters[0]) return sendTo(chatId, b.notSpecialistShort);
     return sendTo(chatId, b.pauseAsk, [
@@ -1634,6 +1663,7 @@ export async function setupBot(baseUrl: string, secret: string): Promise<{ ok: b
     await tg("setMyCommands", {
       commands: [
         { command: "cabinet", description: b.commands.cabinet },
+        { command: "free", description: b.commands.free },
         { command: "pause", description: b.commands.pause },
         { command: "resume", description: b.commands.resume },
         { command: "help", description: b.commands.help },

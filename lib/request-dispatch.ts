@@ -1,4 +1,5 @@
 import "server-only";
+import { isUrgent } from "./request-hints";
 import { adminGetMaster, findMasterByPhone, updateRequest } from "./db";
 import { distributeRequest, sendRequestToChosen } from "./bot";
 import { getPlace } from "./places-db";
@@ -31,6 +32,7 @@ async function askApproval(saved: ClientRequest, master: { name: string; slug: s
   const chat = telegramChatId();
   const text = [
     master ? "✉️ <b>Сообщение специалисту — на проверке</b>" : "🆕 <b>Новая заявка — на проверке</b>",
+    isUrgent(saved) ? "🔥 <b>СРОЧНО — клиенту нужно сегодня</b>, одобрите поскорее" : "",
     `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}`,
     master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
     `<b>Задача:</b> ${escapeHtml(saved.description)}`,

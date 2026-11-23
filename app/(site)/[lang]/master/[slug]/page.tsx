@@ -1,4 +1,5 @@
 import { registryPhones } from "@/lib/registry-import";
+import { FREE_TEXT, freeDay } from "@/lib/slots";
 import { eventsOfMaster } from "@/lib/events-db";
 import { EventCard } from "@/components/EventCard";
 import { portfolioSections } from "@/lib/portfolio";
@@ -179,6 +180,12 @@ export default async function MasterPage({ params, searchParams }: Props) {
               ) : (
                 <>
                   <ViewTracker masterId={m.id} />
+                  {freeDay(m.slots) && (
+                    <p className="mb-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-[14px] font-semibold text-brand-dark">
+                      🟢 {FREE_TEXT[lang][freeDay(m.slots)!]}
+                      {(m.slots ?? []).filter((x) => x.t && x.d === (m.slots ?? []).find((y) => freeDay([y]))?.d).map((x) => `, ${x.t}`).join("")}
+                    </p>
+                  )}
                   <ContactReveal masterId={m.id} slug={m.slug} lang={lang} />
                   <StickyContactBar contactsLabel={t.stickyContacts} writeLabel={t.stickyWrite} writeHref={href(lang, `/master/${m.slug}/message`)} />
                 </>

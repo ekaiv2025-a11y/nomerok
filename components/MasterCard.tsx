@@ -6,6 +6,7 @@ import { RatingLine } from "./Stars";
 import { categoryLabel, unitLabel } from "@/lib/categories";
 import { subcatLine } from "@/lib/subcats";
 import { cardSummary } from "@/lib/card-summary";
+import { FREE_TEXT, freeDay } from "@/lib/slots";
 
 const MODE: Record<string, Record<Locale, string>> = {
   at_client: { ru: "🚗 Выезд к клиенту", en: "🚗 Comes to you", ka: "🚗 გამოძახებით" },
@@ -77,6 +78,9 @@ export function MasterCard({ m, lang }: { m: PublicMaster; lang: Locale }) {
           {m.demo && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-[#8a6a1f] shadow-sm">{t.demo}</span>}
           {m.away && <span className="rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-muted shadow-sm">⏸ {t.away}</span>}
           {m.bonus && !m.away && <span className="rounded-full bg-[#fdf3dc] px-2 py-0.5 text-[11px] font-semibold text-[#8a6a1f] shadow-sm">🎁 {REF_TEXT[lang].badge}</span>}
+          {!m.away && freeDay(m.slots) && (
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold shadow-sm ${freeDay(m.slots) === "today" ? "bg-brand text-white" : "bg-white/95 text-brand-dark"}`}>🟢 {FREE_TEXT[lang][freeDay(m.slots)!]}</span>
+          )}
         </div>
       </div>
       <Link href={link} className="flex flex-1 flex-col p-3 sm:p-4">

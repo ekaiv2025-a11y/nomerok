@@ -15,6 +15,7 @@ import { MapPin } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
 import { SUBCATS, subcatLabel, subcatsOf } from "@/lib/subcats";
 import { detectIntent } from "@/lib/search-intent";
+import { FREE_TEXT, freeDay } from "@/lib/slots";
 
 const F = {
   ru: { where: "Где", any: "Любой формат", atClient: "Выезд к клиенту", atPlace: "Принимает у себя", online: "Онлайн", lang: "Любой язык", price: "С ценой", sort: "По умолчанию", reviews: "С отзывами", cheap: "Сначала дешевле", reset: "Сбросить", more: (n: number) => `Ещё ${n}`, less: "Свернуть", bonus: "С бонусом", showMore: (n: number) => `Показать ещё (${n})` },
@@ -95,6 +96,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
   const [fLang, setFLang] = useState("");
   const [fPrice, setFPrice] = useState(false);
   const [fBonus, setFBonus] = useState(false);
+  const [fFree, setFFree] = useState(false);
   // ?bonus=1 (кнопка «Мастера с бонусом» на главной) — сразу включаем фильтр
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("bonus") === "1") {
@@ -143,6 +145,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
       if (fLang && !(m.languages ?? []).includes(fLang)) return false;
       if (fPrice && m.price_from == null) return false;
       if (fBonus && !m.bonus) return false;
+      if (fFree && (m.away || freeDay(m.slots) !== "today")) return false;
       if (cat !== "all" && m.category !== cat && !(m.extra_categories ?? []).includes(cat)) return false;
       if (cat !== "all" && sub !== "all" && !subcatsOf(m, cat).includes(sub)) return false;
       if (!query) return true;
@@ -159,13 +162,13 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
     if (sort === "reviews") return { list: [...list].sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.rating ?? 0) - (a.rating ?? 0)), other };
     if (sort === "cheap") return { list: [...list].sort((a, b) => (a.price_from ?? 1e9) - (b.price_from ?? 1e9)), other };
     return { list, other };
-  }, [masters, all, city, cat, sub, q, intents, fMode, fLang, fPrice, fBonus, sort]);
+  }, [masters, all, city, cat, sub, q, intents, fMode, fLang, fPrice, fBonus, fFree, sort]);
   const elsewhereList = CITIES.filter((c) => elsewhere[c.id]).sort((a, b) => elsewhere[b.id] - elsewhere[a.id]);
   const foundAll = filtered.length + Object.values(elsewhere).reduce((a, b) => a + b, 0);
   // Показываем по 16 карточек — страница не тянет сразу всех специалистов
   const PAGE = 16;
   const [limit, setLimit] = useState(PAGE);
-  useEffect(() => setLimit(PAGE), [cat, sub, q, fMode, fLang, fPrice, fBonus, sort, city]);
+  useEffect(() => setLimit(PAGE), [cat, sub, q, fMode, fLang, fPrice, fBonus, fFree, sort, city]);
   const shown = filtered.slice(0, limit);
   // Лента: следующая порция подгружается сама, когда кнопка «Показать ещё» показалась на экране
   const moreRef = useRef<HTMLButtonElement | null>(null);
@@ -191,7 +194,8 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
     return () => clearTimeout(id);
   }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
   const ft = F[lang];
-  const anyFilter = !!(fMode || fLang || fPrice || fBonus || sort);
+  const anyFilter = !!(fMode || fLang || fPrice || fBonus || fFree || sort);
+  const freeCount = masters.filter((m) => !m.away && freeDay(m.slots) === "today").length;
   const bonusCount = masters.filter((m) => m.bonus).length;
 
   // Уточнения внутри направления (например, «Красота» → парикмахер, маникюр…)
@@ -324,6 +328,11 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
         <button type="button" onClick={() => setFPrice((v) => !v)} className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] ${fPrice ? "border-brand bg-brand-soft text-brand-dark" : "border-line bg-white"}`}>
           {fPrice ? "✓ " : ""}{ft.price}
         </button>
+        {freeCount > 0 && (
+          <button type="button" onClick={() => setFFree((v) => !v)} className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] font-semibold ${fFree ? "border-brand bg-brand text-white" : "border-brand/40 bg-brand-soft text-brand-dark"}`}>
+            {fFree ? "✓ " : "🟢 "}{FREE_TEXT[lang].filter} · {freeCount}
+          </button>
+        )}
         {bonusCount > 0 && (
           <button type="button" onClick={() => setFBonus((v) => !v)} className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] font-semibold ${fBonus ? "border-accent bg-[#fdf3dc] text-[#6b4f12]" : "border-[#f0d58a] bg-[#fffaf0] text-[#6b4f12]"}`}>
             {fBonus ? "✓ " : "🎁 "}{ft.bonus} · {bonusCount}
@@ -335,7 +344,7 @@ export function Catalog({ masters: all, lang, city, pageCat, pageSub, catPages =
           <option value="cheap">₾ {ft.cheap}</option>
         </select>
         {anyFilter && (
-          <button type="button" onClick={() => { setFMode(""); setFLang(""); setFPrice(false); setFBonus(false); setSort(""); }} className="h-9 shrink-0 whitespace-nowrap px-2 text-[13px] text-muted underline">
+          <button type="button" onClick={() => { setFMode(""); setFLang(""); setFPrice(false); setFBonus(false); setFFree(false); setSort(""); }} className="h-9 shrink-0 whitespace-nowrap px-2 text-[13px] text-muted underline">
             {ft.reset}
           </button>
         )}
