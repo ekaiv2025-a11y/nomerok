@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { allProjects } from "@/lib/projects-all";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { href } from "@/lib/i18n";
@@ -35,9 +36,10 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const city = isCity(sp.city) ? sp.city : null;
   const status = sp.status && sp.status in PROJECT_STATUS ? (sp.status as ProjectStatus) : null;
-  const list = PROJECTS.filter((p) => (!city || p.city === city) && (!status || p.status === status));
+  const ALL = await allProjects();
+  const list = ALL.filter((p) => (!city || p.city === city) && (!status || p.status === status));
   const cityCounts: Record<string, number> = {};
-  for (const p of PROJECTS) if (p.city) cityCounts[p.city] = (cityCounts[p.city] ?? 0) + 1;
+  for (const p of ALL) if (p.city) cityCounts[p.city] = (cityCounts[p.city] ?? 0) + 1;
   const [newsAll, photos] = await Promise.all([journalArticles().catch(() => []), projectPhotos().catch(() => new globalThis.Map<string, CommonsPhoto>())]);
   const news = newsAll.filter((a) => a.rubric === "build").slice(0, 6);
   const points = list.filter((p) => p.coords).map((p) => ({ lat: p.coords![0], lng: p.coords![1], title: p.name, subtitle: [p.district, PROJECT_STATUS[p.status].label].filter(Boolean).join(" · "), href: `/ru/novostroyki/${p.slug}` }));
@@ -54,7 +56,7 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
 
       <div className="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
         <Link href={qs({ city: null })} className={chip(!city)}>
-          Вся Грузия · {PROJECTS.length}
+          Вся Грузия · {ALL.length}
         </Link>
         {CITIES.filter((c) => cityCounts[c.id]).map((c) => (
           <Link key={c.id} href={qs({ city: c.id })} className={chip(city === c.id)}>
@@ -108,11 +110,16 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
       <section className="mt-10 flex flex-col gap-3 rounded-3xl border-2 border-[#f0d58a] bg-[#fffaf0] p-5 sm:flex-row sm:items-center sm:p-6">
         <div className="grow">
           <h2 className="text-[20px] font-bold leading-tight">Застройщик, агентство или продаёте свою квартиру?</h2>
-          <p className="mt-1 text-[14px] leading-relaxed text-[#5a4410]">Разместите объект на NomerOk бесплатно: квартиру в новостройке, на вторичном рынке, дом, коммерческую недвижимость или участок. Квартиру в ЖК из каталога можно привязать к комплексу — она появится и на его странице.</p>
+          <p className="mt-1 text-[14px] leading-relaxed text-[#5a4410]">Застройщики добавляют свой ЖК целиком: все квартиры с ценами и планировками, статусы «свободна / продана», ход стройки — заявки покупателей приходят сразу в отдел продаж. Собственники и агенты размещают отдельные квартиры, дома и участки. Бесплатно.</p>
         </div>
-        <Link href="/ru/realty/add" className="btn h-11 shrink-0 rounded-full bg-accent px-5 text-[15px] font-semibold text-ink hover:bg-[#cf9620]">
-          + Разместить объект
-        </Link>
+        <div className="flex shrink-0 flex-col gap-2">
+          <Link href="/ru/realty/dev" className="btn h-11 rounded-full bg-accent px-5 text-[15px] font-semibold text-ink hover:bg-[#cf9620]">
+            🏗 Добавить ЖК
+          </Link>
+          <Link href="/ru/realty/add" className="btn-ghost h-10 px-4 text-[14px]">
+            + Разместить квартиру
+          </Link>
+        </div>
       </section>
 
       <section id="podbor" className="mt-10 grid gap-6 rounded-3xl border border-line bg-white p-5 sm:p-8 lg:grid-cols-[1fr_1.3fr]">

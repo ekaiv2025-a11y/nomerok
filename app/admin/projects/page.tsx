@@ -34,15 +34,70 @@ async function act(fd: FormData) {
   revalidatePath("/admin/projects");
 }
 
+async function devAct(fd: FormData) {
+  "use server";
+  await requireAdmin();
+  const { getDevProject, updateDevProject, deleteDevProject } = await import("@/lib/dev-projects-db");
+  const { tellDev } = await import("@/lib/dev-moderation");
+  const d = await getDevProject(String(fd.get("id")));
+  if (!d) return;
+  const a = String(fd.get("act"));
+  if (a === "publish") {
+    await updateDevProject(d.id, { mod_status: "published" });
+    if (d.mod_status === "pending") await tellDev(d, true).catch(() => null);
+  } else if (a === "hide") await updateDevProject(d.id, { mod_status: "hidden" });
+  else if (a === "reject") {
+    await updateDevProject(d.id, { mod_status: "draft" });
+    await tellDev(d, false).catch(() => null);
+  } else if (a === "delete") await deleteDevProject(d.id);
+  revalidatePath("/admin/projects");
+  revalidatePath("/ru/novostroyki");
+  revalidatePath(`/ru/novostroyki/${d.linked_slug ?? d.slug}`);
+}
+
 const ST = { new: "🆕 Новая", sent: "📤 Передана", closed: "✅ Закрыта" } as const;
 
 export default async function AdminProjects() {
   if (!(await isAdmin())) redirect("/admin/login");
-  const [leads, media] = await Promise.all([listProjectLeads().catch(() => [] as ProjectLead[]), allProjectMedia().catch(() => new Map())]);
+  const { adminDevProjects, unitsOf } = await import("@/lib/dev-projects-db");
+  const [leads, media, devs] = await Promise.all([listProjectLeads().catch(() => [] as ProjectLead[]), allProjectMedia().catch(() => new Map()), adminDevProjects().catch(() => [])]);
+  const devUnits = await Promise.all(devs.map((d) => unitsOf(d.id).then((u) => u.length).catch(() => 0)));
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Link href="/admin" className="text-[14px] text-muted">← Админка</Link>
       <h1 className="mt-2 text-[26px] font-bold">🏗 Новостройки: заявки ({leads.length})</h1>
+      <section id="dev" className="mt-5 rounded-2xl border border-line bg-white p-4">
+        <h2 className="text-[18px] font-bold">ЖК от застройщиков ({devs.length})</h2>
+        <p className="text-[13px] text-muted">Добавлены в кабинете застройщика (/ru/realty/dev). Первая публикация — после вашей проверки: убедитесь по телефону, что это правда отдел продаж.</p>
+        <div className="mt-3 space-y-2">
+          {!devs.length && <p className="text-[14px] text-muted">Пока нет.</p>}
+          {devs.map((d, i) => (
+            <div key={d.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line p-2 text-[14px]">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">
+                  {d.name} <span className="font-normal text-muted">· {d.developer || "—"} · {cityLabel(d.city, "ru")}</span>
+                </p>
+                <p className="text-[12px] text-muted">
+                  {d.mod_status} · квартир {devUnits[i]} · фото {d.photos.length} · {d.contact_name || "—"}, {d.contact_phone || "—"}
+                  {d.linked_slug ? ` · дополняет ${d.linked_slug}` : " · новый ЖК"}
+                </p>
+              </div>
+              {d.mod_status === "published" && (
+                <a href={`/ru/novostroyki/${d.linked_slug ?? d.slug}`} target="_blank" className="text-[12px] text-brand underline">
+                  на сайте
+                </a>
+              )}
+              <form action={devAct} className="flex gap-1">
+                <input type="hidden" name="id" value={d.id} />
+                {d.mod_status !== "published" && <button name="act" value="publish" className="rounded-full bg-brand px-3 py-1 text-[12px] text-white">Опубликовать</button>}
+                {d.mod_status === "pending" && <button name="act" value="reject" className="rounded-full border px-3 py-1 text-[12px]">Отклонить</button>}
+                {d.mod_status === "published" && <button name="act" value="hide" className="rounded-full border px-3 py-1 text-[12px]">Скрыть</button>}
+                <button name="act" value="delete" className="rounded-full border px-3 py-1 text-[12px] text-danger">Удалить</button>
+              </form>
+            </div>
+          ))}
+        </div>
+      </section>
       <p className="mt-1 text-[14px] text-muted">
         Описано ЖК: {PROJECTS.length} · <Link href="/ru/novostroyki" className="underline">раздел на сайте</Link>. Новые заявки приходят и в Telegram. Передали агентству — отметьте «Передана».
       </p>

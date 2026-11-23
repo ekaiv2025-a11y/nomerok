@@ -906,6 +906,34 @@ async function onListingModerate(cb: TgCallback, act: string, id: string) {
   return answer("Опубликовано на сайте, автору сообщили");
 }
 
+/** Админ: «✅ Опубликовать» / «🗑 Отклонить» у ЖК из кабинета застройщика. */
+async function onDevModerate(cb: TgCallback, act: string, id: string) {
+  const answer = (text: string) => tg("answerCallbackQuery", { callback_query_id: cb.id, text, show_alert: true });
+  const chat = telegramChatId();
+  if (!chat || (String(cb.message?.chat.id) !== chat && String(cb.from.id) !== chat)) return answer("Это может сделать только администратор");
+  const { getDevProject, updateDevProject } = await import("./dev-projects-db");
+  const { tellDev } = await import("./dev-moderation");
+  const d = await getDevProject(id).catch(() => null);
+  if (!d) return answer("ЖК не найден");
+  const msgId = (cb.message as { message_id?: number } | undefined)?.message_id;
+  const done = async (label: string) => {
+    if (cb.message && msgId) await tg("editMessageReplyMarkup", { chat_id: cb.message.chat.id, message_id: msgId, reply_markup: { inline_keyboard: [[{ text: label, callback_data: "noop" }]] } }).catch(() => null);
+  };
+  if (act === "dr") {
+    await updateDevProject(d.id, { mod_status: "draft" });
+    await tellDev(d, false);
+    await done("🗑 Отклонено");
+    return answer("Отклонено, застройщику сообщили");
+  }
+  await updateDevProject(d.id, { mod_status: "published" });
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath(`/ru/novostroyki/${d.linked_slug ?? d.slug}`);
+  revalidatePath("/ru/novostroyki");
+  await tellDev(d, true);
+  await done("✅ Опубликовано");
+  return answer("ЖК опубликован, застройщику сообщили");
+}
+
 const SPAM_BTN: Record<string, string> = { ru: "🚫 Это спам", en: "🚫 Spam", ka: "🚫 სპამი" };
 const SPAM_OK: Record<string, string> = {
   ru: "Спасибо! Отправитель заблокирован — его сообщения больше не дойдут ни до кого.",
@@ -1497,6 +1525,7 @@ export async function handleUpdate(u: TgUpdate): Promise<void> {
     if (data.startsWith("spam:")) return void (await onSpamMark(u.callback_query, data.slice(5)));
     if (data.startsWith("ap:") || data.startsWith("rj:")) return void (await onModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
     if (data.startsWith("lp:") || data.startsWith("lr:")) return void (await onListingModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
+    if (data.startsWith("dp:") || data.startsWith("dr:")) return void (await onDevModerate(u.callback_query, data.slice(0, 2), data.slice(3)));
     if (data.startsWith("away:")) return void (await onAway(u.callback_query, Number(data.slice(5))));
     if (data.startsWith("om:")) return void (await onOrgDecision(u.callback_query, data));
     if (/^(close|deal|later|nohelp|resend):/.test(data)) return void (await onClientAnswer(u.callback_query, data));

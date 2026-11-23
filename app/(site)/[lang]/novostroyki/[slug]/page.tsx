@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { getProjectFull, allProjects } from "@/lib/projects-all";
+import { UnitsBrowser } from "@/components/UnitsBrowser";
+import { DevLeadForm } from "@/components/DevLeadForm";
+import { ArticleGallery } from "@/components/ArticleGallery";
 import { listListings } from "@/lib/realty-db";
 import { ListingCard } from "@/components/ListingCard";
 import type { Listing } from "@/lib/realty";
@@ -30,7 +34,7 @@ const where = (p: { city?: string; place?: string }) => (p.place ? `в ${p.place
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
-  const p = projectBySlug(slug);
+  const p = (await getProjectFull(slug))?.p ?? null;
   if (lang !== "ru" || !p) return {};
   const price = priceLine(p);
   return pageMeta("ru", `/novostroyki/${p.slug}`, `ЖК ${p.name} ${where(p)}: цены, срок сдачи, застройщик ${p.developer}`, `${PROJECT_STATUS[p.status].label}${p.completion ? `, сдача ${p.completion}` : ""}${price ? `, ${price}` : ""}. ${p.lead}`.slice(0, 200));
@@ -38,11 +42,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectPage({ params }: Props) {
   const { lang, slug } = await params;
-  const p = projectBySlug(slug);
-  if (lang !== "ru" || !p) notFound();
+  const full = await getProjectFull(slug);
+  if (lang !== "ru" || !full) notFound();
+  const { p, dev: devProj, units } = full;
   const st = PROJECT_STATUS[p.status];
   // то же фото, что в списке (у каждого ЖК своё)
-  const own = (await allProjectMedia().catch(() => null))?.get(p.slug);
+  // фото застройщика из кабинета важнее загруженных в админке
+  const own = devProj?.photos.length ? undefined : (await allProjectMedia().catch(() => null))?.get(p.slug);
   // Квартиры в этом ЖК, которые разместили собственники, агенты и сам застройщик
   const forSale = (await listListings({ project: p.slug }).catch(() => ({ items: [] as Listing[], total: 0 }))).items.filter((l) => l.deal === "sale");
   // свои фото (админка) → фото застройщика → вид района
@@ -69,7 +75,7 @@ export default async function ProjectPage({ params }: Props) {
     ...(p.units ? ([["Квартир", String(p.units)]] as [string, string][]) : []),
     ["Где", [projectPlace(p, label), p.district, p.address].filter(Boolean).join(", ")],
   ];
-  const others = PROJECTS.filter((x) => x.slug !== p.slug && (x.city ?? x.place) === (p.city ?? p.place)).slice(0, 3);
+  const others = (await allProjects()).filter((x) => x.slug !== p.slug && (x.city ?? x.place) === (p.city ?? p.place)).slice(0, 3);
   const ld = [
     {
       "@context": "https://schema.org",
@@ -193,8 +199,17 @@ export default async function ProjectPage({ params }: Props) {
             </section>
           )}
 
+          {units.length > 0 && (
+            <section id="kvartiry" className="mt-8 scroll-mt-20">
+              <h2 className="text-[22px] font-bold">Квартиры от застройщика</h2>
+              <div className="mt-3">
+                <UnitsBrowser units={units} project={p.slug} projectName={`ЖК ${p.name}`} />
+              </div>
+            </section>
+          )}
+
           <section className="mt-8">
-            <h2 className="text-[22px] font-bold">Квартиры в продаже{forSale.length ? ` · ${forSale.length}` : ""}</h2>
+            <h2 className="text-[22px] font-bold">{units.length ? "Квартиры от собственников и агентов" : "Квартиры в продаже"}{forSale.length ? ` · ${forSale.length}` : ""}</h2>
             {forSale.length > 0 ? (
               <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {forSale.slice(0, 9).map((l) => (
@@ -242,11 +257,12 @@ export default async function ProjectPage({ params }: Props) {
             <section className="mt-8">
               <h2 className="text-[22px] font-bold">Ход строительства</h2>
               <ol className="mt-3 space-y-3 border-l-2 border-brand/30 pl-5">
-                {p.progress.map((x) => (
+                {(devProj?.progress.length ? devProj.progress : p.progress.map((x) => ({ ...x, photos: [] as string[] }))).map((x) => (
                   <li key={x.date + x.text} className="relative">
                     <span className="absolute -left-[27px] top-1.5 h-3 w-3 rounded-full bg-brand" />
                     <p className="text-[13px] font-semibold text-brand-dark">{x.date}</p>
-                    <p className="text-[15px] text-[#3a3935]">{x.text}</p>
+                    {x.text && <p className="text-[15px] text-[#3a3935]">{x.text}</p>}
+                    {x.photos.length > 0 && <ArticleGallery photos={x.photos} className="mt-2" />}
                   </li>
                 ))}
               </ol>
@@ -281,16 +297,49 @@ export default async function ProjectPage({ params }: Props) {
           )}
 
           <section className="mt-8 text-[13px] leading-relaxed text-muted">
-            <p>Описание составлено редакцией NomerOk по материалам застройщика и открытым источникам{p.updated ? `, проверено ${p.updated}` : ""}. Это не официальный сайт застройщика и не оферта.</p>
+            {devProj && !devProj.linked_slug ? (
+              <p>Информацию о ЖК, квартирах и ценах размещает застройщик в своём кабинете на NomerOk{p.updated ? `, обновлено ${p.updated}` : ""}. Это не оферта — условия уточняйте в отделе продаж.</p>
+            ) : (
+              <p>Описание составлено редакцией NomerOk по материалам застройщика и открытым источникам{p.updated ? `, проверено ${p.updated}` : ""}{devProj ? "; квартиры, цены, фото и ход стройки — от застройщика" : ""}. Это не официальный сайт застройщика и не оферта.</p>
+            )}
+            {!devProj && (
+              <p className="mt-2">
+                Вы представляете застройщика?{" "}
+                <Link href={`/ru/realty/dev?claim=${p.slug}`} className="font-semibold text-brand underline">
+                  Добавьте квартиры, планировки и ход стройки бесплатно →
+                </Link>
+              </p>
+            )}
           </section>
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-3xl border border-line bg-white p-5">
-            <p className="text-[19px] font-bold leading-tight">Узнать цены и свободные квартиры</p>
-            <p className="mt-1 mb-4 text-[14px] text-muted">Специалист агентства недвижимости пришлёт планировки и условия или предложит похожие варианты.</p>
-            <ProjectLeadForm project={p.slug} projectName={`ЖК ${p.name}`} city={p.city} />
-          </div>
+          {devProj ? (
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-line bg-white p-5">
+                <p className="text-[19px] font-bold leading-tight">Написать застройщику</p>
+                <p className="mt-1 mb-4 text-[14px] text-muted">Заявка уйдёт в отдел продаж ЖК {p.name}: свободные квартиры, планировки, рассрочка.</p>
+                {units.length > 0 && (
+                  <a href="#kvartiry" className="btn-ghost mb-3 h-10 w-full text-[14px]">
+                    Выбрать квартиру · свободно {units.filter((u) => u.status === "free").length}
+                  </a>
+                )}
+                <DevLeadForm project={p.slug} />
+              </div>
+              <details className="rounded-3xl border border-line bg-white p-5">
+                <summary className="cursor-pointer text-[15px] font-semibold">Подобрать и другие варианты через агентство</summary>
+                <div className="mt-3">
+                  <ProjectLeadForm project={p.slug} projectName={`ЖК ${p.name}`} city={p.city} />
+                </div>
+              </details>
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-line bg-white p-5">
+              <p className="text-[19px] font-bold leading-tight">Узнать цены и свободные квартиры</p>
+              <p className="mt-1 mb-4 text-[14px] text-muted">Специалист агентства недвижимости пришлёт планировки и условия или предложит похожие варианты.</p>
+              <ProjectLeadForm project={p.slug} projectName={`ЖК ${p.name}`} city={p.city} />
+            </div>
+          )}
         </aside>
       </div>
 
