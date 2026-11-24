@@ -41,11 +41,11 @@ async function askApproval(saved: ClientRequest, master: { name: string; slug: s
     `<b>Клиент:</b> ${escapeHtml(saved.name || "—")}, ${escapeHtml(formatPhone(saved.phone))}`,
     `<b>Язык сайта:</b> ${LOCALE_NAMES[saved.lang]}`,
     "",
-    "Специалистам пока не отправлена. Одобрите — и она уйдёт.",
+    master ? `Пока не отправлено. Одобрите — и сообщение уйдёт только ${escapeHtml(master.name)}, больше никому.` : "Специалистам пока не отправлена. Одобрите — и она уйдёт.",
   ]
     .filter(Boolean)
     .join("\n");
-  if (chat) await sendTo(Number(chat), text, [[{ text: "✅ Одобрить и разослать", callback_data: `ap:${saved.id}` }], [{ text: "🚫 Спам", callback_data: `rj:${saved.id}` }]]).catch(() => null);
+  if (chat) await sendTo(Number(chat), text, [[{ text: master ? `✅ Отправить: ${master.name}`.slice(0, 60) : "✅ Одобрить и разослать", callback_data: `ap:${saved.id}` }], [{ text: "🚫 Спам", callback_data: `rj:${saved.id}` }]]).catch(() => null);
   else await notifyAdmin(text + `\n${SITE_URL}/admin`).catch(() => null);
 }
 
