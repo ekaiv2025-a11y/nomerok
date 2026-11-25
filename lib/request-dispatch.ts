@@ -9,7 +9,7 @@ import { categoryLabel } from "./categories";
 import { formatPhone } from "./phone";
 import { SITE_URL } from "./site";
 import { LOCALE_NAMES } from "./i18n";
-import { cityLabel } from "./cities";
+import { cityInText, cityLabel } from "./cities";
 import { looksLikeAd, looksLikeSelf } from "./request-check";
 import type { ClientRequest } from "./types";
 
@@ -34,6 +34,7 @@ async function askApproval(saved: ClientRequest, master: { name: string; slug: s
     master ? "✉️ <b>Сообщение специалисту — на проверке</b>" : "🆕 <b>Новая заявка — на проверке</b>",
     isUrgent(saved) ? "🔥 <b>СРОЧНО — клиенту нужно сегодня</b>, одобрите поскорее" : "",
     `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}`,
+    cityInText(saved.description) === saved.city ? `📍 Город — из текста заявки: разошлём только специалистам ${cityLabel(saved.city, "ru")}` : "",
     master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
     `<b>Задача:</b> ${escapeHtml(saved.description)}`,
     saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",
@@ -104,6 +105,7 @@ export async function dispatchRequest(saved: ClientRequest, opts: { notSelf?: bo
   const lines = [
     master ? "✉️ <b>Сообщение специалисту</b>" : orgOk ? `🏢 <b>Заявка в организацию «${escapeHtml(orgOk.name)}»</b>` : "🆕 <b>Новая заявка</b>",
     `<b>Кто нужен:</b> ${escapeHtml(categoryLabel(saved.category, "ru"))} · ${cityLabel(saved.city, "ru")}`,
+    cityInText(saved.description) === saved.city ? `📍 Город — из текста заявки: разошлём только специалистам ${cityLabel(saved.city, "ru")}` : "",
     master ? `<b>Специалист:</b> ${escapeHtml(master.name)} — ${SITE_URL}/ru/master/${master.slug}` : "",
     `<b>Задача:</b> ${escapeHtml(saved.description)}`,
     saved.when_text ? `<b>Когда:</b> ${escapeHtml(saved.when_text)}` : "",

@@ -10,7 +10,7 @@ import { clientIp } from "@/lib/request-info";
 import { categoryLabel } from "@/lib/categories";
 import { formatPhone } from "@/lib/phone";
 import { getDict } from "@/lib/i18n";
-import { cityLabel, cityOf } from "@/lib/cities";
+import { cityInText, cityLabel, cityOf } from "@/lib/cities";
 import { currentClient } from "@/lib/client-auth";
 import { updateRequest } from "@/lib/db";
 
@@ -45,7 +45,8 @@ export async function POST(req: Request) {
       phone: data.phone,
       master_id: master?.id ?? null,
       lang,
-      city: master ? (master.city ?? "batumi") : cityOf(body.city),
+      // Клиент мог не поменять город в форме, но в тексте прямо написал «в Тбилиси» — рассылаем по городу из текста
+      city: master ? (master.city ?? "batumi") : (cityInText(`${data.description} ${data.when_text ?? ""}`) ?? cityOf(body.city)),
     });
 
     // Клиент вошёл в «Мои заявки» — сразу привязываем заявку к его Telegram: отклики придут туда без лишних шагов

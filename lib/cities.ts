@@ -61,3 +61,27 @@ export function cityCenter(id: string | null | undefined): [number, number] {
   const c = CITIES.find((x) => x.id === id)?.center ?? CITIES[0].center;
   return [c[0], c[1]];
 }
+
+/*
+ * Город, который назван в тексте заявки («…требуется в Тбилиси», «Batumi», «თბილისში»).
+ * Если в тексте ровно один наш город — возвращаем его; ни одного или несколько — null.
+ */
+const CITY_WORDS: Record<string, RegExp> = {
+  batumi: /батум|batumi|ბათუმ/i,
+  tbilisi: /тбилис|tbilisi|თბილის/i,
+  kutaisi: /кутаис|kutaisi|ქუთაის/i,
+  rustavi: /рустав|rustavi|რუსთავ/i,
+  kobuleti: /кобулет|kobuleti|ქობულეთ/i,
+  zugdidi: /зугдид|zugdidi|ზუგდიდ/i,
+  poti: /(^|[^а-яёa-z])(поти|poti)([^а-яёa-z]|$)|ფოთ/i,
+  // «Гори» — только с большой буквы: «гори» бывает и обычным словом
+  gori: /(^|[^А-Яа-яЁёA-Za-z])(Гори|Gori|GORI)([^А-Яа-яЁёA-Za-z]|$)|გორში|გორის/,
+  telavi: /телав|telavi|თელავ/i,
+  borjomi: /боржом|borjomi|ბორჯომ/i,
+};
+export function cityInText(text: string): string | null {
+  const found = Object.entries(CITY_WORDS)
+    .filter(([id, re]) => CITY_IDS.includes(id as never) && re.test(text))
+    .map(([id]) => id);
+  return found.length === 1 ? found[0] : null;
+}
