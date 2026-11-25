@@ -78,25 +78,47 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
   const showProjects = lang === "ru" && (!list.length || !deal || deal === "sale");
   const allP = showProjects ? await allProjects().catch(() => []) : [];
   const inCity = allP.filter((p) => p.city === city);
-  const projects = (inCity.length ? inCity : allP).slice(0, 6);
-  const pPhotos = projects.length ? await projectPhotos().catch(() => new globalThis.Map<string, CommonsPhoto>()) : new globalThis.Map<string, CommonsPhoto>();
-  const projectsBlock = projects.length ? (
+  const others = allP.filter((p) => p.city !== city);
+  const pPhotos = allP.length ? await projectPhotos().catch(() => new globalThis.Map<string, CommonsPhoto>()) : new globalThis.Map<string, CommonsPhoto>();
+  const card = (p: (typeof allP)[number]) => (
+    <ProjectCard key={p.slug} p={p} photo={pPhotos.get(p.slug) ?? (p.images?.[0] ? { url: pimg(p.images[0].url, true), credit: p.images[0].credit, license: "", source: "", title: "dev" } : undefined)} />
+  );
+  const projectsBlock = allP.length ? (
     <section className="mt-6">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <h2 className="text-[20px] font-bold">
-          🏗 {inCity.length ? `Новостройки ${cityIn(city, "ru")}` : "Новостройки Грузии"}
-          <span className="font-normal text-muted"> · {inCity.length || allP.length}</span>
-        </h2>
-        <Link href={`/ru/novostroyki${inCity.length ? `?city=${city}` : ""}`} className="text-[14px] font-semibold text-brand hover:underline">
-          Все новостройки →
-        </Link>
-      </div>
-      <p className="mt-1 text-[14px] text-muted">Строящиеся и сданные ЖК: застройщик, срок сдачи, цены, квартиры и ход стройки.</p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {projects.map((p) => (
-          <ProjectCard key={p.slug} p={p} photo={pPhotos.get(p.slug) ?? (p.images?.[0] ? { url: pimg(p.images[0].url, true), credit: p.images[0].credit, license: "", source: "", title: "dev" } : undefined)} />
-        ))}
-      </div>
+      {inCity.length > 0 && (
+        <>
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h2 className="text-[20px] font-bold">
+              🏗 Новостройки {cityIn(city, "ru")}
+              <span className="font-normal text-muted"> · {inCity.length}</span>
+            </h2>
+            <Link href={`/ru/novostroyki?city=${city}`} className="text-[14px] font-semibold text-brand hover:underline">
+              Все с фильтрами →
+            </Link>
+          </div>
+          <p className="mt-1 text-[14px] text-muted">Строящиеся и сданные ЖК: застройщик, срок сдачи, цены, квартиры и ход стройки.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{inCity.map(card)}</div>
+        </>
+      )}
+      {others.length > 0 && (
+        <>
+          <div className={`flex flex-wrap items-end justify-between gap-2 ${inCity.length ? "mt-8" : ""}`}>
+            <h2 className="text-[20px] font-bold">
+              🏗 {inCity.length ? "Новостройки в других городах Грузии" : "Новостройки Грузии"}
+              <span className="font-normal text-muted"> · {others.length}</span>
+            </h2>
+            <Link href="/ru/novostroyki" className="text-[14px] font-semibold text-brand hover:underline">
+              Все новостройки →
+            </Link>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{others.slice(0, 12).map(card)}</div>
+          {others.length > 12 && (
+            <Link href="/ru/novostroyki" className="btn-ghost mt-3 h-11 w-full text-[14px]">
+              Ещё {others.length - 12} ЖК →
+            </Link>
+          )}
+        </>
+      )}
     </section>
   ) : null;
   const qs = (patch: Partial<SP>) => {
