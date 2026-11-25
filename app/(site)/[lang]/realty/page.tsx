@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { allProjects } from "@/lib/projects-all";
+import { projectPhotos } from "@/lib/project-photos";
+import { ProjectCard } from "@/components/ProjectCard";
+import { pimg } from "@/lib/projects";
+import type { CommonsPhoto } from "@/lib/commons";
 import { AlertButton } from "@/components/AlertButton";
 import Link from "next/link";
 import { langOf, pageMeta, type LangParams } from "@/lib/i18n/page";
@@ -69,6 +74,31 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
   // Раздел открыт всегда (23.11.2026): разместить объект может любой — пустой раздел зовёт стать первым
   // объявления риелторов — только с живой анкетой; собственники, агенты и застройщики без анкеты — как есть
   const list = items.filter((l) => !l.master_id || byId.has(l.master_id));
+  // Новостройки из нашего каталога: при пустом разделе — вместо пустоты, при покупке — рядом с объявлениями
+  const showProjects = lang === "ru" && (!list.length || !deal || deal === "sale");
+  const allP = showProjects ? await allProjects().catch(() => []) : [];
+  const inCity = allP.filter((p) => p.city === city);
+  const projects = (inCity.length ? inCity : allP).slice(0, 6);
+  const pPhotos = projects.length ? await projectPhotos().catch(() => new globalThis.Map<string, CommonsPhoto>()) : new globalThis.Map<string, CommonsPhoto>();
+  const projectsBlock = projects.length ? (
+    <section className="mt-6">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <h2 className="text-[20px] font-bold">
+          🏗 {inCity.length ? `Новостройки ${cityIn(city, "ru")}` : "Новостройки Грузии"}
+          <span className="font-normal text-muted"> · {inCity.length || allP.length}</span>
+        </h2>
+        <Link href={`/ru/novostroyki${inCity.length ? `?city=${city}` : ""}`} className="text-[14px] font-semibold text-brand hover:underline">
+          Все новостройки →
+        </Link>
+      </div>
+      <p className="mt-1 text-[14px] text-muted">Строящиеся и сданные ЖК: застройщик, срок сдачи, цены, квартиры и ход стройки.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {projects.map((p) => (
+          <ProjectCard key={p.slug} p={p} photo={pPhotos.get(p.slug) ?? (p.images?.[0] ? { url: pimg(p.images[0].url, true), credit: p.images[0].credit, license: "", source: "", title: "dev" } : undefined)} />
+        ))}
+      </div>
+    </section>
+  ) : null;
   const qs = (patch: Partial<SP>) => {
     const p = new URLSearchParams(Object.entries({ ...sp, ...patch }).filter(([, v]) => v) as [string, string][]);
     return `/${lang}/realty${p.toString() ? `?${p}` : ""}`;
@@ -171,7 +201,7 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
           <AlertButton city={city} defaultDeal={deal} label="🔔 Сообщать о новых объявлениях в Telegram" />
         </div>
       )}
-      <p className="mt-4 text-[13px] text-muted">{t.found(total)}</p>
+      {total > 0 && <p className="mt-4 text-[13px] text-muted">{t.found(total)}</p>}
       {list.length ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {list.map((l) => (
@@ -179,7 +209,9 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
           ))}
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-line bg-cream p-6 text-center">
+        <>
+        {projectsBlock}
+        <div className="mt-6 rounded-2xl border border-dashed border-line bg-cream p-6 text-center">
           <p className="text-[15px] text-muted">{t.empty}</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
             <Link href={href(lang, `/request?category=realtor${city !== "batumi" ? `&city=${city}` : ""}`)} className="btn-primary h-11 px-5">
@@ -191,7 +223,9 @@ export default async function RealtyPage({ params, searchParams }: LangParams & 
           </div>
           <p className="mt-3 text-[13px] text-muted">{MORE_T[lang].first}</p>
         </div>
+        </>
       )}
+      {list.length > 0 && projectsBlock}
       {page * 24 < total && (
         <div className="mt-6 text-center">
           <Link href={qs({ page: String(page + 1) })} className="btn-ghost h-11 px-6">
