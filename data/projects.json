@@ -1,5 +1,736 @@
 [
   {
+    "slug": "zhk-corall-seaside-resort-batumi",
+    "name": "Corall Seaside Resort",
+    "city": "batumi",
+    "district": "набережная, проспект Тамар Мепе",
+    "address": "проспект Тамар Мепе, 1",
+    "developer": "Ibercompany Holding, Grande Group и Mziuri Development",
+    "status": "presale",
+    "completion": "поэтапно, полностью к 2031 году",
+    "floors": "53–55",
+    "features": [
+      "первая линия моря",
+      "2 башни",
+      "яхт-клуб",
+      "пресейл"
+    ],
+    "lead": "Corall Seaside Resort — курортный комплекс из двух высотных башен на первой линии моря в Батуми, на проспекте Тамар Мепе. Проект сейчас на этапе продаж и подготовки к строительству, сдачу планируют поэтапно до 2031 года.",
+    "body": [
+      {
+        "h2": "О комплексе"
+      },
+      {
+        "p": "Комплекс строят вместе три компании — Ibercompany Holding, Grande Group и Mziuri Development. Участок площадью 11 300 м² находится прямо на берегу Чёрного моря, рядом со Старым бульваром Батуми. Проект объединяет две башни высотой 53 и 55 этажей, пятизвёздочный отель примерно на 100 номеров под управлением международного гостиничного оператора, яхт-клуб с собственными причалами и казино."
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Участок находится в 10 минутах от Старого бульвара и Ботанического сада Батуми и в 3 минутах от центрального железнодорожного вокзала."
+      },
+      {
+        "list": [
+          "Старый бульвар Батуми — около 10 минут",
+          "Ботанический сад — около 10 минут",
+          "центральный железнодорожный вокзал — около 3 минут",
+          "частный пляж — у дома"
+        ]
+      },
+      {
+        "h2": "Квартиры и отделка"
+      },
+      {
+        "p": "В продаже — студии от 27 м² и квартиры из нескольких комнат, часть из них планируют сдавать в отделке «под ключ». Отдельная часть комплекса — пятизвёздочный отель примерно на 100 номеров."
+      },
+      {
+        "h2": "Цены и условия покупки"
+      },
+      {
+        "p": "Открытую цену за квадратный метр застройщик пока не публикует — стоимость квартиры можно узнать по заявке. Из условий покупки застройщик называет первый взнос от 10% и рассрочку до 60 месяцев без процентов."
+      },
+      {
+        "list": [
+          "первый взнос — от 10%",
+          "рассрочка — до 60 месяцев",
+          "ставка по рассрочке — 0%"
+        ]
+      },
+      {
+        "h2": "Застройщик"
+      },
+      {
+        "p": "У трёх партнёров Corall Seaside Resort разный опыт: Ibercompany Holding работает в недвижимости, энергетике, сельском хозяйстве, виноделии, нефтетрейдинге и туризме; Grande Group — в строительстве и гостиничном бизнесе; Mziuri Development реализовывала зарубежные проекты совместно с гостиничными брендами Crowne Plaza и Hotel Indigo."
+      },
+      {
+        "tip": "На что смотреть при покупке в крупном комплексе на этапе предпродаж: договор о сроках и этапах строительства, порядок возврата средств при задержке сдачи, какая из компаний-партнёров отвечает по договору."
+      }
+    ],
+    "faq": [
+      {
+        "q": "Когда сдача Corall Seaside Resort?",
+        "a": "Застройщик разбил стройку на этапы: фундаментные работы — с 2027 года, вторая очередь — с 2028-го, полная сдача комплекса намечена на 2031 год."
+      },
+      {
+        "q": "Сколько стоит квартира в Corall Seaside Resort?",
+        "a": "Открытых цен за квадратный метр застройщик не публикует. Студии начинаются примерно от 27 м², точную стоимость можно узнать по заявке."
+      },
+      {
+        "q": "Кто застройщик Corall Seaside Resort?",
+        "a": "Комплекс строят совместно три компании — Ibercompany Holding, Grande Group и Mziuri Development."
+      },
+      {
+        "q": "Есть ли рассрочка в Corall Seaside Resort?",
+        "a": "Да, застройщик предлагает первый взнос от 10% и рассрочку до 60 месяцев без процентов."
+      },
+      {
+        "q": "Что входит в комплекс Corall Seaside Resort?",
+        "a": "Две жилые башни на 53 и 55 этажей, пятизвёздочный отель, яхт-клуб, казино, рестораны, спа и бассейны."
+      }
+    ],
+    "sources": [
+      {
+        "name": "Сайт проекта",
+        "url": "https://corallbatumi.com/en"
+      },
+      {
+        "name": "Сайт проекта — о проекте",
+        "url": "https://corallbatumi.com/en/about"
+      },
+      {
+        "name": "Georgia Today",
+        "url": "https://georgiatoday.ge/batumis-first-beachfront-resort-pre-sales-underway-at-the-250-million-corall-seaside-resort/"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://corallbatumi.com/img/abHero.jpg",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "exterior",
+        "caption": "Две башни комплекса на берегу моря"
+      },
+      {
+        "url": "https://corallbatumi.com/img/ly.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en/about",
+        "kind": "exterior",
+        "caption": "Вид на комплекс"
+      },
+      {
+        "url": "https://corallbatumi.com/img/view.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "view",
+        "caption": "Вид на море с террасы"
+      },
+      {
+        "url": "https://corallbatumi.com/img/enviroment/private-beach.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "view",
+        "caption": "Частный пляж"
+      },
+      {
+        "url": "https://corallbatumi.com/img/enviroment/yacht.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "exterior",
+        "caption": "Яхт-клуб"
+      },
+      {
+        "url": "https://corallbatumi.com/img/enviroment/hotel.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "interior",
+        "caption": "Пятизвёздочный отель"
+      },
+      {
+        "url": "https://corallbatumi.com/img/enviroment/welness.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "interior",
+        "caption": "Спа и велнес-зона"
+      },
+      {
+        "url": "https://corallbatumi.com/img/enviroment/restaurants-smaller.webp",
+        "credit": "застройщик Corall Seaside Resort",
+        "src": "https://corallbatumi.com/en",
+        "kind": "interior",
+        "caption": "Ресторан комплекса"
+      }
+    ],
+    "units_table": [
+      {
+        "type": "Студия",
+        "area": "от 27 м²",
+        "note": "часть квартир — отделка «под ключ»"
+      }
+    ],
+    "amenities": [
+      "Частный пляж",
+      "Яхт-клуб",
+      "Казино",
+      "Спа и велнес-зона",
+      "Бассейны",
+      "Рестораны и кафе",
+      "5-звёздочный отель"
+    ],
+    "photo": {
+      "q": "Batumi seafront skyline",
+      "alt": "Набережная Батуми"
+    },
+    "added": "2026-11-26",
+    "updated": "2026-11-26"
+  },
+  {
+    "slug": "zhk-silk-towers-batumi",
+    "name": "Silk Towers",
+    "city": "batumi",
+    "district": "Старый Батуми, набережная у статуи «Али и Нино»",
+    "developer": "Silk Development",
+    "developerSlug": "silk-development",
+    "status": "building",
+    "completion": "2029",
+    "features": [
+      "первая линия моря",
+      "архитектор Kengo Kuma & Associates",
+      "3 башни",
+      "старый Батуми"
+    ],
+    "lead": "Silk Towers — комплекс из трёх высотных башен на старой набережной Батуми, рядом со статуей «Али и Нино». Архитектурный проект разработало японское бюро Kengo Kuma & Associates, а инвестиции в проект оценивают в $630 млн. Комплекс строится, сдачу планируют на 2029 год.",
+    "body": [
+      {
+        "h2": "О комплексе"
+      },
+      {
+        "p": "Застройщик — Silk Development, компания в составе Silk Road Group, той же группы, что построила отели под брендом Radisson в Тбилиси, Батуми и Цинандали. Три башни с общим подиумом разместят на участке площадью 10 гектаров на первой линии моря, в исторической части Батуми — на одном из немногих оставшихся свободных участков набережной."
+      },
+      {
+        "p": "Рядом со стройкой уже открыт общественный парк площадью 2 гектара: по проекту его передадут городу. Общий объём инвестиций в проект оценивают примерно в $630 млн."
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Комплекс стоит на берегу моря в Старом Батуми, рядом со статуей «Али и Нино» — одной из самых узнаваемых достопримечательностей города."
+      },
+      {
+        "list": [
+          "первая линия моря",
+          "рядом статуя «Али и Нино»",
+          "общественный парк на 2 га по соседству"
+        ]
+      },
+      {
+        "h2": "Квартиры и отделка"
+      },
+      {
+        "p": "В Silk Towers будут жилые апартаменты инвестиционного класса, номера сразу двух пятизвёздочных отелей, торговые помещения, рестораны и бары. Точные площади и планировки квартир застройщик пока не публикует в открытом доступе. Управлять арендой и обслуживанием апартаментов, по данным застройщика, будет отдельная гостиничная структура группы."
+      },
+      {
+        "h2": "Цены и условия покупки"
+      },
+      {
+        "p": "Продажи квартир стартовали в августе 2025 года. Открытую цену за квадратный метр застройщик не публикует — стоимость уточняйте по заявке."
+      },
+      {
+        "h2": "Ход строительства"
+      },
+      {
+        "p": "Весной 2026 года застройщик сообщил, что на площадке завершили установку тестовых свай и начали основные свайные работы. Из-за расположения на морском берегу строителям пришлось отдельно учитывать прибрежные погодные условия, несущую способность грунта и конструктивные требования к высотным башням — для этого привлекли отдельного геотехнического партнёра."
+      },
+      {
+        "h2": "Застройщик"
+      },
+      {
+        "p": "Над Silk Towers вместе с Silk Development работают иностранные партнёры: инженерное бюро Meinhardt, архитектурное бюро A+, ландшафтное бюро MASU Planning из Дании и турецкое бюро Dinamik Proje Muhendislik. Архитектурный проект создало японское бюро Kengo Kuma & Associates — это его первая работа в Грузии. В портфеле группы также отели под брендом Radisson в Тбилиси, Батуми и Цинандали."
+      },
+      {
+        "tip": "На что смотреть при покупке в таком масштабном комплексе: на каком этапе проектирования и согласований находится конкретная очередь, какой банк финансирует стройку, прописаны ли в договоре сроки сдачи по корпусам."
+      }
+    ],
+    "faq": [
+      {
+        "q": "Когда сдача Silk Towers?",
+        "a": "Застройщик планирует сдать комплекс в 2029 году."
+      },
+      {
+        "q": "Сколько стоит квартира в Silk Towers?",
+        "a": "Открытую цену за квадратный метр застройщик не публикует, продажи стартовали в августе 2025 года — стоимость уточняйте по заявке."
+      },
+      {
+        "q": "Кто застройщик Silk Towers?",
+        "a": "Комплекс строит Silk Development — компания в составе Silk Road Group."
+      },
+      {
+        "q": "Кто архитектор Silk Towers?",
+        "a": "Архитектурный проект разработало японское бюро Kengo Kuma & Associates — это его первая работа в Грузии."
+      },
+      {
+        "q": "Что будет в составе комплекса Silk Towers?",
+        "a": "Три башни с жилыми апартаментами, два пятизвёздочных отеля, яхт-клуб, казино, рестораны и общественный парк на 2 га по соседству."
+      }
+    ],
+    "sources": [
+      {
+        "name": "Entrepreneur Georgia",
+        "url": "https://www.entrepreneur.com/ka/business-news/work-progresses-on-silk-towers-batumis-landmark-seafront/504307"
+      },
+      {
+        "name": "Entrepreneur Georgia (India)",
+        "url": "https://india.entrepreneur.com/ka/siakhleebi-da-tendentsiebi/batumis-boldest-architectural-statement-yet-silk-towers/494817"
+      },
+      {
+        "name": "New London Architecture",
+        "url": "https://nla.london/projects/silk-towers"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1777634398_cover.png?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://www.entrepreneur.com/ka/business-news/work-progresses-on-silk-towers-batumis-landmark-seafront/504307",
+        "kind": "exterior",
+        "caption": "Комплекс Silk Towers на набережной Батуми"
+      },
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1777634425_ExtCam_08.png?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://www.entrepreneur.com/ka/business-news/work-progresses-on-silk-towers-batumis-landmark-seafront/504307",
+        "kind": "exterior",
+        "caption": "Внешний вид башен"
+      },
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1777634443_ExtCam_13v3.png?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://www.entrepreneur.com/ka/business-news/work-progresses-on-silk-towers-batumis-landmark-seafront/504307",
+        "kind": "exterior",
+        "caption": "Комплекс с видом на море"
+      },
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1752846321_cover.jpg?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://india.entrepreneur.com/ka/siakhleebi-da-tendentsiebi/batumis-boldest-architectural-statement-yet-silk-towers/494817",
+        "kind": "exterior",
+        "caption": "Проект Silk Towers"
+      },
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1752853956_cam_02.jpg?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://india.entrepreneur.com/ka/siakhleebi-da-tendentsiebi/batumis-boldest-architectural-statement-yet-silk-towers/494817",
+        "kind": "exterior",
+        "caption": "Башни комплекса"
+      },
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1752853975_cam_15.jpg?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://india.entrepreneur.com/ka/siakhleebi-da-tendentsiebi/batumis-boldest-architectural-statement-yet-silk-towers/494817",
+        "kind": "view",
+        "caption": "Вид с набережной"
+      },
+      {
+        "url": "https://assets.entrepreneur.com/images/misc/1752853997_cam_12.jpg?width=1000",
+        "credit": "застройщик Silk Development",
+        "src": "https://india.entrepreneur.com/ka/siakhleebi-da-tendentsiebi/batumis-boldest-architectural-statement-yet-silk-towers/494817",
+        "kind": "exterior",
+        "caption": "Общий вид комплекса"
+      },
+      {
+        "url": "https://nla-production-projects.s3.eu-west-2.amazonaws.com/84051/5658_N62_medium_cropped-%281%29-%281%29.jpg?v=1763133116",
+        "credit": "застройщик Silk Development",
+        "src": "https://nla.london/projects/silk-towers",
+        "kind": "exterior",
+        "caption": "Проект Silk Towers"
+      }
+    ],
+    "photo": {
+      "q": "Batumi Ali and Nino statue seafront",
+      "alt": "Набережная Батуми у статуи «Али и Нино»"
+    },
+    "added": "2026-11-26",
+    "updated": "2026-11-26"
+  },
+  {
+    "slug": "zhk-tbilisi-acres-tbilisi",
+    "name": "Tbilisi Acres",
+    "city": "tbilisi",
+    "district": "между Ваке и Сабуртало, дорога на Напетвреби",
+    "address": "ул. Г. Данелия",
+    "developer": "Anagi",
+    "developerSlug": "anagi",
+    "status": "building",
+    "completion": "начало 2028 года",
+    "price": {
+      "perM2": 1750,
+      "currency": "USD",
+      "date": "февраль 2026",
+      "src": "https://www.interpressnews.ge/en/article/145738-final-offer-of-phase-one-at-tbilisi-acres"
+    },
+    "floors": "5–8",
+    "features": [
+      "между Ваке и Сабуртало",
+      "62 га, 85% зелени",
+      "рассрочка от застройщика",
+      "ипотека TBC"
+    ],
+    "lead": "Tbilisi Acres — малоэтажный жилой район на 62 гектарах между Ваке и Сабуртало, у дороги на Напетвреби. Строит его компания Anagi, работающая в Тбилиси с 1989 года. Первая очередь из 13 корпусов сейчас строится, сдачу планируют на начало 2028 года.",
+    "body": [
+      {
+        "h2": "О комплексе"
+      },
+      {
+        "p": "Застройщик описывает Tbilisi Acres как новый самостоятельный район: около 15% территории займёт застройка, а оставшиеся 85% — природный ландшафт и зелёные зоны с посадками местных пород деревьев. С запада участок граничит с лесным массивом площадью 90 000 м². Корпуса — малоэтажные, от 5 до 8 этажей, их расположение подстроено под рельеф холмов."
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Участок находится между районами Ваке и Сабуртало, в нескольких минутах ходьбы от университетской улицы, по дороге на Напетвреби."
+      },
+      {
+        "list": [
+          "между Ваке и Сабуртало",
+          "рядом лесной массив — 90 000 м²",
+          "несколько минут от университетской улицы"
+        ]
+      },
+      {
+        "h2": "Квартиры и отделка"
+      },
+      {
+        "p": "В продаже — квартиры площадью от 42,7 до 89,6 м². Часть корпусов сдают с отделкой «зелёный каркас» — предчистовая подготовка под собственный ремонт."
+      },
+      {
+        "h2": "Инфраструктура района"
+      },
+      {
+        "p": "По проекту на территории разместят собственную школу, детский сад, супермаркет, аптеку, банк, фудкорт, библиотеку и офисные помещения. Также планируют бассейн, спортивные площадки, велодорожки и скейт-парк — застройщик называет это «самодостаточным районом», где большая часть повседневных дел решается без выезда за его пределы."
+      },
+      {
+        "h2": "Цены и условия покупки"
+      },
+      {
+        "p": "По данным застройщика на февраль 2026 года, цена составляла от $1750 за м² — так застройщик назвал финальную цену первой очереди. Из условий покупки доступны собственная беспроцентная рассрочка застройщика и ипотека от банка TBC. Офис продаж работает в Тбилиси, на улице Ираклия Абашидзе, 70."
+      },
+      {
+        "h2": "Застройщик"
+      },
+      {
+        "p": "Anagi строит в Тбилиси с 1989 года. Среди уже сданных проектов — жилой комплекс Skyline Residence, многофункциональный жилой комплекс, вторая очередь Archi Mukhiani и башня Lisi Green Tower. Для Tbilisi Acres компания создала отдельный бренд продаж — Anagi Collab, под которым также строит конструктив комплекса Sakeni на проспекте Важа-Пшавела."
+      },
+      {
+        "tip": "На что смотреть при покупке в районе на окраине города: подключена ли инфраструктура — школы, магазины, транспорт — к моменту заселения, и по какому графику сдают остальные очереди комплекса."
+      }
+    ],
+    "faq": [
+      {
+        "q": "Когда сдача Tbilisi Acres?",
+        "a": "Застройщик называет датой завершения начало 2028 года; первая очередь из 13 корпусов сейчас строится."
+      },
+      {
+        "q": "Сколько стоит квартира в Tbilisi Acres?",
+        "a": "По данным застройщика на февраль 2026 года, цена составляла от $1750 за м²."
+      },
+      {
+        "q": "Кто застройщик Tbilisi Acres?",
+        "a": "Комплекс строит компания Anagi, работающая в Тбилиси с 1989 года, под брендом продаж Anagi Collab."
+      },
+      {
+        "q": "Есть ли рассрочка в Tbilisi Acres?",
+        "a": "Да, застройщик предлагает собственную беспроцентную рассрочку и ипотеку от банка TBC."
+      },
+      {
+        "q": "Где находится Tbilisi Acres?",
+        "a": "Между районами Ваке и Сабуртало, у дороги на Напетвреби, в нескольких минутах от университетской улицы."
+      }
+    ],
+    "sources": [
+      {
+        "name": "Anagi — страница проекта",
+        "url": "https://anagi.ge/en/project/tbilisi-acres/243"
+      },
+      {
+        "name": "Interpressnews — финальная цена первой очереди",
+        "url": "https://www.interpressnews.ge/en/article/145738-final-offer-of-phase-one-at-tbilisi-acres"
+      },
+      {
+        "name": "Interpressnews — расположение",
+        "url": "https://www.interpressnews.ge/en/article/142240-tbilisi-acres-designed-by-location-defined-by-architecture"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://anagi.ge/uploads/projects/695bcb27c4394.jpg",
+        "credit": "застройщик Anagi",
+        "src": "https://anagi.ge/en/project/tbilisi-acres/243",
+        "kind": "exterior",
+        "caption": "Проект Tbilisi Acres"
+      },
+      {
+        "url": "https://cdn2.ipn.ge/media/uploads/2025/09-10/akrebi2.jpg",
+        "credit": "застройщик Anagi",
+        "src": "https://www.interpressnews.ge/en/article/142240-tbilisi-acres-designed-by-location-defined-by-architecture",
+        "kind": "exterior",
+        "caption": "Малоэтажные корпуса комплекса"
+      },
+      {
+        "url": "https://cdn2.ipn.ge/media/uploads/2025/10-20/palitra_400px_700px_eng.jpg",
+        "credit": "застройщик Anagi",
+        "src": "https://www.interpressnews.ge/en/article/143306-tbilisi-acres-by-anagi-modern-engineering-natural-harmony",
+        "kind": "exterior",
+        "caption": "Вид комплекса"
+      },
+      {
+        "url": "https://cdn-prod.ipn.ge/media/uploads/2025/08-06/acfe2cb3_98cb_4d93_b428_ef7df86a0d85.jpg",
+        "credit": "застройщик Anagi",
+        "src": "https://www.interpressnews.ge/en/article/141625-tbilisi-acres-new-vibrant-center-of-tbilisi",
+        "kind": "exterior",
+        "caption": "Зелёная территория комплекса"
+      }
+    ],
+    "units_table": [
+      {
+        "type": "1–2 комнаты",
+        "area": "42,7–65,6 м²",
+        "note": "зелёный каркас, цена по запросу"
+      },
+      {
+        "type": "2–3 комнаты",
+        "area": "65,2–89,6 м²",
+        "note": "цена по запросу"
+      }
+    ],
+    "amenities": [
+      "Детский сад и школа",
+      "Аптека",
+      "Супермаркет",
+      "Спортзал",
+      "Фудкорт",
+      "Бассейн",
+      "Спортивные площадки",
+      "Библиотека",
+      "Велодорожки",
+      "Скейт-парк"
+    ],
+    "payment": [
+      "Беспроцентная рассрочка от застройщика",
+      "Ипотека от банка TBC"
+    ],
+    "photo": {
+      "q": "Saburtalo Tbilisi hills forest",
+      "alt": "Холмы района Сабуртало в Тбилиси"
+    },
+    "added": "2026-11-26",
+    "updated": "2026-11-26"
+  },
+  {
+    "slug": "zhk-project-72-kobuleti",
+    "name": "Project 72",
+    "city": "kobuleti",
+    "district": "центр Кобулети",
+    "address": "ул. Шота Руставели, 72",
+    "developer": "Capital City Group",
+    "developerSlug": "capital-city-group",
+    "status": "building",
+    "completion": "IV квартал 2026",
+    "price": {
+      "perM2": 750,
+      "from": 95400,
+      "currency": "USD",
+      "date": "ноябрь 2026",
+      "src": "https://korter.ge/en/project-72-kobuleti"
+    },
+    "floors": "12",
+    "units": 82,
+    "features": [
+      "450 м до моря",
+      "рассрочка от 30%",
+      "ипотека TBC",
+      "сдача IV кв. 2026"
+    ],
+    "lead": "Project 72 — дом на улице Шота Руставели в Кобулети, в 450 метрах от моря. Строит его компания Capital City Group, недавно вышедшая на рынок недвижимости Аджарии. Дом строится, сдачу планируют на IV квартал 2026 года.",
+    "body": [
+      {
+        "h2": "О комплексе"
+      },
+      {
+        "p": "Project 72 — одно здание на 12 этажей и 82 квартиры. Технология строительства — монолитный каркас, отделка — чёрный или белый каркас на выбор. По данным застройщика, площади квартир — от 31 до 127 м². В доме предусмотрен пассажирский лифт, а территория вокруг дома огорожена и благоустроена."
+      },
+      {
+        "h2": "Расположение и что рядом"
+      },
+      {
+        "p": "Дом стоит на улице Шота Руставели, 72, в Кобулети — в 450 метрах от берега моря."
+      },
+      {
+        "list": [
+          "450 м до моря",
+          "центральная улица Кобулети"
+        ]
+      },
+      {
+        "h2": "Квартиры и отделка"
+      },
+      {
+        "p": "В доме есть квартиры разных площадей — от небольших студий до трёхкомнатных на 127 м². Квартиры продают с чёрным или белым каркасом под собственный ремонт."
+      },
+      {
+        "h2": "Ход строительства"
+      },
+      {
+        "p": "По данным на начало ноября 2026 года, дом в активной стройке: часть работ на площадке ведётся с конца 2024 года, часть — с весны 2025-го, последнее обновление зафиксировано в октябре 2026 года."
+      },
+      {
+        "h2": "Цены и условия покупки"
+      },
+      {
+        "p": "По данным на ноябрь 2026 года, цена — от $750 за м², а трёхкомнатная квартира площадью 127 м² стоит от $95 400. Из условий покупки — рассрочка с первым взносом от 30% на срок до 2 лет и ипотека от банка TBC: по расчёту застройщика, при кредите около $81 000 ежемесячный платёж составит порядка $7000."
+      },
+      {
+        "list": [
+          "первый взнос — от 30%",
+          "рассрочка — до 2 лет",
+          "ипотека — банк TBC"
+        ]
+      },
+      {
+        "h2": "Застройщик"
+      },
+      {
+        "p": "Capital City Group — молодая компания на рынке недвижимости Аджарии, Project 72 — один из её текущих проектов в Кобулети. Дом стоит на закрытой придомовой территории с круглосуточным видеонаблюдением, детской площадкой и парковкой на уровне земли; входы в подъезды сделаны без порогов и ступеней."
+      },
+      {
+        "tip": "На что смотреть при покупке в доме от нового застройщика: разрешение на строительство в реестре, договор о порядке платежей и сроках сдачи, порядок оформления права собственности после сдачи дома."
+      }
+    ],
+    "faq": [
+      {
+        "q": "Когда сдача Project 72 в Кобулети?",
+        "a": "Застройщик планирует сдать дом в IV квартале 2026 года."
+      },
+      {
+        "q": "Сколько стоит квартира в Project 72?",
+        "a": "По данным на ноябрь 2026 года, цена — от $750 за м², трёхкомнатная квартира 127 м² — от $95 400."
+      },
+      {
+        "q": "Кто застройщик Project 72?",
+        "a": "Дом строит компания Capital City Group."
+      },
+      {
+        "q": "Есть ли рассрочка в Project 72?",
+        "a": "Да, первый взнос от 30% и рассрочка на срок до 2 лет, также доступна ипотека от банка TBC."
+      },
+      {
+        "q": "Далеко ли Project 72 от моря?",
+        "a": "Около 450 метров — это 5–7 минут пешком до берега."
+      },
+      {
+        "q": "Какие планировки есть в Project 72?",
+        "a": "От небольших студий до трёхкомнатных квартир площадью 127 м², с отделкой «чёрный» или «белый каркас»."
+      }
+    ],
+    "sources": [
+      {
+        "name": "korter.ge — страница проекта",
+        "url": "https://korter.ge/en/project-72-kobuleti"
+      },
+      {
+        "name": "korter.ge — страница застройщика",
+        "url": "https://korter.ge/en/capitai-city-group"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21192.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "exterior",
+        "caption": "Дом Project 72 в Кобулети"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21190.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "exterior",
+        "caption": "Строящийся дом"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21181.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "exterior",
+        "caption": "Ход строительства"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21182.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "progress",
+        "caption": "Строительная площадка, 2026"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21183.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "exterior",
+        "caption": "Вид на дом"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21189.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "exterior",
+        "caption": "Вид на дом"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21186.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "progress",
+        "caption": "Строительная площадка, 2026"
+      },
+      {
+        "url": "https://storage.googleapis.com/bd-ge-01/buildings-v2/2560x1920/21185.jpg",
+        "credit": "застройщик Capital City Group",
+        "src": "https://korter.ge/en/project-72-kobuleti",
+        "kind": "exterior",
+        "caption": "Фасад дома"
+      }
+    ],
+    "units_table": [
+      {
+        "type": "3 комнаты",
+        "area": "127,2 м²",
+        "priceFrom": 95400,
+        "note": "чёрный или белый каркас"
+      },
+      {
+        "type": "студия — 3 комнаты",
+        "area": "31,1–127,2 м²",
+        "note": "чёрный или белый каркас, цена по запросу"
+      }
+    ],
+    "amenities": [
+      "Закрытый двор",
+      "Видеонаблюдение 24/7",
+      "Детская площадка",
+      "Благоустроенная территория",
+      "Паркинг",
+      "Пассажирский лифт"
+    ],
+    "payment": [
+      "Первый взнос от 30%, рассрочка до 2 лет",
+      "Ипотека от банка TBC"
+    ],
+    "photo": {
+      "q": "Kobuleti seafront street",
+      "alt": "Улица в Кобулети"
+    },
+    "added": "2026-11-26",
+    "updated": "2026-11-26"
+  },
+  {
     "slug": "zhk-black-sea-towers-batumi",
     "name": "Black Sea Towers",
     "city": "batumi",
