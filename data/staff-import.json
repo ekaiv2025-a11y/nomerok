@@ -641,6 +641,253 @@
           "photo": "https://medcenter.ge/wp-content/uploads/TamarGhibradze.jpg"
         }
       ]
+    },
+    {
+      "id": "medcenter.ge-2026-11-28-pushkin",
+      "place_id": "BAT-FCE13922E9D4",
+      "staff": [
+        {
+          "name": "Инга Абесадзе",
+          "category": "doctor",
+          "title": "Клинический руководитель, эндокринолог, доктор медицинских наук, профессор",
+          "credentials": "Читинская государственная медицинская академия, лечебный факультет; клиническая ординатура и аспирантура на базе Эндокринологического научного центра РАМН (Москва); дополнительная подготовка по нутрициологии в Институте последипломного медицинского образования ТбилГМУ; доктор медицинских наук, профессор; член Союза диабетических и эндокринных ассоциаций Грузии (GUDEAS); соавтор национального протокола лечения гипергликемии у госпитализированных пациентов с COVID-19 (2021); автор 38 научных публикаций.",
+          "experience_years": 20,
+          "source_url": "https://medcenter.ge/ru/profile/inga-abesadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%98%E1%83%9C%E1%83%92%E1%83%90-%E1%83%90%E1%83%91%E1%83%94%E1%83%A1%E1%83%90%E1%83%AB%E1%83%94-%E1%83%99%E1%83%9A%E1%83%98%E1%83%9C%E1%83%98%E1%83%99%E1%83%A3%E1%83%A0%E1%83%98-%E1%83%93%E1%83%98%E1%83%A0%E1%83%94%E1%83%A5%E1%83%A2%E1%83%9D%E1%83%A0%E1%83%98-%E1%83%94%E1%83%9C%E1%83%93%E1%83%9D%E1%83%99%E1%83%A0%E1%83%98%E1%83%9C%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-%E1%83%9B%E1%83%94%E1%83%93%E1%83%98%E1%83%AA%E1%83%98%E1%83%9C%E1%83%98%E1%83%A1-%E1%83%93%E1%83%9D%E1%83%A5%E1%83%A2%E1%83%9D%E1%83%A0%E1%83%98.jpg"
+        },
+        {
+          "name": "Лиана Джаши",
+          "category": "doctor",
+          "title": "Эндокринолог",
+          "credentials": "Медицинский факультет Батумского государственного университета им. Шота Руставели (1993–1999); цикл по эндокринологии в Государственной медицинской академии последипломного образования (2001); специализация «Внутренняя медицина», Институт последипломного образования ТбилГМУ (2011); курс по нутрициологии, ТбилГМУ (2019).",
+          "source_url": "https://medcenter.ge/ru/profile/liana-jashi/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9A%E1%83%98%E1%83%90%E1%83%9C%E1%83%90-%E1%83%AF%E1%83%90%E1%83%A8%E1%83%98-%E1%83%94%E1%83%9C%E1%83%93%E1%83%9D%E1%83%99%E1%83%A0%E1%83%98%E1%83%9C%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Лия Какауридзе",
+          "category": "doctor",
+          "title": "Эндокринолог, детский эндокринолог",
+          "source_url": "https://medcenter.ge/ru/profile/lia-kakauridze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9A%E1%83%98%E1%83%90-%E1%83%99%E1%83%90%E1%83%99%E1%83%90%E1%83%A3%E1%83%A0%E1%83%98%E1%83%AB%E1%83%94-%E1%83%94%E1%83%9C%E1%83%93%E1%83%9D%E1%83%99%E1%83%A0%E1%83%98%E1%83%9C%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Марина Какабадзе",
+          "category": "doctor",
+          "title": "Эндокринолог",
+          "source_url": "https://medcenter.ge/ru/profile/marina-kakabadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9B%E1%83%90%E1%83%A0%E1%83%98%E1%83%9C%E1%83%90-%E1%83%99%E1%83%90%E1%83%99%E1%83%90%E1%83%91%E1%83%90%E1%83%AB%E1%83%94-%E1%83%94%E1%83%9C%E1%83%93%E1%83%9D%E1%83%99%E1%83%A0%E1%83%98%E1%83%9C%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Нона Шаманадзе",
+          "category": "doctor",
+          "title": "Эндокринолог",
+          "credentials": "Ранее работала врачом-терапевтом в Москве и ассистентом эндокринолога в клинике «Кюрасио» (Тбилиси).",
+          "source_url": "https://medcenter.ge/ru/profile/nona-shamanadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/IMG_8810.jpg"
+        },
+        {
+          "name": "Иракли Антиа",
+          "category": "doctor",
+          "title": "Оториноларинголог",
+          "credentials": "Ординатура в Национальном центре оториноларингологии (Минск, 2016–2018) и Национальном центре болезней уха, горла и носа (Тбилиси, 2018–2019); с 2019 года заведует отделением оториноларингологии клиники «Медцентр» в Батуми, также принимает в Батумской поликлинике №4 и клинике Med Life (Зугдиди).",
+          "source_url": "https://medcenter.ge/ru/profile/irakli-antia/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-%E1%83%90%E1%83%9C%E1%83%97%E1%83%98%E1%83%90-%E1%83%9D%E1%83%A2%E1%83%9D-%E1%83%A0%E1%83%98%E1%83%9C%E1%83%9D-%E1%83%9A%E1%83%90%E1%83%A0%E1%83%98%E1%83%9C%E1%83%92%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-e1655496258565.jpg"
+        },
+        {
+          "name": "Лаша Карцивадзе",
+          "category": "doctor",
+          "title": "Оториноларинголог",
+          "credentials": "Медицинский факультет Батумского университета им. Шота Руставели (2009–2015); клиническая ординатура по оториноларингологии, Белорусская медицинская академия последипломного образования (2016–2019); интернатура в Минске (2018).",
+          "source_url": "https://medcenter.ge/ru/profile/lasha-kartsivadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/-%E1%83%A5%E1%83%90%E1%83%A0%E1%83%AA%E1%83%98%E1%83%95%E1%83%90%E1%83%AB%E1%83%94-%E1%83%9D%E1%83%A2%E1%83%9D-%E1%83%A0%E1%83%98%E1%83%9C%E1%83%9D-%E1%83%9A%E1%83%90%E1%83%A0%E1%83%98%E1%83%9C%E1%83%92%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-e1655496227481.jpg"
+        },
+        {
+          "name": "Манана Стамболишвили",
+          "category": "massage",
+          "title": "Физиотерапевт",
+          "source_url": "https://medcenter.ge/ru/profile/manana-stambolishvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9B%E1%83%90%E1%83%9C%E1%83%90%E1%83%9C%E1%83%90-%E1%83%A1%E1%83%A2%E1%83%90%E1%83%9B%E1%83%91%E1%83%9D%E1%83%9A%E1%83%98%E1%83%A8%E1%83%95%E1%83%98%E1%83%9A%E1%83%98-%E1%83%A4%E1%83%98%E1%83%96%E1%83%98%E1%83%9D-%E1%83%97%E1%83%94%E1%83%A0%E1%83%90%E1%83%9E%E1%83%94%E1%83%95%E1%83%A2%E1%83%98.jpg"
+        },
+        {
+          "name": "Миранда Харадзе",
+          "category": "doctor",
+          "title": "Терапевт",
+          "credentials": "Медицинский факультет Батумского университета им. Шота Руставели (2007–2013); резидентура по терапии, клиника EVEX (2017–2021).",
+          "source_url": "https://medcenter.ge/ru/profile/miranda-kharadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9B%E1%83%98%E1%83%A0%E1%83%90%E1%83%9C%E1%83%93%E1%83%90-%E1%83%AE%E1%83%90%E1%83%A0%E1%83%90%E1%83%AB%E1%83%94-%E1%83%97%E1%83%94%E1%83%A0%E1%83%90%E1%83%9E%E1%83%94%E1%83%95%E1%83%A2%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Изо Пачкория",
+          "category": "doctor",
+          "title": "Терапевт",
+          "credentials": "Медицинский факультет Батумского государственного университета им. Шота Руставели (2000–2006); ординатура по внутренним болезням, Тбилисская центральная больница (2006–2013); последипломная подготовка «Скорая медицинская помощь» (2017–2018).",
+          "source_url": "https://medcenter.ge/ru/profile/izo-pachkoria/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%98%E1%83%96%E1%83%9D-%E1%83%9E%E1%83%90%E1%83%AD%E1%83%99%E1%83%9D%E1%83%A0%E1%83%98%E1%83%90-%E1%83%97%E1%83%94%E1%83%A0%E1%83%90%E1%83%9E%E1%83%94%E1%83%95%E1%83%A2%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Нериман Цинцадзе",
+          "category": "doctor",
+          "title": "Врач-ревматолог, терапевт, доктор медицинских наук, доцент, заведующая отделением ревматологии",
+          "credentials": "Окончила медицинский институт и аспирантуру в Ташкенте (специальность «лечебное дело»); 8 лет работала на кафедре клинической фармакологии Ташкентского медицинского института; доктор медицинских наук, доцент Батумского государственного университета; член редколлегии журнала «Терапия»; 2 государственных свидетельства на изобретательство и рационализаторство; автор более 60 научных публикаций.",
+          "source_url": "https://medcenter.ge/ru/profile/neriman-tsintsadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9C%E1%83%94%E1%83%A0%E1%83%98%E1%83%9B%E1%83%90%E1%83%9C-%E1%83%AA%E1%83%98%E1%83%9C%E1%83%AA%E1%83%90%E1%83%AB%E1%83%94-%E1%83%A0%E1%83%94%E1%83%95%E1%83%9B%E1%83%90%E1%83%A2%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Назиброла Цивадзе",
+          "category": "doctor",
+          "title": "Врач-ревматолог",
+          "credentials": "Медицинский факультет Батумского государственного университета им. Шота Руставели (2005–2011), специальность «лечащий врач, медицина внутренних болезней»; резидентура в АО «Медицинский центр моряков» (2013–2016); сертификат по ревматологии №017732 (28.12.2016).",
+          "source_url": "https://medcenter.ge/ru/profile/nazibrola-tsivadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9C%E1%83%90%E1%83%96%E1%83%98%E1%83%91%E1%83%A0%E1%83%9D%E1%83%9A%E1%83%90-%E1%83%AA%E1%83%98%E1%83%95%E1%83%90%E1%83%AB%E1%83%94-%E1%83%A0%E1%83%94%E1%83%95%E1%83%9B%E1%83%90%E1%83%A2%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98.jpg"
+        },
+        {
+          "name": "Ия Кахидзе",
+          "category": "doctor",
+          "title": "Врач-ревматолог",
+          "credentials": "Медицинский факультет Батумского государственного университета им. Шота Руставели (1997–2003), специальность «лечебное дело»; резидентура по ревматологии в Батумском медицинском центре моряков и Тбилисском центре ревматологии (2003–2007).",
+          "source_url": "https://medcenter.ge/ru/profile/ia-kakhidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%98%E1%83%90-%E1%83%99%E1%83%90%E1%83%AE%E1%83%98%E1%83%AB%E1%83%94-%E1%83%94%E1%83%A5%E1%83%98%E1%83%9B%E1%83%98-%E1%83%A0%E1%83%94%E1%83%95%E1%83%9B%E1%83%90%E1%83%A2%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-scaled.jpg"
+        },
+        {
+          "name": "Нино Дзадзамиа",
+          "category": "doctor",
+          "title": "Врач-ревматолог",
+          "source_url": "https://medcenter.ge/ru/profile/nino-dzadzamia/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%9C%E1%83%98%E1%83%9C%E1%83%9D-%E1%83%AB%E1%83%90%E1%83%AB%E1%83%90%E1%83%9B%E1%83%98%E1%83%90-%E1%83%A0%E1%83%94%E1%83%95%E1%83%9B%E1%83%90%E1%83%A2%E1%83%9D%E1%83%9A%E1%83%9D%E1%83%92%E1%83%98-1.jpg"
+        },
+        {
+          "name": "Лия Сагинадзе",
+          "category": "doctor",
+          "title": "Врач-ревматолог, руководитель Лиги ревматологов и реабилитологов Западной Грузии",
+          "credentials": "Тбилисский медицинский университет «Сакартвело» (1994–1995); медицинский факультет Государственного университета им. Шота Руставели (1995–2000); государственный сертификат врача общего профиля (2006); программа подготовки семейного врача (2007) и сертификат по семейной медицине (2009); клиническая ординатура по ревматологии (2017–2020); квалификационный экзамен по ревматологии (2021).",
+          "source_url": "https://medcenter.ge/ru/profile/lia-saginadze/",
+          "photo": null
+        },
+        {
+          "name": "Гуранда Турманидзе",
+          "category": "doctor",
+          "title": "Проктолог",
+          "credentials": "Тбилисская медицинская академия им. П. Шотадзе, квалификация врача общего профиля (1994–2001); ординатура по проктологии, медицинская академия последипломного образования, Россия (2001–2003).",
+          "source_url": "https://medcenter.ge/ru/profile/guranda-turmanidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%92%E1%83%A3%E1%83%A0%E1%83%90%E1%83%9C%E1%83%93%E1%83%90-%E1%83%97%E1%83%A3%E1%83%A0%E1%83%9B%E1%83%90%E1%83%9C%E1%83%98%E1%83%AB%E1%83%94.jpg"
+        },
+        {
+          "name": "Нодар Путкарадзе",
+          "category": "doctor",
+          "title": "Дерматолог",
+          "source_url": "https://medcenter.ge/ru/profile/nodar-putkaradze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/IMG_3277-1.jpg"
+        },
+        {
+          "name": "Дато Химшиашвили",
+          "category": "doctor",
+          "title": "Заведующий отделением экстренной медицины",
+          "credentials": "Батумский медико-экологический институт, специальность «медицина» (1996–2002); государственный сертификат по медицине внутренних органов; государственный сертификат по неотложной медицине.",
+          "source_url": "https://medcenter.ge/ru/profile/dato-khimshiashvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/%E1%83%93%E1%83%90%E1%83%97%E1%83%9D-%E1%83%AE%E1%83%98%E1%83%9B%E1%83%A8%E1%83%98%E1%83%90%E1%83%A8%E1%83%95%E1%83%98%E1%83%9A%E1%83%98-%E1%83%92%E1%83%90%E1%83%93%E1%83%90%E1%83%A3%E1%83%93%E1%83%94%E1%83%91%E1%83%94%E1%83%9A%E1%83%98-%E1%83%9B%E1%83%94%E1%83%93%E1%83%98%E1%83%AA%E1%83%98%E1%83%9C%E1%83%98%E1%83%A1-%E1%83%9B%E1%83%98%E1%83%9B%E1%83%90%E1%83%A0%E1%83%97%E1%83%A3%E1%83%9A%E1%83%94%E1%83%91%E1%83%98%E1%83%A1-%E1%83%AE%E1%83%94%E1%83%9A%E1%83%9B%E1%83%AB%E1%83%A6%E1%83%95%E1%83%90%E1%83%9C%E1%83%94%E1%83%9A%E1%83%98-scaled.jpg"
+        }
+      ]
+    },
+    {
+      "id": "medcenter.ge-2026-11-28-bagrationi",
+      "place_id": "BAT-FEC68F7F4D49",
+      "staff": [
+        {
+          "name": "Кохташвили Нона",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/nonna-kohtashvili/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Nonna-Kohtashvili.jpg"
+        },
+        {
+          "name": "Нази Месхи",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/nazi-meskhi/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Nazi-meskhi.jpg"
+        },
+        {
+          "name": "Зеинаб Беридзе",
+          "category": "doctor",
+          "title": "Радиолог",
+          "source_url": "https://medcenter.ge/ru/profile/zeinab-beridze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Zeinab-Beridze.jpg"
+        },
+        {
+          "name": "Давид Цецхладзе",
+          "category": "doctor",
+          "title": "Радиолог, профессор, доктор медицины, руководитель направления радиологии",
+          "credentials": "Доктор медицины, профессор.",
+          "source_url": "https://medcenter.ge/ru/profile/davi-tseskhadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Davi-Tseskhadze.jpg"
+        },
+        {
+          "name": "Ия Тандилава",
+          "category": "doctor",
+          "title": "Радиолог, академический доктор медицины",
+          "credentials": "Академический доктор медицины.",
+          "source_url": "https://medcenter.ge/ru/profile/ia-tamdilava/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Ia-Tamdilava.jpg"
+        },
+        {
+          "name": "Тамар Арошидзе",
+          "category": "doctor",
+          "title": "Офтальмолог",
+          "source_url": "https://medcenter.ge/ru/profile/tamara-aroshidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Tamara-Aroshidze.jpg"
+        },
+        {
+          "name": "Наталия Кобалава",
+          "category": "doctor",
+          "title": "Педиатр, семейный доктор",
+          "source_url": "https://medcenter.ge/ru/profile/natalia-kobalava/",
+          "photo": "https://medcenter.ge/wp-content/uploads/natalia-kobalava.jpg"
+        },
+        {
+          "name": "Натия Мамуладзе",
+          "category": "doctor",
+          "title": "Терапевт",
+          "source_url": "https://medcenter.ge/ru/profile/natia-mamuladze/",
+          "photo": null
+        },
+        {
+          "name": "Этер Хабадзе",
+          "category": "doctor",
+          "title": "Нефролог, заведующая отделением гемодиализа",
+          "credentials": "Дагестанский государственный медицинский институт (1978–1984); лицензия по внутренним болезням (2001–2006); специализация по гемодиализу (2011); ранее заведовала отделением гемодиализа Батумской республиканской больницы и Батумской специализированной больницы.",
+          "source_url": "https://medcenter.ge/ru/profile/eteri-khabadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/eteri-khabadze-min.jpg"
+        },
+        {
+          "name": "Элиза Куршубадзе",
+          "category": "doctor",
+          "title": "Нефролог, доктор медицинских наук",
+          "credentials": "Доктор медицинских наук.",
+          "source_url": "https://medcenter.ge/ru/profile/eliza-kurshubadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Eliza-Kurshubadze.jpg"
+        },
+        {
+          "name": "Лела Зоидзе",
+          "category": "doctor",
+          "title": "Нефролог",
+          "source_url": "https://medcenter.ge/ru/profile/lela-zoidze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Lela-Zoidze.jpg"
+        },
+        {
+          "name": "Ширин Джорбенадзе",
+          "category": "doctor",
+          "title": "Нефролог, терапевт, руководитель терапевтического направления",
+          "source_url": "https://medcenter.ge/ru/profile/shirin-jorbenadze/",
+          "photo": "https://medcenter.ge/wp-content/uploads/Shirin-Jorbenadze.jpg"
+        },
+        {
+          "name": "Русудан Камададзе",
+          "category": "doctor",
+          "title": "Заведующая отделением неотложной помощи, врач скорой медицинской помощи",
+          "source_url": "https://medcenter.ge/ru/profile/rusudan-kamadze/",
+          "photo": null
+        }
+      ]
     }
   ]
 }
