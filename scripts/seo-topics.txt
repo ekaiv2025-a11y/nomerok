@@ -9,7 +9,7 @@
 [x] Электрик в Тбилиси: цены на вызов, проводку, розетки | tbilisi | electrician | home | elektrik-tbilisi-ceny-2026
 [x] Уборка квартиры в Батуми: цены на генеральную и после ремонта | batumi | cleaning | home | uborka-kvartiry-batumi-ceny-2026
 [x] Клининг в Тбилиси 2026: сколько стоит уборка квартиры, генеральная и после ремонта | tbilisi | cleaning | home | klining-tbilisi-ceny-2026
-[ ] Клининг в Кутаиси: цены на уборку квартиры и дома | kutaisi | cleaning | home
+[x] Клининг в Кутаиси: цены на уборку квартиры и дома | kutaisi | cleaning | home | klining-kutaisi-ceny-2026
 [ ] Клининг в Рустави: сколько стоит уборка квартиры | rustavi | cleaning | home
 [ ] Уборка квартир в Кобулети: цены, уборка после сезона и посуточной аренды | kobuleti | cleaning | home
 [ ] Химчистка мебели и ковров в Тбилиси и Батуми: цены на диван, матрас, ковёр | Вся Грузия | cleaning | home
