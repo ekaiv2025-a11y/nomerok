@@ -11,6 +11,7 @@ export type Block =
   | { h2: string }
   | { p: string }
   | { list: string[]; ordered?: boolean }
+  | { table: { head: string[]; rows: string[][]; caption?: string } } // таблица цен: «Услуга | Цена | Источник»
   | { tip: string }
   | { cta: string; cat: string }
   | { link: string; href: string }

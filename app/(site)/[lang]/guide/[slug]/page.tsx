@@ -106,6 +106,30 @@ export default async function ArticlePage({ params }: Props) {
               </L>
             );
           }
+          if ("table" in b)
+            return (
+              <figure key={i} className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+                <table className="w-full min-w-[480px] border-collapse overflow-hidden rounded-2xl border border-line bg-white text-left text-[14.5px]">
+                  <thead className="bg-cream">
+                    <tr>
+                      {b.table.head.map((h, j) => (
+                        <th key={j} className="border-b border-line px-3 py-2 font-semibold">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.table.rows.map((r, j) => (
+                      <tr key={j} className="border-b border-line last:border-0">
+                        {r.map((c, k) => (
+                          <td key={k} className={`px-3 py-2 align-top ${k === 0 ? "font-medium" : ""}`}>{linkify(c)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {b.table.caption && <figcaption className="mt-1.5 text-[12.5px] text-muted">{b.table.caption}</figcaption>}
+              </figure>
+            );
           if ("tip" in b) return <p key={i} className="rounded-2xl border border-[#f0d58a] bg-[#fff8e6] p-4 text-[15px]">💡 {linkify(b.tip)}</p>;
           if ("phones" in b)
             return (

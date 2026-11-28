@@ -8,7 +8,7 @@ const errors = [];
 const slugs = new Set();
 const urls = new Map();
 const BANNED = /(лучш(ий|ие|ая)\s+мастер|провер(енные|ены)\s+(мастера|специалисты|документы)|whatsapp|ватсап)/i;
-const BLOCK_KEYS = ["h2", "p", "list", "tip", "cta", "link", "map", "img", "event", "spot"];
+const BLOCK_KEYS = ["h2", "p", "list", "table", "tip", "cta", "link", "map", "img", "event", "spot"];
 const LICENSE = /^(CC BY(-SA)? [0-9.]+|CC0|Public domain|Общественное достояние)/i;
 const CITY_IDS = ["batumi", "tbilisi", "kutaisi", "rustavi", "kobuleti", "zugdidi", "poti", "gori", "telavi", "borjomi"];
 const today = new Date(Date.now() + 4 * 3600_000).toISOString().slice(0, 10); // дата по Тбилиси
@@ -32,6 +32,9 @@ for (const [i, n] of list.entries()) {
   if (n.description && (n.description.length < 60 || n.description.length > 200)) errors.push(`${at}: description 60–200 знаков`);
   if (!Array.isArray(n.body) || n.body.length < 3) errors.push(`${at}: body — минимум 3 блока`);
   for (const b of n.body ?? []) if (!b || !BLOCK_KEYS.some((k) => k in b)) errors.push(`${at}: неизвестный блок ${JSON.stringify(b).slice(0, 60)}`);
+  for (const b of n.body ?? [])
+    if (b?.table && (!Array.isArray(b.table.head) || !b.table.head.length || !Array.isArray(b.table.rows) || b.table.rows.some((r) => !Array.isArray(r) || r.length !== b.table.head.length || r.some((c) => typeof c !== "string"))))
+      errors.push(`${at}: таблица — { head: [...], rows: [[...]] }, в каждой строке столько же ячеек-строк, сколько в head`);
   if (!Array.isArray(n.sources) || !n.sources.length) errors.push(`${at}: нужен хотя бы один источник`);
   for (const s of n.sources ?? []) {
     if (!s?.name || !/^https:\/\/[^\s]+$/.test(s?.url ?? "")) errors.push(`${at}: источник должен быть с name и https-ссылкой`);
@@ -46,7 +49,7 @@ for (const [i, n] of list.entries()) {
     }
   const text = JSON.stringify(n);
   if (BANNED.test(text)) errors.push(`${at}: запрещённые слова (лучшие мастера / проверенные / WhatsApp)`);
-  const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : b.spot ? [b.spot.name, b.spot.what, b.spot.address].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
+  const words = [n.lead, ...(n.body ?? []).map((b) => b.p || b.h2 || b.tip || (b.list || []).join(" ") || (b.table ? b.table.rows.flat().join(" ") : "") || (b.event ? [b.event.title, b.event.what, b.event.venue, b.event.note].join(" ") : b.spot ? [b.spot.name, b.spot.what, b.spot.address].join(" ") : "")), ...(n.faq ?? []).map((f) => `${f.q} ${f.a}`)].join(" ").split(/\s+/).length;
   const minWords = n.rubric === "travel" || n.kind === "guide" ? 1200 : n.rubric === "life" ? 350 : n.rubric === "picks" ? 250 : 120;
   if (words < minWords) errors.push(`${at}: слишком коротко (${words} слов, нужно от ${minWords})`);
   for (const b of n.body ?? []) {
